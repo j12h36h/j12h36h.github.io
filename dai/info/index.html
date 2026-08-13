@@ -1,72 +1,76 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DAI Information</title>
-  <link rel="stylesheet" href="../assets/css/site.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>DAI Information</title>
+<link href="../assets/css/site.css" rel="stylesheet"/>
 </head>
 <body>
-
 <header class="site-header">
-  <nav class="nav">
-    <a class="brand" href="../index.html">Decisions <span>&amp;</span> Impulses</a>
-    <div class="nav-links">
-      <a href="../index.html">Home</a>
-      <a class="active" href="../info/">Info</a>
-      <a href="../guides/">Guides</a>
-      <a href="../datapacks/">Official Datapacks</a>
-      <a href="creator/">Datapack Creation Interface</a>
-    </div>
-  </nav>
+<nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a aria-current="page" class="active" href="/dai/info/">Info</a><a href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/datapacks/">Official Datapacks</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav>
 </header>
 <main>
-  <section class="page-title">
-    <div class="eyebrow">Information</div>
-    <h1>What is DAI?</h1>
-    <p>
+<section class="page-title">
+<div class="eyebrow">Information</div>
+<h1>What is DAI?</h1>
+<p>
       Decisions and Impulses is a reusable Minecraft automation runtime. The mod supplies
       capabilities; datapacks define the gameplay built from those capabilities.
     </p>
-  </section>
-
-  <section class="section">
-    <h2>Engine, Not One Fixed Game Mode</h2>
-    <p>
+</section>
+<section class="section">
+<h2>Engine, Not One Fixed Game Mode</h2>
+<p>
       DAI provides movement, navigation, camera control, targeting, block and entity
       perception, mining, placement, inventory interaction, crafting, combat,
-      Creative construction, conditions, menus, objectives, runtime recovery, and more.
+      Creative construction, conditions, menus, objectives, runtime recovery, reactions, custom button styling, screen sprites, animated sprite sheets, and more.
     </p>
-    <div class="code"><pre>DAI Mod
+<div class="code"><pre>DAI Mod
 =
 Automation Engine
 
 Your Datapack
 =
 Gameplay / Behavior</pre></div>
-  </section>
-
-  <section class="section">
-    <h2>What Can Be Built?</h2>
-    <div class="grid">
-      <div class="card"><h3>Survival</h3><p>Resource gathering, tools, food, shelter, mining, exploration, combat, progression, and custom strategies.</p></div>
-      <div class="card"><h3>Creative</h3><p>Physical player-controlled structure building using Creative inventory, flight, camera control, and placement.</p></div>
-      <div class="card"><h3>Adventure</h3><p>Scripted routes, interactions, combat, objectives, landmarks, quests, and custom-map automation.</p></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <h2>Modular by Design</h2>
-    <p>
+</section>
+<section class="section">
+<h2>What Can Be Built?</h2>
+<div class="grid">
+<div class="card"><h3>Survival</h3><p>Resource gathering, tools, food, shelter, mining, exploration, combat, progression, and custom strategies.</p></div>
+<div class="card"><h3>Creative</h3><p>Physical player-controlled structure building using Creative inventory, flight, camera control, and placement.</p></div>
+<div class="card"><h3>Adventure</h3><p>Scripted routes, interactions, combat, objectives, landmarks, quests, and custom-map automation.</p></div>
+</div>
+</section>
+<section class="section">
+<h2>Events &amp; Presentation Are Datapack Systems Too</h2>
+<p>
+      Reactions let JSON subscribe to registered runtime events and run normal DAI sequences
+      in pre, during, or post phases. Presentation actions can draw static resource-pack
+      sprites or animated sprite sheets on screen, tint and layer them, and optionally make
+      them interactive.
+    </p>
+<div class="code"><pre>Runtime Event
+    ↓
+Reaction JSON
+    ↓
+Conditions
+    ↓
+DAI Sequence
+    ↓
+Gameplay / UI / Overlay Response</pre></div>
+</section>
+<section class="section">
+<h2>Modular by Design</h2>
+<p>
       Gameplay modes can live in separate datapacks and namespaces, allowing creators
       to add, replace, or remove gameplay behavior without rewriting the DAI Java runtime.
     </p>
-  </section>
+</section>
 </main>
-
 <footer class="footer">
   Decisions and Impulses · Third-party automation framework for Minecraft
 </footer>
-
 </body>
 </html>

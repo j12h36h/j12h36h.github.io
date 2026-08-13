@@ -932,6 +932,36 @@ window.DAI_CREATOR_CATALOG = {
       "category": "Flow Control",
       "params": [],
       "purpose": "Run a referenced action when the previous action succeeded."
+    },
+    {
+      "id": "overlay_sprite",
+      "category": "Presentation & Overlays",
+      "params": [
+        "sprite"
+      ],
+      "purpose": "Add or replace a static screen sprite layer."
+    },
+    {
+      "id": "overlay_sprite_sheet",
+      "category": "Presentation & Overlays",
+      "params": [
+        "sprite_sheet"
+      ],
+      "purpose": "Add or replace an animated sprite-sheet screen layer."
+    },
+    {
+      "id": "overlay_remove",
+      "category": "Presentation & Overlays",
+      "params": [
+        "action"
+      ],
+      "purpose": "Remove one active overlay by overlay ID."
+    },
+    {
+      "id": "overlay_clear",
+      "category": "Presentation & Overlays",
+      "params": [],
+      "purpose": "Clear all active DAI screen overlays."
     }
   ],
   "conditions": [
@@ -2467,6 +2497,55 @@ window.DAI_CREATOR_CATALOG = {
       "valueType": "number",
       "inputs": [],
       "purpose": "Light level"
+    },
+    {
+      "id": "reaction_active",
+      "category": "Reactions",
+      "valueType": "boolean",
+      "inputs": [],
+      "purpose": "A DAI reaction event context is currently active."
+    },
+    {
+      "id": "reaction_event",
+      "category": "Reactions",
+      "valueType": "string",
+      "inputs": [],
+      "purpose": "Current reaction event ID."
+    },
+    {
+      "id": "reaction_phase",
+      "category": "Reactions",
+      "valueType": "string",
+      "inputs": [],
+      "purpose": "Current reaction phase: pre, during, or post."
+    },
+    {
+      "id": "reaction_has_entity",
+      "category": "Reactions",
+      "valueType": "boolean",
+      "inputs": [],
+      "purpose": "Current reaction exposes an entity context."
+    },
+    {
+      "id": "reaction_entity_type",
+      "category": "Reactions",
+      "valueType": "string",
+      "inputs": [],
+      "purpose": "Resource ID of the reaction entity, such as minecraft:zombie."
+    },
+    {
+      "id": "reaction_entity_living",
+      "category": "Reactions",
+      "valueType": "boolean",
+      "inputs": [],
+      "purpose": "Reaction entity is a living entity."
+    },
+    {
+      "id": "reaction_entity_health",
+      "category": "Reactions",
+      "valueType": "number",
+      "inputs": [],
+      "purpose": "Current health of the reaction living entity."
     }
   ],
   "operators": {
@@ -2515,5 +2594,30 @@ window.DAI_CREATOR_CATALOG = {
     "contains_group",
     "dimensions",
     "group_ratio"
+  ],
+  "overlayAnchors": [
+    "top_left",
+    "top_center",
+    "top_right",
+    "center_left",
+    "center",
+    "center_right",
+    "bottom_left",
+    "bottom_center",
+    "bottom_right"
+  ],
+  "reactionEvents": [
+    {
+      "id": "player_attack_entity",
+      "phases": [
+        "pre",
+        "during",
+        "post"
+      ],
+      "cancellable": true,
+      "overrideable": true,
+      "entityContext": true,
+      "purpose": "Fires around the normal client entity-attack call."
+    }
   ]
 };

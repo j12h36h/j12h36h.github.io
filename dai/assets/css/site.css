@@ -304,3 +304,59 @@ main {
 
   .hero { padding-top: 28px; }
 }
+
+
+/* ------------------------------------------------------------------
+   Site-wide navigation normalization.
+   Every page uses the same button order/labels and fixed layout rules.
+   ------------------------------------------------------------------ */
+.nav {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  min-height: 72px;
+  gap: 24px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nav-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 11px;
+  border-radius: 9px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.nav-links a.active {
+  font-weight: 700;
+}
+
+.grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+@media (max-width: 1040px) {
+  .nav {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .nav-links {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+}

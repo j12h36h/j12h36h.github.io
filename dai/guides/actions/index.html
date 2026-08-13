@@ -1,204 +1,201 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Actions · DAI Creator Guide</title>
-  <meta name="description" content="DAI creator guide">
-  <link rel="stylesheet" href="../../assets/css/site.css">
-  <link rel="stylesheet" href="../assets/guides.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Actions · DAI Creator Guide</title>
+<meta content="DAI creator guide" name="description"/>
+<link href="../../assets/css/site.css" rel="stylesheet"/>
+<link href="../assets/guides.css" rel="stylesheet"/>
 </head>
 <body>
-
 <header class="site-header">
-  <nav class="nav">
-    <a class="brand" href="../../index.html">Decisions <span>&amp;</span> Impulses</a>
-    <div class="nav-links">
-      <a href="../../index.html">Home</a>
-      <a href="../../info/">Info</a>
-      <a class="active" href="../../guides/">Guides</a>
-      <a href="../../datapacks/">Official Datapacks</a>
-      <a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" target="_blank" rel="noopener noreferrer">Download</a>
-    </div>
-  </nav>
+<nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/datapacks/">Official Datapacks</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav>
 </header>
 <main>
-  <div class="guide-shell">
-    <aside class="guide-sidebar"><strong>Creator Guide</strong><a href="../overview/">Overview</a><a style="color:var(--text);background:var(--panel-2);" href="../actions/">Actions</a><a href="../objectives-sequences-flow/">Objectives, Sequences &amp; Flow</a><a href="../conditions/">Conditions</a><a href="../menus/">Menus</a><a href="../recognition-perception/">Recognition &amp; Perception</a></aside>
-    <article class="guide-content">
-      
+<div class="guide-shell">
+<aside class="guide-sidebar"><strong>Creator Guide</strong><a href="../overview/">Overview</a><a class="current" href="../actions/">Actions</a><a href="../objectives-sequences-flow/">Objectives, Sequences &amp; Flow</a><a href="../conditions/">Conditions</a><a href="../menus/">Menus</a><a href="../recognition-perception/">Recognition &amp; Perception</a><a href="../overlays-reactions/">Overlays &amp; Reactions</a></aside>
+<article class="guide-content">
 <section class="guide-hero">
 <div class="eyebrow">Page 2 · Actions</div>
 <h1>Actions: The Building Blocks of DAI</h1>
 <p>An action is one instruction DAI knows how to execute. Datapacks combine actions into objectives, sequences, rotors, menus, builders, Survival systems, and other gameplay.</p>
 <div class="guide-stats">
-  <div class="guide-stat"><strong>130 registered action types</strong>Current 1.6 action-handler catalog.</div>
-  <div class="guide-stat"><strong>One shared JSON shape</strong>Individual handlers read only the fields they need.</div>
-  <div class="guide-stat"><strong>Composable</strong>Actions can sequence, queue, branch into, and call other behavior.</div>
+<div class="guide-stat"><strong>134 registered action types</strong>Current 1.6 action-handler catalog.</div>
+<div class="guide-stat"><strong>One shared JSON shape</strong>Individual handlers read only the fields they need.</div>
+<div class="guide-stat"><strong>Composable</strong>Actions can sequence, queue, branch into, and call other behavior.</div>
 </div>
 </section>
-
 <section class="guide-section">
 <h2>The Action JSON Shape</h2>
 <div class="guide-code"><div class="label">General action definition</div><pre>{
-  &quot;type&quot;: &quot;action_type&quot;,
-  &quot;action&quot;: &quot;string&quot;,
-  &quot;conditions&quot;: [],
-  &quot;sequence&quot;: [],
-  &quot;menu&quot;: &quot;string&quot;,
-  &quot;open&quot;: &quot;string&quot;,
-  &quot;yaw&quot;: 0.0,
-  &quot;pitch&quot;: 0.0,
-  &quot;direction&quot;: &quot;string&quot;,
-  &quot;ticks&quot;: 0,
-  &quot;slot&quot;: 0,
-  &quot;state&quot;: false,
-  &quot;value&quot;: 0.0
+  "type": "action_type",
+  "action": "string",
+  "conditions": [],
+  "sequence": [],
+  "menu": "string",
+  "open": "string",
+  "yaw": 0.0,
+  "pitch": 0.0,
+  "direction": "string",
+  "ticks": 0,
+  "slot": 0,
+  "state": false,
+  "value": 0.0
 }</pre></div>
 <div class="guide-callout"><strong>Only provide the fields the selected action needs.</strong> The handler-specific parameters are listed in the catalog below.</div>
 </section>
-
 <section class="guide-section">
 <h2>Parameter Glossary</h2>
 <div class="guide-param-grid">
-  <div class="guide-param"><code>type</code><small>Registered action handler ID.</small></div>
-  <div class="guide-param"><code>action</code><small>General string payload: resource ID, item/block/tag, waypoint, command, key, gamemode, or referenced action.</small></div>
-  <div class="guide-param"><code>conditions</code><small>Conditions evaluated immediately before the atomic action executes.</small></div>
-  <div class="guide-param"><code>sequence</code><small>Nested child actions used by sequence/random composition.</small></div>
-  <div class="guide-param"><code>menu</code><small>Menu category used by menu actions.</small></div>
-  <div class="guide-param"><code>open</code><small>Secondary string payload, commonly a menu ID.</small></div>
-  <div class="guide-param"><code>yaw / pitch</code><small>Camera angle or offsets.</small></div>
-  <div class="guide-param"><code>direction</code><small>Movement direction, spatial offset, or scan mode depending on the handler.</small></div>
-  <div class="guide-param"><code>ticks</code><small>Duration, timeout, or action-specific tick budget.</small></div>
-  <div class="guide-param"><code>slot</code><small>Hotbar/container slot or generation identifier depending on handler.</small></div>
-  <div class="guide-param"><code>state</code><small>Boolean on/off value.</small></div>
-  <div class="guide-param"><code>value</code><small>Generic numeric input such as radius, stop distance, or count.</small></div>
+<div class="guide-param"><code>type</code><small>Registered action handler ID.</small></div>
+<div class="guide-param"><code>action</code><small>General string payload: resource ID, item/block/tag, waypoint, command, key, gamemode, or referenced action.</small></div>
+<div class="guide-param"><code>conditions</code><small>Conditions evaluated immediately before the atomic action executes.</small></div>
+<div class="guide-param"><code>sequence</code><small>Nested child actions used by sequence/random composition.</small></div>
+<div class="guide-param"><code>menu</code><small>Menu category used by menu actions.</small></div>
+<div class="guide-param"><code>open</code><small>Secondary string payload, commonly a menu ID.</small></div>
+<div class="guide-param"><code>yaw / pitch</code><small>Camera angle or offsets.</small></div>
+<div class="guide-param"><code>direction</code><small>Movement direction, spatial offset, or scan mode depending on the handler.</small></div>
+<div class="guide-param"><code>ticks</code><small>Duration, timeout, or action-specific tick budget.</small></div>
+<div class="guide-param"><code>slot</code><small>Hotbar/container slot or generation identifier depending on handler.</small></div>
+<div class="guide-param"><code>state</code><small>Boolean on/off value.</small></div>
+<div class="guide-param"><code>value</code><small>Generic numeric input such as radius, stop distance, or count.</small></div>
 </div>
 </section>
-
+<section class="guide-section">
+<h2>Presentation Actions</h2>
+<p>DAI 1.6 also exposes screen presentation through normal action JSON. Static sprites and sprite sheets intentionally use separate schemas.</p>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action</th><th>Payload</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>overlay_sprite</code></td><td><code>sprite</code></td><td>Add or replace a static resource-pack texture layer.</td></tr>
+<tr><td><code>overlay_sprite_sheet</code></td><td><code>sprite_sheet</code></td><td>Add or replace an animated frame-grid layer.</td></tr>
+<tr><td><code>overlay_remove</code></td><td><code>action</code></td><td>Remove one overlay by overlay ID.</td></tr>
+<tr><td><code>overlay_clear</code></td><td>none</td><td>Clear every active DAI overlay.</td></tr>
+</tbody></table></div>
+<div class="guide-callout"><strong>Texture assets are resource-pack content.</strong> A datapack can reference <code>my_pack:gui/combat/pow</code>, while Minecraft resolves the PNG from <code>assets/my_pack/textures/gui/combat/pow.png</code> in an enabled resource pack.</div>
+</section>
 <section class="guide-section">
 <h2>Complete Registered Action Catalog</h2>
 <p>Open any category below. The parameter column lists the fields the registered Java handler reads directly.</p>
 <details class="guide-details">
-        <summary>Menus &amp; Screens · 4 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>pause_menu</code></td><td>none</td><td>Open Minecraft&#x27;s pause menu.</td></tr><tr><td><code>update_menu</code></td><td>menu open</td><td>Open or update a DAI menu.</td></tr><tr><td><code>open_chat</code></td><td>none</td><td>Open the chat screen.</td></tr><tr><td><code>close_screen</code></td><td>none</td><td>Close the currently open screen.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Camera &amp; Look · 2 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>set_look</code></td><td>yaw pitch</td><td>Set player yaw and pitch.</td></tr><tr><td><code>add_look</code></td><td>yaw pitch</td><td>Add yaw/pitch offsets to the current view.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Movement · 9 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>move</code></td><td>direction ticks</td><td>Move in a cardinal player-relative direction for a number of ticks.</td></tr><tr><td><code>jump</code></td><td>direction ticks</td><td>Jump; optionally combine the jump with short directional movement.</td></tr><tr><td><code>crouch_toggle</code></td><td>none</td><td>Toggle crouch/sneak input.</td></tr><tr><td><code>crouch_set</code></td><td>state</td><td>Explicitly enable or disable crouch.</td></tr><tr><td><code>sprint_toggle</code></td><td>none</td><td>Toggle sprint input.</td></tr><tr><td><code>sprint_set</code></td><td>state</td><td>Explicitly enable or disable sprint.</td></tr><tr><td><code>swim_toggle</code></td><td>none</td><td>Toggle managed swimming.</td></tr><tr><td><code>swim_set</code></td><td>state</td><td>Explicitly enable or disable managed swimming.</td></tr><tr><td><code>input_stop_all</code></td><td>none</td><td>Release/reset all DAI-managed movement input.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Targeting &amp; Recognition · 4 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>scan</code></td><td>none</td><td>Run the normal target scan.</td></tr><tr><td><code>target_clear</code></td><td>none</td><td>Clear the current selected DAI target.</td></tr><tr><td><code>recognize_target</code></td><td>none</td><td>Run recognition against the selected target.</td></tr><tr><td><code>recognize_block</code></td><td>action value</td><td>Find a nearby block or block tag and select it as the target.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Combat · 4 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>attack_target</code></td><td>none</td><td>Attack the current DAI target.</td></tr><tr><td><code>attack_basic</code></td><td>none</td><td>Perform a basic attack.</td></tr><tr><td><code>attack_start</code></td><td>none</td><td>Hold attack.</td></tr><tr><td><code>attack_stop</code></td><td>none</td><td>Release attack.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Automation / Compatibility · 7 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>automation_start_vanilla_gameplay compatibility</code></td><td>none</td><td>Automation start vanilla gameplay.</td></tr><tr><td><code>automation_start_speedrun compatibility</code></td><td>none</td><td>Automation start speedrun.</td></tr><tr><td><code>automation_start_creative_builder compatibility</code></td><td>none</td><td>Automation start creative builder.</td></tr><tr><td><code>automation_start_adventure compatibility</code></td><td>none</td><td>Automation start adventure.</td></tr><tr><td><code>automation_continue</code></td><td>none</td><td>Continue the currently configured automation lifecycle.</td></tr><tr><td><code>speedrun_find_portal_site compatibility</code></td><td>open</td><td>Speedrun find portal site.</td></tr><tr><td><code>automation_stop</code></td><td>none</td><td>Stop active automation and clear managed runtime work.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Game Mode, Input &amp; Creative · 25 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>set_gamemode</code></td><td>action</td><td>Request a gamemode change through Minecraft&#x27;s normal command path.</td></tr><tr><td><code>run_command</code></td><td>action</td><td>Submit a Minecraft command string.</td></tr><tr><td><code>key_click</code></td><td>action</td><td>Click a named key once.</td></tr><tr><td><code>key_press</code></td><td>action</td><td>Press/hold a named key.</td></tr><tr><td><code>key_release</code></td><td>action</td><td>Release a named key.</td></tr><tr><td><code>type_text</code></td><td>action</td><td>Type the supplied text through DAI&#x27;s input layer.</td></tr><tr><td><code>creative_open_inventory</code></td><td>none</td><td>Open the Creative inventory.</td></tr><tr><td><code>creative_close_inventory</code></td><td>none</td><td>Close the Creative inventory.</td></tr><tr><td><code>creative_select_tab</code></td><td>action</td><td>Select a Creative inventory tab.</td></tr><tr><td><code>creative_search_item</code></td><td>action</td><td>Enter a Creative inventory search query.</td></tr><tr><td><code>creative_take_item</code></td><td>action slot</td><td>Take a visible Creative item into a hotbar slot.</td></tr><tr><td><code>creative_equip_item</code></td><td>action slot</td><td>Put a specified Creative item directly into a hotbar slot.</td></tr><tr><td><code>creative_save_toolbar</code></td><td>none</td><td>Save a Creative toolbar preset.</td></tr><tr><td><code>creative_load_toolbar</code></td><td>none</td><td>Load a Creative toolbar preset.</td></tr><tr><td><code>creative_pick_block_nbt</code></td><td>none</td><td>Creative pick-block while preserving block data.</td></tr><tr><td><code>creative_remove_block</code></td><td>none</td><td>Remove the selected block through the Creative helper.</td></tr><tr><td><code>creative_place_block</code></td><td>none</td><td>Place the currently selected Creative block.</td></tr><tr><td><code>creative_set_block</code></td><td>action</td><td>Apply a requested block-state string through the Creative helper.</td></tr><tr><td><code>creative_flight_set</code></td><td>state</td><td>Enable or disable Creative flight.</td></tr><tr><td><code>creative_fly_to</code></td><td>ticks value</td><td>Fly toward the current spatial destination.</td></tr><tr><td><code>wait_for_creative_flight</code></td><td>slot</td><td>Wait for the active Creative flight generation to finish.</td></tr><tr><td><code>creative_hover</code></td><td>ticks</td><td>Hold position in Creative flight for a number of ticks.</td></tr><tr><td><code>creative_build_blueprint</code></td><td>none</td><td>Start the configured Creative blueprint build.</td></tr><tr><td><code>creative_blueprint_cell internal</code></td><td>none</td><td>Nested blueprint payload type; normally not dispatched directly.</td></tr><tr><td><code>wait_for_creative_build</code></td><td>slot</td><td>Wait for the active Creative build generation to finish.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Inventory &amp; Hotbar · 10 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>open_inventory</code></td><td>none</td><td>Open the player&#x27;s inventory.</td></tr><tr><td><code>hotbar_select</code></td><td>slot</td><td>Select a hotbar slot.</td></tr><tr><td><code>hotbar_next</code></td><td>none</td><td>Select the next hotbar slot.</td></tr><tr><td><code>hotbar_previous</code></td><td>none</td><td>Select the previous hotbar slot.</td></tr><tr><td><code>hotbar_normalize</code></td><td>none</td><td>Normalize/reorganize the hotbar using DAI&#x27;s helper.</td></tr><tr><td><code>item_use</code></td><td>none</td><td>Perform a normal item-use click.</td></tr><tr><td><code>use_start</code></td><td>none</td><td>Hold item use.</td></tr><tr><td><code>use_stop</code></td><td>none</td><td>Release item use.</td></tr><tr><td><code>item_drop</code></td><td>none</td><td>Drop the currently selected item.</td></tr><tr><td><code>item_swap</code></td><td>none</td><td>Swap main-hand and off-hand items.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Equipment Selection · 5 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>hotbar_select_item</code></td><td>action</td><td>Select a matching item in the hotbar.</td></tr><tr><td><code>equip_best_tool</code></td><td>action</td><td>Equip the best tool, optionally for a requested target.</td></tr><tr><td><code>equip_best_weapon</code></td><td>none</td><td>Equip the best available weapon.</td></tr><tr><td><code>equip_best_food</code></td><td>none</td><td>Equip the best available food.</td></tr><tr><td><code>equip_best_block</code></td><td>action</td><td>Equip the best matching block.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Interaction · 2 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>interact</code></td><td>none</td><td>Perform a normal interaction with the current crosshair target.</td></tr><tr><td><code>pick_block</code></td><td>none</td><td>Perform Minecraft&#x27;s pick-block input.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Mining &amp; Item Collection · 8 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>break_targeted_once</code></td><td>none</td><td>Compatibility alias for one targeted break attempt.</td></tr><tr><td><code>break_once</code></td><td>none</td><td>Perform one targeted break attempt.</td></tr><tr><td><code>break_start</code></td><td>none</td><td>Hold block-breaking input.</td></tr><tr><td><code>break_stop</code></td><td>none</td><td>Release block-breaking input.</td></tr><tr><td><code>equip_best_tool_for_block</code></td><td>none</td><td>Equip the best tool for the selected block.</td></tr><tr><td><code>mine_targeted_block</code></td><td>none</td><td>Mine the currently selected DAI block target.</td></tr><tr><td><code>mine_nearest_block</code></td><td>action ticks value</td><td>Find and mine a nearby matching block.</td></tr><tr><td><code>collect_nearby_items</code></td><td>action ticks value</td><td>Navigate toward and collect nearby matching item entities.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Block Placement &amp; Harvesting · 8 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>place</code></td><td>none</td><td>Perform one normal placement/use action.</td></tr><tr><td><code>place_targeted_block</code></td><td>none</td><td>Place against the selected DAI target.</td></tr><tr><td><code>place_nearest_block</code></td><td>ticks value</td><td>Find a nearby placement opportunity and place a block.</td></tr><tr><td><code>place_block_at_selected_position</code></td><td>action ticks</td><td>Physically place a requested block at the selected exact position.</td></tr><tr><td><code>exact_place_align internal</code></td><td>none</td><td>Internal smooth-look stage used by exact Creative placement.</td></tr><tr><td><code>exact_place_finish internal</code></td><td>none</td><td>Internal continuation stage used by exact placement.</td></tr><tr><td><code>exact_place_verify internal</code></td><td>none</td><td>Internal world-state verification stage used by exact placement.</td></tr><tr><td><code>harvest_crop</code></td><td>ticks</td><td>Harvest the selected crop target.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Navigation &amp; Exploration · 9 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>approach_target_block</code></td><td>ticks value</td><td>Navigate to a reachable interaction position near the selected block.</td></tr><tr><td><code>wait_for_approach</code></td><td>slot</td><td>Barrier/wait action paired with approach_target_block.</td></tr><tr><td><code>wait_for_target_block</code></td><td>none</td><td>Wait until the selected block is aligned/reachable for interaction.</td></tr><tr><td><code>explore_for_block</code></td><td>action ticks value</td><td>Explore until a matching block or block tag is discovered.</td></tr><tr><td><code>wait_for_exploration</code></td><td>slot</td><td>Barrier/wait action paired with explore_for_block.</td></tr><tr><td><code>vertical_scaffold_to_target</code></td><td>ticks value</td><td>Build/ascend a vertical scaffold toward the target.</td></tr><tr><td><code>wait_for_vertical_scaffold</code></td><td>none</td><td>Wait for scaffold ascent to finish.</td></tr><tr><td><code>vertical_scaffold_descend</code></td><td>ticks</td><td>Descend the current vertical scaffold.</td></tr><tr><td><code>wait_for_scaffold_descent</code></td><td>none</td><td>Wait for scaffold descent to finish.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Waypoints · 5 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>remember_waypoint</code></td><td>action</td><td>Save the player&#x27;s current position under a waypoint name.</td></tr><tr><td><code>remember_target_waypoint</code></td><td>action</td><td>Save the current selected block as a waypoint.</td></tr><tr><td><code>select_waypoint</code></td><td>action</td><td>Select a named waypoint as the current target.</td></tr><tr><td><code>forget_waypoint</code></td><td>action</td><td>Delete a named waypoint.</td></tr><tr><td><code>forget_failed_waypoint</code></td><td>action</td><td>Remove a waypoint from failed-waypoint memory.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Spatial / Adjacency · 6 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>select_waypoint_offset</code></td><td>action direction</td><td>Select a block at waypoint + offset.</td></tr><tr><td><code>remember_offset_waypoint</code></td><td>action open direction</td><td>Create a waypoint at base waypoint + offset.</td></tr><tr><td><code>remember_surface_offset_waypoint</code></td><td>action open direction</td><td>Create an offset waypoint normalized to the nearby walkable surface.</td></tr><tr><td><code>scan_adjacent_blocks</code></td><td>action direction</td><td>Scan blocks around a target/player/waypoint into spatial state.</td></tr><tr><td><code>select_adjacent_block</code></td><td>action direction</td><td>Select one adjacent block/offset from a spatial origin.</td></tr><tr><td><code>spatial_clear</code></td><td>none</td><td>Clear temporary spatial scan state.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Food · 1 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>eat_best_food</code></td><td>ticks</td><td>Select/use the best available food until eating completes.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Containers &amp; Screen Profiles · 9 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>open_container</code></td><td>ticks</td><td>Interact with the selected target to open a container.</td></tr><tr><td><code>wait_for_container</code></td><td>ticks</td><td>Wait for a container screen to open.</td></tr><tr><td><code>wait_for_screen_profile</code></td><td>action ticks</td><td>Wait for a named DAI screen profile.</td></tr><tr><td><code>close_container</code></td><td>none</td><td>Close the current container screen.</td></tr><tr><td><code>container_click_slot</code></td><td>none</td><td>Click a logical container slot.</td></tr><tr><td><code>container_shift_click_slot</code></td><td>none</td><td>Shift-click a logical container slot.</td></tr><tr><td><code>container_insert_item</code></td><td>action</td><td>Insert a requested item into a matching logical slot.</td></tr><tr><td><code>container_take_slot</code></td><td>none</td><td>Take from a logical container slot.</td></tr><tr><td><code>wait_for_container_slot</code></td><td>action ticks</td><td>Wait until a logical slot matches requested criteria.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Queue &amp; Sequences · 5 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>delay</code></td><td>ticks</td><td>Wait a number of game ticks.</td></tr><tr><td><code>sequence</code></td><td>none</td><td>Queue child actions in order.</td></tr><tr><td><code>enqueue_action</code></td><td>action</td><td>Queue another named DAI action/objective by resource ID.</td></tr><tr><td><code>queue_clear</code></td><td>none</td><td>Clear queued runtime actions.</td></tr><tr><td><code>random_action</code></td><td>sequence</td><td>Choose from the supplied child action sequence.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Crafting · 2 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>craft_recipe</code></td><td>action state</td><td>Craft a requested recipe.</td></tr><tr><td><code>craft_take_result</code></td><td>none</td><td>Take the result from the active crafting output.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Objectives · 1 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>objective_execute</code></td><td>action</td><td>Execute another named objective/action definition.</td></tr></tbody></table></div></details><details class="guide-details">
-        <summary>Flow Control · 4 actions</summary>
-        <div class="guide-table-wrap"><table class="guide-table">
-        <thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
-        <tbody><tr><td><code>stop_if_failure</code></td><td>none</td><td>Stop queued flow when the previous action failed.</td></tr><tr><td><code>stop_if_success</code></td><td>none</td><td>Stop queued flow when the previous action succeeded.</td></tr><tr><td><code>run_if_failure</code></td><td>none</td><td>Run a referenced action when the previous action failed.</td></tr><tr><td><code>run_if_success</code></td><td>none</td><td>Run a referenced action when the previous action succeeded.</td></tr></tbody></table></div></details>
+<summary>Menus &amp; Screens · 4 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>pause_menu</code></td><td>none</td><td>Open Minecraft's pause menu.</td></tr><tr><td><code>update_menu</code></td><td>menu open</td><td>Open or update a DAI menu.</td></tr><tr><td><code>open_chat</code></td><td>none</td><td>Open the chat screen.</td></tr><tr><td><code>close_screen</code></td><td>none</td><td>Close the currently open screen.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Camera &amp; Look · 2 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>set_look</code></td><td>yaw pitch</td><td>Set player yaw and pitch.</td></tr><tr><td><code>add_look</code></td><td>yaw pitch</td><td>Add yaw/pitch offsets to the current view.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Movement · 9 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>move</code></td><td>direction ticks</td><td>Move in a cardinal player-relative direction for a number of ticks.</td></tr><tr><td><code>jump</code></td><td>direction ticks</td><td>Jump; optionally combine the jump with short directional movement.</td></tr><tr><td><code>crouch_toggle</code></td><td>none</td><td>Toggle crouch/sneak input.</td></tr><tr><td><code>crouch_set</code></td><td>state</td><td>Explicitly enable or disable crouch.</td></tr><tr><td><code>sprint_toggle</code></td><td>none</td><td>Toggle sprint input.</td></tr><tr><td><code>sprint_set</code></td><td>state</td><td>Explicitly enable or disable sprint.</td></tr><tr><td><code>swim_toggle</code></td><td>none</td><td>Toggle managed swimming.</td></tr><tr><td><code>swim_set</code></td><td>state</td><td>Explicitly enable or disable managed swimming.</td></tr><tr><td><code>input_stop_all</code></td><td>none</td><td>Release/reset all DAI-managed movement input.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Targeting &amp; Recognition · 4 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>scan</code></td><td>none</td><td>Run the normal target scan.</td></tr><tr><td><code>target_clear</code></td><td>none</td><td>Clear the current selected DAI target.</td></tr><tr><td><code>recognize_target</code></td><td>none</td><td>Run recognition against the selected target.</td></tr><tr><td><code>recognize_block</code></td><td>action value</td><td>Find a nearby block or block tag and select it as the target.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Combat · 4 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>attack_target</code></td><td>none</td><td>Attack the current DAI target.</td></tr><tr><td><code>attack_basic</code></td><td>none</td><td>Perform a basic attack.</td></tr><tr><td><code>attack_start</code></td><td>none</td><td>Hold attack.</td></tr><tr><td><code>attack_stop</code></td><td>none</td><td>Release attack.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Automation / Compatibility · 7 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>automation_start_vanilla_gameplay compatibility</code></td><td>none</td><td>Automation start vanilla gameplay.</td></tr><tr><td><code>automation_start_speedrun compatibility</code></td><td>none</td><td>Automation start speedrun.</td></tr><tr><td><code>automation_start_creative_builder compatibility</code></td><td>none</td><td>Automation start creative builder.</td></tr><tr><td><code>automation_start_adventure compatibility</code></td><td>none</td><td>Automation start adventure.</td></tr><tr><td><code>automation_continue</code></td><td>none</td><td>Continue the currently configured automation lifecycle.</td></tr><tr><td><code>speedrun_find_portal_site compatibility</code></td><td>open</td><td>Speedrun find portal site.</td></tr><tr><td><code>automation_stop</code></td><td>none</td><td>Stop active automation and clear managed runtime work.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Game Mode, Input &amp; Creative · 25 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>set_gamemode</code></td><td>action</td><td>Request a gamemode change through Minecraft's normal command path.</td></tr><tr><td><code>run_command</code></td><td>action</td><td>Submit a Minecraft command string.</td></tr><tr><td><code>key_click</code></td><td>action</td><td>Click a named key once.</td></tr><tr><td><code>key_press</code></td><td>action</td><td>Press/hold a named key.</td></tr><tr><td><code>key_release</code></td><td>action</td><td>Release a named key.</td></tr><tr><td><code>type_text</code></td><td>action</td><td>Type the supplied text through DAI's input layer.</td></tr><tr><td><code>creative_open_inventory</code></td><td>none</td><td>Open the Creative inventory.</td></tr><tr><td><code>creative_close_inventory</code></td><td>none</td><td>Close the Creative inventory.</td></tr><tr><td><code>creative_select_tab</code></td><td>action</td><td>Select a Creative inventory tab.</td></tr><tr><td><code>creative_search_item</code></td><td>action</td><td>Enter a Creative inventory search query.</td></tr><tr><td><code>creative_take_item</code></td><td>action slot</td><td>Take a visible Creative item into a hotbar slot.</td></tr><tr><td><code>creative_equip_item</code></td><td>action slot</td><td>Put a specified Creative item directly into a hotbar slot.</td></tr><tr><td><code>creative_save_toolbar</code></td><td>none</td><td>Save a Creative toolbar preset.</td></tr><tr><td><code>creative_load_toolbar</code></td><td>none</td><td>Load a Creative toolbar preset.</td></tr><tr><td><code>creative_pick_block_nbt</code></td><td>none</td><td>Creative pick-block while preserving block data.</td></tr><tr><td><code>creative_remove_block</code></td><td>none</td><td>Remove the selected block through the Creative helper.</td></tr><tr><td><code>creative_place_block</code></td><td>none</td><td>Place the currently selected Creative block.</td></tr><tr><td><code>creative_set_block</code></td><td>action</td><td>Apply a requested block-state string through the Creative helper.</td></tr><tr><td><code>creative_flight_set</code></td><td>state</td><td>Enable or disable Creative flight.</td></tr><tr><td><code>creative_fly_to</code></td><td>ticks value</td><td>Fly toward the current spatial destination.</td></tr><tr><td><code>wait_for_creative_flight</code></td><td>slot</td><td>Wait for the active Creative flight generation to finish.</td></tr><tr><td><code>creative_hover</code></td><td>ticks</td><td>Hold position in Creative flight for a number of ticks.</td></tr><tr><td><code>creative_build_blueprint</code></td><td>none</td><td>Start the configured Creative blueprint build.</td></tr><tr><td><code>creative_blueprint_cell internal</code></td><td>none</td><td>Nested blueprint payload type; normally not dispatched directly.</td></tr><tr><td><code>wait_for_creative_build</code></td><td>slot</td><td>Wait for the active Creative build generation to finish.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Inventory &amp; Hotbar · 10 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>open_inventory</code></td><td>none</td><td>Open the player's inventory.</td></tr><tr><td><code>hotbar_select</code></td><td>slot</td><td>Select a hotbar slot.</td></tr><tr><td><code>hotbar_next</code></td><td>none</td><td>Select the next hotbar slot.</td></tr><tr><td><code>hotbar_previous</code></td><td>none</td><td>Select the previous hotbar slot.</td></tr><tr><td><code>hotbar_normalize</code></td><td>none</td><td>Normalize/reorganize the hotbar using DAI's helper.</td></tr><tr><td><code>item_use</code></td><td>none</td><td>Perform a normal item-use click.</td></tr><tr><td><code>use_start</code></td><td>none</td><td>Hold item use.</td></tr><tr><td><code>use_stop</code></td><td>none</td><td>Release item use.</td></tr><tr><td><code>item_drop</code></td><td>none</td><td>Drop the currently selected item.</td></tr><tr><td><code>item_swap</code></td><td>none</td><td>Swap main-hand and off-hand items.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Equipment Selection · 5 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>hotbar_select_item</code></td><td>action</td><td>Select a matching item in the hotbar.</td></tr><tr><td><code>equip_best_tool</code></td><td>action</td><td>Equip the best tool, optionally for a requested target.</td></tr><tr><td><code>equip_best_weapon</code></td><td>none</td><td>Equip the best available weapon.</td></tr><tr><td><code>equip_best_food</code></td><td>none</td><td>Equip the best available food.</td></tr><tr><td><code>equip_best_block</code></td><td>action</td><td>Equip the best matching block.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Interaction · 2 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>interact</code></td><td>none</td><td>Perform a normal interaction with the current crosshair target.</td></tr><tr><td><code>pick_block</code></td><td>none</td><td>Perform Minecraft's pick-block input.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Mining &amp; Item Collection · 8 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>break_targeted_once</code></td><td>none</td><td>Compatibility alias for one targeted break attempt.</td></tr><tr><td><code>break_once</code></td><td>none</td><td>Perform one targeted break attempt.</td></tr><tr><td><code>break_start</code></td><td>none</td><td>Hold block-breaking input.</td></tr><tr><td><code>break_stop</code></td><td>none</td><td>Release block-breaking input.</td></tr><tr><td><code>equip_best_tool_for_block</code></td><td>none</td><td>Equip the best tool for the selected block.</td></tr><tr><td><code>mine_targeted_block</code></td><td>none</td><td>Mine the currently selected DAI block target.</td></tr><tr><td><code>mine_nearest_block</code></td><td>action ticks value</td><td>Find and mine a nearby matching block.</td></tr><tr><td><code>collect_nearby_items</code></td><td>action ticks value</td><td>Navigate toward and collect nearby matching item entities.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Block Placement &amp; Harvesting · 8 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>place</code></td><td>none</td><td>Perform one normal placement/use action.</td></tr><tr><td><code>place_targeted_block</code></td><td>none</td><td>Place against the selected DAI target.</td></tr><tr><td><code>place_nearest_block</code></td><td>ticks value</td><td>Find a nearby placement opportunity and place a block.</td></tr><tr><td><code>place_block_at_selected_position</code></td><td>action ticks</td><td>Physically place a requested block at the selected exact position.</td></tr><tr><td><code>exact_place_align internal</code></td><td>none</td><td>Internal smooth-look stage used by exact Creative placement.</td></tr><tr><td><code>exact_place_finish internal</code></td><td>none</td><td>Internal continuation stage used by exact placement.</td></tr><tr><td><code>exact_place_verify internal</code></td><td>none</td><td>Internal world-state verification stage used by exact placement.</td></tr><tr><td><code>harvest_crop</code></td><td>ticks</td><td>Harvest the selected crop target.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Navigation &amp; Exploration · 9 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>approach_target_block</code></td><td>ticks value</td><td>Navigate to a reachable interaction position near the selected block.</td></tr><tr><td><code>wait_for_approach</code></td><td>slot</td><td>Barrier/wait action paired with approach_target_block.</td></tr><tr><td><code>wait_for_target_block</code></td><td>none</td><td>Wait until the selected block is aligned/reachable for interaction.</td></tr><tr><td><code>explore_for_block</code></td><td>action ticks value</td><td>Explore until a matching block or block tag is discovered.</td></tr><tr><td><code>wait_for_exploration</code></td><td>slot</td><td>Barrier/wait action paired with explore_for_block.</td></tr><tr><td><code>vertical_scaffold_to_target</code></td><td>ticks value</td><td>Build/ascend a vertical scaffold toward the target.</td></tr><tr><td><code>wait_for_vertical_scaffold</code></td><td>none</td><td>Wait for scaffold ascent to finish.</td></tr><tr><td><code>vertical_scaffold_descend</code></td><td>ticks</td><td>Descend the current vertical scaffold.</td></tr><tr><td><code>wait_for_scaffold_descent</code></td><td>none</td><td>Wait for scaffold descent to finish.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Waypoints · 5 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>remember_waypoint</code></td><td>action</td><td>Save the player's current position under a waypoint name.</td></tr><tr><td><code>remember_target_waypoint</code></td><td>action</td><td>Save the current selected block as a waypoint.</td></tr><tr><td><code>select_waypoint</code></td><td>action</td><td>Select a named waypoint as the current target.</td></tr><tr><td><code>forget_waypoint</code></td><td>action</td><td>Delete a named waypoint.</td></tr><tr><td><code>forget_failed_waypoint</code></td><td>action</td><td>Remove a waypoint from failed-waypoint memory.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Spatial / Adjacency · 6 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>select_waypoint_offset</code></td><td>action direction</td><td>Select a block at waypoint + offset.</td></tr><tr><td><code>remember_offset_waypoint</code></td><td>action open direction</td><td>Create a waypoint at base waypoint + offset.</td></tr><tr><td><code>remember_surface_offset_waypoint</code></td><td>action open direction</td><td>Create an offset waypoint normalized to the nearby walkable surface.</td></tr><tr><td><code>scan_adjacent_blocks</code></td><td>action direction</td><td>Scan blocks around a target/player/waypoint into spatial state.</td></tr><tr><td><code>select_adjacent_block</code></td><td>action direction</td><td>Select one adjacent block/offset from a spatial origin.</td></tr><tr><td><code>spatial_clear</code></td><td>none</td><td>Clear temporary spatial scan state.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Food · 1 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>eat_best_food</code></td><td>ticks</td><td>Select/use the best available food until eating completes.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Containers &amp; Screen Profiles · 9 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>open_container</code></td><td>ticks</td><td>Interact with the selected target to open a container.</td></tr><tr><td><code>wait_for_container</code></td><td>ticks</td><td>Wait for a container screen to open.</td></tr><tr><td><code>wait_for_screen_profile</code></td><td>action ticks</td><td>Wait for a named DAI screen profile.</td></tr><tr><td><code>close_container</code></td><td>none</td><td>Close the current container screen.</td></tr><tr><td><code>container_click_slot</code></td><td>none</td><td>Click a logical container slot.</td></tr><tr><td><code>container_shift_click_slot</code></td><td>none</td><td>Shift-click a logical container slot.</td></tr><tr><td><code>container_insert_item</code></td><td>action</td><td>Insert a requested item into a matching logical slot.</td></tr><tr><td><code>container_take_slot</code></td><td>none</td><td>Take from a logical container slot.</td></tr><tr><td><code>wait_for_container_slot</code></td><td>action ticks</td><td>Wait until a logical slot matches requested criteria.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Queue &amp; Sequences · 5 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>delay</code></td><td>ticks</td><td>Wait a number of game ticks.</td></tr><tr><td><code>sequence</code></td><td>none</td><td>Queue child actions in order.</td></tr><tr><td><code>enqueue_action</code></td><td>action</td><td>Queue another named DAI action/objective by resource ID.</td></tr><tr><td><code>queue_clear</code></td><td>none</td><td>Clear queued runtime actions.</td></tr><tr><td><code>random_action</code></td><td>sequence</td><td>Choose from the supplied child action sequence.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Crafting · 2 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>craft_recipe</code></td><td>action state</td><td>Craft a requested recipe.</td></tr><tr><td><code>craft_take_result</code></td><td>none</td><td>Take the result from the active crafting output.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Objectives · 1 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>objective_execute</code></td><td>action</td><td>Execute another named objective/action definition.</td></tr></tbody></table></div></details><details class="guide-details">
+<summary>Flow Control · 4 actions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action type</th><th>Handler parameters</th><th>Purpose</th></tr></thead>
+<tbody><tr><td><code>stop_if_failure</code></td><td>none</td><td>Stop queued flow when the previous action failed.</td></tr><tr><td><code>stop_if_success</code></td><td>none</td><td>Stop queued flow when the previous action succeeded.</td></tr><tr><td><code>run_if_failure</code></td><td>none</td><td>Run a referenced action when the previous action failed.</td></tr><tr><td><code>run_if_success</code></td><td>none</td><td>Run a referenced action when the previous action succeeded.</td></tr></tbody></table></div></details>
 </section>
-
 <section class="guide-section">
 <h2>Example: Find a Nearby Log</h2>
 <div class="guide-code"><div class="label">recognize_block</div><pre>{
-  &quot;type&quot;: &quot;recognize_block&quot;,
-  &quot;action&quot;: &quot;#minecraft:logs&quot;,
-  &quot;value&quot;: 24.0
+  "type": "recognize_block",
+  "action": "#minecraft:logs",
+  "value": 24.0
 }</pre></div>
 </section>
-
 <section class="guide-section">
 <h2>Example: Compose Actions</h2>
 <div class="guide-code"><div class="label">Simple sequence</div><pre>{
-  &quot;type&quot;: &quot;sequence&quot;,
-  &quot;sequence&quot;: [
+  "type": "sequence",
+  "sequence": [
     {
-      &quot;type&quot;: &quot;move&quot;,
-      &quot;direction&quot;: &quot;forward&quot;,
-      &quot;ticks&quot;: 20
+      "type": "move",
+      "direction": "forward",
+      "ticks": 20
     },
     {
-      &quot;type&quot;: &quot;input_stop_all&quot;
+      "type": "input_stop_all"
     },
     {
-      &quot;type&quot;: &quot;delay&quot;,
-      &quot;ticks&quot;: 10
+      "type": "delay",
+      "ticks": 10
     }
   ]
 }</pre></div>
 </section>
-
-      <div class="guide-pager"><a href="../overview/">← Previous</a><a href="../objectives-sequences-flow/">Next →</a></div>
-    </article>
-  </div>
+<div class="guide-pager"><a href="../overview/">← Previous</a><a href="../objectives-sequences-flow/">Next →</a></div>
+</article>
+</div>
 </main>
 <footer class="footer">Decisions and Impulses · Third-party automation framework for Minecraft</footer>
 </body>

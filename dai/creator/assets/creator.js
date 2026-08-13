@@ -15,7 +15,7 @@ let selectedPreview = {kind:"project"};
 
 function freshState() {
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     pack: {
       name: "My DAI Pack",
       namespace: "my_dai_pack",
@@ -25,6 +25,7 @@ function freshState() {
     },
     objectives: [],
     menus: [],
+    reactions: [],
     groups: [],
     recognition: [],
     extraFiles: {}
@@ -43,8 +44,27 @@ function validLocalPath(v){ return /^[a-z0-9_.\/-]+$/.test(String(v || "")) && !
 function fullId(local){ return `${state.pack.namespace}:${slug(local)}`; }
 function deep(v){ return JSON.parse(JSON.stringify(v)); }
 
+function blankSprite() {
+  return {
+    id:"overlay_1", texture:"my_pack:gui/example", anchor:"center",
+    x:0, y:0, width:64, height:64, alpha:1.0, color:"#FFFFFF",
+    z:0, ticks:20, interactable:false, click_action:"", consume_click:false
+  };
+}
+function blankSpriteSheet() {
+  return {
+    ...blankSprite(),
+    id:"animated_overlay_1",
+    texture:"my_pack:gui/example_sheet",
+    animation:{frame_width:64,frame_height:64,frame_count:8,columns:4,frame_ticks:2,loop:true}
+  };
+}
 function blankAction(type="delay") {
-  return {_id:uid(),type,action:"",menu:"",open:"",yaw:0,pitch:0,direction:"",ticks:0,slot:0,state:false,value:0,conditions:[],sequence:[]};
+  return {
+    _id:uid(),type,action:"",menu:"",open:"",yaw:0,pitch:0,direction:"",
+    ticks:0,slot:0,state:false,value:0,conditions:[],sequence:[],
+    sprite:blankSprite(),sprite_sheet:blankSpriteSheet()
+  };
 }
 function blankCondition(type="player_health") {
   const spec = conditionMap.get(type);
@@ -56,7 +76,17 @@ function blankMenu(){
   return {_id:uid(),type:"normal",id:`menu_${state.menus.length+1}`,priority:100,buttons:[]};
 }
 function blankButton(menu){
-  return {_id:uid(),slot:menu.buttons.length,id:`button_${menu.buttons.length+1}`,text:`Button ${menu.buttons.length+1}`,action:"",conditions:[]};
+  return {
+    _id:uid(),slot:menu.buttons.length,id:`button_${menu.buttons.length+1}`,
+    text:`Button ${menu.buttons.length+1}`,action:"",conditions:[],
+    style:{enabled:false,background:"",hover:"",selected:"",text:"",border:""}
+  };
+}
+function blankReaction(){
+  return {
+    _id:uid(),id:`reaction_${state.reactions.length+1}`,type:"default",
+    event:"player_attack_entity",phase:"post",priority:100,conditions:[],sequence:[]
+  };
 }
 function blankGroup(){ return {_id:uid(),id:`group_${state.groups.length+1}`,replace:false,entries:["minecraft:stone"]}; }
 function blankRecognition(){
@@ -119,6 +149,38 @@ function field(label, input, help=""){
 function textInput(value, attr=""){ return `<input ${attr} value="${esc(value)}">`; }
 function numberInput(value, attr=""){ return `<input type="number" ${attr} value="${esc(value)}">`; }
 
+function cleanSprite(s, animated=false){
+  const source=s || (animated?blankSpriteSheet():blankSprite());
+  const out={
+    id:String(source.id||""),
+    texture:String(source.texture||""),
+    anchor:String(source.anchor||"center"),
+    x:Number(source.x||0),
+    y:Number(source.y||0),
+    width:Number(source.width||64),
+    height:Number(source.height||64),
+    alpha:Number(source.alpha??1),
+    color:String(source.color||"#FFFFFF"),
+    z:Number(source.z||0),
+    ticks:Number(source.ticks||0),
+    interactable:Boolean(source.interactable),
+    consume_click:Boolean(source.consume_click)
+  };
+  if(String(source.click_action||"").trim()) out.click_action=String(source.click_action).trim();
+  if(animated){
+    const a=source.animation||{};
+    out.animation={
+      frame_width:Number(a.frame_width||64),
+      frame_height:Number(a.frame_height||64),
+      frame_count:Number(a.frame_count||1),
+      columns:Number(a.columns||1),
+      frame_ticks:Number(a.frame_ticks||1),
+      loop:Boolean(a.loop)
+    };
+  }
+  return out;
+}
+
 function cleanAction(a){
   const out = {type:a.type};
   const spec = actionMap.get(a.type);
@@ -126,8 +188,11 @@ function cleanAction(a){
   const use = new Set(params);
   if (a.type==="sequence" || a.type==="random_action") use.add("sequence");
 
+  if(a.type==="overlay_sprite") out.sprite=cleanSprite(a.sprite,false);
+  if(a.type==="overlay_sprite_sheet") out.sprite_sheet=cleanSprite(a.sprite_sheet,true);
+
   for (const p of use){
-    if (p==="conditions") continue;
+    if (["conditions","sprite","sprite_sheet"].includes(p)) continue;
     if (p==="sequence") {
       if (a.sequence?.length) out.sequence = a.sequence.map(cleanAction);
       continue;
@@ -144,7 +209,6 @@ function cleanAction(a){
     else if (p==="value") out.value = Number(a.value||0);
   }
 
-  // Preserve imported fields the visual editor does not own.
   if (a._extra && typeof a._extra==="object") Object.assign(out, deep(a._extra));
   if (a.conditions?.length) out.conditions = a.conditions.map(cleanCondition);
   return out;
@@ -161,7 +225,6 @@ function cleanCondition(c){
     if (providerInputs.has("parameter") && c.parameter!=="") out.parameter = c.parameter;
     if (providerInputs.has("parameter_number") && Number(c.parameter_number)!==0) out.parameter_number = Number(c.parameter_number);
     if (providerInputs.has("boolean_value")) out.boolean_value = Boolean(c.boolean_value);
-    // Comparison expectation:
     if (vt==="number") out.number_value = Number(c.number_value||0);
     if (vt==="string") out.string_value = c.string_value ?? "";
     if (vt==="boolean" && ["equals","not_equals"].includes(c.operator)) out.boolean_value = Boolean(c.boolean_value);
@@ -170,7 +233,6 @@ function cleanCondition(c){
   if (c.negate) out.negate = true;
   return out;
 }
-
 function objectiveJson(o){
   return {type:"sequence", sequence:o.actions.map(cleanAction)};
 }
@@ -180,8 +242,25 @@ function menuJson(m){
     buttons:m.buttons.map(b => {
       const out={slot:Number(b.slot||0),id:b.id,text:b.text,action:b.action};
       if (b.conditions?.length) out.conditions=b.conditions.map(cleanCondition);
+      if(b.style?.enabled){
+        const style={};
+        ["background","hover","selected","text","border"].forEach(k=>{
+          if(String(b.style[k]||"").trim()) style[k]=String(b.style[k]).trim();
+        });
+        out.style=style;
+      }
       return out;
     })
+  };
+}
+function reactionJson(r){
+  return {
+    type:r.type,
+    event:r.event,
+    phase:r.phase,
+    priority:Number(r.priority||0),
+    conditions:(r.conditions||[]).map(cleanCondition),
+    sequence:(r.sequence||[]).map(cleanAction)
   };
 }
 function groupJson(g){ return {replace:Boolean(g.replace),entries:[...g.entries]}; }
@@ -220,10 +299,68 @@ function recognitionJson(r){
   };
 }
 
+function overlayEditorHtml(a){
+  const animated=a.type==="overlay_sprite_sheet";
+  const s=animated?a.sprite_sheet:a.sprite;
+  const anchors=(catalog.overlayAnchors||["center"]).map(x=>`<option value="${x}"${s.anchor===x?" selected":""}>${x}</option>`).join("");
+  return `<div class="subbox overlay-box">
+    <div class="subbox-head"><strong>${animated?"Animated Sprite Sheet":"Static Sprite"} Configuration</strong></div>
+    <div class="mini-note">Texture IDs resolve through enabled Minecraft resource packs. Subfolders are supported.</div>
+    <div class="dynamic-fields">
+      ${field("Overlay ID",textInput(s.id,'data-of="id"'))}
+      ${field("Texture",textInput(s.texture,'data-of="texture"'),"Example: my_pack:gui/combat/pow")}
+      ${field("Anchor",`<select data-of="anchor">${anchors}</select>`)}
+      ${field("X Offset",numberInput(s.x,'step="1" data-of="x"'))}
+      ${field("Y Offset",numberInput(s.y,'step="1" data-of="y"'))}
+      ${field("Screen Width",numberInput(s.width,'min="1" step="1" data-of="width"'))}
+      ${field("Screen Height",numberInput(s.height,'min="1" step="1" data-of="height"'))}
+      ${field("Alpha",numberInput(s.alpha,'min="0.1" max="1" step="0.05" data-of="alpha"'),"0.1–1.0; defaults to 1.0.")}
+      ${field("Tint Color",textInput(s.color,'data-of="color"'),"#RRGGBB or #AARRGGBB")}
+      ${field("Z Order",numberInput(s.z,'step="1" data-of="z"'),"Higher z renders and hit-tests above lower z.")}
+      ${field("Lifetime Ticks",numberInput(s.ticks,'min="0" step="1" data-of="ticks"'),"0 = persistent until removed/cleared.")}
+      ${field("Interactable",`<select data-of="interactable"><option value="false"${!s.interactable?" selected":""}>false</option><option value="true"${s.interactable?" selected":""}>true</option></select>`)}
+      ${field("Click Action",textInput(s.click_action||"",'data-of="click_action"'),"Namespaced DAI action/objective fired when clicked.")}
+      ${field("Consume Click",`<select data-of="consume_click"><option value="false"${!s.consume_click?" selected":""}>false</option><option value="true"${s.consume_click?" selected":""}>true</option></select>`,"false lets the click continue to lower overlays / underlying UI.")}
+    </div>
+    ${animated?`<div class="subbox">
+      <div class="subbox-head"><strong>Animation Grid</strong></div>
+      <div class="dynamic-fields">
+        ${field("Frame Width",numberInput(s.animation.frame_width,'min="1" data-an="frame_width"'))}
+        ${field("Frame Height",numberInput(s.animation.frame_height,'min="1" data-an="frame_height"'))}
+        ${field("Frame Count",numberInput(s.animation.frame_count,'min="1" data-an="frame_count"'))}
+        ${field("Columns",numberInput(s.animation.columns,'min="1" data-an="columns"'))}
+        ${field("Ticks Per Frame",numberInput(s.animation.frame_ticks,'min="1" data-an="frame_ticks"'))}
+        ${field("Loop",`<select data-an="loop"><option value="true"${s.animation.loop?" selected":""}>true</option><option value="false"${!s.animation.loop?" selected":""}>false</option></select>`)}
+      </div>
+    </div>`:""}
+  </div>`;
+}
+function bindOverlayEditor(el,a,onChange){
+  if(!["overlay_sprite","overlay_sprite_sheet"].includes(a.type)) return;
+  const animated=a.type==="overlay_sprite_sheet";
+  const s=animated?a.sprite_sheet:a.sprite;
+  el.querySelectorAll("[data-of]").forEach(inp=>inp.oninput=()=>{
+    const k=inp.dataset.of;
+    if(["x","y","width","height","alpha","z","ticks"].includes(k)) s[k]=Number(inp.value||0);
+    else if(["interactable","consume_click"].includes(k)) s[k]=inp.value==="true";
+    else s[k]=inp.value;
+    onChange();
+  });
+  if(animated){
+    el.querySelectorAll("[data-an]").forEach(inp=>inp.oninput=()=>{
+      const k=inp.dataset.an;
+      if(k==="loop") s.animation[k]=inp.value==="true";
+      else s.animation[k]=Number(inp.value||0);
+      onChange();
+    });
+  }
+}
 function renderActionCard(a, onChange, onDelete, depth=0){
   const spec=actionMap.get(a.type);
   const params=new Set(spec?.params||[]);
   if (["sequence","random_action"].includes(a.type)) params.add("sequence");
+  if(!a.sprite) a.sprite=blankSprite();
+  if(!a.sprite_sheet) a.sprite_sheet=blankSpriteSheet();
   let dyn="";
   const inputFor = p => {
     if (p==="action") return field("action", textInput(a.action,'data-af="action"'), "Resource ID, item/tag, waypoint, key, command or other string payload.");
@@ -238,20 +375,20 @@ function renderActionCard(a, onChange, onDelete, depth=0){
     if (p==="value") return field("value", numberInput(a.value,'step="0.01" data-af="value"'));
     return "";
   };
-  [...params].filter(p=>!["conditions","sequence"].includes(p)).forEach(p=>dyn+=inputFor(p));
+  [...params].filter(p=>!["conditions","sequence","sprite","sprite_sheet"].includes(p)).forEach(p=>dyn+=inputFor(p));
 
+  const overlay=["overlay_sprite","overlay_sprite_sheet"].includes(a.type)?overlayEditorHtml(a):"";
   const el=document.createElement("div");
   el.className="item-card action-card";
   el.innerHTML=`
     <div class="item-head">
       <strong>${esc(a.type)}${spec?` · ${esc(spec.purpose)}`:" · imported/unknown action"}</strong>
-      <div class="item-actions">
-        <button class="btn small danger" data-del>Remove</button>
-      </div>
+      <div class="item-actions"><button class="btn small danger" data-del>Remove</button></div>
     </div>
     <div class="item-body">
       ${field("Action Type",`<select data-action-type>${actionOptions(a.type)}${!spec?`<option selected value="${esc(a.type)}">${esc(a.type)} (imported)</option>`:""}</select>`)}
-      <div class="dynamic-fields">${dyn || '<div class="mini-note">This handler has no direct scalar parameters.</div>'}</div>
+      <div class="dynamic-fields">${dyn || (overlay?"":'<div class="mini-note">This handler has no direct scalar parameters.</div>')}</div>
+      ${overlay}
       <div class="subbox conditions-box">
         <div class="subbox-head"><strong>Conditions</strong><button class="btn small" data-add-condition>+ Condition</button></div>
         <div data-condition-list></div>
@@ -261,10 +398,10 @@ function renderActionCard(a, onChange, onDelete, depth=0){
     </div>`;
   el.querySelector("[data-del]").onclick=onDelete;
   el.querySelector("[data-action-type]").onchange=e=>{
-    const old=a.type;
     a.type=e.target.value;
     if (!a.sequence) a.sequence=[];
-    if (old!==a.type) a._extra = a._extra || {};
+    if(!a.sprite) a.sprite=blankSprite();
+    if(!a.sprite_sheet) a.sprite_sheet=blankSpriteSheet();
     onChange(true);
   };
   el.querySelectorAll("[data-af]").forEach(inp=>{
@@ -276,6 +413,7 @@ function renderActionCard(a, onChange, onDelete, depth=0){
       onChange();
     };
   });
+  bindOverlayEditor(el,a,onChange);
   el.querySelector("[data-add-condition]").onclick=()=>{ a.conditions.push(blankCondition()); onChange(true); };
   renderConditionList(el.querySelector("[data-condition-list]"),a.conditions,()=>onChange(true));
 
@@ -398,6 +536,7 @@ function renderMenus(){
     const btnRoot=el.querySelector("[data-buttons]");
     if(!m.buttons.length) btnRoot.innerHTML='<div class="empty">No buttons.</div>';
     m.buttons.forEach((b,bi)=>{
+      b.style ||= {enabled:false,background:"",hover:"",selected:"",text:"",border:""};
       const card=document.createElement("div");card.className="item-card";
       card.innerHTML=`
       <div class="item-head"><strong>Slot ${esc(b.slot)} · ${esc(b.text)}</strong><div class="item-actions"><button class="btn small danger" data-del>Remove</button></div></div>
@@ -406,12 +545,25 @@ function renderMenus(){
           ${field("Slot",numberInput(b.slot,'min="0" data-bf="slot"'))}
           ${field("Button ID",textInput(b.id,'data-bf="id"'))}
           ${field("Text",textInput(b.text,'data-bf="text"'))}
-          ${field("Action",textInput(b.action,'data-bf="action"'),"Use a namespaced action/objective ID.")}
+          ${field("Action",textInput(b.action,'data-bf="action"'),"Use a namespaced DAI action/objective ID.")}
+        </div>
+        <div class="subbox style-box">
+          <div class="subbox-head"><strong>Custom Button Style</strong></div>
+          ${field("Use Custom Colors",`<select data-style-enabled><option value="false"${!b.style.enabled?" selected":""}>false — vanilla</option><option value="true"${b.style.enabled?" selected":""}>true</option></select>`)}
+          ${b.style.enabled?`<div class="dynamic-fields">
+            ${field("Background",textInput(b.style.background,'data-style="background"'),"#RRGGBB or #AARRGGBB")}
+            ${field("Hover",textInput(b.style.hover,'data-style="hover"'))}
+            ${field("Selected",textInput(b.style.selected,'data-style="selected"'))}
+            ${field("Text",textInput(b.style.text,'data-style="text"'))}
+            ${field("Border",textInput(b.style.border,'data-style="border"'))}
+          </div>`:""}
         </div>
         <div class="subbox"><div class="subbox-head"><strong>Button Conditions</strong><button class="btn small" data-add-cond>+ Condition</button></div><div data-conds></div></div>
       </div>`;
       card.querySelector("[data-del]").onclick=()=>{m.buttons.splice(bi,1);renderMenus();refreshAll();};
       card.querySelectorAll("[data-bf]").forEach(inp=>inp.oninput=()=>{const k=inp.dataset.bf;b[k]=k==="slot"?Number(inp.value||0):inp.value;refreshAll();});
+      card.querySelector("[data-style-enabled]").oninput=e=>{b.style.enabled=e.target.value==="true";renderMenus();refreshAll();};
+      card.querySelectorAll("[data-style]").forEach(inp=>inp.oninput=()=>{b.style[inp.dataset.style]=inp.value;refreshAll();});
       card.querySelector("[data-add-cond]").onclick=()=>{b.conditions.push(blankCondition());renderMenus();refreshAll();};
       renderConditionList(card.querySelector("[data-conds]"),b.conditions,()=>{renderMenus();refreshAll();});
       card.onclick=()=>{selectedPreview={kind:"menuButton",value:b};refreshPreview();};
@@ -423,6 +575,43 @@ function renderMenus(){
   });
 }
 $("#addMenu").onclick=()=>{state.menus.push(blankMenu());renderMenus();refreshAll();};
+
+function renderReactions(){
+  const root=$("#reactionList");root.innerHTML="";
+  if(!state.reactions.length){root.innerHTML='<div class="empty">No reactions yet. Reactions subscribe JSON behavior to registered runtime events.</div>';return;}
+  state.reactions.forEach((r,ri)=>{
+    const known=catalog.reactionEvents?.find(e=>e.id===r.event);
+    const eventOptions=(catalog.reactionEvents||[]).map(e=>`<option value="${e.id}"${r.event===e.id?" selected":""}>${e.id}</option>`).join("");
+    const extraEvent=!known&&r.event?`<option selected value="${esc(r.event)}">${esc(r.event)} (imported)</option>`:"";
+    const el=document.createElement("div");el.className="item-card reaction-card";
+    el.innerHTML=`
+      <div class="item-head"><strong>${esc(r.id)} · ${esc(r.type)} · ${esc(r.event)} / ${esc(r.phase)}</strong><div class="item-actions"><button class="btn small danger" data-del>Delete</button></div></div>
+      <div class="item-body">
+        <div class="form-grid">
+          ${field("Reaction ID / Path",textInput(r.id,'data-rf2="id"'))}
+          ${field("Type",`<select data-rf2="type"><option value="default"${r.type==="default"?" selected":""}>default</option><option value="override"${r.type==="override"?" selected":""}>override</option><option value="cancel"${r.type==="cancel"?" selected":""}>cancel</option></select>`)}
+          ${field("Event",`<select data-rf2="event">${eventOptions}${extraEvent}</select>`)}
+          ${field("Phase",`<select data-rf2="phase"><option value="pre"${r.phase==="pre"?" selected":""}>pre</option><option value="during"${r.phase==="during"?" selected":""}>during</option><option value="post"${r.phase==="post"?" selected":""}>post</option></select>`)}
+          ${field("Priority",numberInput(r.priority,'min="0" step="1" data-rf2="priority"'),"Higher priority evaluates first within the same event + phase.")}
+        </div>
+        <div class="mini-note">${known?esc(known.purpose):"Imported event not present in this creator catalog."}</div>
+        <div class="subbox"><div class="subbox-head"><strong>Reaction Conditions</strong><button class="btn small" data-add-rcond>+ Condition</button></div><div data-rconds></div></div>
+        <div class="subbox"><div class="subbox-head"><strong>Reaction Sequence</strong><button class="btn small" data-add-ra>+ Action</button></div><div data-raction-list></div></div>
+      </div>`;
+    el.querySelector("[data-del]").onclick=()=>{state.reactions.splice(ri,1);renderReactions();refreshAll();};
+    el.querySelectorAll("[data-rf2]").forEach(inp=>inp.oninput=()=>{
+      const k=inp.dataset.rf2;r[k]=k==="priority"?Number(inp.value||0):inp.value;
+      renderReactions();refreshAll();
+    });
+    el.querySelector("[data-add-rcond]").onclick=()=>{r.conditions.push(blankCondition("reaction_active"));renderReactions();refreshAll();};
+    renderConditionList(el.querySelector("[data-rconds]"),r.conditions,()=>{renderReactions();refreshAll();});
+    el.querySelector("[data-add-ra]").onclick=()=>{r.sequence.push(blankAction());renderReactions();refreshAll();};
+    renderActionList(el.querySelector("[data-raction-list]"),r.sequence,(rerender=false)=>{if(rerender)renderReactions();refreshAll();});
+    el.onclick=()=>{selectedPreview={kind:"reaction",value:r};refreshPreview();};
+    root.appendChild(el);
+  });
+}
+$("#addReaction").onclick=()=>{state.reactions.push(blankReaction());renderReactions();refreshAll();};
 
 function renderGroups(){
   const root=$("#groupList");root.innerHTML="";
@@ -550,10 +739,10 @@ function generatedFiles(){
     else path=`data/${n}/menus/actions/${slug(m.id)}.json`;
     files[path]=JSON.stringify(menuJson(m),null,2)+"\n";
   });
+  state.reactions.forEach(r=>files[`data/${n}/reactions/${slug(r.id)}.json`]=JSON.stringify(reactionJson(r),null,2)+"\n");
   state.groups.forEach(g=>files[`data/${n}/objectives/groups/${slug(g.id)}.json`]=JSON.stringify(groupJson(g),null,2)+"\n");
   state.recognition.forEach(r=>files[`data/${n}/objectives/recognition/${slug(r.id)}.json`]=JSON.stringify(recognitionJson(r),null,2)+"\n");
 
-  // Passthrough only when a managed file did not replace it.
   Object.entries(state.extraFiles||{}).forEach(([path,text])=>{
     if(!(path in files)) files[path]=text;
   });
@@ -577,17 +766,28 @@ function previewValue(){
   if(p.kind==="condition" && p.value)return cleanCondition(p.value);
   if(p.kind==="menu" && p.value)return menuJson(p.value);
   if(p.kind==="menuButton" && p.value){
-    const b=p.value;const x={slot:b.slot,id:b.id,text:b.text,action:b.action};if(b.conditions?.length)x.conditions=b.conditions.map(cleanCondition);return x;
+    const b=p.value;const x={slot:b.slot,id:b.id,text:b.text,action:b.action};
+    if(b.conditions?.length)x.conditions=b.conditions.map(cleanCondition);
+    if(b.style?.enabled)x.style=menuJson({priority:0,buttons:[b]}).buttons[0].style;
+    return x;
   }
+  if(p.kind==="reaction" && p.value)return reactionJson(p.value);
   if(p.kind==="group" && p.value)return groupJson(p.value);
   if(p.kind==="recognition" && p.value)return recognitionJson(p.value);
   if(p.kind==="pack")return {pack:{description:state.pack.description,min_format:state.pack.minFormat,max_format:state.pack.maxFormat}};
   if(p.kind==="objectives")return state.objectives.map(o=>({id:fullId(o.id),definition:objectiveJson(o)}));
   if(p.kind==="menus")return state.menus.map(m=>({type:m.type,id:m.id,definition:menuJson(m)}));
+  if(p.kind==="reactions")return state.reactions.map(r=>({id:fullId(r.id),definition:reactionJson(r)}));
   if(p.kind==="groups")return state.groups.map(g=>({id:fullId(g.id),definition:groupJson(g)}));
   if(p.kind==="recognition")return state.recognition.map(r=>({id:fullId(r.id),definition:recognitionJson(r)}));
-  return {pack:state.pack,objectives:state.objectives.length,menus:state.menus.length,recognitionGroups:state.groups.length,recognitionDefinitions:state.recognition.length,passthroughFiles:Object.keys(state.extraFiles||{}).length};
+  return {
+    pack:state.pack,objectives:state.objectives.length,menus:state.menus.length,
+    reactions:state.reactions.length,recognitionGroups:state.groups.length,
+    recognitionDefinitions:state.recognition.length,
+    passthroughFiles:Object.keys(state.extraFiles||{}).length
+  };
 }
+
 function refreshPreview(){
   $("#jsonPreview").textContent=JSON.stringify(previewValue(),null,2);
   $("#previewLabel").textContent=selectedPreview.kind;
@@ -605,9 +805,14 @@ function refreshAll(){
 }
 
 function renderAll(){
+  state.reactions ||= [];
+  state.groups ||= [];
+  state.recognition ||= [];
+  state.extraFiles ||= {};
   loadPackInputs();
   renderObjectives();
   renderMenus();
+  renderReactions();
   renderGroups();
   renderRecognition();
   refreshAll();
@@ -635,15 +840,43 @@ function validateCondition(c,path,issues){
   if(c.type==="nearby_recognition" && !String(c.parameter||"").trim())issues.push({level:"err",message:`${path}: nearby_recognition requires parameter recognition ID.`});
   if(c.type==="nearby_entity_count" && !String(c.parameter||"").trim())issues.push({level:"err",message:`${path}: nearby_entity_count requires parameter entity/filter.`});
 }
+function validColor(v){return /^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(String(v||""));}
+function validResourceId(v){return /^[a-z0-9_.-]+:[a-z0-9_./-]+$/.test(String(v||""));}
+
+function validateOverlay(s,path,issues,objectiveIds,animated=false){
+  if(!s || typeof s!=="object"){issues.push({level:"err",message:`${path}: overlay object is missing.`});return;}
+  if(!String(s.id||"").trim())issues.push({level:"err",message:`${path}: overlay id is required.`});
+  if(!validResourceId(s.texture))issues.push({level:"err",message:`${path}: texture '${s.texture||""}' is not a valid resource ID.`});
+  if(!(catalog.overlayAnchors||[]).includes(s.anchor))issues.push({level:"err",message:`${path}: unknown anchor '${s.anchor}'.`});
+  if(Number(s.width)<=0 || Number(s.height)<=0)issues.push({level:"err",message:`${path}: width and height must be > 0.`});
+  if(Number(s.alpha)<0.1 || Number(s.alpha)>1)issues.push({level:"err",message:`${path}: alpha must be between 0.1 and 1.0.`});
+  if(!validColor(s.color))issues.push({level:"err",message:`${path}: color must be #RRGGBB or #AARRGGBB.`});
+  if(Number(s.ticks)<0)issues.push({level:"err",message:`${path}: ticks cannot be negative.`});
+  if(!Number.isFinite(Number(s.z)))issues.push({level:"err",message:`${path}: z must be numeric.`});
+  if(s.interactable && !String(s.click_action||"").trim())issues.push({level:"err",message:`${path}: interactable=true requires click_action.`});
+  if(String(s.click_action||"").startsWith(state.pack.namespace+":")){
+    const local=String(s.click_action).slice(state.pack.namespace.length+1);
+    if(!objectiveIds.has(local))issues.push({level:"err",message:`${path}: click_action '${s.click_action}' references a missing local objective.`});
+  }
+  if(animated){
+    const a=s.animation||{};
+    for(const k of ["frame_width","frame_height","frame_count","columns","frame_ticks"]){
+      if(Number(a[k])<=0)issues.push({level:"err",message:`${path}.animation.${k} must be > 0.`});
+    }
+  }
+}
+
 function validateAction(a,path,issues,objectiveIds){
   if(!a.type)issues.push({level:"err",message:`${path}: action type is missing.`});
   if(!actionMap.has(a.type))issues.push({level:"warn",message:`${path}: unknown/imported action type '${a.type}' is preserved but cannot be fully validated by this DAI 1.6 catalog.`});
 
-  const needsAction=["enqueue_action","run_if_success","run_if_failure","objective_execute","recognize_block","run_command","set_gamemode","key_click","key_press","key_release","remember_waypoint","remember_target_waypoint","select_waypoint","forget_waypoint","forget_failed_waypoint","craft_recipe"];
+  const needsAction=["enqueue_action","run_if_success","run_if_failure","objective_execute","recognize_block","run_command","set_gamemode","key_click","key_press","key_release","remember_waypoint","remember_target_waypoint","select_waypoint","forget_waypoint","forget_failed_waypoint","craft_recipe","overlay_remove"];
   if(needsAction.includes(a.type) && !String(a.action||"").trim())issues.push({level:"err",message:`${path}: '${a.type}' requires an action/string payload.`});
   if(a.type==="move" && !String(a.direction||"").trim())issues.push({level:"err",message:`${path}: move requires direction.`});
   if(a.type==="delay" && Number(a.ticks)<=0)issues.push({level:"err",message:`${path}: delay must use ticks > 0.`});
   if(a.type==="update_menu" && (!a.menu || !a.open))issues.push({level:"err",message:`${path}: update_menu requires both menu and open.`});
+  if(a.type==="overlay_sprite")validateOverlay(a.sprite,`${path}.sprite`,issues,objectiveIds,false);
+  if(a.type==="overlay_sprite_sheet")validateOverlay(a.sprite_sheet,`${path}.sprite_sheet`,issues,objectiveIds,true);
 
   if(["enqueue_action","run_if_success","run_if_failure"].includes(a.type) && String(a.action||"").startsWith(state.pack.namespace+":")){
     const local=String(a.action).slice(state.pack.namespace.length+1);
@@ -652,6 +885,7 @@ function validateAction(a,path,issues,objectiveIds){
   (a.conditions||[]).forEach((c,i)=>validateCondition(c,`${path}.conditions[${i}]`,issues));
   (a.sequence||[]).forEach((x,i)=>validateAction(x,`${path}.sequence[${i}]`,issues,objectiveIds));
 }
+
 function validateProject(){
   readPackInputs();
   const issues=[];
@@ -668,6 +902,7 @@ function validateProject(){
   duplicates(state.objectives,"objective ID");
   duplicates(state.groups,"recognition group ID");
   duplicates(state.recognition,"recognition definition ID");
+  duplicates(state.reactions,"reaction ID");
   duplicates(state.menus,"menu path",m=>`${m.type}:${m.id}`);
 
   const objectiveIds=new Set(state.objectives.map(x=>slug(x.id)));
@@ -691,15 +926,36 @@ function validateProject(){
         const local=String(b.action).slice(state.pack.namespace.length+1);
         if(!objectiveIds.has(local))issues.push({level:"err",message:`Menu '${m.id}' button '${b.id}' references missing local objective '${b.action}'.`});
       }
+      if(b.style?.enabled){
+        const present=["background","hover","selected","text","border"].filter(k=>String(b.style[k]||"").trim());
+        if(!present.length)issues.push({level:"warn",message:`Menu '${m.id}' button '${b.id}' enables custom style but supplies no colors.`});
+        present.forEach(k=>{if(!validColor(b.style[k]))issues.push({level:"err",message:`Menu '${m.id}' button '${b.id}' style.${k} must be #RRGGBB or #AARRGGBB.`});});
+      }
       (b.conditions||[]).forEach((c,i)=>validateCondition(c,`menu '${m.id}' button '${b.id}' condition[${i}]`,issues));
     });
+  });
+
+  state.reactions.forEach((r,ri)=>{
+    if(!validLocalPath(r.id))issues.push({level:"err",message:`Reaction ${ri+1} has invalid ID/path '${r.id}'.`});
+    if(!["default","override","cancel"].includes(r.type))issues.push({level:"err",message:`Reaction '${r.id}' has unknown type '${r.type}'.`});
+    const ev=(catalog.reactionEvents||[]).find(e=>e.id===r.event);
+    if(!ev)issues.push({level:"err",message:`Reaction '${r.id}' references unknown event '${r.event}'.`});
+    if(!["pre","during","post"].includes(r.phase))issues.push({level:"err",message:`Reaction '${r.id}' has invalid phase '${r.phase}'.`});
+    if(ev && !ev.phases.includes(r.phase))issues.push({level:"err",message:`Reaction '${r.id}' event '${r.event}' does not support phase '${r.phase}'.`});
+    if(Number(r.priority)<0)issues.push({level:"err",message:`Reaction '${r.id}' priority cannot be negative.`});
+    if(r.phase==="post" && r.type!=="default")issues.push({level:"err",message:`Reaction '${r.id}': post reactions must use type=default because the event has already completed.`});
+    if(ev && r.type==="cancel" && !ev.cancellable)issues.push({level:"err",message:`Reaction '${r.id}': event '${r.event}' is not cancellable.`});
+    if(ev && r.type==="override" && !ev.overrideable)issues.push({level:"err",message:`Reaction '${r.id}': event '${r.event}' is not overrideable.`});
+    (r.conditions||[]).forEach((c,i)=>validateCondition(c,`reaction '${r.id}' condition[${i}]`,issues));
+    (r.sequence||[]).forEach((a,i)=>validateAction(a,`reaction '${r.id}' sequence[${i}]`,issues,objectiveIds));
+    if(!(r.sequence||[]).length)issues.push({level:"warn",message:`Reaction '${r.id}' has an empty sequence.`});
   });
 
   const localGroupIds=new Set(state.groups.map(g=>`${state.pack.namespace}:${slug(g.id)}`));
   state.groups.forEach(g=>{
     if(!validLocalPath(g.id))issues.push({level:"err",message:`Recognition group has invalid ID/path '${g.id}'.`});
     if(!g.entries.length)issues.push({level:"warn",message:`Recognition group '${g.id}' has no entries.`});
-    g.entries.forEach(x=>{if(!/^[a-z0-9_.-]+:[a-z0-9_./-]+$/.test(x))issues.push({level:"warn",message:`Recognition group '${g.id}' entry '${x}' does not look like a resource ID.`});});
+    g.entries.forEach(x=>{if(!validResourceId(x))issues.push({level:"warn",message:`Recognition group '${g.id}' entry '${x}' does not look like a resource ID.`});});
   });
 
   state.recognition.forEach(r=>{
@@ -717,14 +973,14 @@ function validateProject(){
       if(!catalog.recognitionRequirements.includes(q.type))issues.push({level:"warn",message:`Recognition '${r.id}' requirement ${qi+1} uses unknown type '${q.type}'.`});
       const refs=[...(q.groups||[]),q.group,q.relative_to].filter(Boolean);
       refs.forEach(name=>{if(!names.has(name))issues.push({level:"err",message:`Recognition '${r.id}' requirement ${qi+1} references missing local group '${name}'.`});});
-      if(q.type==="not"){}
     });
-    if(!/^[a-z0-9_.-]+:[a-z0-9_./-]+$/.test(r.resultId||""))issues.push({level:"err",message:`Recognition '${r.id}' result ID '${r.resultId}' is invalid.`});
+    if(!validResourceId(r.resultId||""))issues.push({level:"err",message:`Recognition '${r.id}' result ID '${r.resultId}' is invalid.`});
   });
 
   if(!issues.length)issues.push({level:"ok",message:"No errors or warnings found. Project is ready to export."});
   return issues;
 }
+
 function showValidation(issues){
   const root=$("#validationResults");root.innerHTML="";
   issues.forEach(x=>{
@@ -806,10 +1062,15 @@ async function readZip(file){
 function normalizedImportedAction(raw){
   if(!raw || typeof raw!=="object")return blankAction();
   const a=blankAction(raw.type||"delay");
-  const known=new Set(["type","action","menu","open","yaw","pitch","direction","ticks","slot","state","value","conditions","sequence"]);
+  const known=new Set(["type","action","menu","open","yaw","pitch","direction","ticks","slot","state","value","conditions","sequence","sprite","sprite_sheet"]);
   for(const k of ["action","menu","open","yaw","pitch","direction","ticks","slot","state","value"])if(k in raw)a[k]=raw[k];
   a.conditions=(raw.conditions||[]).map(normalizedImportedCondition);
   a.sequence=(raw.sequence||[]).map(normalizedImportedAction);
+  if(raw.sprite && typeof raw.sprite==="object")a.sprite={...blankSprite(),...deep(raw.sprite)};
+  if(raw.sprite_sheet && typeof raw.sprite_sheet==="object"){
+    a.sprite_sheet={...blankSpriteSheet(),...deep(raw.sprite_sheet)};
+    a.sprite_sheet.animation={...blankSpriteSheet().animation,...deep(raw.sprite_sheet.animation||{})};
+  }
   const extra={};Object.keys(raw).forEach(k=>{if(!known.has(k))extra[k]=raw[k];});if(Object.keys(extra).length)a._extra=extra;
   return a;
 }
@@ -821,6 +1082,18 @@ function normalizedImportedCondition(raw){
   const extra={};Object.keys(raw||{}).forEach(k=>{if(!known.has(k))extra[k]=raw[k];});if(Object.keys(extra).length)c._extra=extra;
   return c;
 }
+function normalizedImportedButton(b){
+  return {
+    _id:uid(),slot:Number(b.slot||0),id:b.id||"",text:b.text||"",action:b.action||"",
+    conditions:(b.conditions||[]).map(normalizedImportedCondition),
+    style:{
+      enabled:Boolean(b.style),
+      background:b.style?.background||"",hover:b.style?.hover||"",
+      selected:b.style?.selected||"",text:b.style?.text||"",border:b.style?.border||""
+    }
+  };
+}
+
 function parseJson(text,path,errors){
   try{return JSON.parse(text);}catch(e){errors.push(`${path}: ${e.message}`);return null;}
 }
@@ -835,10 +1108,9 @@ function importFiles(files,sourceLabel="datapack"){
     managed.add("pack.mcmeta");
   }
 
-  // Choose namespace with the most known DAI paths.
   const counts={};
   Object.keys(files).forEach(path=>{
-    const m=path.match(/^data\/([^/]+)\/(objectives\/(definitions|groups|recognition)\/|menus\/actions\/)/);
+    const m=path.match(/^data\/([^/]+)\/(objectives\/(definitions|groups|recognition)\/|menus\/actions\/|reactions\/)/);
     if(m)counts[m[1]]=(counts[m[1]]||0)+1;
   });
   const chosen=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0];
@@ -849,6 +1121,7 @@ function importFiles(files,sourceLabel="datapack"){
   const groupRe=new RegExp(`^data/${n}/objectives/groups/(.+)\\.json$`);
   const recogRe=new RegExp(`^data/${n}/objectives/recognition/(.+)\\.json$`);
   const menuRe=new RegExp(`^data/${n}/menus/actions/(.+)\\.json$`);
+  const reactionRe=new RegExp(`^data/${n}/reactions/(.+)\\.json$`);
 
   Object.entries(files).forEach(([path,text])=>{
     let m;
@@ -871,6 +1144,15 @@ function importFiles(files,sourceLabel="datapack"){
         groups,requirements:reqs,resultId:raw.result?.id||`${next.pack.namespace}:${m[1]}`
       });managed.add(path);return;
     }
+    if((m=path.match(reactionRe))){
+      const raw=parseJson(text,path,errors);if(!raw)return;
+      next.reactions.push({
+        _id:uid(),id:m[1],type:raw.type||"default",event:raw.event||"",
+        phase:raw.phase||"post",priority:Number(raw.priority||0),
+        conditions:(raw.conditions||[]).map(normalizedImportedCondition),
+        sequence:(raw.sequence||[]).map(normalizedImportedAction)
+      });managed.add(path);return;
+    }
     if((m=path.match(menuRe))){
       const raw=parseJson(text,path,errors);if(!raw)return;
       let rel=m[1],type="normal",id=rel;
@@ -879,7 +1161,7 @@ function importFiles(files,sourceLabel="datapack"){
       else if(rel==="available"){type="available";id="available";}
       next.menus.push({
         _id:uid(),type,id,priority:Number(raw.priority||0),
-        buttons:(raw.buttons||[]).map(b=>({_id:uid(),slot:Number(b.slot||0),id:b.id||"",text:b.text||"",action:b.action||"",conditions:(b.conditions||[]).map(normalizedImportedCondition)}))
+        buttons:(raw.buttons||[]).map(normalizedImportedButton)
       });managed.add(path);return;
     }
   });
@@ -890,7 +1172,7 @@ function importFiles(files,sourceLabel="datapack"){
   selectedPreview={kind:"project"};refreshPreview();
 
   const summary=$("#importSummary");summary.hidden=false;
-  summary.textContent=`Imported '${sourceLabel}'. Editable: ${state.objectives.length} objective(s), ${state.menus.length} menu(s), ${state.groups.length} recognition group(s), ${state.recognition.length} recognition definition(s). Preserving ${Object.keys(state.extraFiles).length} passthrough file(s).${errors.length?` ${errors.length} JSON file(s) could not be parsed and remain passthrough.`:""}`;
+  summary.textContent=`Imported '${sourceLabel}'. Editable: ${state.objectives.length} objective(s), ${state.menus.length} menu(s), ${state.reactions.length} reaction(s), ${state.groups.length} recognition group(s), ${state.recognition.length} recognition definition(s). Preserving ${Object.keys(state.extraFiles).length} passthrough file(s).${errors.length?` ${errors.length} JSON file(s) could not be parsed and remain passthrough.`:""}`;
   if(errors.length)alert("Import completed with JSON parse warnings:\n\n"+errors.slice(0,10).join("\n"));
 }
 
@@ -931,7 +1213,7 @@ $("#loadProject").onchange=async e=>{
   try{
     const x=JSON.parse(await f.text());
     if(!x.pack || !Array.isArray(x.objectives) || !Array.isArray(x.menus))throw new Error("This does not look like a DAI Creator project file.");
-    state=x;state.extraFiles ||= {};selectedPreview={kind:"project"};renderAll();
+    state=x;state.reactions ||= [];state.groups ||= [];state.recognition ||= [];state.extraFiles ||= {};selectedPreview={kind:"project"};renderAll();
   }catch(err){alert("Could not load creator project:\n"+err.message);}
   e.target.value="";
 };

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>DAI Creator Guide · Overlays &amp; Reactions</title>
+<link href="../../assets/css/site.css" rel="stylesheet"/>
+<link href="../assets/guides.css" rel="stylesheet"/>
+</head>
+<body>
+<header class="site-header"><nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/datapacks/">Official Datapacks</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header>
+<main>
+<div class="guide-shell">
+<aside class="guide-sidebar"><strong>Creator Guide</strong><a href="../overview/">Overview</a><a href="../actions/">Actions</a><a href="../objectives-sequences-flow/">Objectives, Sequences &amp; Flow</a><a href="../conditions/">Conditions</a><a href="../menus/">Menus</a><a href="../recognition-perception/">Recognition &amp; Perception</a><a class="current" href="../overlays-reactions/">Overlays &amp; Reactions</a></aside>
+<article class="guide-content">
+<section class="guide-hero">
+<div class="eyebrow">Page 7 · Overlays &amp; Reactions</div>
+<h1>React to Events &amp; Draw Custom UI</h1>
+<p>Reactions connect registered runtime events to JSON behavior. Overlay actions let those behaviors—or any objective—draw static or animated resource-pack textures directly onto the player's screen.</p>
+<div class="guide-stats">
+<div class="guide-stat"><strong>3 Reaction Types</strong>default, override, and cancel.</div>
+<div class="guide-stat"><strong>3 Event Phases</strong>pre, during, and post.</div>
+<div class="guide-stat"><strong>Layered Presentation</strong>Sprites, sheets, tint, alpha, z-order, and click actions.</div>
+</div>
+</section>
+<section class="guide-section">
+<h2>Reaction Files</h2>
+<div class="guide-flow"><pre>data/&lt;namespace&gt;/reactions/**/*.json</pre></div>
+<div class="guide-code"><div class="label">Basic reaction</div><pre>{
+  "type": "default",
+  "event": "player_attack_entity",
+  "phase": "post",
+  "priority": 100,
+  "conditions": [],
+  "sequence": []
+}</pre></div>
+<p>Higher numeric priority is evaluated first within the same event and phase. All qualifying <code>default</code> reactions may react. Only the first qualifying control reaction claims cancellation or override control.</p>
+</section>
+<section class="guide-section">
+<h2>Reaction Types</h2>
+<div class="guide-cards">
+<div class="guide-card"><h3>default</h3><p>Observe the event and queue the JSON sequence without changing the underlying event.</p></div>
+<div class="guide-card"><h3>override</h3><p>In pre/during phases, suppress the normal event implementation and use the reaction sequence as replacement behavior.</p></div>
+<div class="guide-card"><h3>cancel</h3><p>In pre/during phases, cancel the actual event when the registered runtime hook is cancellable.</p></div>
+</div>
+<div class="guide-callout warning"><strong>POST is observation-only.</strong> A post reaction must use <code>type: "default"</code> because the underlying event has already returned.</div>
+</section>
+<section class="guide-section">
+<h2>Current Registered Event</h2>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Event</th><th>Phases</th><th>Cancel</th><th>Override</th><th>Context</th></tr></thead>
+<tbody><tr><td><code>player_attack_entity</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>attacked entity</td></tr></tbody>
+</table></div>
+<p>The hook wraps the normal client entity-attack call, so it observes both human attacks and DAI attacks that use the same vanilla path. A post event means the client attack call completed; it is not a server acknowledgement that damage was accepted.</p>
+</section>
+<section class="guide-section">
+<h2>Reaction Context Conditions</h2>
+<div class="guide-flow"><pre>reaction_active
+reaction_event
+reaction_phase
+reaction_has_entity
+reaction_entity_type
+reaction_entity_living
+reaction_entity_health</pre></div>
+<div class="guide-code"><div class="label">Only react to living attack targets</div><pre>{
+  "type": "reaction_entity_living",
+  "operator": "is_true"
+}</pre></div>
+</section>
+<section class="guide-section">
+<h2>Static Screen Sprites</h2>
+<div class="guide-code"><div class="label">overlay_sprite</div><pre>{
+  "type": "overlay_sprite",
+  "sprite": {
+    "id": "combat_pow",
+    "texture": "my_pack:gui/combat/pow",
+    "anchor": "center",
+    "x": 70,
+    "y": -35,
+    "width": 96,
+    "height": 64,
+    "alpha": 0.8,
+    "color": "#FFFFFF",
+    "z": 20,
+    "ticks": 14,
+    "interactable": true,
+    "click_action": "my_pack:pow_clicked",
+    "consume_click": false
+  }
+}</pre></div>
+<p>Texture <code>my_pack:gui/combat/pow</code> resolves to <code>assets/my_pack/textures/gui/combat/pow.png</code> in an enabled resource pack.</p>
+</section>
+<section class="guide-section">
+<h2>Animated Sprite Sheets</h2>
+<p>Sprite sheets are a separate action type from static sprites. DAI reads a tightly packed frame grid and advances it using explicit frame timing.</p>
+<div class="guide-code"><div class="label">overlay_sprite_sheet</div><pre>{
+  "type": "overlay_sprite_sheet",
+  "sprite_sheet": {
+    "id": "animated_pow",
+    "texture": "my_pack:gui/combat/pow_sheet",
+    "anchor": "center",
+    "x": 0,
+    "y": -40,
+    "width": 96,
+    "height": 96,
+    "alpha": 0.75,
+    "color": "#FFF2A8",
+    "z": 30,
+    "ticks": 80,
+    "interactable": true,
+    "click_action": "my_pack:animated_pow_clicked",
+    "consume_click": false,
+    "animation": {
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 8,
+      "columns": 4,
+      "frame_ticks": 2,
+      "loop": true
+    }
+  }
+}</pre></div>
+</section>
+<section class="guide-section">
+<h2>Layering, Transparency &amp; Interaction</h2>
+<ul>
+<li><code>alpha</code> is authored from 0.1 through 1.0.</li>
+<li><code>color</code> multiplies/tints the texture and accepts <code>#RRGGBB</code> or <code>#AARRGGBB</code>.</li>
+<li>Higher <code>z</code> renders above lower <code>z</code>.</li>
+<li>Equal-z layers use insertion order, newest on top.</li>
+<li>Hit testing runs from visually highest layer downward.</li>
+<li><code>interactable</code> defaults to false.</li>
+<li><code>consume_click</code> defaults to false. When false, lower overlays and underlying UI may still receive the click.</li>
+</ul>
+<div class="guide-flow"><pre>z = 10  base aura      alpha 1.0
+z = 11  blue tint      alpha 0.4
+z = 12  animated spark alpha 0.7</pre></div>
+</section>
+<section class="guide-section">
+<h2>Removing Layers</h2>
+<div class="guide-code"><div class="label">Remove one</div><pre>{
+  "type": "overlay_remove",
+  "action": "combat_pow"
+}</pre></div>
+<div class="guide-code"><div class="label">Clear all</div><pre>{
+  "type": "overlay_clear"
+}</pre></div>
+</section>
+<section class="guide-section">
+<h2>Example: Comic Effect After an Attack</h2>
+<div class="guide-code"><div class="label">Reaction</div><pre>{
+  "type": "default",
+  "event": "player_attack_entity",
+  "phase": "post",
+  "priority": 100,
+  "conditions": [
+    {
+      "type": "reaction_entity_living",
+      "operator": "is_true"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "pow",
+        "texture": "dai_comic_fx:gui/combat/static/pow",
+        "anchor": "center",
+        "x": 50,
+        "y": -30,
+        "width": 128,
+        "height": 80,
+        "alpha": 1.0,
+        "color": "#FFFFFF",
+        "z": 20,
+        "ticks": 12,
+        "interactable": false,
+        "consume_click": false
+      }
+    }
+  ]
+}</pre></div>
+<div class="guide-callout"><strong>Execution stays queue-safe.</strong> Reaction conditions/control decisions happen synchronously at the event phase, while reaction sequences are queued into DAI's normal one-semantic-action-per-tick runtime.</div>
+</section>
+<div class="guide-pager"><a href="../recognition-perception/">← Previous</a><span></span></div>
+</article>
+</div>
+</main>
+<footer class="footer">Decisions and Impulses · Third-party automation framework for Minecraft</footer>
+</body>
+</html>

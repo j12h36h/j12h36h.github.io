@@ -317,3 +317,9 @@
   .guide-cards,
   .guide-param-grid { grid-template-columns: 1fr; }
 }
+
+.guide-sidebar a.current {
+  color: var(--text, #eaf2f8);
+  background: var(--panel-2, #17212d);
+  font-weight: 800;
+}

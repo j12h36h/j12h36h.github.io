@@ -1,43 +1,32 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Recognition &amp; Perception · DAI Creator Guide</title>
-  <meta name="description" content="DAI creator guide">
-  <link rel="stylesheet" href="../../assets/css/site.css">
-  <link rel="stylesheet" href="../assets/guides.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Recognition &amp; Perception · DAI Creator Guide</title>
+<meta content="DAI creator guide" name="description"/>
+<link href="../../assets/css/site.css" rel="stylesheet"/>
+<link href="../assets/guides.css" rel="stylesheet"/>
 </head>
 <body>
-
 <header class="site-header">
-  <nav class="nav">
-    <a class="brand" href="../../index.html">Decisions <span>&amp;</span> Impulses</a>
-    <div class="nav-links">
-      <a href="../../index.html">Home</a>
-      <a href="../../info/">Info</a>
-      <a class="active" href="../../guides/">Guides</a>
-      <a href="../../datapacks/">Official Datapacks</a>
-      <a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" target="_blank" rel="noopener noreferrer">Download</a>
-    </div>
-  </nav>
+<nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/datapacks/">Official Datapacks</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav>
 </header>
 <main>
-  <div class="guide-shell">
-    <aside class="guide-sidebar"><strong>Creator Guide</strong><a href="../overview/">Overview</a><a href="../actions/">Actions</a><a href="../objectives-sequences-flow/">Objectives, Sequences &amp; Flow</a><a href="../conditions/">Conditions</a><a href="../menus/">Menus</a><a style="color:var(--text);background:var(--panel-2);" href="../recognition-perception/">Recognition &amp; Perception</a></aside>
-    <article class="guide-content">
-      
+<div class="guide-shell">
+<aside class="guide-sidebar"><strong>Creator Guide</strong><a href="../overview/">Overview</a><a href="../actions/">Actions</a><a href="../objectives-sequences-flow/">Objectives, Sequences &amp; Flow</a><a href="../conditions/">Conditions</a><a href="../menus/">Menus</a><a class="current" href="../recognition-perception/">Recognition &amp; Perception</a><a href="../overlays-reactions/">Overlays &amp; Reactions</a></aside>
+<article class="guide-content">
 <section class="guide-hero">
 <div class="eyebrow">Page 6 · Recognition &amp; Perception</div>
 <h1>Teach DAI What It Is Looking At</h1>
 <p>Targeting answers “which block/entity is selected?” Recognition answers a deeper question: “does this collection of blocks satisfy the structure or material pattern my datapack cares about?”</p>
 <div class="guide-stats">
-  <div class="guide-stat"><strong>Groups</strong>Reusable sets of block identifiers.</div>
-  <div class="guide-stat"><strong>Recognition Definitions</strong>Scan rules, group counts, structural requirements, and result IDs.</div>
-  <div class="guide-stat"><strong>Perception</strong>Recognition results can feed actions, conditions, and Available menus.</div>
+<div class="guide-stat"><strong>Groups</strong>Reusable sets of block identifiers.</div>
+<div class="guide-stat"><strong>Recognition Definitions</strong>Scan rules, group counts, structural requirements, and result IDs.</div>
+<div class="guide-stat"><strong>Perception</strong>Recognition results can feed actions, conditions, and Available menus.</div>
 </div>
 </section>
-
 <section class="guide-section">
 <h2>Recognition Files</h2>
 <div class="guide-table-wrap"><table class="guide-table">
@@ -47,31 +36,28 @@
 <tr><td>Recognition definitions</td><td><code>objectives/recognition/</code></td><td>Namespace + relative filename</td></tr>
 </tbody></table></div>
 </section>
-
 <section class="guide-section">
 <h2>Recognition Groups</h2>
 <p>A recognition group is a reusable list of block IDs. Multiple datapacks can contribute to a group unless a definition uses <code>replace: true</code>.</p>
 <div class="guide-code"><div class="label">dai_fun_survival:harvest_grass group</div><pre>{
-  &quot;replace&quot;: false,
-  &quot;entries&quot;: [
-    &quot;minecraft:short_grass&quot;,
-    &quot;minecraft:tall_grass&quot;
+  "replace": false,
+  "entries": [
+    "minecraft:short_grass",
+    "minecraft:tall_grass"
   ]
 }</pre></div>
 <p>This example deliberately contains vegetation blocks, not grass blocks such as the dirt-like <code>minecraft:grass_block</code>.</p>
 </section>
-
 <section class="guide-section">
 <h2>Recognition Definition Shape</h2>
 <div class="guide-param-grid">
-  <div class="guide-param"><code>type</code><small>Defaults to <code>structure</code>.</small></div>
-  <div class="guide-param"><code>scan</code><small>Defines how and how far DAI captures candidate blocks.</small></div>
-  <div class="guide-param"><code>groups</code><small>Names local groups and connects them to registered recognition groups.</small></div>
-  <div class="guide-param"><code>requirements</code><small>Structural rules that the captured groups must satisfy.</small></div>
-  <div class="guide-param"><code>result.id</code><small>The semantic recognition result returned when everything matches.</small></div>
+<div class="guide-param"><code>type</code><small>Defaults to <code>structure</code>.</small></div>
+<div class="guide-param"><code>scan</code><small>Defines how and how far DAI captures candidate blocks.</small></div>
+<div class="guide-param"><code>groups</code><small>Names local groups and connects them to registered recognition groups.</small></div>
+<div class="guide-param"><code>requirements</code><small>Structural rules that the captured groups must satisfy.</small></div>
+<div class="guide-param"><code>result.id</code><small>The semantic recognition result returned when everything matches.</small></div>
 </div>
 </section>
-
 <section class="guide-section">
 <h2>Scan Parameters</h2>
 <div class="guide-table-wrap"><table class="guide-table">
@@ -86,17 +72,15 @@
 <tr><td><code>downward_range</code></td><td>4</td><td>Vertical range below the origin.</td></tr>
 </tbody></table></div>
 </section>
-
 <section class="guide-section">
 <h2>Group Rules</h2>
-<div class="guide-code"><div class="label">Local group rule</div><pre>&quot;trunk&quot;: {
-  &quot;registry&quot;: &quot;decisions_and_impulses:logs&quot;,
-  &quot;minimum&quot;: 3,
-  &quot;maximum&quot;: 512
+<div class="guide-code"><div class="label">Local group rule</div><pre>"trunk": {
+  "registry": "decisions_and_impulses:logs",
+  "minimum": 3,
+  "maximum": 512
 }</pre></div>
 <p><code>registry</code> points to a recognition group ID. <code>minimum</code> defaults to 0; <code>maximum</code> defaults to no practical upper bound.</p>
 </section>
-
 <section class="guide-section">
 <h2>Registered Structural Requirements</h2>
 <div class="guide-table-wrap"><table class="guide-table">
@@ -111,51 +95,50 @@
 <tr><td><code>group_ratio</code></td><td>Evaluates a configured ratio between group counts.</td></tr>
 </tbody></table></div>
 </section>
-
 <section class="guide-section">
 <h2>Example: Tree Recognition</h2>
 <p>The built-in tree definition illustrates how block groups become semantic structure recognition.</p>
 <div class="guide-code"><div class="label">decisions_and_impulses:tree</div><pre>{
-  &quot;type&quot;: &quot;structure&quot;,
-  &quot;scan&quot;: {
-    &quot;mode&quot;: &quot;connected&quot;,
-    &quot;origin&quot;: &quot;targeted_block&quot;,
-    &quot;max_blocks&quot;: 512,
-    &quot;max_radius&quot;: 12
+  "type": "structure",
+  "scan": {
+    "mode": "connected",
+    "origin": "targeted_block",
+    "max_blocks": 512,
+    "max_radius": 12
   },
-  &quot;groups&quot;: {
-    &quot;trunk&quot;: {
-      &quot;registry&quot;: &quot;decisions_and_impulses:logs&quot;,
-      &quot;minimum&quot;: 3
+  "groups": {
+    "trunk": {
+      "registry": "decisions_and_impulses:logs",
+      "minimum": 3
     },
-    &quot;foliage&quot;: {
-      &quot;registry&quot;: &quot;decisions_and_impulses:leaves&quot;,
-      &quot;minimum&quot;: 4
+    "foliage": {
+      "registry": "decisions_and_impulses:leaves",
+      "minimum": 4
     }
   },
-  &quot;requirements&quot;: [
+  "requirements": [
     {
-      &quot;type&quot;: &quot;connected&quot;,
-      &quot;groups&quot;: [&quot;trunk&quot;, &quot;foliage&quot;]
+      "type": "connected",
+      "groups": ["trunk", "foliage"]
     },
     {
-      &quot;type&quot;: &quot;vertical_column&quot;,
-      &quot;group&quot;: &quot;trunk&quot;,
-      &quot;minimum_height&quot;: 3
+      "type": "vertical_column",
+      "group": "trunk",
+      "minimum_height": 3
     },
     {
-      &quot;type&quot;: &quot;touches_ground&quot;,
-      &quot;group&quot;: &quot;trunk&quot;
+      "type": "touches_ground",
+      "group": "trunk"
     },
     {
-      &quot;type&quot;: &quot;near_upper_region&quot;,
-      &quot;group&quot;: &quot;foliage&quot;,
-      &quot;relative_to&quot;: &quot;trunk&quot;,
-      &quot;minimum_ratio&quot;: 0.5
+      "type": "near_upper_region",
+      "group": "foliage",
+      "relative_to": "trunk",
+      "minimum_ratio": 0.5
     }
   ],
-  &quot;result&quot;: {
-    &quot;id&quot;: &quot;decisions_and_impulses:tree&quot;
+  "result": {
+    "id": "decisions_and_impulses:tree"
   }
 }</pre></div>
 <div class="guide-flow"><pre>Targeted block
@@ -174,49 +157,46 @@ YES
    ↓
 decisions_and_impulses:tree</pre></div>
 </section>
-
 <section class="guide-section">
 <h2>Example: A Third-Party Recognition</h2>
 <p>DAI Fundamentals — Survival demonstrates that third-party datapacks can define their own recognition groups and results.</p>
 <div class="guide-code"><div class="label">dai_fun_survival:harvest_grass</div><pre>{
-  &quot;type&quot;: &quot;structure&quot;,
-  &quot;scan&quot;: {
-    &quot;mode&quot;: &quot;connected&quot;,
-    &quot;origin&quot;: &quot;targeted_block&quot;,
-    &quot;max_blocks&quot;: 512,
-    &quot;max_radius&quot;: 12
+  "type": "structure",
+  "scan": {
+    "mode": "connected",
+    "origin": "targeted_block",
+    "max_blocks": 512,
+    "max_radius": 12
   },
-  &quot;groups&quot;: {
-    &quot;primary&quot;: {
-      &quot;registry&quot;: &quot;dai_fun_survival:harvest_grass&quot;,
-      &quot;minimum&quot;: 1,
-      &quot;maximum&quot;: 512
+  "groups": {
+    "primary": {
+      "registry": "dai_fun_survival:harvest_grass",
+      "minimum": 1,
+      "maximum": 512
     }
   },
-  &quot;requirements&quot;: [
+  "requirements": [
     {
-      &quot;type&quot;: &quot;connected&quot;,
-      &quot;groups&quot;: [&quot;primary&quot;]
+      "type": "connected",
+      "groups": ["primary"]
     }
   ],
-  &quot;result&quot;: {
-    &quot;id&quot;: &quot;dai_fun_survival:harvest_grass&quot;
+  "result": {
+    "id": "dai_fun_survival:harvest_grass"
   }
 }</pre></div>
 </section>
-
 <section class="guide-section">
 <h2>Using Recognition From Actions</h2>
 <p><code>recognize_target</code> evaluates recognition against the selected target. <code>recognize_block</code> is different: it searches for a matching block/block tag and selects a block target.</p>
 <div class="guide-callout"><strong>Targeting and recognition solve different problems.</strong> Use simple block targeting when a block ID/tag is enough. Use recognition when the relationship between multiple blocks matters.</div>
 </section>
-
 <section class="guide-section">
 <h2>Nearby Recognition as Perception</h2>
 <div class="guide-code"><div class="label">Condition</div><pre>{
-  &quot;type&quot;: &quot;nearby_recognition&quot;,
-  &quot;parameter&quot;: &quot;decisions_and_impulses:tree&quot;,
-  &quot;number_value&quot;: 24.0
+  "type": "nearby_recognition",
+  "parameter": "decisions_and_impulses:tree",
+  "number_value": 24.0
 }</pre></div>
 <p><code>nearby_recognition</code> is non-mutating: it asks whether a recognition definition/result exists nearby without stealing the active DAI target.</p>
 <p>The current perception layer allows menus to query this condition every client tick while expensive structural scans are cached and refreshed every 10 game ticks (normally twice per second). Requested nearby radii are bounded by the runtime.</p>
@@ -236,12 +216,11 @@ cache result
    ↓
 menu condition</pre></div>
 </section>
-
 <section class="guide-section">
 <h2>Recognition → Conditions → Menus</h2>
 <div class="guide-flow"><pre>Recognition Definition
    ↓
-&quot;tree exists nearby&quot;
+"tree exists nearby"
    ↓
 nearby_recognition condition
    ↓
@@ -252,10 +231,9 @@ Available menu exposes Harvest Wood
 Objective executes targeting/mining behavior</pre></div>
 <p>This is one of DAI's most powerful third-party patterns: semantic world perception can directly determine which gameplay choices are currently exposed.</p>
 </section>
-
-      <div class="guide-pager"><a href="../menus/">← Previous</a><span></span></div>
-    </article>
-  </div>
+<div class="guide-pager"><a href="../menus/">← Previous</a><a href="../overlays-reactions/">Next →</a></div>
+</article>
+</div>
 </main>
 <footer class="footer">Decisions and Impulses · Third-party automation framework for Minecraft</footer>
 </body>

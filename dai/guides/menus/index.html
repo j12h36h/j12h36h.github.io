@@ -1,54 +1,50 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Menus · DAI Creator Guide</title>
-  <meta name="description" content="DAI creator guide">
-  <link rel="stylesheet" href="../../assets/css/site.css">
-  <link rel="stylesheet" href="../assets/guides.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Menus · DAI Creator Guide</title>
+<meta content="DAI creator guide" name="description"/>
+<link href="../../assets/css/site.css" rel="stylesheet"/>
+<link href="../assets/guides.css" rel="stylesheet"/>
 </head>
 <body>
-
 <header class="site-header">
-  <nav class="nav">
-    <a class="brand" href="../../index.html">Decisions <span>&amp;</span> Impulses</a>
-    <div class="nav-links">
-      <a href="../../index.html">Home</a>
-      <a href="../../info/">Info</a>
-      <a class="active" href="../../guides/">Guides</a>
-      <a href="../../datapacks/">Official Datapacks</a>
-      <a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" target="_blank" rel="noopener noreferrer">Download</a>
-    </div>
-  </nav>
+<nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/datapacks/">Official Datapacks</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav>
 </header>
 <main>
-  <div class="guide-shell">
-    <aside class="guide-sidebar"><strong>Creator Guide</strong><a href="../overview/">Overview</a><a href="../actions/">Actions</a><a href="../objectives-sequences-flow/">Objectives, Sequences &amp; Flow</a><a href="../conditions/">Conditions</a><a style="color:var(--text);background:var(--panel-2);" href="../menus/">Menus</a><a href="../recognition-perception/">Recognition &amp; Perception</a></aside>
-    <article class="guide-content">
-      
+<div class="guide-shell">
+<aside class="guide-sidebar"><strong>Creator Guide</strong><a href="../overview/">Overview</a><a href="../actions/">Actions</a><a href="../objectives-sequences-flow/">Objectives, Sequences &amp; Flow</a><a href="../conditions/">Conditions</a><a class="current" href="../menus/">Menus</a><a href="../recognition-perception/">Recognition &amp; Perception</a><a href="../overlays-reactions/">Overlays &amp; Reactions</a></aside>
+<article class="guide-content">
 <section class="guide-hero">
 <div class="eyebrow">Page 5 · Menus</div>
 <h1>Menus as Gameplay Interfaces</h1>
 <p>Datapacks can contribute normal action menus, add entries to the shared Automation menu, and create named Available menus whose buttons appear and disappear according to live conditions.</p>
 <div class="guide-stats">
-  <div class="guide-stat"><strong>Normal Menus</strong>Static action choices defined by datapacks.</div>
-  <div class="guide-stat"><strong>Automation Contributions</strong>Multiple packs merge into one shared menu.</div>
-  <div class="guide-stat"><strong>Available Menus</strong>Live condition-filtered action choices.</div>
+<div class="guide-stat"><strong>Normal Menus</strong>Static action choices defined by datapacks.</div>
+<div class="guide-stat"><strong>Automation Contributions</strong>Multiple packs merge into one shared menu.</div>
+<div class="guide-stat"><strong>Available Menus</strong>Live condition-filtered action choices.</div>
 </div>
 </section>
-
 <section class="guide-section">
 <h2>Menu Definition Shape</h2>
 <div class="guide-code"><div class="label">Menu definition</div><pre>{
-  &quot;priority&quot;: 100,
-  &quot;buttons&quot;: [
+  "priority": 100,
+  "buttons": [
     {
-      &quot;slot&quot;: 0,
-      &quot;id&quot;: &quot;my_button&quot;,
-      &quot;text&quot;: &quot;My Button&quot;,
-      &quot;action&quot;: &quot;my_pack:my_action&quot;,
-      &quot;conditions&quot;: []
+      "slot": 0,
+      "id": "my_button",
+      "text": "My Button",
+      "action": "my_pack:my_action",
+      "conditions": [],
+      "style": {
+        "background": "#263545",
+        "hover": "#334A60",
+        "selected": "#75D5FF",
+        "text": "#FFFFFF",
+        "border": "#8EE3A1"
+      }
     }
   ]
 }</pre></div>
@@ -61,60 +57,75 @@
 <tr><td><code>text</code></td><td>Text displayed to the player.</td></tr>
 <tr><td><code>action</code></td><td>Namespaced DAI action/objective executed when selected.</td></tr>
 <tr><td><code>conditions</code></td><td>Optional condition list used by dynamic Available menus.</td></tr>
+<tr><td><code>style</code></td><td>Optional custom background, hover, selected, text, and border colors. Omit it for vanilla rendering.</td></tr>
 </tbody></table></div>
 </section>
-
+<section class="guide-section">
+<h2>Custom Button Colors</h2>
+<p>Every menu button may optionally define its own visual style. Each field is independent; omitted fields fall back to DAI's normal rendering.</p>
+<div class="guide-code"><div class="label">Styled button</div><pre>{
+  "slot": 0,
+  "id": "harvest",
+  "text": "Harvest",
+  "action": "my_pack:harvest",
+  "style": {
+    "background": "#263545",
+    "hover": "#334A60",
+    "selected": "#75D5FF",
+    "text": "#FFFFFF",
+    "border": "#8EE3A1"
+  }
+}</pre></div>
+<p>Colors accept <code>#RRGGBB</code> or <code>#AARRGGBB</code>. Custom styling does not change menu slots, conditions, dynamic Available-menu repacking, or action dispatch.</p>
+</section>
 <section class="guide-section">
 <h2>Normal Action Menus</h2>
 <p>Normal datapack action menus live under <code>menus/actions/</code>. Their resource path becomes the menu ID.</p>
 <div class="guide-code"><div class="label">Example path</div><pre>data/my_pack/menus/actions/tools.json</pre></div>
 <div class="guide-code"><div class="label">tools.json</div><pre>{
-  &quot;priority&quot;: 100,
-  &quot;buttons&quot;: [
+  "priority": 100,
+  "buttons": [
     {
-      &quot;slot&quot;: 0,
-      &quot;id&quot;: &quot;gather_wood&quot;,
-      &quot;text&quot;: &quot;Gather Wood&quot;,
-      &quot;action&quot;: &quot;my_pack:harvest_wood&quot;
+      "slot": 0,
+      "id": "gather_wood",
+      "text": "Gather Wood",
+      "action": "my_pack:harvest_wood"
     },
     {
-      &quot;slot&quot;: 1,
-      &quot;id&quot;: &quot;mine_stone&quot;,
-      &quot;text&quot;: &quot;Mine Stone&quot;,
-      &quot;action&quot;: &quot;my_pack:mine_stone&quot;
+      "slot": 1,
+      "id": "mine_stone",
+      "text": "Mine Stone",
+      "action": "my_pack:mine_stone"
     }
   ]
 }</pre></div>
 </section>
-
 <section class="guide-section">
 <h2>Opening a Menu</h2>
 <p>All named action menus—including Available menus—open through the same <code>update_menu</code> action.</p>
 <div class="guide-code"><div class="label">Open tools</div><pre>{
-  &quot;type&quot;: &quot;update_menu&quot;,
-  &quot;menu&quot;: &quot;action&quot;,
-  &quot;open&quot;: &quot;tools&quot;
+  "type": "update_menu",
+  "menu": "action",
+  "open": "tools"
 }</pre></div>
 <div class="guide-callout"><strong>Menu actions are control-plane input.</strong> Selecting a menu action interrupts stale autonomous runtime work and dispatches the chosen menu command immediately.</div>
 </section>
-
 <section class="guide-section">
 <h2>Contributing to the Automation Menu</h2>
 <p>Files at <code>menus/actions/automation.json</code> or beneath <code>menus/actions/automation/</code> are merged into the shared Automation menu.</p>
 <div class="guide-code"><div class="label">data/my_pack/menus/actions/automation/my_pack.json</div><pre>{
-  &quot;priority&quot;: 100,
-  &quot;buttons&quot;: [
+  "priority": 100,
+  "buttons": [
     {
-      &quot;slot&quot;: 0,
-      &quot;id&quot;: &quot;my_pack_start&quot;,
-      &quot;text&quot;: &quot;[My Pack] Start&quot;,
-      &quot;action&quot;: &quot;my_pack:open_main_menu&quot;
+      "slot": 0,
+      "id": "my_pack_start",
+      "text": "[My Pack] Start",
+      "action": "my_pack:open_main_menu"
     }
   ]
 }</pre></div>
 <p>DAI orders contributions, reindexes the merged buttons, and structurally pins Stop Automation last.</p>
 </section>
-
 <section class="guide-section">
 <h2>Named Available Menus</h2>
 <p>Place a definition under <code>menus/actions/available/</code> to make it a dynamic condition-filtered action menu.</p>
@@ -122,35 +133,32 @@
                          ↓
                   menu id = hunt</pre></div>
 <p>The special <code>available.json</code> form remains compatible as menu ID <code>available</code>.</p>
-
 <div class="guide-code"><div class="label">hunt.json</div><pre>{
-  &quot;priority&quot;: 100,
-  &quot;buttons&quot;: [
+  "priority": 100,
+  "buttons": [
     {
-      &quot;slot&quot;: 0,
-      &quot;id&quot;: &quot;hunt_cow&quot;,
-      &quot;text&quot;: &quot;Hunt Cow&quot;,
-      &quot;action&quot;: &quot;my_pack:hunt_cow&quot;,
-      &quot;conditions&quot;: [
+      "slot": 0,
+      "id": "hunt_cow",
+      "text": "Hunt Cow",
+      "action": "my_pack:hunt_cow",
+      "conditions": [
         {
-          &quot;type&quot;: &quot;nearby_entity_count&quot;,
-          &quot;parameter&quot;: &quot;minecraft:cow&quot;,
-          &quot;operator&quot;: &quot;greater_than&quot;,
-          &quot;number_value&quot;: 0.0,
-          &quot;parameter_number&quot;: 24.0
+          "type": "nearby_entity_count",
+          "parameter": "minecraft:cow",
+          "operator": "greater_than",
+          "number_value": 0.0,
+          "parameter_number": 24.0
         }
       ]
     }
   ]
 }</pre></div>
-
 <div class="guide-code"><div class="label">Open the named Available menu</div><pre>{
-  &quot;type&quot;: &quot;update_menu&quot;,
-  &quot;menu&quot;: &quot;action&quot;,
-  &quot;open&quot;: &quot;hunt&quot;
+  "type": "update_menu",
+  "menu": "action",
+  "open": "hunt"
 }</pre></div>
 </section>
-
 <section class="guide-section">
 <h2>How Available Menus Behave</h2>
 <ul>
@@ -169,7 +177,6 @@ Eligible Actions Only
    ↓
 Live Available Menu</pre></div>
 </section>
-
 <section class="guide-section">
 <h2>Example Menu Tree</h2>
 <div class="guide-flow"><pre>Automation
@@ -187,10 +194,9 @@ Main Available Menu
           └── Grass  (only when harvestable vegetation is recognized)</pre></div>
 <p>Menus can therefore act as both a user interface and a live representation of what the datapack believes is currently possible.</p>
 </section>
-
-      <div class="guide-pager"><a href="../conditions/">← Previous</a><a href="../recognition-perception/">Next →</a></div>
-    </article>
-  </div>
+<div class="guide-pager"><a href="../conditions/">← Previous</a><a href="../recognition-perception/">Next →</a></div>
+</article>
+</div>
 </main>
 <footer class="footer">Decisions and Impulses · Third-party automation framework for Minecraft</footer>
 </body>
