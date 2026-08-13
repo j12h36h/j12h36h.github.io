@@ -100,3 +100,10 @@ a{color:inherit;text-decoration:none} button,input,select,textarea{font:inherit}
   .site-header .nav{grid-template-columns:1fr;gap:10px;padding-top:14px;padding-bottom:14px}
   .site-header .nav-links{justify-content:flex-start;flex-wrap:wrap;width:100%}
 }
+
+
+/* Resource-pack editor */
+.resource-file-list{margin-top:12px}
+.resource-file-card{border-left:3px solid var(--accent)}
+.resource-file-path{font-family:"SFMono-Regular",Consolas,monospace}
+.resource-meta{color:var(--muted);font-size:.76rem}

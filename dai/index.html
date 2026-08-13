@@ -21,11 +21,21 @@
       building, menus, screen overlays, reactions, and decision systems that datapacks
       can combine into entirely different Minecraft experiences.
     </p>
+<div class="video-carousel" aria-label="Highlighted videos">
+<button class="video-nav video-nav-prev" type="button" aria-label="Previous highlighted video">←</button>
 <div class="video-shell">
 <div class="video-ratio">
-<iframe allowfullscreen="" src="https://www.youtube.com/embed/W-_UtW5GXGE?si=95X5Oiyl8NJOpUJq" title="Decisions and Impulses">
+<div class="video-slide active" aria-hidden="false">
+<iframe allowfullscreen="" src="https://www.youtube.com/embed/W-_UtW5GXGE?si=95X5Oiyl8NJOpUJq&enablejsapi=1" title="Decisions and Impulses">
 </iframe>
 </div>
+<div class="video-slide" aria-hidden="true">
+<iframe allowfullscreen="" src="https://www.youtube.com/embed/oO9Ko4JHHDE?si=L-1qGYMoYLua_tRK&enablejsapi=1" title="Comic Effects Combo-Pack" tabindex="-1">
+</iframe>
+</div>
+</div>
+</div>
+<button class="video-nav video-nav-next" type="button" aria-label="Next highlighted video">→</button>
 </div>
 </section>
 <section class="grid">
@@ -54,5 +64,40 @@
 <footer class="footer">
   Decisions and Impulses · Third-party automation framework for Minecraft
 </footer>
+
+<script>
+  const videoSlides = Array.from(document.querySelectorAll('.video-slide'));
+  const previousVideoButton = document.querySelector('.video-nav-prev');
+  const nextVideoButton = document.querySelector('.video-nav-next');
+  let activeVideoIndex = 0;
+
+  function showVideo(index) {
+    activeVideoIndex = (index + videoSlides.length) % videoSlides.length;
+
+    videoSlides.forEach((slide, slideIndex) => {
+      const isActive = slideIndex === activeVideoIndex;
+      const iframe = slide.querySelector('iframe');
+
+      if (!isActive) {
+        iframe.contentWindow?.postMessage(
+          JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }),
+          '*'
+        );
+      }
+
+      slide.classList.toggle('active', isActive);
+      slide.setAttribute('aria-hidden', String(!isActive));
+      iframe.tabIndex = isActive ? 0 : -1;
+    });
+  }
+
+  previousVideoButton.addEventListener('click', () => {
+    showVideo(activeVideoIndex - 1);
+  });
+
+  nextVideoButton.addEventListener('click', () => {
+    showVideo(activeVideoIndex + 1);
+  });
+</script>
 </body>
 </html>

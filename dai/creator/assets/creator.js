@@ -13,21 +13,26 @@ const uid = () => Math.random().toString(36).slice(2,10);
 let state = freshState();
 let selectedPreview = {kind:"project"};
 
-function freshState() {
+function freshState(kind="datapack") {
   return {
-    formatVersion: 2,
+    formatVersion: 3,
+    kind,
     pack: {
       name: "My DAI Pack",
       namespace: "my_dai_pack",
       description: "A custom Decisions and Impulses datapack.",
       minFormat: [107,1],
-      maxFormat: 107
+      maxFormat: 107,
+      resourceFormat: 48
     },
     objectives: [],
     menus: [],
     reactions: [],
     groups: [],
     recognition: [],
+    resourceFiles: {},
+    packIcon: null,
+    resourceMcmeta: null,
     extraFiles: {}
   };
 }
@@ -43,6 +48,28 @@ function validNamespace(v){ return /^[a-z0-9_.-]+$/.test(String(v || "")); }
 function validLocalPath(v){ return /^[a-z0-9_.\/-]+$/.test(String(v || "")) && !String(v).includes(".."); }
 function fullId(local){ return `${state.pack.namespace}:${slug(local)}`; }
 function deep(v){ return JSON.parse(JSON.stringify(v)); }
+function normalizeZipPath(v){
+  return String(v??"").replace(/\\/g,"/").replace(/^\.?\/+/,"").replace(/\/{2,}/g,"/").trim();
+}
+function validZipPath(v){
+  const p=normalizeZipPath(v);
+  return Boolean(p) && !p.split("/").includes("..") && !p.includes("\0");
+}
+function byteLengthOf(data){
+  if(data instanceof Uint8Array)return data.byteLength;
+  if(data instanceof ArrayBuffer)return data.byteLength;
+  return new TextEncoder().encode(String(data??"")).byteLength;
+}
+function humanBytes(n){
+  if(n<1024)return `${n} B`;
+  if(n<1024*1024)return `${(n/1024).toFixed(1)} KB`;
+  return `${(n/(1024*1024)).toFixed(1)} MB`;
+}
+function decodeText(data){
+  if(data instanceof Uint8Array)return new TextDecoder().decode(data);
+  if(data instanceof ArrayBuffer)return new TextDecoder().decode(new Uint8Array(data));
+  return String(data??"");
+}
 
 function blankSprite() {
   return {
@@ -105,18 +132,21 @@ function loadPackInputs(){
   $("#description").value = state.pack.description ?? "";
   $("#minFormat").value = JSON.stringify(state.pack.minFormat ?? [107,1]);
   $("#maxFormat").value = state.pack.maxFormat ?? 107;
+  $("#resourceFormat").value = state.pack.resourceFormat ?? 48;
 }
 function readPackInputs(){
-  state.pack.name = $("#packName").value.trim() || "My DAI Pack";
+  state.pack.name = $("#packName").value.trim() || (state.kind==="resourcepack" ? "My Resource Pack" : "My DAI Pack");
   state.pack.namespace = $("#namespace").value.trim() || "my_dai_pack";
   state.pack.description = $("#description").value.trim();
   try { state.pack.minFormat = JSON.parse($("#minFormat").value); }
   catch { state.pack.minFormat = $("#minFormat").value.trim(); }
   state.pack.maxFormat = Number($("#maxFormat").value || 107);
+  state.pack.resourceFormat = Number($("#resourceFormat").value || 48);
 }
-["packName","namespace","description","minFormat","maxFormat"].forEach(id => {
+["packName","namespace","description","minFormat","maxFormat","resourceFormat"].forEach(id => {
   document.getElementById(id).addEventListener("input", () => {
     readPackInputs();
+    if(id==="namespace" && state.kind==="resourcepack") renderResourceFiles();
     renderExportTree();
     refreshPreview();
   });
@@ -129,6 +159,28 @@ function switchView(view){
   refreshPreview();
 }
 $$(".nav-btn").forEach(b => b.addEventListener("click",()=>switchView(b.dataset.view)));
+function updateModeUi(){
+  const resource = state.kind === "resourcepack";
+  $$(".datapack-only").forEach(el=>el.hidden=resource);
+  $$(".resource-only").forEach(el=>el.hidden=!resource);
+  $$(".datapack-format").forEach(el=>el.hidden=resource);
+  $$(".resource-format").forEach(el=>el.hidden=!resource);
+
+  $("#creatorModeTitle").textContent = resource ? "Resource Pack Creator" : "Datapack Creator";
+  $("#creatorModeSub").textContent = resource ? "Build or edit a Minecraft resource pack" : "Build or edit a DAI datapack";
+  $("#workspaceHeading").textContent = resource ? "DAI Resource Pack Creator" : "DAI Datapack Creator";
+  $("#workspaceDescription").textContent = resource
+    ? "Create or import a Minecraft resource pack, add textures and other assets, validate its structure, then export a normal editable ZIP. This is suitable for packs such as DAI ComicEffects."
+    : "Create a new DAI datapack or import an existing one, edit objectives, styled menus, reactions, recognition and presentation actions visually, validate references and runtime constraints, then export a normal datapack ZIP.";
+  $("#packSetupSubtitle").textContent = resource ? "Identity and Minecraft resource-pack metadata" : "Identity and Minecraft datapack metadata";
+  $("#exportSubtitle").textContent = resource ? "Compile a standard Minecraft resource-pack ZIP after validation" : "Compile a standard Minecraft datapack ZIP after validation";
+  $("#exportZip").textContent = resource ? "Validate & Export Resource Pack ZIP" : "Validate & Export Datapack ZIP";
+  $("#quickExport").textContent = resource ? "Validate & Export Resource Pack ZIP" : "Validate & Export ZIP";
+
+  const active=$$(".nav-btn.active").find(x=>!x.hidden);
+  if(!active) switchView("pack");
+}
+
 
 function optionGroups(items, selected, valueKey="id"){
   const groups = {};
@@ -729,6 +781,25 @@ $("#addRecognition").onclick=()=>{state.recognition.push(blankRecognition());ren
 function generatedFiles(){
   readPackInputs();
   const files={};
+
+  if(state.kind==="resourcepack"){
+    const meta=state.resourceMcmeta && typeof state.resourceMcmeta==="object" ? deep(state.resourceMcmeta) : {};
+    meta.pack={...(meta.pack||{}),description:state.pack.description,pack_format:Number(state.pack.resourceFormat||48)};
+    delete meta.pack.min_format;
+    delete meta.pack.max_format;
+    files["pack.mcmeta"]=JSON.stringify(meta,null,2)+"\n";
+    if(state.packIcon) files["pack.png"]=state.packIcon;
+    Object.entries(state.resourceFiles||{}).forEach(([path,data])=>{
+      const clean=normalizeZipPath(path);
+      if(clean && !(clean in files)) files[clean]=data;
+    });
+    Object.entries(state.extraFiles||{}).forEach(([path,data])=>{
+      const clean=normalizeZipPath(path);
+      if(clean && !(clean in files)) files[clean]=data;
+    });
+    return files;
+  }
+
   files["pack.mcmeta"]=JSON.stringify({pack:{description:state.pack.description,min_format:state.pack.minFormat,max_format:state.pack.maxFormat}},null,2)+"\n";
   const n=state.pack.namespace;
   state.objectives.forEach(o=>files[`data/${n}/objectives/definitions/${slug(o.id)}.json`]=JSON.stringify(objectiveJson(o),null,2)+"\n");
@@ -743,8 +814,9 @@ function generatedFiles(){
   state.groups.forEach(g=>files[`data/${n}/objectives/groups/${slug(g.id)}.json`]=JSON.stringify(groupJson(g),null,2)+"\n");
   state.recognition.forEach(r=>files[`data/${n}/objectives/recognition/${slug(r.id)}.json`]=JSON.stringify(recognitionJson(r),null,2)+"\n");
 
-  Object.entries(state.extraFiles||{}).forEach(([path,text])=>{
-    if(!(path in files)) files[path]=text;
+  Object.entries(state.extraFiles||{}).forEach(([path,data])=>{
+    const clean=normalizeZipPath(path);
+    if(clean && !(clean in files)) files[clean]=data;
   });
   return files;
 }
@@ -780,8 +852,13 @@ function previewValue(){
   if(p.kind==="reactions")return state.reactions.map(r=>({id:fullId(r.id),definition:reactionJson(r)}));
   if(p.kind==="groups")return state.groups.map(g=>({id:fullId(g.id),definition:groupJson(g)}));
   if(p.kind==="recognition")return state.recognition.map(r=>({id:fullId(r.id),definition:recognitionJson(r)}));
+  if(state.kind==="resourcepack")return {
+    kind:"resourcepack",pack:state.pack,
+    resourceFiles:Object.keys(state.resourceFiles||{}).length,
+    packIcon:Boolean(state.packIcon),passthroughFiles:Object.keys(state.extraFiles||{}).length
+  };
   return {
-    pack:state.pack,objectives:state.objectives.length,menus:state.menus.length,
+    kind:"datapack",pack:state.pack,objectives:state.objectives.length,menus:state.menus.length,
     reactions:state.reactions.length,recognitionGroups:state.groups.length,
     recognitionDefinitions:state.recognition.length,
     passthroughFiles:Object.keys(state.extraFiles||{}).length
@@ -805,16 +882,23 @@ function refreshAll(){
 }
 
 function renderAll(){
+  state.kind ||= "datapack";
   state.reactions ||= [];
   state.groups ||= [];
   state.recognition ||= [];
+  state.resourceFiles ||= {};
+  state.packIcon ||= null;
+  state.resourceMcmeta ||= null;
   state.extraFiles ||= {};
+  state.pack.resourceFormat ??= 48;
   loadPackInputs();
+  updateModeUi();
   renderObjectives();
   renderMenus();
   renderReactions();
   renderGroups();
   renderRecognition();
+  renderResourceFiles();
   refreshAll();
   const count=Object.keys(state.extraFiles||{}).length;
   const summary=$("#importSummary");
@@ -823,6 +907,74 @@ function renderAll(){
     summary.textContent=`Imported project contains ${count} passthrough file(s) not owned by the visual editor. They will be preserved on export unless replaced by a managed file path.`;
   } else summary.hidden=true;
 }
+
+function renderResourceFiles(){
+  const root=$("#resourceFileList");
+  if(!root)return;
+  root.innerHTML="";
+  const entries=Object.entries(state.resourceFiles||{}).sort(([a],[b])=>a.localeCompare(b));
+  if(!entries.length){
+    root.innerHTML='<div class="empty">No resource files yet. Add PNG textures or any other files used by the resource pack.</div>';
+  } else {
+    entries.forEach(([path,data])=>{
+      const card=document.createElement("div");
+      card.className="item-card resource-file-card";
+      card.innerHTML=`<div class="item-head"><strong>${esc(path)}</strong><button class="btn small danger" type="button" data-remove-resource>Remove</button></div>
+      <div class="item-body">
+        <div class="field full"><label>ZIP Path</label><input class="resource-file-path" data-resource-path value="${esc(path)}"><span class="help">For textures use assets/${esc(state.pack.namespace)}/textures/... .png</span></div>
+        <div class="resource-meta">${humanBytes(byteLengthOf(data))}</div>
+      </div>`;
+      card.querySelector("[data-remove-resource]").onclick=()=>{
+        delete state.resourceFiles[path];
+        renderResourceFiles();refreshAll();
+      };
+      card.querySelector("[data-resource-path]").onchange=e=>{
+        const next=normalizeZipPath(e.target.value);
+        if(!validZipPath(next)){
+          alert("That resource ZIP path is invalid. Paths cannot be empty or contain '..'.");
+          e.target.value=path;return;
+        }
+        if(next!==path && Object.prototype.hasOwnProperty.call(state.resourceFiles,next)){
+          alert(`A resource file already exists at '${next}'.`);e.target.value=path;return;
+        }
+        if(next!==path){state.resourceFiles[next]=data;delete state.resourceFiles[path];renderResourceFiles();refreshAll();}
+      };
+      root.appendChild(card);
+    });
+  }
+  const icon=$("#packIconStatus");
+  if(icon)icon.textContent=state.packIcon?`pack.png selected · ${humanBytes(byteLengthOf(state.packIcon))}`:"No pack.png selected.";
+  const remove=$("#removePackIcon");if(remove)remove.disabled=!state.packIcon;
+}
+
+async function addResourceFileObjects(fileList,fromFolder=false){
+  if(state.kind!=="resourcepack")return;
+  readPackInputs();
+  for(const f of fileList){
+    let rel=fromFolder?(f.webkitRelativePath||f.name):f.name;
+    if(fromFolder){
+      const parts=rel.split("/");
+      if(parts.length>1 && ["assets","pack.mcmeta","pack.png"].includes(parts[1]))rel=parts.slice(1).join("/");
+    }
+    rel=normalizeZipPath(rel);
+    let path;
+    if(rel==="pack.mcmeta")continue;
+    if(rel==="pack.png"){
+      state.packIcon=new Uint8Array(await f.arrayBuffer());continue;
+    }
+    if(rel.startsWith("assets/"))path=rel;
+    else if(fromFolder && /^(textures|models|font|sounds|atlases|lang|shaders|particles|equipment|items)\//.test(rel))path=`assets/${state.pack.namespace}/${rel}`;
+    else path=`assets/${state.pack.namespace}/textures/${rel}`;
+    path=normalizeZipPath(path);
+    state.resourceFiles[path]=new Uint8Array(await f.arrayBuffer());
+  }
+  renderResourceFiles();refreshAll();
+}
+
+$("#addResourceFiles").onchange=async e=>{await addResourceFileObjects(e.target.files,false);e.target.value="";};
+$("#addResourceFolder").onchange=async e=>{await addResourceFileObjects(e.target.files,true);e.target.value="";};
+$("#setPackIcon").onchange=async e=>{const f=e.target.files[0];if(f){state.packIcon=new Uint8Array(await f.arrayBuffer());renderResourceFiles();refreshAll();}e.target.value="";};
+$("#removePackIcon").onclick=()=>{state.packIcon=null;renderResourceFiles();refreshAll();};
 
 function validateCondition(c,path,issues){
   const spec=conditionMap.get(c.type);
@@ -891,6 +1043,23 @@ function validateProject(){
   const issues=[];
   if(!validNamespace(state.pack.namespace))issues.push({level:"err",message:"Pack namespace is invalid. Use lowercase a-z, 0-9, _, -, or . only."});
   if(!state.pack.description)issues.push({level:"warn",message:"Pack description is empty."});
+
+  if(state.kind==="resourcepack"){
+    if(!Number.isFinite(Number(state.pack.resourceFormat)) || Number(state.pack.resourceFormat)<1)issues.push({level:"err",message:"Resource pack format must be a positive number."});
+    const entries=Object.entries(state.resourceFiles||{});
+    if(!entries.length)issues.push({level:"warn",message:"Resource pack contains no files under assets/."});
+    entries.forEach(([path])=>{
+      const clean=normalizeZipPath(path);
+      if(!validZipPath(clean))issues.push({level:"err",message:`Resource file has invalid ZIP path '${path}'.`});
+      else if(!clean.startsWith("assets/"))issues.push({level:"warn",message:`Resource file '${clean}' is outside assets/. It will still be preserved.`});
+      const m=clean.match(/^assets\/([^/]+)\//);
+      if(m && !validNamespace(m[1]))issues.push({level:"err",message:`Resource file '${clean}' uses invalid namespace '${m[1]}'.`});
+      if(/[A-Z]/.test(clean))issues.push({level:"warn",message:`Resource path '${clean}' contains uppercase letters; Minecraft resource locations are normally lowercase.`});
+    });
+    if(!issues.length)issues.push({level:"ok",message:"No errors or warnings found. Resource pack is ready to export."});
+    return issues;
+  }
+
   if(!Number.isFinite(Number(state.pack.maxFormat)) || Number(state.pack.maxFormat)<1)issues.push({level:"err",message:"Maximum pack format must be a positive number."});
   if(!(Array.isArray(state.pack.minFormat) || Number.isFinite(Number(state.pack.minFormat))))issues.push({level:"err",message:"Minimum pack format must be JSON number/array syntax."});
 
@@ -1009,8 +1178,10 @@ function u32(v){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,v>>
 function concat(parts){let n=parts.reduce((s,p)=>s+p.length,0),out=new Uint8Array(n),o=0;for(const p of parts){out.set(p,o);o+=p.length;}return out;}
 function zipStore(files){
   const enc=new TextEncoder(),locals=[],centrals=[];let offset=0,count=0;
-  Object.entries(files).forEach(([name,text])=>{
-    const nb=enc.encode(name),data=enc.encode(text),crc=crc32(data),flags=0x0800;
+  Object.entries(files).forEach(([name,value])=>{
+    const nb=enc.encode(name);
+    const data=value instanceof Uint8Array ? value : value instanceof ArrayBuffer ? new Uint8Array(value) : enc.encode(String(value??""));
+    const crc=crc32(data),flags=0x0800;
     const local=concat([u32(0x04034b50),u16(20),u16(flags),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nb.length),u16(0),nb,data]);
     const central=concat([u32(0x02014b50),u16(20),u16(20),u16(flags),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nb.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),nb]);
     locals.push(local);centrals.push(central);offset+=local.length;count++;
@@ -1054,7 +1225,7 @@ async function readZip(file){
     if(method===0)raw=comp;
     else if(method===8)raw=await inflateRaw(comp);
     else throw new Error(`ZIP entry '${name}' uses unsupported compression method ${method}.`);
-    out[name.replace(/^\.?\//,"")]=dec.decode(raw);
+    out[name.replace(/^\.?\//,"")]=raw;
   }
   return out;
 }
@@ -1095,7 +1266,7 @@ function normalizedImportedButton(b){
 }
 
 function parseJson(text,path,errors){
-  try{return JSON.parse(text);}catch(e){errors.push(`${path}: ${e.message}`);return null;}
+  try{return JSON.parse(decodeText(text));}catch(e){errors.push(`${path}: ${e.message}`);return null;}
 }
 
 function importFiles(files,sourceLabel="datapack"){
@@ -1176,61 +1347,92 @@ function importFiles(files,sourceLabel="datapack"){
   if(errors.length)alert("Import completed with JSON parse warnings:\n\n"+errors.slice(0,10).join("\n"));
 }
 
+function importResourcePackFiles(files,sourceLabel="resource_pack"){
+  const errors=[],next=freshState("resourcepack");
+  const mc=files["pack.mcmeta"]?parseJson(files["pack.mcmeta"],"pack.mcmeta",errors):null;
+  if(mc && typeof mc==="object"){
+    next.resourceMcmeta=mc;
+    if(mc.pack){
+      next.pack.description=mc.pack.description??"";
+      next.pack.resourceFormat=Number(mc.pack.pack_format??48);
+    }
+  }
+
+  const counts={};
+  Object.keys(files).forEach(path=>{
+    const m=normalizeZipPath(path).match(/^assets\/([^/]+)\//);
+    if(m)counts[m[1]]=(counts[m[1]]||0)+1;
+  });
+  const chosen=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  if(chosen)next.pack.namespace=chosen;
+
+  Object.entries(files).forEach(([rawPath,data])=>{
+    const path=normalizeZipPath(rawPath);
+    if(path==="pack.mcmeta")return;
+    if(path==="pack.png"){next.packIcon=data;return;}
+    if(path.startsWith("assets/"))next.resourceFiles[path]=data;
+    else next.extraFiles[path]=data;
+  });
+
+  next.pack.name=sourceLabel.replace(/\.zip$/i,"")||"Imported Resource Pack";
+  state=next;selectedPreview={kind:"project"};renderAll();switchView("pack");showValidation([]);
+  const summary=$("#importSummary");summary.hidden=false;
+  summary.textContent=`Imported resource pack '${sourceLabel}'. Editable resource files: ${Object.keys(state.resourceFiles).length}. Preserving ${Object.keys(state.extraFiles).length} additional file(s).${errors.length?` ${errors.length} metadata warning(s) were found.`:""}`;
+  if(errors.length)alert("Resource pack imported with metadata warnings:\n\n"+errors.slice(0,10).join("\n"));
+}
+
 $("#importZip").onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
-  try{const files=await readZip(f);importFiles(files,f.name);}
+  try{const files=await readZip(f);importFiles(files,f.name);switchView("pack");showValidation([]);}
   catch(err){alert("Could not import datapack ZIP:\n"+err.message);}
+  e.target.value="";
+};
+$("#importResourceZip").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const files=await readZip(f);importResourcePackFiles(files,f.name);}
+  catch(err){alert("Could not import resource pack ZIP:\n"+err.message);}
   e.target.value="";
 };
 $("#importFolder").onchange=async e=>{
   const files={};
   for(const f of e.target.files){
     let path=f.webkitRelativePath||f.name;
-    // Remove root directory.
     const parts=path.split("/");if(parts.length>1)path=parts.slice(1).join("/");
-    files[path]=await f.text();
+    files[path]=new Uint8Array(await f.arrayBuffer());
   }
   importFiles(files,e.target.files[0]?.webkitRelativePath?.split("/")[0]||"Imported Folder");
-  e.target.value="";
+  switchView("pack");showValidation([]);e.target.value="";
 };
 
 $("#newProject").onclick=()=>{
-  if(!confirm("Start a new project? Unsaved changes in the current creator project will be cleared."))return;
-  state=freshState();selectedPreview={kind:"project"};renderAll();showValidation([]);
+  if(!confirm("Start a new datapack? Unsaved changes in the current pack will be cleared."))return;
+  state=freshState("datapack");selectedPreview={kind:"project"};renderAll();switchView("pack");showValidation([]);
+};
+$("#newResourcePack").onclick=()=>{
+  if(!confirm("Start a new resource pack? Unsaved changes in the current pack will be cleared."))return;
+  state=freshState("resourcepack");
+  state.pack.name="My Resource Pack";
+  state.pack.description="A custom Minecraft resource pack for Decisions and Impulses.";
+  selectedPreview={kind:"project"};renderAll();switchView("pack");showValidation([]);
 };
 
-function projectForSave(){ readPackInputs(); return deep(state); }
-function saveEditableProject(){
+function exportPack(){
   const issues=validateProject();showValidation(issues);
-  if(hasErrors(issues) && !confirm("This editable project has validation errors. Save it as an unfinished draft anyway?"))return;
-  downloadBlob(new Blob([JSON.stringify(projectForSave(),null,2)],{type:"application/json"}),`${slug(state.pack.name,"dai_project")}.dai-project.json`);
-}
-$("#saveProject").onclick=saveEditableProject;
-$("#exportProject").onclick=saveEditableProject;
-
-$("#loadProject").onchange=async e=>{
-  const f=e.target.files[0];if(!f)return;
-  try{
-    const x=JSON.parse(await f.text());
-    if(!x.pack || !Array.isArray(x.objectives) || !Array.isArray(x.menus))throw new Error("This does not look like a DAI Creator project file.");
-    state=x;state.reactions ||= [];state.groups ||= [];state.recognition ||= [];state.extraFiles ||= {};selectedPreview={kind:"project"};renderAll();
-  }catch(err){alert("Could not load creator project:\n"+err.message);}
-  e.target.value="";
-};
-
-function exportDatapack(){
-  const issues=validateProject();showValidation(issues);
-  if(hasErrors(issues)){
-    switchView("validate");
-    alert("Datapack export was blocked because validation found hard errors. Fix the errors shown in Validation, then export again.");
-    return;
+  const errors=issues.filter(x=>x.level==="err");
+  if(errors.length){
+    const type=state.kind==="resourcepack"?"resource pack":"datapack";
+    const sample=errors.slice(0,4).map(x=>`• ${x.message}`).join("\n");
+    const more=errors.length>4?`\n• …and ${errors.length-4} more error(s).`:"";
+    const ok=confirm(`Validation found ${errors.length} hard error(s). This ${type} is unconfirmed and may fail to load or behave incorrectly.\n\n${sample}${more}\n\nExport the ZIP anyway?`);
+    if(!ok){switchView("validate");return;}
   }
   const files=generatedFiles();
   const blob=zipStore(files);
-  downloadBlob(blob,`${slug(state.pack.name,"dai_datapack")}.zip`);
+  const fallback=state.kind==="resourcepack"?"resource_pack":"dai_datapack";
+  downloadBlob(blob,`${slug(state.pack.name,fallback)}.zip`);
 }
-$("#exportZip").onclick=exportDatapack;
-$("#quickExport").onclick=exportDatapack;
+$("#exportZip").onclick=exportPack;
+$("#quickExport").onclick=exportPack;
 
 function wirePackInputs(){ loadPackInputs(); }
 function init(){
