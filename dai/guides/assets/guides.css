@@ -1,0 +1,319 @@
+
+/* DAI Guide additions.
+   Intentionally zero-JavaScript and designed to sit on top of /dai/assets/css/site.css. */
+
+.guide-shell {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 34px;
+  align-items: start;
+}
+
+.guide-sidebar {
+  position: sticky;
+  top: 94px;
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+  border: 1px solid var(--border, #263545);
+  border-radius: 16px;
+  background: var(--panel, #111821);
+  padding: 14px;
+}
+
+.guide-sidebar strong {
+  display: block;
+  margin: 3px 8px 10px;
+}
+
+.guide-sidebar a {
+  display: block;
+  padding: 7px 8px;
+  border-radius: 8px;
+  color: var(--muted, #a8b7c5);
+  font-size: .88rem;
+}
+
+.guide-sidebar a:hover {
+  color: var(--text, #eaf2f8);
+  background: var(--panel-2, #17212d);
+  text-decoration: none;
+}
+
+.guide-content { min-width: 0; }
+
+.guide-hero {
+  border: 1px solid var(--border, #263545);
+  border-radius: 22px;
+  padding: 28px;
+  background:
+    linear-gradient(135deg, rgba(117,213,255,.08), rgba(142,227,161,.04)),
+    var(--panel, #111821);
+}
+
+.guide-hero h1 {
+  margin: 5px 0 10px;
+  font-size: clamp(2.35rem, 6vw, 4.9rem);
+  line-height: .98;
+  letter-spacing: -.045em;
+}
+
+.guide-hero p {
+  margin-bottom: 0;
+  color: var(--muted, #a8b7c5);
+  max-width: 850px;
+}
+
+.guide-stats,
+.guide-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.guide-stat,
+.guide-card {
+  border: 1px solid var(--border, #263545);
+  border-radius: 14px;
+  background: var(--panel, #111821);
+  padding: 15px;
+}
+
+.guide-stat strong,
+.guide-card h3 {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--accent-2, #8ee3a1);
+}
+
+.guide-card p,
+.guide-stat {
+  color: var(--muted, #a8b7c5);
+}
+
+.guide-section {
+  padding: 30px 0;
+  border-bottom: 1px solid var(--border, #263545);
+}
+
+.guide-section:last-child { border-bottom: 0; }
+
+.guide-section h2 {
+  margin: 0 0 8px;
+  font-size: 1.8rem;
+}
+
+.guide-section h3 {
+  margin: 26px 0 8px;
+}
+
+.guide-section p,
+.guide-section li {
+  color: var(--muted, #a8b7c5);
+}
+
+.guide-lead {
+  font-size: 1.03rem;
+  max-width: 880px;
+}
+
+.guide-flow {
+  margin: 17px 0;
+  border: 1px solid var(--border, #263545);
+  border-radius: 14px;
+  background: var(--panel, #111821);
+  overflow: auto;
+}
+
+.guide-flow pre {
+  margin: 0;
+  padding: 17px;
+  color: var(--text, #eaf2f8);
+  font: .9rem/1.55 "SFMono-Regular", Consolas, monospace;
+}
+
+.guide-code {
+  margin: 16px 0;
+  border: 1px solid var(--border, #263545);
+  border-radius: 14px;
+  background: #070b0f;
+  overflow: auto;
+}
+
+.guide-code .label {
+  padding: 8px 13px;
+  border-bottom: 1px solid rgba(255,255,255,.09);
+  color: #9cb2c4;
+  font-size: .76rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.guide-code pre {
+  margin: 0;
+  padding: 16px;
+  color: #dff4ff;
+  font: .88rem/1.55 "SFMono-Regular", Consolas, monospace;
+}
+
+.guide-callout {
+  margin: 18px 0;
+  padding: 15px 18px;
+  border-left: 4px solid var(--accent, #75d5ff);
+  border-radius: 0 12px 12px 0;
+  background: var(--panel, #111821);
+  color: var(--muted, #a8b7c5);
+}
+
+.guide-callout strong { color: var(--accent, #75d5ff); }
+
+.guide-callout.warning {
+  border-left-color: #ffd98a;
+}
+
+.guide-callout.warning strong { color: #ffd98a; }
+
+.guide-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--border, #263545);
+  border-radius: 12px;
+}
+
+.guide-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  background: var(--panel, #111821);
+}
+
+.guide-table th,
+.guide-table td {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border, #263545);
+  text-align: left;
+  vertical-align: top;
+  font-size: .87rem;
+}
+
+.guide-table th {
+  color: var(--muted, #a8b7c5);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-size: .74rem;
+}
+
+.guide-table td code {
+  color: var(--accent, #75d5ff);
+}
+
+.guide-details {
+  margin: 12px 0;
+  border: 1px solid var(--border, #263545);
+  border-radius: 13px;
+  overflow: hidden;
+  background: var(--panel, #111821);
+}
+
+.guide-details summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 13px 15px;
+  font-weight: 800;
+  background: var(--panel-2, #17212d);
+}
+
+.guide-details summary::-webkit-details-marker { display: none; }
+.guide-details summary::before {
+  content: "+";
+  color: var(--accent, #75d5ff);
+  margin-right: 8px;
+}
+.guide-details[open] summary::before { content: "−"; }
+
+.guide-details .guide-table-wrap {
+  border: 0;
+  border-radius: 0;
+}
+
+.guide-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.guide-pager a,
+.guide-index-card {
+  border: 1px solid var(--border, #263545);
+  background: var(--panel, #111821);
+  border-radius: 12px;
+}
+
+.guide-pager a {
+  padding: 10px 13px;
+}
+
+.guide-index {
+  display: grid;
+  gap: 12px;
+}
+
+.guide-index-card {
+  display: block;
+  padding: 18px;
+}
+
+.guide-index-card strong {
+  display: block;
+  color: var(--text, #eaf2f8);
+  margin-bottom: 4px;
+}
+
+.guide-index-card span {
+  color: var(--muted, #a8b7c5);
+}
+
+.guide-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  margin-left: 6px;
+  border: 1px solid var(--border, #263545);
+  border-radius: 999px;
+  color: var(--muted, #a8b7c5);
+  font-size: .7rem;
+}
+
+.guide-param-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+}
+
+.guide-param {
+  border: 1px solid var(--border, #263545);
+  border-radius: 12px;
+  background: var(--panel, #111821);
+  padding: 13px;
+}
+
+.guide-param code {
+  color: var(--accent, #75d5ff);
+  font-weight: 700;
+}
+
+.guide-param small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted, #a8b7c5);
+}
+
+@media (max-width: 900px) {
+  .guide-shell { grid-template-columns: 1fr; }
+  .guide-sidebar {
+    position: static;
+    max-height: none;
+  }
+  .guide-stats,
+  .guide-cards,
+  .guide-param-grid { grid-template-columns: 1fr; }
+}

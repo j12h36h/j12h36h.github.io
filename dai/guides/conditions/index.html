@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Conditions · DAI Creator Guide</title>
+  <meta name="description" content="DAI creator guide">
+  <link rel="stylesheet" href="../../assets/css/site.css">
+  <link rel="stylesheet" href="../assets/guides.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a class="brand" href="../../index.html">Decisions <span>&amp;</span> Impulses</a>
+    <div class="nav-links">
+      <a href="../../index.html">Home</a>
+      <a href="../../info/">Info</a>
+      <a class="active" href="../../guides/">Guides</a>
+      <a href="../../datapacks/">Official Datapacks</a>
+      <a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" target="_blank" rel="noopener noreferrer">Download</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <div class="guide-shell">
+    <aside class="guide-sidebar"><strong>Creator Guide</strong><a href="../overview/">Overview</a><a href="../actions/">Actions</a><a href="../objectives-sequences-flow/">Objectives, Sequences &amp; Flow</a><a style="color:var(--text);background:var(--panel-2);" href="../conditions/">Conditions</a><a href="../menus/">Menus</a><a href="../recognition-perception/">Recognition &amp; Perception</a></aside>
+    <article class="guide-content">
+      
+<section class="guide-hero">
+<div class="eyebrow">Page 4 · Conditions</div>
+<h1>Conditions &amp; Decision Making</h1>
+<p>Conditions ask questions about DAI's current context. They can gate atomic actions, filter Available-menu buttons, compare numeric/string/boolean values, and combine into nested logical groups.</p>
+<div class="guide-stats">
+  <div class="guide-stat"><strong>197 registered provider conditions</strong>Plus built-in logical groups.</div>
+  <div class="guide-stat"><strong>Shared context snapshot</strong>A condition group evaluates against one captured context.</div>
+  <div class="guide-stat"><strong>Composable logic</strong>Use all, any, none, not, comparisons, and negate.</div>
+</div>
+</section>
+
+<section class="guide-section">
+<h2>Condition JSON Shape</h2>
+<div class="guide-code"><div class="label">General condition definition</div><pre>{
+  &quot;type&quot;: &quot;condition_type&quot;,
+  &quot;operator&quot;: &quot;is_true&quot;,
+  &quot;boolean_value&quot;: false,
+  &quot;number_value&quot;: 0.0,
+  &quot;string_value&quot;: &quot;&quot;,
+  &quot;negate&quot;: false,
+  &quot;parameter&quot;: &quot;&quot;,
+  &quot;parameter_number&quot;: 0.0,
+  &quot;conditions&quot;: []
+}</pre></div>
+<p>Most conditions need only a small subset of these fields.</p>
+</section>
+
+<section class="guide-section">
+<h2>Comparison Operators</h2>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Value type</th><th>Supported operators</th></tr></thead>
+<tbody>
+<tr><td>Boolean</td><td><code>is_true</code>, <code>is_false</code>, <code>equals</code>, <code>not_equals</code></td></tr>
+<tr><td>Number</td><td><code>equals</code>, <code>not_equals</code>, <code>less_than</code>, <code>less_than_or_equal</code>, <code>greater_than</code>, <code>greater_than_or_equal</code></td></tr>
+<tr><td>String</td><td><code>equals</code>, <code>not_equals</code>, <code>equals_ignore_case</code>, <code>contains</code>, <code>starts_with</code>, <code>ends_with</code></td></tr>
+</tbody></table></div>
+
+<div class="guide-code"><div class="label">Full health and hunger</div><pre>{
+  &quot;conditions&quot;: [
+    {
+      &quot;type&quot;: &quot;player_health&quot;,
+      &quot;operator&quot;: &quot;greater_than_or_equal&quot;,
+      &quot;number_value&quot;: 20.0
+    },
+    {
+      &quot;type&quot;: &quot;player_hunger&quot;,
+      &quot;operator&quot;: &quot;greater_than_or_equal&quot;,
+      &quot;number_value&quot;: 20.0
+    }
+  ]
+}</pre></div>
+<p>A top-level <code>conditions</code> list uses AND behavior: every entry must pass.</p>
+</section>
+
+<section class="guide-section">
+<h2>Logical Condition Groups</h2>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Group</th><th>Behavior</th></tr></thead>
+<tbody>
+<tr><td><code>all</code></td><td>True only when every child condition passes. Empty <code>all</code> is true.</td></tr>
+<tr><td><code>any</code></td><td>True when at least one child passes. Empty <code>any</code> is false.</td></tr>
+<tr><td><code>none</code></td><td>True when none of the child conditions pass.</td></tr>
+<tr><td><code>not</code></td><td>Requires exactly one child and inverts it.</td></tr>
+</tbody></table></div>
+
+<div class="guide-code"><div class="label">Any nearby opportunity</div><pre>{
+  &quot;type&quot;: &quot;any&quot;,
+  &quot;conditions&quot;: [
+    {
+      &quot;type&quot;: &quot;nearby_entity_count&quot;,
+      &quot;parameter&quot;: &quot;animal&quot;,
+      &quot;operator&quot;: &quot;greater_than&quot;,
+      &quot;number_value&quot;: 0.0,
+      &quot;parameter_number&quot;: 16.0
+    },
+    {
+      &quot;type&quot;: &quot;nearby_recognition&quot;,
+      &quot;parameter&quot;: &quot;decisions_and_impulses:tree&quot;,
+      &quot;number_value&quot;: 24.0
+    }
+  ]
+}</pre></div>
+<p><code>negate: true</code> can invert the final result of any provider or logical group.</p>
+</section>
+
+<section class="guide-section">
+<h2>Action Result Conditions</h2>
+<div class="guide-cards">
+  <div class="guide-card"><h3>last_action_running</h3><p>Previous/current status is RUNNING.</p></div>
+  <div class="guide-card"><h3>last_action_success</h3><p>The committed previous action succeeded.</p></div>
+  <div class="guide-card"><h3>last_action_failure</h3><p>The committed previous action failed.</p></div>
+  <div class="guide-card"><h3>last_action_cancelled</h3><p>The committed previous action was cancelled.</p></div>
+  <div class="guide-card"><h3>last_action_timed_out</h3><p>The committed previous action timed out.</p></div>
+</div>
+<div class="guide-callout warning"><strong>Atomic runtime skip behavior:</strong> if an action's own runtime conditions fail, DAI skips the body and records FAILURE for that semantic action.</div>
+</section>
+
+<section class="guide-section">
+<h2>Complete Current Condition Catalog</h2>
+<p>The provider-input column lists fields read directly by the provider itself. Comparison fields such as <code>number_value</code> may also be used by the central evaluator depending on the provider's return type.</p>
+<details class="guide-details"><summary>Advancement · 2 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>advancement_complete</code></td><td>boolean</td><td>parameter</td><td>Advancement complete</td></tr><tr><td><code>advancement_category_complete</code></td><td>boolean</td><td>parameter</td><td>Advancement category complete</td></tr></tbody></table></div></details><details class="guide-details"><summary>Block · 9 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>block_at_offset</code></td><td>value</td><td>parameter</td><td>Block at offset</td></tr><tr><td><code>targeted_block_exists</code></td><td>boolean</td><td>none</td><td>Targeted block exists</td></tr><tr><td><code>targeted_block</code></td><td>string</td><td>none</td><td>Targeted block</td></tr><tr><td><code>targeted_block_breakable</code></td><td>boolean</td><td>none</td><td>Targeted block breakable</td></tr><tr><td><code>targeted_block_air</code></td><td>boolean</td><td>none</td><td>Targeted block air</td></tr><tr><td><code>block_below</code></td><td>value</td><td>none</td><td>Block below</td></tr><tr><td><code>block_above</code></td><td>value</td><td>none</td><td>Block above</td></tr><tr><td><code>block_at_feet</code></td><td>value</td><td>none</td><td>Block at feet</td></tr><tr><td><code>target_block_selected</code></td><td>boolean</td><td>none</td><td>Target block selected</td></tr></tbody></table></div></details><details class="guide-details"><summary>Combat · 6 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>attack_cooldown</code></td><td>number</td><td>none</td><td>Attack cooldown</td></tr><tr><td><code>attack_ready</code></td><td>boolean</td><td>none</td><td>Attack ready</td></tr><tr><td><code>player_blocking</code></td><td>boolean</td><td>none</td><td>Player blocking</td></tr><tr><td><code>player_recently_hurt</code></td><td>boolean</td><td>none</td><td>Player recently hurt</td></tr><tr><td><code>player_hurt_time</code></td><td>number</td><td>none</td><td>Player hurt time</td></tr><tr><td><code>target_in_melee_reach</code></td><td>boolean</td><td>none</td><td>Target in melee reach</td></tr></tbody></table></div></details><details class="guide-details"><summary>Effect · 6 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>player_effect_exists</code></td><td>boolean</td><td>string_value</td><td>Player effect exists</td></tr><tr><td><code>player_effect_duration</code></td><td>number</td><td>string_value</td><td>Player effect duration</td></tr><tr><td><code>player_effect_amplifier</code></td><td>number</td><td>string_value</td><td>Player effect amplifier</td></tr><tr><td><code>target_effect_exists</code></td><td>boolean</td><td>string_value</td><td>Target effect exists</td></tr><tr><td><code>target_effect_duration</code></td><td>number</td><td>string_value</td><td>Target effect duration</td></tr><tr><td><code>target_effect_amplifier</code></td><td>number</td><td>string_value</td><td>Target effect amplifier</td></tr></tbody></table></div></details><details class="guide-details"><summary>Entity · 10 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>target_entity_type</code></td><td>string</td><td>none</td><td>Target entity type</td></tr><tr><td><code>target_is_living</code></td><td>boolean</td><td>none</td><td>Target is living</td></tr><tr><td><code>target_is_player</code></td><td>boolean</td><td>none</td><td>Target is player</td></tr><tr><td><code>target_is_hostile</code></td><td>boolean</td><td>none</td><td>Target is hostile</td></tr><tr><td><code>target_is_animal</code></td><td>boolean</td><td>none</td><td>Target is animal</td></tr><tr><td><code>target_is_baby</code></td><td>boolean</td><td>none</td><td>Target is baby</td></tr><tr><td><code>target_is_adult</code></td><td>boolean</td><td>none</td><td>Target is adult</td></tr><tr><td><code>target_name</code></td><td>string</td><td>none</td><td>Target name</td></tr><tr><td><code>target_custom_name</code></td><td>string</td><td>none</td><td>Target custom name</td></tr><tr><td><code>target_has_custom_name</code></td><td>boolean</td><td>none</td><td>Target has custom name</td></tr></tbody></table></div></details><details class="guide-details"><summary>Environment · 11 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>biome</code></td><td>string</td><td>none</td><td>Biome</td></tr><tr><td><code>biome_tag</code></td><td>boolean</td><td>parameter</td><td>Biome tag</td></tr><tr><td><code>fluid_at_feet</code></td><td>value</td><td>none</td><td>Fluid at feet</td></tr><tr><td><code>fluid_below</code></td><td>value</td><td>none</td><td>Fluid below</td></tr><tr><td><code>player_underwater</code></td><td>boolean</td><td>none</td><td>Player underwater</td></tr><tr><td><code>player_in_rain</code></td><td>boolean</td><td>none</td><td>Player in rain</td></tr><tr><td><code>player_in_powder_snow</code></td><td>boolean</td><td>none</td><td>Player in powder snow</td></tr><tr><td><code>underground</code></td><td>boolean</td><td>none</td><td>Underground</td></tr><tr><td><code>open_sky</code></td><td>boolean</td><td>none</td><td>Open sky</td></tr><tr><td><code>sky_light</code></td><td>number</td><td>none</td><td>Sky light</td></tr><tr><td><code>block_light</code></td><td>number</td><td>none</td><td>Block light</td></tr></tbody></table></div></details><details class="guide-details"><summary>Equipment · 6 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>equipment_item</code></td><td>string</td><td>parameter</td><td>Equipment item</td></tr><tr><td><code>equipment_empty</code></td><td>boolean</td><td>parameter</td><td>Equipment empty</td></tr><tr><td><code>equipment_stack_size</code></td><td>number</td><td>parameter</td><td>Equipment stack size</td></tr><tr><td><code>equipment_durability</code></td><td>number</td><td>parameter</td><td>Equipment durability</td></tr><tr><td><code>equipment_damage</code></td><td>number</td><td>parameter</td><td>Equipment damage</td></tr><tr><td><code>equipment_max_damage</code></td><td>number</td><td>parameter</td><td>Equipment max damage</td></tr></tbody></table></div></details><details class="guide-details"><summary>Geometry · 8 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>player_facing_target</code></td><td>boolean</td><td>parameter_number</td><td>Player facing target</td></tr><tr><td><code>target_in_front</code></td><td>boolean</td><td>none</td><td>Target in front</td></tr><tr><td><code>target_behind</code></td><td>boolean</td><td>none</td><td>Target behind</td></tr><tr><td><code>target_left</code></td><td>boolean</td><td>none</td><td>Target left</td></tr><tr><td><code>target_right</code></td><td>boolean</td><td>none</td><td>Target right</td></tr><tr><td><code>horizontal_angle_to_target</code></td><td>number</td><td>none</td><td>Horizontal angle to target</td></tr><tr><td><code>vertical_angle_to_target</code></td><td>number</td><td>none</td><td>Vertical angle to target</td></tr><tr><td><code>distance_to_position</code></td><td>number</td><td>parameter</td><td>Distance to position</td></tr></tbody></table></div></details><details class="guide-details"><summary>Inventory · 8 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>holding_item</code></td><td>string</td><td>none</td><td>Holding item</td></tr><tr><td><code>offhand_item</code></td><td>string</td><td>none</td><td>Offhand item</td></tr><tr><td><code>inventory_has_space</code></td><td>boolean</td><td>none</td><td>Inventory has space</td></tr><tr><td><code>selected_hotbar_slot</code></td><td>number</td><td>none</td><td>Selected hotbar slot</td></tr><tr><td><code>mainhand_empty</code></td><td>boolean</td><td>none</td><td>Mainhand empty</td></tr><tr><td><code>offhand_empty</code></td><td>boolean</td><td>none</td><td>Offhand empty</td></tr><tr><td><code>container_has_item</code></td><td>number</td><td>parameter</td><td>Container has item</td></tr><tr><td><code>recipe_unlocked</code></td><td>boolean</td><td>parameter</td><td>Recipe unlocked</td></tr></tbody></table></div></details><details class="guide-details"><summary>Item · 9 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>inventory_item_count</code></td><td>number</td><td>parameter</td><td>Inventory item count</td></tr><tr><td><code>mainhand_stack_size</code></td><td>number</td><td>none</td><td>Mainhand stack size</td></tr><tr><td><code>offhand_stack_size</code></td><td>number</td><td>none</td><td>Offhand stack size</td></tr><tr><td><code>mainhand_damage</code></td><td>number</td><td>none</td><td>Mainhand damage</td></tr><tr><td><code>mainhand_max_damage</code></td><td>number</td><td>none</td><td>Mainhand max damage</td></tr><tr><td><code>mainhand_durability</code></td><td>number</td><td>none</td><td>Mainhand durability</td></tr><tr><td><code>offhand_damage</code></td><td>number</td><td>none</td><td>Offhand damage</td></tr><tr><td><code>offhand_max_damage</code></td><td>number</td><td>none</td><td>Offhand max damage</td></tr><tr><td><code>offhand_durability</code></td><td>number</td><td>none</td><td>Offhand durability</td></tr></tbody></table></div></details><details class="guide-details"><summary>Knowledge · 2 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>biome_known</code></td><td>boolean</td><td>parameter</td><td>Biome known</td></tr><tr><td><code>structure_known</code></td><td>boolean</td><td>parameter</td><td>Structure known</td></tr></tbody></table></div></details><details class="guide-details"><summary>Mode · 10 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>player_game_mode</code></td><td>string</td><td>none</td><td>Player game mode</td></tr><tr><td><code>player_survival</code></td><td>boolean</td><td>none</td><td>Player survival</td></tr><tr><td><code>player_creative</code></td><td>boolean</td><td>none</td><td>Player creative</td></tr><tr><td><code>player_adventure</code></td><td>boolean</td><td>none</td><td>Player adventure</td></tr><tr><td><code>player_spectator</code></td><td>boolean</td><td>none</td><td>Player spectator</td></tr><tr><td><code>player_flying</code></td><td>boolean</td><td>none</td><td>Player flying</td></tr><tr><td><code>player_can_fly</code></td><td>boolean</td><td>none</td><td>Player can fly</td></tr><tr><td><code>player_invulnerable</code></td><td>boolean</td><td>none</td><td>Player invulnerable</td></tr><tr><td><code>player_instabuild</code></td><td>boolean</td><td>none</td><td>Player instabuild</td></tr><tr><td><code>player_may_build</code></td><td>boolean</td><td>none</td><td>Player may build</td></tr></tbody></table></div></details><details class="guide-details"><summary>Movement · 11 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>player_moving</code></td><td>boolean</td><td>none</td><td>Player moving</td></tr><tr><td><code>player_stationary</code></td><td>boolean</td><td>none</td><td>Player stationary</td></tr><tr><td><code>player_in_air</code></td><td>boolean</td><td>none</td><td>Player in air</td></tr><tr><td><code>player_falling</code></td><td>boolean</td><td>none</td><td>Player falling</td></tr><tr><td><code>player_rising</code></td><td>boolean</td><td>none</td><td>Player rising</td></tr><tr><td><code>player_horizontal_speed</code></td><td>number</td><td>none</td><td>Player horizontal speed</td></tr><tr><td><code>player_vertical_speed</code></td><td>number</td><td>none</td><td>Player vertical speed</td></tr><tr><td><code>player_speed</code></td><td>number</td><td>none</td><td>Player speed</td></tr><tr><td><code>player_swimming</code></td><td>boolean</td><td>none</td><td>Player swimming</td></tr><tr><td><code>player_fall_flying</code></td><td>boolean</td><td>none</td><td>Player fall flying</td></tr><tr><td><code>player_climbing</code></td><td>boolean</td><td>none</td><td>Player climbing</td></tr></tbody></table></div></details><details class="guide-details"><summary>MovementProgress · 2 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>player_stuck</code></td><td>boolean</td><td>parameter_number, number_value</td><td>Player stuck</td></tr><tr><td><code>distance_moved_recently</code></td><td>number</td><td>parameter_number</td><td>Distance moved recently</td></tr></tbody></table></div></details><details class="guide-details"><summary>Navigation · 11 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>path_forward_clear</code></td><td>boolean</td><td>none</td><td>Path forward clear</td></tr><tr><td><code>path_forward_step_up</code></td><td>boolean</td><td>none</td><td>Path forward step up</td></tr><tr><td><code>path_forward_blocked</code></td><td>boolean</td><td>none</td><td>Path forward blocked</td></tr><tr><td><code>path_forward_safe_drop</code></td><td>boolean</td><td>parameter_number</td><td>Path forward safe drop</td></tr><tr><td><code>path_forward_dangerous_drop</code></td><td>boolean</td><td>parameter_number</td><td>Path forward dangerous drop</td></tr><tr><td><code>path_forward_lava</code></td><td>boolean</td><td>none</td><td>Path forward lava</td></tr><tr><td><code>path_forward_safe</code></td><td>boolean</td><td>parameter_number</td><td>Path forward safe</td></tr><tr><td><code>player_has_jump_headroom</code></td><td>boolean</td><td>parameter_number</td><td>Player has jump headroom</td></tr><tr><td><code>path_forward_elevation</code></td><td>number</td><td>parameter_number</td><td>Path forward elevation</td></tr><tr><td><code>path_forward_uphill</code></td><td>boolean</td><td>none</td><td>Path forward uphill</td></tr><tr><td><code>path_forward_downhill</code></td><td>boolean</td><td>parameter_number</td><td>Path forward downhill</td></tr></tbody></table></div></details><details class="guide-details"><summary>Nearby · 3 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>nearby_recognition</code></td><td>boolean</td><td>parameter, parameter_number, number_value</td><td>Nearby recognition</td></tr><tr><td><code>nearby_entity_count</code></td><td>number</td><td>parameter, parameter_number</td><td>Nearby entity count</td></tr><tr><td><code>nearest_entity_distance</code></td><td>number</td><td>parameter, parameter_number</td><td>Nearest entity distance</td></tr></tbody></table></div></details><details class="guide-details"><summary>NearbyItem · 4 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>nearby_item_count</code></td><td>number</td><td>parameter_number</td><td>Nearby item count</td></tr><tr><td><code>nearest_item_distance</code></td><td>number</td><td>parameter_number</td><td>Nearest item distance</td></tr><tr><td><code>nearby_experience_orb_count</code></td><td>number</td><td>parameter_number</td><td>Nearby experience orb count</td></tr><tr><td><code>nearest_experience_orb_distance</code></td><td>number</td><td>parameter_number</td><td>Nearest experience orb distance</td></tr></tbody></table></div></details><details class="guide-details"><summary>Player · 12 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>player_exists</code></td><td>boolean</td><td>none</td><td>Player exists</td></tr><tr><td><code>player_alive</code></td><td>boolean</td><td>none</td><td>Player alive</td></tr><tr><td><code>player_health</code></td><td>number</td><td>none</td><td>Player health</td></tr><tr><td><code>player_on_ground</code></td><td>boolean</td><td>none</td><td>Player on ground</td></tr><tr><td><code>player_sprinting</code></td><td>boolean</td><td>none</td><td>Player sprinting</td></tr><tr><td><code>player_sneaking</code></td><td>boolean</td><td>none</td><td>Player sneaking</td></tr><tr><td><code>player_using_item</code></td><td>boolean</td><td>none</td><td>Player using item</td></tr><tr><td><code>player_hunger</code></td><td>number</td><td>none</td><td>Player hunger</td></tr><tr><td><code>player_air</code></td><td>number</td><td>none</td><td>Player air</td></tr><tr><td><code>player_in_water</code></td><td>boolean</td><td>none</td><td>Player in water</td></tr><tr><td><code>player_in_lava</code></td><td>boolean</td><td>none</td><td>Player in lava</td></tr><tr><td><code>player_on_fire</code></td><td>boolean</td><td>none</td><td>Player on fire</td></tr></tbody></table></div></details><details class="guide-details"><summary>Position · 15 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>player_x</code></td><td>number</td><td>none</td><td>Player x</td></tr><tr><td><code>player_y</code></td><td>number</td><td>none</td><td>Player y</td></tr><tr><td><code>player_z</code></td><td>number</td><td>none</td><td>Player z</td></tr><tr><td><code>player_block_x</code></td><td>number</td><td>none</td><td>Player block x</td></tr><tr><td><code>player_block_y</code></td><td>number</td><td>none</td><td>Player block y</td></tr><tr><td><code>player_block_z</code></td><td>number</td><td>none</td><td>Player block z</td></tr><tr><td><code>player_yaw</code></td><td>number</td><td>none</td><td>Player yaw</td></tr><tr><td><code>player_pitch</code></td><td>number</td><td>none</td><td>Player pitch</td></tr><tr><td><code>player_facing</code></td><td>string</td><td>none</td><td>Player facing</td></tr><tr><td><code>target_x</code></td><td>number</td><td>none</td><td>Target x</td></tr><tr><td><code>target_y</code></td><td>number</td><td>none</td><td>Target y</td></tr><tr><td><code>target_z</code></td><td>number</td><td>none</td><td>Target z</td></tr><tr><td><code>target_above_player</code></td><td>boolean</td><td>none</td><td>Target above player</td></tr><tr><td><code>target_below_player</code></td><td>boolean</td><td>none</td><td>Target below player</td></tr><tr><td><code>target_height_difference</code></td><td>number</td><td>none</td><td>Target height difference</td></tr></tbody></table></div></details><details class="guide-details"><summary>Registry · 2 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>always</code></td><td>boolean</td><td>none</td><td>Always</td></tr><tr><td><code>never</code></td><td>boolean</td><td>none</td><td>Never</td></tr></tbody></table></div></details><details class="guide-details"><summary>Scaffold · 7 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>approach_last_success</code></td><td>boolean</td><td>none</td><td>Approach last success</td></tr><tr><td><code>approach_last_failed</code></td><td>boolean</td><td>none</td><td>Approach last failed</td></tr><tr><td><code>scaffold_last_success</code></td><td>boolean</td><td>none</td><td>Scaffold last success</td></tr><tr><td><code>scaffold_last_failed</code></td><td>boolean</td><td>none</td><td>Scaffold last failed</td></tr><tr><td><code>scaffold_active</code></td><td>boolean</td><td>none</td><td>Scaffold active</td></tr><tr><td><code>scaffold_used_count</code></td><td>number</td><td>none</td><td>Scaffold used count</td></tr><tr><td><code>scaffold_material_count</code></td><td>number</td><td>none</td><td>Scaffold material count</td></tr></tbody></table></div></details><details class="guide-details"><summary>Spatial · 14 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>block_at_waypoint_offset</code></td><td>value</td><td>parameter</td><td>Block at waypoint offset</td></tr><tr><td><code>waypoint_offset_air</code></td><td>boolean</td><td>parameter</td><td>Waypoint offset air</td></tr><tr><td><code>waypoint_offset_strict_air</code></td><td>boolean</td><td>parameter</td><td>Waypoint offset strict air</td></tr><tr><td><code>waypoint_offset_house_plank</code></td><td>boolean</td><td>parameter</td><td>Waypoint offset house plank</td></tr><tr><td><code>waypoint_offset_traversable</code></td><td>boolean</td><td>parameter</td><td>Waypoint offset traversable</td></tr><tr><td><code>selected_block</code></td><td>value</td><td>none</td><td>Selected block</td></tr><tr><td><code>selected_block_air</code></td><td>boolean</td><td>none</td><td>Selected block air</td></tr><tr><td><code>selected_block_traversable</code></td><td>boolean</td><td>none</td><td>Selected block traversable</td></tr><tr><td><code>spatial_scan_available</code></td><td>boolean</td><td>none</td><td>Spatial scan available</td></tr><tr><td><code>spatial_scan_size</code></td><td>number</td><td>none</td><td>Spatial scan size</td></tr><tr><td><code>adjacent_block</code></td><td>value</td><td>parameter</td><td>Adjacent block</td></tr><tr><td><code>adjacent_block_air</code></td><td>boolean</td><td>parameter</td><td>Adjacent block air</td></tr><tr><td><code>adjacent_block_traversable</code></td><td>boolean</td><td>parameter</td><td>Adjacent block traversable</td></tr><tr><td><code>adjacent_block_count</code></td><td>number</td><td>parameter</td><td>Adjacent block count</td></tr></tbody></table></div></details><details class="guide-details"><summary>Status · 5 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>last_action_running</code></td><td>boolean</td><td>none</td><td>Last action running</td></tr><tr><td><code>last_action_success</code></td><td>boolean</td><td>none</td><td>Last action success</td></tr><tr><td><code>last_action_failure</code></td><td>boolean</td><td>none</td><td>Last action failure</td></tr><tr><td><code>last_action_cancelled</code></td><td>boolean</td><td>none</td><td>Last action cancelled</td></tr><tr><td><code>last_action_timed_out</code></td><td>boolean</td><td>none</td><td>Last action timed out</td></tr></tbody></table></div></details><details class="guide-details"><summary>Tag · 5 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>holding_item_tag</code></td><td>boolean</td><td>parameter</td><td>Holding item tag</td></tr><tr><td><code>offhand_item_tag</code></td><td>boolean</td><td>parameter</td><td>Offhand item tag</td></tr><tr><td><code>inventory_item_tag_count</code></td><td>number</td><td>parameter</td><td>Inventory item tag count</td></tr><tr><td><code>equipment_item_tag</code></td><td>boolean</td><td>parameter</td><td>Equipment item tag</td></tr><tr><td><code>targeted_block_tag</code></td><td>boolean</td><td>parameter</td><td>Targeted block tag</td></tr></tbody></table></div></details><details class="guide-details"><summary>Target · 5 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>target_exists</code></td><td>boolean</td><td>none</td><td>Target exists</td></tr><tr><td><code>target_alive</code></td><td>boolean</td><td>none</td><td>Target alive</td></tr><tr><td><code>target_health</code></td><td>number</td><td>none</td><td>Target health</td></tr><tr><td><code>target_distance</code></td><td>number</td><td>none</td><td>Target distance</td></tr><tr><td><code>target_visible</code></td><td>boolean</td><td>none</td><td>Target visible</td></tr></tbody></table></div></details><details class="guide-details"><summary>Waypoint · 4 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>waypoint_known</code></td><td>boolean</td><td>parameter</td><td>Waypoint known</td></tr><tr><td><code>waypoint_in_dimension</code></td><td>boolean</td><td>parameter</td><td>Waypoint in dimension</td></tr><tr><td><code>distance_to_waypoint</code></td><td>number</td><td>parameter</td><td>Distance to waypoint</td></tr><tr><td><code>at_waypoint</code></td><td>boolean</td><td>parameter, number_value</td><td>At waypoint</td></tr></tbody></table></div></details><details class="guide-details"><summary>World · 10 conditions</summary>
+        <div class="guide-table-wrap"><table class="guide-table">
+        <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>world_time</code></td><td>number</td><td>none</td><td>World time</td></tr><tr><td><code>game_time</code></td><td>number</td><td>none</td><td>Game time</td></tr><tr><td><code>day_count</code></td><td>number</td><td>none</td><td>Day count</td></tr><tr><td><code>is_day</code></td><td>boolean</td><td>none</td><td>Is day</td></tr><tr><td><code>is_night</code></td><td>boolean</td><td>none</td><td>Is night</td></tr><tr><td><code>is_raining</code></td><td>boolean</td><td>none</td><td>Is raining</td></tr><tr><td><code>is_thundering</code></td><td>boolean</td><td>none</td><td>Is thundering</td></tr><tr><td><code>dimension</code></td><td>string</td><td>none</td><td>Dimension</td></tr><tr><td><code>sky_visible</code></td><td>boolean</td><td>none</td><td>Sky visible</td></tr><tr><td><code>light_level</code></td><td>number</td><td>none</td><td>Light level</td></tr></tbody></table></div></details>
+</section>
+
+      <div class="guide-pager"><a href="../objectives-sequences-flow/">← Previous</a><a href="../menus/">Next →</a></div>
+    </article>
+  </div>
+</main>
+<footer class="footer">Decisions and Impulses · Third-party automation framework for Minecraft</footer>
+</body>
+</html>

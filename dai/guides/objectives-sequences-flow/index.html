@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Objectives, Sequences &amp; Flow · DAI Creator Guide</title>
+  <meta name="description" content="DAI creator guide">
+  <link rel="stylesheet" href="../../assets/css/site.css">
+  <link rel="stylesheet" href="../assets/guides.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a class="brand" href="../../index.html">Decisions <span>&amp;</span> Impulses</a>
+    <div class="nav-links">
+      <a href="../../index.html">Home</a>
+      <a href="../../info/">Info</a>
+      <a class="active" href="../../guides/">Guides</a>
+      <a href="../../datapacks/">Official Datapacks</a>
+      <a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" target="_blank" rel="noopener noreferrer">Download</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <div class="guide-shell">
+    <aside class="guide-sidebar"><strong>Creator Guide</strong><a href="../overview/">Overview</a><a href="../actions/">Actions</a><a style="color:var(--text);background:var(--panel-2);" href="../objectives-sequences-flow/">Objectives, Sequences &amp; Flow</a><a href="../conditions/">Conditions</a><a href="../menus/">Menus</a><a href="../recognition-perception/">Recognition &amp; Perception</a></aside>
+    <article class="guide-content">
+      
+<section class="guide-hero">
+<div class="eyebrow">Page 3 · Objectives, Sequences &amp; Flow</div>
+<h1>Turn Actions Into Behavior</h1>
+<p>Objectives give behavior a name. Sequences define order. The action queue, barriers, results, and flow actions determine what executes next and how a behavior recovers.</p>
+<div class="guide-stats">
+  <div class="guide-stat"><strong>Objectives = Behaviors</strong>Reusable named action definitions.</div>
+  <div class="guide-stat"><strong>Sequences = Order</strong>Multiple child actions resolved in sequence.</div>
+  <div class="guide-stat"><strong>Flow = Continuation</strong>Branch, retry, stop, delay, or call another objective.</div>
+</div>
+</section>
+
+<section class="guide-section">
+<h2>What Is an Objective?</h2>
+<p>An objective is a named DAI action definition stored in your datapack.</p>
+<div class="guide-code"><div class="label">Typical path</div><pre>data/my_dai_pack/objectives/definitions/harvest_wood.json</pre></div>
+<div class="guide-flow"><pre>data/my_dai_pack/objectives/definitions/harvest_wood.json
+                         ↓
+                my_dai_pack:harvest_wood</pre></div>
+<div class="guide-callout"><strong>Keep objectives focused.</strong> Small behaviors are easier to test, reuse, replace, and recover.</div>
+</section>
+
+<section class="guide-section">
+<h2>Sequences</h2>
+<p><code>sequence</code> recursively expands child actions in order before the atomic actions execute.</p>
+<div class="guide-code"><div class="label">Sequence</div><pre>{
+  &quot;type&quot;: &quot;sequence&quot;,
+  &quot;sequence&quot;: [
+    {
+      &quot;type&quot;: &quot;move&quot;,
+      &quot;direction&quot;: &quot;forward&quot;,
+      &quot;ticks&quot;: 20
+    },
+    {
+      &quot;type&quot;: &quot;input_stop_all&quot;
+    },
+    {
+      &quot;type&quot;: &quot;delay&quot;,
+      &quot;ticks&quot;: 10
+    }
+  ]
+}</pre></div>
+<div class="guide-flow"><pre>JSON Sequence
+   ↓
+DAI Action Resolver
+   ↓
+Atomic Action 1
+Atomic Action 2
+Atomic Action 3
+   ↓
+Action Queue</pre></div>
+</section>
+
+<section class="guide-section">
+<h2>The Runtime Queue</h2>
+<p>The current queue is bounded and starts at most one new semantic action per client tick. Active controllers such as navigation or mining can continue updating independently while the queue governs new semantic starts.</p>
+<div class="guide-flow"><pre>Objective
+   ↓
+Resolver
+   ↓
+Action Queue
+   ├── Action 1
+   ├── Action 2
+   ├── Action 3
+   └── Action 4
+          ↓
+       Runtime</pre></div>
+<h3><code>queue_clear</code></h3>
+<div class="guide-code"><div class="label">Clear queued work</div><pre>{
+  &quot;type&quot;: &quot;queue_clear&quot;
+}</pre></div>
+</section>
+
+<section class="guide-section">
+<h2>Calling Other Objectives</h2>
+<p><code>enqueue_action</code> queues another namespaced action/objective as a deferred reference. It expands when it reaches the front of the queue.</p>
+<div class="guide-code"><div class="label">Call another objective</div><pre>{
+  &quot;type&quot;: &quot;enqueue_action&quot;,
+  &quot;action&quot;: &quot;my_dai_pack:harvest_wood&quot;
+}</pre></div>
+<div class="guide-callout"><strong>This is a primary modularity tool.</strong> High-level behavior can hand control to small reusable objectives instead of pre-expanding enormous queues.</div>
+</section>
+
+<section class="guide-section">
+<h2>Delays &amp; Barriers</h2>
+<div class="guide-code"><div class="label">Delay 20 ticks</div><pre>{
+  &quot;type&quot;: &quot;delay&quot;,
+  &quot;ticks&quot;: 20
+}</pre></div>
+<p>Asynchronous systems often have matching wait actions such as <code>wait_for_approach</code>, <code>wait_for_exploration</code>, <code>wait_for_container</code>, and <code>wait_for_creative_flight</code>.</p>
+<div class="guide-flow"><pre>start asynchronous operation
+   ↓
+wait_for_...
+   ↓
+hard queue barrier
+   ↓
+controller finishes
+   ↓
+barrier releases
+   ↓
+next queued action</pre></div>
+</section>
+
+<section class="guide-section">
+<h2>Action Results</h2>
+<div class="guide-cards">
+  <div class="guide-card"><h3>SUCCESS</h3><p>The operation completed successfully.</p></div>
+  <div class="guide-card"><h3>FAILURE</h3><p>The operation failed normally.</p></div>
+  <div class="guide-card"><h3>TIMED_OUT</h3><p>The operation exceeded its runtime budget.</p></div>
+  <div class="guide-card"><h3>CANCELLED</h3><p>The operation was cancelled/interrupted.</p></div>
+  <div class="guide-card"><h3>RUNNING</h3><p>The current operation is still active.</p></div>
+</div>
+<p>The preceding semantic action's result is committed immediately before the next queued semantic action evaluates its runtime conditions.</p>
+</section>
+
+<section class="guide-section">
+<h2>Flow Actions</h2>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Action</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>run_if_success</code></td><td>Prepends the referenced objective when the previous result is SUCCESS.</td></tr>
+<tr><td><code>run_if_failure</code></td><td>Prepends the referenced objective for FAILURE, TIMED_OUT, or CANCELLED.</td></tr>
+<tr><td><code>stop_if_success</code></td><td>Clears remaining queued work after SUCCESS.</td></tr>
+<tr><td><code>stop_if_failure</code></td><td>Clears remaining queued work after FAILURE, TIMED_OUT, or CANCELLED.</td></tr>
+<tr><td><code>random_action</code></td><td>Chooses one child from <code>sequence</code> and prepends the resolved branch.</td></tr>
+</tbody></table></div>
+<div class="guide-code"><div class="label">Failure recovery</div><pre>{
+  &quot;type&quot;: &quot;run_if_failure&quot;,
+  &quot;action&quot;: &quot;my_dai_pack:recover&quot;
+}</pre></div>
+</section>
+
+<section class="guide-section">
+<h2>Runtime Conditions and Skipped Actions</h2>
+<p>If an atomic queued action's runtime conditions fail, its body is skipped and the current action result becomes <code>FAILURE</code>. A following failure branch can intentionally react to that result.</p>
+<div class="guide-flow"><pre>queued action
+   ↓
+conditions fail
+   ↓
+action body skipped
+   ↓
+result = FAILURE
+   ↓
+following flow may recover</pre></div>
+</section>
+
+<section class="guide-section">
+<h2>Rotors &amp; Repeating Behavior</h2>
+<p>Objectives can hand control back and forth through deferred references so each iteration observes fresh world state.</p>
+<div class="guide-flow"><pre>detect_wood
+   ↓
+harvest_wood
+   ↓
+detect_wood_adjacent
+   ↓
+harvest_wood
+   ↓
+...</pre></div>
+<div class="guide-callout"><strong>Prefer controlled rotors over huge pre-expanded loops.</strong> Each iteration gets a new opportunity to react to player, target, inventory, and world state.</div>
+</section>
+
+<section class="guide-section">
+<h2>Fallback Chains</h2>
+<div class="guide-flow"><pre>Try preferred behavior
+   ↓ failure
+Try nearby alternative
+   ↓ failure
+Explore for a new target
+   ↓ failure
+Recover / reposition
+   ↓
+Retry</pre></div>
+<p>Reliable gameplay is usually a network of small attempts and fallbacks rather than one brittle perfect sequence.</p>
+</section>
+
+      <div class="guide-pager"><a href="../actions/">← Previous</a><a href="../conditions/">Next →</a></div>
+    </article>
+  </div>
+</main>
+<footer class="footer">Decisions and Impulses · Third-party automation framework for Minecraft</footer>
+</body>
+</html>
