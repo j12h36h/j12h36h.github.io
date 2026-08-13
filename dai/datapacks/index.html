@@ -5,6 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>DAI Official Datapacks</title>
   <link rel="stylesheet" href="../assets/css/site.css">
+  <style>
+    .pack-feature {
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(117,213,255,.08), rgba(142,227,161,.04)),
+        var(--panel);
+      padding: 26px;
+      margin-top: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.14);
+    }
+
+    .pack-feature h2 {
+      margin: 0 0 8px;
+      font-size: 1.7rem;
+    }
+
+    .pack-feature p {
+      color: var(--muted);
+    }
+
+    .pack-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0 18px;
+    }
+
+    .pack-meta span {
+      display: inline-block;
+      padding: 6px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .pack-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .download-button,
+    .secondary-button {
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 800;
+    }
+
+    .download-button {
+      background: var(--accent);
+      color: #081018;
+    }
+
+    .download-button:hover {
+      color: #081018;
+      filter: brightness(1.06);
+    }
+
+    .secondary-button {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    .feature-list {
+      columns: 2;
+      column-gap: 34px;
+      padding-left: 22px;
+    }
+
+    .coming-soon {
+      opacity: .72;
+    }
+
+    @media (max-width: 720px) {
+      .feature-list {
+        columns: 1;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -19,47 +104,132 @@
     </div>
   </nav>
 </header>
+
 <main>
   <section class="page-title">
     <div class="eyebrow">Official Gameplay Packs</div>
     <h1>Official Datapacks</h1>
     <p>
-      This page is reserved for official gameplay datapacks maintained for Decisions and Impulses.
-      Download links can be added here when you are ready to publish them.
+      Official gameplay packs built on top of Decisions and Impulses.
+      DAI supplies the automation engine; these datapacks define the gameplay,
+      objectives, menus, perception, and behavior built from it.
     </p>
   </section>
 
   <section class="section">
-    <div class="notice">
-      No downloads are embedded in this starter site yet. Each pack can later receive its own
-      description, supported DAI version, Minecraft version, changelog, and download button.
-    </div>
+    <h2>Available Datapacks</h2>
+
+    <article class="pack-feature">
+      <div class="eyebrow">Example / Proof of Concept</div>
+      <h2>DAI Fundamentals — Survival</h2>
+
+      <div class="pack-meta">
+        <span>Official DAI Datapack</span>
+        <span>Survival</span>
+        <span>Example Pack</span>
+        <span>Proof of Concept</span>
+      </div>
+
+      <p>
+        <strong>DAI Fundamentals — Survival</strong> is the default example and
+        proof-of-concept gameplay datapack for Decisions and Impulses. It demonstrates
+        how a completely external datapack can use the DAI framework to create its own
+        Survival gameplay, menus, perception, objectives, and autonomous behavior
+        without modifying the core mod.
+      </p>
+
+      <p>
+        The pack adds its own <strong>[D-F] Survival</strong> entry to DAI and
+        demonstrates contextual gameplay menus including Explore, Attack, Hunt, and
+        Harvest. Available actions can react to the world around the player, allowing
+        datapack-defined behavior to appear only when it is relevant.
+      </p>
+
+      <p>
+        Its most developed example is connected tree harvesting. The pack demonstrates
+        how smaller DAI objectives can locate logs, remember targets as waypoints,
+        approach and mine them, scan adjacent blocks, continue through connected wood,
+        recover nearby branches, collect dropped items, and clean up temporary runtime
+        state.
+      </p>
+
+      <ul class="feature-list">
+        <li>External Survival gameplay namespace</li>
+        <li>Custom Automation menu contribution</li>
+        <li>Contextual Available menus</li>
+        <li>Explore / Attack / Hunt / Harvest structure</li>
+        <li>Recognition-driven behavior</li>
+        <li>Connected-log tree harvesting example</li>
+        <li>Waypoint and spatial scanning usage</li>
+        <li>Reusable objective composition</li>
+        <li>Third-party recognition examples</li>
+        <li>Proof-of-concept framework demonstration</li>
+      </ul>
+
+      <div class="notice">
+        This pack is intended primarily as an example/default starter pack rather than
+        a complete autonomous Survival AI. Some gameplay entries are demonstrations or
+        expansion points intended to show third-party creators how DAI systems can be
+        combined.
+      </div>
+
+      <div class="pack-actions">
+        <a
+          class="download-button"
+          href="https://www.curseforge.com/minecraft/data-packs/dai-fun-survival"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Download on CurseForge
+        </a>
+      </div>
+    </article>
+  </section>
+
+  <section class="section">
+    <h2>Upcoming / Additional Official Packs</h2>
 
     <div class="grid">
-      <div class="card">
-        <h3>Fundamentals — Survival</h3>
-        <p>General-purpose Survival automation built as an external DAI gameplay datapack.</p>
+      <div class="card coming-soon">
+        <h3>DAI Speedrun</h3>
+        <p>
+          Speed-focused gameplay behavior and progression strategies built as an
+          external DAI gameplay datapack.
+        </p>
       </div>
-      <div class="card">
-        <h3>Speedrun</h3>
-        <p>Speed-focused gameplay behavior and progression strategies.</p>
+
+      <div class="card coming-soon">
+        <h3>DAI Adventure</h3>
+        <p>
+          Adventure-oriented automation for custom maps, routes, objectives,
+          interactions, and scripted experiences.
+        </p>
       </div>
-      <div class="card">
-        <h3>Adventure</h3>
-        <p>Adventure-oriented automation for maps, routes, objectives, and custom experiences.</p>
+
+      <div class="card coming-soon">
+        <h3>More Official Packs</h3>
+        <p>
+          Additional official examples and gameplay packs can be listed here as the
+          DAI ecosystem expands.
+        </p>
       </div>
     </div>
   </section>
 
   <section class="section">
-    <h2>Suggested Pack Entry Format</h2>
-    <div class="code"><pre>Datapack Name
-DAI Version
-Minecraft Version
-Description
-Changelog
-Download
-Source / Documentation</pre></div>
+    <h2>Datapack Requirements</h2>
+    <p>
+      Official gameplay datapacks are extensions for Decisions and Impulses and
+      require a compatible version of the DAI mod to function.
+    </p>
+
+    <div class="code"><pre>Install DAI
+    ↓
+Install desired DAI gameplay datapack
+    ↓
+Open the world
+    ↓
+DAI loads the datapack's menus, objectives, logic, and recognition content</pre></div>
   </section>
 </main>
 
