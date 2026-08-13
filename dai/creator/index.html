@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DAI Datapack Creator</title>
+<meta name="description" content="Visual creator, importer, validator and exporter for Decisions and Impulses datapacks.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="assets/creator.css">
+</head>
+<body>
+<header class="site-header">
+<nav class="nav">
+<a class="brand" href="../index.html">Decisions <span>&amp;</span> Impulses</a>
+<div class="nav-links">
+<a href="../index.html">Home</a>
+<a href="../info/">Info</a>
+<a href="../guides/">Guides</a>
+<a href="../datapacks/">Official Datapacks</a>
+<a class="active" href="./">Creator</a>
+<a href="https://www.google.com" target="_blank" rel="noopener noreferrer">Download</a>
+</div>
+</nav>
+</header>
+
+<div class="creator-layout">
+<aside class="panel sidebar">
+<div class="panel-head"><strong>Datapack Creator</strong><small>Build or edit a DAI pack</small></div>
+<div class="panel-body">
+<div class="section-label">Project</div>
+<button class="nav-btn active" data-view="pack">Pack Setup</button>
+<button class="nav-btn" data-view="objectives">Objectives</button>
+<button class="nav-btn" data-view="menus">Menus</button>
+<button class="nav-btn" data-view="groups">Recognition Groups</button>
+<button class="nav-btn" data-view="recognition">Recognition Definitions</button>
+<div class="section-label">Build</div>
+<button class="nav-btn" data-view="validate">Validate</button>
+<button class="nav-btn" data-view="export">Export</button>
+</div>
+</aside>
+
+<main>
+<section class="workspace-title">
+<div style="color:var(--accent);font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase">Third-Party Development Tool</div>
+<h1>DAI Datapack Creator</h1>
+<p>Create a new DAI datapack or import an existing one, edit supported systems visually, validate references and structure, then export a normal Minecraft datapack ZIP.</p>
+</section>
+
+<div class="toolbar">
+<button class="btn" id="newProject">New Project</button>
+<label class="btn primary" for="importZip">Import Datapack ZIP</label>
+<input id="importZip" type="file" accept=".zip" hidden>
+<label class="btn" for="importFolder">Import Datapack Folder</label>
+<input id="importFolder" type="file" webkitdirectory multiple hidden>
+<button class="btn" id="saveProject">Save Editable Project</button>
+<label class="btn" for="loadProject">Load Editable Project</label>
+<input id="loadProject" type="file" accept=".json" hidden>
+<button class="btn success" id="quickExport">Validate &amp; Export ZIP</button>
+</div>
+
+<section id="view-pack" class="editor-section active panel">
+<div class="panel-head"><strong>Pack Setup</strong><small>Identity and Minecraft datapack metadata</small></div>
+<div class="panel-body">
+<div class="form-grid">
+<div class="field"><label>Pack Name</label><input id="packName" value="My DAI Pack"></div>
+<div class="field"><label>Namespace</label><input id="namespace" value="my_dai_pack"><span class="help">Lowercase letters, numbers, _, -, and .</span></div>
+<div class="field full"><label>Description</label><input id="description" value="A custom Decisions and Impulses datapack."></div>
+<div class="field"><label>Minimum Pack Format</label><input id="minFormat" value="[107, 1]"></div>
+<div class="field"><label>Maximum Pack Format</label><input id="maxFormat" type="number" value="107"></div>
+</div>
+<div id="importSummary" class="passthrough" hidden></div>
+</div>
+</section>
+
+<section id="view-objectives" class="editor-section panel">
+<div class="panel-head"><strong>Objectives</strong><small>Named behavior made from ordered DAI actions</small></div>
+<div class="panel-body">
+<div class="toolbar"><button class="btn primary" id="addObjective">+ Add Objective</button></div>
+<div id="objectiveList" class="collection"></div>
+</div>
+</section>
+
+<section id="view-menus" class="editor-section panel">
+<div class="panel-head"><strong>Menus</strong><small>Normal, Automation, and dynamic Available menus</small></div>
+<div class="panel-body">
+<div class="toolbar"><button class="btn primary" id="addMenu">+ Add Menu</button></div>
+<div id="menuList" class="collection"></div>
+</div>
+</section>
+
+<section id="view-groups" class="editor-section panel">
+<div class="panel-head"><strong>Recognition Groups</strong><small>Reusable block ID registries</small></div>
+<div class="panel-body">
+<div class="toolbar"><button class="btn primary" id="addGroup">+ Add Recognition Group</button></div>
+<div id="groupList" class="collection"></div>
+</div>
+</section>
+
+<section id="view-recognition" class="editor-section panel">
+<div class="panel-head"><strong>Recognition Definitions</strong><small>Structural perception and semantic results</small></div>
+<div class="panel-body">
+<div class="toolbar"><button class="btn primary" id="addRecognition">+ Add Recognition</button></div>
+<div id="recognitionList" class="collection"></div>
+</div>
+</section>
+
+<section id="view-validate" class="editor-section panel">
+<div class="panel-head"><strong>Validation</strong><small>Run before saving or compiling/exporting</small></div>
+<div class="panel-body">
+<button class="btn primary" id="runValidation">Run Full Validation</button>
+<div class="mini-note">Hard errors block datapack ZIP export. Editable project files may still be saved as drafts after confirmation so unfinished work is never lost.</div>
+<div id="validationResults" class="status-list" style="margin-top:12px"></div>
+</div>
+</section>
+
+<section id="view-export" class="editor-section panel">
+<div class="panel-head"><strong>Export</strong><small>Compile a standard Minecraft datapack ZIP after validation</small></div>
+<div class="panel-body">
+<div class="toolbar">
+<button class="btn success" id="exportZip">Validate &amp; Export Datapack ZIP</button>
+<button class="btn" id="exportProject">Validate &amp; Save Editable Project</button>
+</div>
+<h3>Generated File Tree</h3>
+<div id="fileTree" class="file-tree"></div>
+</div>
+</section>
+</main>
+
+<aside class="panel preview">
+<div class="panel-head"><strong>Live Preview</strong><small id="previewLabel">Project</small></div>
+<div class="panel-body">
+<div class="tabs">
+<button class="tab active" data-preview="json">JSON</button>
+<button class="tab" data-preview="tree">Files</button>
+</div>
+<pre id="jsonPreview"></pre>
+<div id="treePreview" class="file-tree" hidden></div>
+</div>
+</aside>
+</div>
+
+<footer class="footer">Decisions and Impulses · Visual third-party datapack creator</footer>
+
+<script src="assets/catalog.js"></script>
+<script src="assets/creator.js"></script>
+</body>
+</html>
