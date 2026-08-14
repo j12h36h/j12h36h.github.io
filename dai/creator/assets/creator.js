@@ -27,6 +27,8 @@ function freshState(kind="datapack") {
     },
     objectives: [],
     menus: [],
+    titleScreens: [],
+    content: [],
     reactions: [],
     groups: [],
     recognition: [],
@@ -109,6 +111,18 @@ function blankButton(menu){
     style:{enabled:false,background:"",hover:"",selected:"",text:"",border:""}
   };
 }
+
+function blankTitleScreen(){
+  return {_id:uid(),id:`title_${state.titleScreens.length+1}`,enabled:true,priority:100,title:"DECISIONS & IMPULSES",subtitle:"Custom DAI title screen",backgroundTop:"#FF061018",backgroundBottom:"#FF142A38",titleColor:"#FFF2F7FA",subtitleColor:"#FF9CB7C7",buttons:[]};
+}
+function blankTitleButton(screen){
+  return {_id:uid(),id:`button_${screen.buttons.length+1}`,label:`BUTTON ${screen.buttons.length+1}`,action:"open_url",url:"https://j12h36h.github.io/dai/",anchor:"center",x:0,y:screen.buttons.length*30-30,width:230,height:24,iconType:"item",iconId:"minecraft:carrot",iconScale:1,iconOffsetX:9,background:"#B8182A32",hover:"#E02F5A43",border:"#FF5E9770",text:"#FFFFFFFF",animation:"spin",animationSpeed:.85,animationAmount:1};
+}
+const CONTENT_FOLDERS={item:"dai_items",block:"dai_blocks",weapon:"dai_weapons",armor:"dai_armor",effect:"dai_effects",potion:"dai_potions",projectile:"dai_projectiles",particle:"dai_particles",enchantment:"dai_enchantments"};
+function blankContent(){
+  return {_id:uid(),type:"item",id:`content_${state.content.length+1}`,carrier:"minecraft:flint",displayName:"Custom DAI Item",description:"A datapack-defined DAI content identity.",model:"minecraft:flint",registryBacked:true,nativeRegistry:"item",slot:"",capabilities:"",tags:"",attributes:"{}",nativeAttributes:"{}",events:"{}",stats:'{"stack_size": 64}'};
+}
+
 function blankReaction(){
   return {
     _id:uid(),id:`reaction_${state.reactions.length+1}`,type:"default",
@@ -171,7 +185,7 @@ function updateModeUi(){
   $("#workspaceHeading").textContent = resource ? "DAI Resource Pack Creator" : "DAI Datapack Creator";
   $("#workspaceDescription").textContent = resource
     ? "Create or import a Minecraft resource pack, add textures and other assets, validate its structure, then export a normal editable ZIP. This is suitable for packs such as DAI ComicEffects."
-    : "Create a new DAI datapack or import an existing one, edit objectives, styled menus, reactions, recognition and presentation actions visually, validate references and runtime constraints, then export a normal datapack ZIP.";
+    : "Create a new DAI datapack or import an existing one, edit objectives, styled menus, JSON title screens, registry-backed custom content, reactions, recognition, and presentation actions visually, then validate and export a normal datapack ZIP.";
   $("#packSetupSubtitle").textContent = resource ? "Identity and Minecraft resource-pack metadata" : "Identity and Minecraft datapack metadata";
   $("#exportSubtitle").textContent = resource ? "Compile a standard Minecraft resource-pack ZIP after validation" : "Compile a standard Minecraft datapack ZIP after validation";
   $("#exportZip").textContent = resource ? "Validate & Export Resource Pack ZIP" : "Validate & Export Datapack ZIP";
@@ -305,6 +319,31 @@ function menuJson(m){
     })
   };
 }
+
+function titleScreenJson(t){
+  return {
+    enabled:Boolean(t.enabled),priority:Number(t.priority||0),title:String(t.title||""),subtitle:String(t.subtitle||""),
+    background:{top:String(t.backgroundTop||"#FF061018"),bottom:String(t.backgroundBottom||"#FF142A38")},
+    title_color:String(t.titleColor||"#FFFFFFFF"),subtitle_color:String(t.subtitleColor||"#FFAAAAAA"),
+    buttons:(t.buttons||[]).map(b=>{
+      const out={id:String(b.id||""),label:String(b.label||""),action:String(b.action||""),anchor:String(b.anchor||"center"),x:Number(b.x||0),y:Number(b.y||0),width:Number(b.width||230),height:Number(b.height||24),icon:{type:String(b.iconType||"item"),id:String(b.iconId||"minecraft:carrot"),scale:Number(b.iconScale||1),offset_x:Number(b.iconOffsetX||0)},style:{background:String(b.background||"#B8182A32"),hover:String(b.hover||"#E02F5A43"),border:String(b.border||"#FF5E9770"),text:String(b.text||"#FFFFFFFF")},hover_animation:{type:String(b.animation||"none"),speed:Number(b.animationSpeed||1),amount:Number(b.animationAmount||1)}};
+      if(String(b.url||"").trim()) out.url=String(b.url).trim();
+      return out;
+    })
+  };
+}
+function parseObjectField(text,fallback={}){try{const v=JSON.parse(String(text||"{}"));return v&&typeof v==="object"&&!Array.isArray(v)?v:fallback;}catch{return fallback;}}
+function csvList(text){return String(text||"").split(/[\n,]/).map(x=>x.trim()).filter(Boolean);}
+function contentJson(c){
+  const out={carrier:String(c.carrier||""),display_name:String(c.displayName||""),description:String(c.description||""),model:String(c.model||""),registry_backed:Boolean(c.registryBacked)};
+  if(c.registryBacked) out.native_registry=String(c.nativeRegistry||((c.type==="block")?"block":"item"));
+  if(String(c.slot||"").trim())out.slot=String(c.slot).trim();
+  const caps=csvList(c.capabilities),tags=csvList(c.tags);if(caps.length)out.capabilities=caps;if(tags.length)out.tags=tags;
+  const attrs=parseObjectField(c.attributes),nativeAttrs=parseObjectField(c.nativeAttributes),events=parseObjectField(c.events),stats=parseObjectField(c.stats);
+  if(Object.keys(attrs).length)out.attributes=attrs;if(Object.keys(nativeAttrs).length)out.native_attributes=nativeAttrs;if(Object.keys(events).length)out.events=events;if(Object.keys(stats).length)out.stats=stats;
+  return out;
+}
+
 function reactionJson(r){
   return {
     type:r.type,
@@ -628,6 +667,49 @@ function renderMenus(){
 }
 $("#addMenu").onclick=()=>{state.menus.push(blankMenu());renderMenus();refreshAll();};
 
+
+function renderTitleScreens(){
+  const root=$("#titleScreenList");if(!root)return;root.innerHTML="";
+  if(!state.titleScreens.length){root.innerHTML='<div class="empty">No title screens yet. Add one to replace Minecraft\'s default main menu through DAI JSON.</div>';return;}
+  const actions=["open_singleplayer","open_multiplayer","open_official_packs","open_mods","open_options","open_url","quit"];
+  const animations=["none","spin","bob","pulse","orbit"];
+  state.titleScreens.forEach((t,ti)=>{
+    const el=document.createElement("div");el.className="item-card title-screen-card";
+    el.innerHTML=`<div class="item-head"><strong>${esc(t.id)}</strong><div class="item-actions"><button class="btn small danger" data-del>Remove</button></div></div><div class="item-body"><div class="dynamic-fields">
+      ${field("Definition ID",textInput(t.id,'data-tf="id"'))}${field("Enabled",`<select data-tf="enabled"><option value="true"${t.enabled?" selected":""}>true</option><option value="false"${!t.enabled?" selected":""}>false</option></select>`)}${field("Priority",numberInput(t.priority,'data-tf="priority"'))}${field("Title",textInput(t.title,'data-tf="title"'))}${field("Subtitle",textInput(t.subtitle,'data-tf="subtitle"'))}${field("Background Top",textInput(t.backgroundTop,'data-tf="backgroundTop"'))}${field("Background Bottom",textInput(t.backgroundBottom,'data-tf="backgroundBottom"'))}${field("Title Color",textInput(t.titleColor,'data-tf="titleColor"'))}${field("Subtitle Color",textInput(t.subtitleColor,'data-tf="subtitleColor"'))}
+    </div><div class="subbox"><div class="subbox-head"><strong>Buttons</strong><button class="btn small primary" data-add-button>+ Button</button></div><div data-title-buttons></div></div></div>`;
+    el.querySelector('[data-del]').onclick=()=>{state.titleScreens.splice(ti,1);renderTitleScreens();refreshAll();};
+    el.querySelectorAll('[data-tf]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.tf;if(k==="enabled")t[k]=inp.value==="true";else if(k==="priority")t[k]=Number(inp.value||0);else t[k]=inp.value;renderExportTree();refreshPreview();});
+    const br=el.querySelector('[data-title-buttons]');
+    if(!t.buttons.length)br.innerHTML='<div class="empty">No buttons.</div>';
+    t.buttons.forEach((b,bi)=>{const c=document.createElement("div");c.className="subbox title-button-card";c.innerHTML=`<div class="subbox-head"><strong>${esc(b.label||b.id)}</strong><button class="btn small danger" data-bdel>Remove</button></div><div class="dynamic-fields">
+      ${field("Button ID",textInput(b.id,'data-bf="id"'))}${field("Label",textInput(b.label,'data-bf="label"'))}${field("Action",`<select data-bf="action">${actions.map(x=>`<option value="${x}"${b.action===x?" selected":""}>${x}</option>`).join("")}</select>`)}${field("URL",textInput(b.url||'','data-bf="url"'),"Used by open_url.")}${field("Anchor",`<select data-bf="anchor"><option value="center"${b.anchor==="center"?" selected":""}>center</option></select>`)}${field("X",numberInput(b.x,'data-bf="x"'))}${field("Y",numberInput(b.y,'data-bf="y"'))}${field("Width",numberInput(b.width,'data-bf="width"'))}${field("Height",numberInput(b.height,'data-bf="height"'))}
+      ${field("Icon Type",`<select data-bf="iconType"><option value="item"${b.iconType==="item"?" selected":""}>item</option></select>`)}${field("Minecraft Item ID",textInput(b.iconId,'data-bf="iconId"'),"Example: minecraft:carrot or a registered DAI item.")}${field("Icon Scale",numberInput(b.iconScale,'step="0.1" data-bf="iconScale"'))}${field("Icon X Offset",numberInput(b.iconOffsetX,'data-bf="iconOffsetX"'))}
+      ${field("Background",textInput(b.background,'data-bf="background"'))}${field("Hover",textInput(b.hover,'data-bf="hover"'))}${field("Border",textInput(b.border,'data-bf="border"'))}${field("Text",textInput(b.text,'data-bf="text"'))}${field("Hover Animation",`<select data-bf="animation">${animations.map(x=>`<option value="${x}"${b.animation===x?" selected":""}>${x}</option>`).join("")}</select>`)}${field("Animation Speed",numberInput(b.animationSpeed,'step="0.05" data-bf="animationSpeed"'))}${field("Animation Amount",numberInput(b.animationAmount,'step="0.1" data-bf="animationAmount"'))}
+      </div>`;
+      c.querySelector('[data-bdel]').onclick=()=>{t.buttons.splice(bi,1);renderTitleScreens();refreshAll();};
+      c.querySelectorAll('[data-bf]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.bf;if(["x","y","width","height","iconScale","iconOffsetX","animationSpeed","animationAmount"].includes(k))b[k]=Number(inp.value||0);else b[k]=inp.value;renderExportTree();refreshPreview();});
+      c.onclick=()=>{selectedPreview={kind:"titleButton",value:b};refreshPreview();};br.appendChild(c);
+    });
+    el.querySelector('[data-add-button]').onclick=()=>{t.buttons.push(blankTitleButton(t));renderTitleScreens();refreshAll();};el.onclick=()=>{selectedPreview={kind:"titleScreen",value:t};refreshPreview();};root.appendChild(el);
+  });
+}
+if($("#addTitleScreen"))$("#addTitleScreen").onclick=()=>{const t=blankTitleScreen();t.buttons.push(blankTitleButton(t));state.titleScreens.push(t);renderTitleScreens();refreshAll();};
+
+function renderContent(){
+  const root=$("#contentList");if(!root)return;root.innerHTML="";
+  if(!state.content.length){root.innerHTML='<div class="empty">No custom DAI content definitions yet.</div>';return;}
+  const types=Object.keys(CONTENT_FOLDERS);
+  state.content.forEach((c,ci)=>{const el=document.createElement("div");el.className="item-card content-card";el.innerHTML=`<div class="item-head"><strong>${esc(c.type)} · ${esc(c.id)}</strong><button class="btn small danger" data-del>Remove</button></div><div class="item-body"><div class="dynamic-fields">
+    ${field("Content Type",`<select data-cf="type">${types.map(x=>`<option value="${x}"${c.type===x?" selected":""}>${x}</option>`).join("")}</select>`)}${field("Definition ID",textInput(c.id,'data-cf="id"'))}${field("Display Name",textInput(c.displayName,'data-cf="displayName"'))}${field("Description",textInput(c.description,'data-cf="description"'))}${field("Vanilla Carrier",textInput(c.carrier,'data-cf="carrier"'),"Example: minecraft:iron_sword")}${field("Vanilla Model Alias",textInput(c.model,'data-cf="model"'),"Example: minecraft:iron_sword")}${field("Registry Backed",`<select data-cf="registryBacked"><option value="true"${c.registryBacked?" selected":""}>true</option><option value="false"${!c.registryBacked?" selected":""}>false</option></select>`)}${field("Native Registry",`<select data-cf="nativeRegistry"><option value="item"${c.nativeRegistry==="item"?" selected":""}>item</option><option value="block"${c.nativeRegistry==="block"?" selected":""}>block</option></select>`,"Current native scope is item/block.")}${field("Armor Slot",textInput(c.slot||'','data-cf="slot"'),"Optional; e.g. chest")}${field("Capabilities",`<textarea data-cf="capabilities">${esc(c.capabilities)}</textarea>`,"Comma or newline separated resource IDs.")}${field("Tags",`<textarea data-cf="tags">${esc(c.tags)}</textarea>`,"Comma or newline separated labels.")}${field("Attributes JSON",`<textarea data-cf="attributes">${esc(c.attributes)}</textarea>`)}${field("Native Attributes JSON",`<textarea data-cf="nativeAttributes">${esc(c.nativeAttributes)}</textarea>`)}${field("Events JSON",`<textarea data-cf="events">${esc(c.events)}</textarea>`)}${field("Stats JSON",`<textarea data-cf="stats">${esc(c.stats)}</textarea>`)}
+    </div></div>`;
+    el.querySelector('[data-del]').onclick=()=>{state.content.splice(ci,1);renderContent();refreshAll();};
+    el.querySelectorAll('[data-cf]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.cf;if(k==="registryBacked")c[k]=inp.value==="true";else c[k]=inp.value;if(k==="type"&&c.type==="block")c.nativeRegistry="block";renderExportTree();refreshPreview();});
+    el.onclick=()=>{selectedPreview={kind:"content",value:c};refreshPreview();};root.appendChild(el);
+  });
+}
+if($("#addContent"))$("#addContent").onclick=()=>{state.content.push(blankContent());renderContent();refreshAll();};
+
 function renderReactions(){
   const root=$("#reactionList");root.innerHTML="";
   if(!state.reactions.length){root.innerHTML='<div class="empty">No reactions yet. Reactions subscribe JSON behavior to registered runtime events.</div>';return;}
@@ -803,6 +885,8 @@ function generatedFiles(){
   files["pack.mcmeta"]=JSON.stringify({pack:{description:state.pack.description,min_format:state.pack.minFormat,max_format:state.pack.maxFormat}},null,2)+"\n";
   const n=state.pack.namespace;
   state.objectives.forEach(o=>files[`data/${n}/objectives/definitions/${slug(o.id)}.json`]=JSON.stringify(objectiveJson(o),null,2)+"\n");
+  state.titleScreens.forEach(t=>files[`data/${n}/dai_title_screens/${slug(t.id)}.json`]=JSON.stringify(titleScreenJson(t),null,2)+"\n");
+  state.content.forEach(c=>{const folder=CONTENT_FOLDERS[c.type]||"dai_items";files[`data/${n}/${folder}/${slug(c.id)}.json`]=JSON.stringify(contentJson(c),null,2)+"\n";});
   state.menus.forEach(m=>{
     let path;
     if(m.type==="automation") path=`data/${n}/menus/actions/automation/${slug(m.id)}.json`;
@@ -843,12 +927,17 @@ function previewValue(){
     if(b.style?.enabled)x.style=menuJson({priority:0,buttons:[b]}).buttons[0].style;
     return x;
   }
+  if(p.kind==="titleScreen" && p.value)return titleScreenJson(p.value);
+  if(p.kind==="titleButton" && p.value)return p.value;
+  if(p.kind==="content" && p.value)return contentJson(p.value);
   if(p.kind==="reaction" && p.value)return reactionJson(p.value);
   if(p.kind==="group" && p.value)return groupJson(p.value);
   if(p.kind==="recognition" && p.value)return recognitionJson(p.value);
   if(p.kind==="pack")return {pack:{description:state.pack.description,min_format:state.pack.minFormat,max_format:state.pack.maxFormat}};
   if(p.kind==="objectives")return state.objectives.map(o=>({id:fullId(o.id),definition:objectiveJson(o)}));
   if(p.kind==="menus")return state.menus.map(m=>({type:m.type,id:m.id,definition:menuJson(m)}));
+  if(p.kind==="titles")return state.titleScreens.map(t=>({id:fullId(t.id),definition:titleScreenJson(t)}));
+  if(p.kind==="content")return state.content.map(c=>({type:c.type,id:fullId(c.id),definition:contentJson(c)}));
   if(p.kind==="reactions")return state.reactions.map(r=>({id:fullId(r.id),definition:reactionJson(r)}));
   if(p.kind==="groups")return state.groups.map(g=>({id:fullId(g.id),definition:groupJson(g)}));
   if(p.kind==="recognition")return state.recognition.map(r=>({id:fullId(r.id),definition:recognitionJson(r)}));
@@ -858,7 +947,7 @@ function previewValue(){
     packIcon:Boolean(state.packIcon),passthroughFiles:Object.keys(state.extraFiles||{}).length
   };
   return {
-    kind:"datapack",pack:state.pack,objectives:state.objectives.length,menus:state.menus.length,
+    kind:"datapack",pack:state.pack,objectives:state.objectives.length,menus:state.menus.length,titleScreens:state.titleScreens.length,contentDefinitions:state.content.length,
     reactions:state.reactions.length,recognitionGroups:state.groups.length,
     recognitionDefinitions:state.recognition.length,
     passthroughFiles:Object.keys(state.extraFiles||{}).length
@@ -883,6 +972,8 @@ function refreshAll(){
 
 function renderAll(){
   state.kind ||= "datapack";
+  state.titleScreens ||= [];
+  state.content ||= [];
   state.reactions ||= [];
   state.groups ||= [];
   state.recognition ||= [];
@@ -895,6 +986,8 @@ function renderAll(){
   updateModeUi();
   renderObjectives();
   renderMenus();
+  renderTitleScreens();
+  renderContent();
   renderReactions();
   renderGroups();
   renderRecognition();
@@ -1020,7 +1113,7 @@ function validateOverlay(s,path,issues,objectiveIds,animated=false){
 
 function validateAction(a,path,issues,objectiveIds){
   if(!a.type)issues.push({level:"err",message:`${path}: action type is missing.`});
-  if(!actionMap.has(a.type))issues.push({level:"warn",message:`${path}: unknown/imported action type '${a.type}' is preserved but cannot be fully validated by this DAI 1.6 catalog.`});
+  if(!actionMap.has(a.type))issues.push({level:"warn",message:`${path}: unknown/imported action type '${a.type}' is preserved but cannot be fully validated by this DAI 1.8 creator catalog.`});
 
   const needsAction=["enqueue_action","run_if_success","run_if_failure","objective_execute","recognize_block","run_command","set_gamemode","key_click","key_press","key_release","remember_waypoint","remember_target_waypoint","select_waypoint","forget_waypoint","forget_failed_waypoint","craft_recipe","overlay_remove"];
   if(needsAction.includes(a.type) && !String(a.action||"").trim())issues.push({level:"err",message:`${path}: '${a.type}' requires an action/string payload.`});
@@ -1072,7 +1165,26 @@ function validateProject(){
   duplicates(state.groups,"recognition group ID");
   duplicates(state.recognition,"recognition definition ID");
   duplicates(state.reactions,"reaction ID");
+  duplicates(state.titleScreens,"title screen ID");
+  duplicates(state.content,"content registry ID",c=>`${c.type}:${c.id}`);
   duplicates(state.menus,"menu path",m=>`${m.type}:${m.id}`);
+
+
+  state.titleScreens.forEach((t,ti)=>{
+    if(!validLocalPath(t.id))issues.push({level:"err",message:`Title screen ${ti+1} has invalid ID/path '${t.id}'.`});
+    for(const [name,value] of [["background.top",t.backgroundTop],["background.bottom",t.backgroundBottom],["title_color",t.titleColor],["subtitle_color",t.subtitleColor]])if(!validColor(value))issues.push({level:"err",message:`Title screen '${t.id}' ${name} must be #RRGGBB or #AARRGGBB.`});
+    duplicates(t.buttons,`button ID in title screen '${t.id}'`,b=>b.id);
+    t.buttons.forEach((b,bi)=>{if(!b.id)issues.push({level:"err",message:`Title screen '${t.id}' button ${bi+1} is missing id.`});if(!b.label)issues.push({level:"warn",message:`Title screen '${t.id}' button '${b.id}' has no label.`});if(!["open_singleplayer","open_multiplayer","open_official_packs","open_mods","open_options","open_url","quit"].includes(b.action))issues.push({level:"err",message:`Title screen '${t.id}' button '${b.id}' has unknown action '${b.action}'.`});if(b.action==="open_url"&&!String(b.url||"").trim())issues.push({level:"err",message:`Title screen '${t.id}' button '${b.id}' open_url requires url.`});if(b.iconType==="item"&&!validResourceId(b.iconId))issues.push({level:"err",message:`Title screen '${t.id}' button '${b.id}' has invalid item icon '${b.iconId}'.`});if(!["none","spin","bob","pulse","orbit"].includes(b.animation))issues.push({level:"err",message:`Title screen '${t.id}' button '${b.id}' has unknown hover animation '${b.animation}'.`});for(const [name,value] of [["background",b.background],["hover",b.hover],["border",b.border],["text",b.text]])if(!validColor(value))issues.push({level:"err",message:`Title screen '${t.id}' button '${b.id}' style.${name} is invalid.`});});
+  });
+  state.content.forEach((c,ci)=>{
+    if(!CONTENT_FOLDERS[c.type])issues.push({level:"err",message:`Content ${ci+1} has unknown type '${c.type}'.`});
+    if(!validLocalPath(c.id))issues.push({level:"err",message:`Content ${ci+1} has invalid ID/path '${c.id}'.`});
+    if(!validResourceId(c.carrier))issues.push({level:"err",message:`Content '${c.id}' has invalid carrier '${c.carrier}'.`});
+    if(!validResourceId(c.model))issues.push({level:"err",message:`Content '${c.id}' has invalid model alias '${c.model}'.`});
+    if(c.registryBacked && !["item","block"].includes(c.nativeRegistry))issues.push({level:"err",message:`Content '${c.id}' native_registry must be item or block.`});
+    if(c.type==="block"&&c.registryBacked&&c.nativeRegistry!=="block")issues.push({level:"warn",message:`Registry-backed block '${c.id}' normally uses native_registry=block.`});
+    for(const [label,value] of [["attributes",c.attributes],["native_attributes",c.nativeAttributes],["events",c.events],["stats",c.stats]]){try{const x=JSON.parse(String(value||"{}"));if(!x||typeof x!=="object"||Array.isArray(x))throw new Error();}catch{issues.push({level:"err",message:`Content '${c.id}' ${label} must be a JSON object.`});}}
+  });
 
   const objectiveIds=new Set(state.objectives.map(x=>slug(x.id)));
   state.objectives.forEach((o,oi)=>{
@@ -1281,7 +1393,7 @@ function importFiles(files,sourceLabel="datapack"){
 
   const counts={};
   Object.keys(files).forEach(path=>{
-    const m=path.match(/^data\/([^/]+)\/(objectives\/(definitions|groups|recognition)\/|menus\/actions\/|reactions\/)/);
+    const m=path.match(/^data\/([^/]+)\/(objectives\/(definitions|groups|recognition)\/|menus\/actions\/|reactions\/|dai_title_screens\/|dai_(items|blocks|weapons|armor|effects|potions|projectiles|particles|enchantments)\/)/);
     if(m)counts[m[1]]=(counts[m[1]]||0)+1;
   });
   const chosen=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0];
@@ -1293,6 +1405,8 @@ function importFiles(files,sourceLabel="datapack"){
   const recogRe=new RegExp(`^data/${n}/objectives/recognition/(.+)\\.json$`);
   const menuRe=new RegExp(`^data/${n}/menus/actions/(.+)\\.json$`);
   const reactionRe=new RegExp(`^data/${n}/reactions/(.+)\\.json$`);
+  const titleRe=new RegExp(`^data/${n}/dai_title_screens/(.+)\\.json$`);
+  const contentRe=new RegExp(`^data/${n}/(dai_items|dai_blocks|dai_weapons|dai_armor|dai_effects|dai_potions|dai_projectiles|dai_particles|dai_enchantments)/(.+)\\.json$`);
 
   Object.entries(files).forEach(([path,text])=>{
     let m;
@@ -1314,6 +1428,17 @@ function importFiles(files,sourceLabel="datapack"){
         scan:{mode:raw.scan?.mode||"connected",origin:raw.scan?.origin||"targeted_block",max_blocks:raw.scan?.max_blocks??512,max_radius:raw.scan?.max_radius??12,horizontal_radius:raw.scan?.horizontal_radius??12,upward_range:raw.scan?.upward_range??12,downward_range:raw.scan?.downward_range??4},
         groups,requirements:reqs,resultId:raw.result?.id||`${next.pack.namespace}:${m[1]}`
       });managed.add(path);return;
+    }
+
+    if((m=path.match(titleRe))){
+      const raw=parseJson(text,path,errors);if(!raw)return;
+      const t={_id:uid(),id:m[1],enabled:raw.enabled!==false,priority:Number(raw.priority||0),title:raw.title||"",subtitle:raw.subtitle||"",backgroundTop:raw.background?.top||"#FF061018",backgroundBottom:raw.background?.bottom||"#FF142A38",titleColor:raw.title_color||"#FFFFFFFF",subtitleColor:raw.subtitle_color||"#FFAAAAAA",buttons:(raw.buttons||[]).map(b=>({_id:uid(),id:b.id||"",label:b.label||"",action:b.action||"",url:b.url||"",anchor:b.anchor||"center",x:Number(b.x||0),y:Number(b.y||0),width:Number(b.width||230),height:Number(b.height||24),iconType:b.icon?.type||"item",iconId:b.icon?.id||"minecraft:carrot",iconScale:Number(b.icon?.scale??1),iconOffsetX:Number(b.icon?.offset_x||0),background:b.style?.background||"#B8182A32",hover:b.style?.hover||"#E02F5A43",border:b.style?.border||"#FF5E9770",text:b.style?.text||"#FFFFFFFF",animation:b.hover_animation?.type||"none",animationSpeed:Number(b.hover_animation?.speed??1),animationAmount:Number(b.hover_animation?.amount??1)}))};
+      next.titleScreens.push(t);managed.add(path);return;
+    }
+    if((m=path.match(contentRe))){
+      const raw=parseJson(text,path,errors);if(!raw)return;
+      const type=Object.entries(CONTENT_FOLDERS).find(([,folder])=>folder===m[1])?.[0]||"item";
+      next.content.push({_id:uid(),type,id:m[2],carrier:raw.carrier||"",displayName:raw.display_name||"",description:raw.description||"",model:raw.model||"",registryBacked:Boolean(raw.registry_backed),nativeRegistry:raw.native_registry||((type==="block")?"block":"item"),slot:raw.slot||"",capabilities:(raw.capabilities||[]).join("\n"),tags:(raw.tags||[]).join("\n"),attributes:JSON.stringify(raw.attributes||{},null,2),nativeAttributes:JSON.stringify(raw.native_attributes||{},null,2),events:JSON.stringify(raw.events||{},null,2),stats:JSON.stringify(raw.stats||{},null,2)});managed.add(path);return;
     }
     if((m=path.match(reactionRe))){
       const raw=parseJson(text,path,errors);if(!raw)return;
@@ -1343,7 +1468,7 @@ function importFiles(files,sourceLabel="datapack"){
   selectedPreview={kind:"project"};refreshPreview();
 
   const summary=$("#importSummary");summary.hidden=false;
-  summary.textContent=`Imported '${sourceLabel}'. Editable: ${state.objectives.length} objective(s), ${state.menus.length} menu(s), ${state.reactions.length} reaction(s), ${state.groups.length} recognition group(s), ${state.recognition.length} recognition definition(s). Preserving ${Object.keys(state.extraFiles).length} passthrough file(s).${errors.length?` ${errors.length} JSON file(s) could not be parsed and remain passthrough.`:""}`;
+  summary.textContent=`Imported '${sourceLabel}'. Editable: ${state.objectives.length} objective(s), ${state.menus.length} menu(s), ${state.titleScreens.length} title screen(s), ${state.content.length} content definition(s), ${state.reactions.length} reaction(s), ${state.groups.length} recognition group(s), ${state.recognition.length} recognition definition(s). Preserving ${Object.keys(state.extraFiles).length} passthrough file(s).${errors.length?` ${errors.length} JSON file(s) could not be parsed and remain passthrough.`:""}`;
   if(errors.length)alert("Import completed with JSON parse warnings:\n\n"+errors.slice(0,10).join("\n"));
 }
 

@@ -1,255 +1,52 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>DAI Official Packs</title>
+<meta content="Official Decisions and Impulses datapacks, resource packs, combo packs, and the registry consumed by the in-game DAI Pack Browser." name="description"/>
 <link href="../assets/css/site.css" rel="stylesheet"/>
 <style>
-    .pack-feature {
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      background:
-        linear-gradient(135deg, rgba(117,213,255,.08), rgba(142,227,161,.04)),
-        var(--panel);
-      padding: 26px;
-      margin-top: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.14);
-    }
-
-    .pack-feature h2 {
-      margin: 0 0 8px;
-      font-size: 1.7rem;
-    }
-
-    .pack-feature p {
-      color: var(--muted);
-    }
-
-    .pack-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 16px 0 18px;
-    }
-
-    .pack-meta span {
-      display: inline-block;
-      padding: 6px 9px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: var(--panel-2);
-      color: var(--muted);
-      font-size: .8rem;
-    }
-
-    .pack-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .download-button,
-    .secondary-button {
-      display: inline-block;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-weight: 800;
-    }
-
-    .download-button {
-      background: var(--accent);
-      color: #081018;
-    }
-
-    .download-button:hover {
-      color: #081018;
-      filter: brightness(1.06);
-    }
-
-    .secondary-button {
-      border: 1px solid var(--border);
-      background: var(--panel-2);
-      color: var(--text);
-    }
-
-    .feature-list {
-      columns: 2;
-      column-gap: 34px;
-      padding-left: 22px;
-    }
-
-    .coming-soon {
-      opacity: .72;
-    }
-
-    @media (max-width: 720px) {
-      .feature-list {
-        columns: 1;
-      }
-    }
-  </style>
+.pack-feature{border:1px solid var(--border);border-radius:22px;background:linear-gradient(135deg,rgba(117,213,255,.08),rgba(142,227,161,.04)),var(--panel);padding:26px;margin-top:20px;box-shadow:0 10px 30px rgba(0,0,0,.14)}
+.pack-feature h2{margin:0 0 8px;font-size:1.7rem}.pack-feature p{color:var(--muted)}
+.pack-meta{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 18px}.pack-meta span{display:inline-block;padding:6px 9px;border:1px solid var(--border);border-radius:999px;background:var(--panel-2);color:var(--muted);font-size:.8rem}
+.pack-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.download-button,.secondary-button{display:inline-block;padding:10px 14px;border-radius:10px;font-weight:800}.download-button{background:var(--accent);color:#081018}.download-button:hover{color:#081018;filter:brightness(1.06)}.secondary-button{border:1px solid var(--border);background:var(--panel-2);color:var(--text)}
+.feature-list{columns:2;column-gap:34px;padding-left:22px}.registry-table{display:grid;gap:8px;margin-top:14px}.registry-row{display:grid;grid-template-columns:minmax(160px,.8fr) minmax(130px,.5fr) minmax(100px,.4fr) minmax(210px,1fr);gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel-2);align-items:center}.registry-row code{overflow-wrap:anywhere}.registry-row.header{font-size:.78rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em}.browser-flow{font-family:"SFMono-Regular",Consolas,monospace;white-space:pre-wrap;color:var(--muted)}
+@media(max-width:760px){.feature-list{columns:1}.registry-row{grid-template-columns:1fr}.registry-row.header{display:none}}
+</style>
 </head>
 <body>
-<header class="site-header">
-<nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a aria-current="page" class="active" href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav>
-</header>
+<header class="site-header"><nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a aria-current="page" class="active" href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header>
 <main>
-<section class="page-title">
-<div class="eyebrow">Official DAI Packs</div>
-<h1>Official Packs</h1>
-<p>
-      Official datapacks and companion resource packs built for Decisions and Impulses.
-      DAI supplies the automation engine; these packs can define gameplay, objectives,
-      menus, perception, reactions, visual effects, and presentation assets.
-    </p>
+<section class="page-title"><div class="eyebrow">Official DAI Ecosystem</div><h1>Official Packs</h1><p>This page and the in-game DAI Pack Browser share the same official registry. DAI can install supported datapacks into a selected world, install companion resource packs into its managed client pack directory, and auto-enable those managed resources on the next launch.</p></section>
+<section class="section"><h2>In-Game Pack Registry</h2><p>The mod reads the live catalog from <code>/dai/api/packs.json</code>. Updating that JSON can publish a new official pack or update without requiring a new DAI mod build.</p><div class="code"><pre class="browser-flow">DAI Main Menu → Official Packs
+        ↓
+https://j12h36h.github.io/dai/api/packs.json
+        ↓
+Website-curated official pack metadata
+        ↓
+CurseForge / ForgeCDN download
+        ↓
+Validate ZIP → install → restart prompt</pre></div><div class="notice">The website decides which packs are official. CurseForge remains the download host. Combo packs appear as one browser card while still installing all of their datapack/resource-pack components.</div></section>
+<section class="section"><h2>Available Packs</h2>
+<article class="pack-feature" id="fundamentals-survival"><div class="eyebrow">Gameplay / Framework Showcase</div><h2>DAI Fundamentals — Survival</h2><div class="pack-meta"><span>Official Datapack</span><span>Version 0a</span><span>Minecraft 26.2</span><span>Project 1651191</span><span>File 8641276</span></div><p><strong>DAI Fundamentals — Survival</strong> is the official external Survival example for Decisions and Impulses. It demonstrates how a normal datapack can contribute menus, perception, objectives, autonomous navigation, harvesting, combat-oriented choices, and progression without hardcoding those behaviors into the mod.</p><ul class="feature-list"><li>Custom Automation contribution</li><li>Contextual Available menus</li><li>Explore / Attack / Hunt / Harvest structure</li><li>Recognition-driven behavior</li><li>Connected-log harvesting example</li><li>Waypoint and spatial scanning usage</li><li>Reusable objective composition</li><li>Third-party recognition examples</li></ul><div class="pack-actions"><a class="download-button" href="https://www.curseforge.com/minecraft/data-packs/dai-fun-survival" rel="noopener noreferrer" target="_blank">View on CurseForge</a></div></article>
+<article class="pack-feature" id="comic-effects"><div class="eyebrow">Reactions / Visual UI Showcase</div><h2>DAI Comic Effects</h2><div class="pack-meta"><span>Official Combo Pack</span><span>Version 1.0</span><span>Minecraft 26.2</span><span>Datapack + Resource Pack</span></div><p><strong>DAI Comic Effects</strong> is presented as one condensed combo pack in the in-game browser. Its datapack defines attack reactions and screen behavior; its companion resource pack supplies the POW/BAM/WHACK/KAPOW artwork and animation textures.</p><ul class="feature-list"><li>Default reaction examples</li><li>Static overlay sprites</li><li>Animated sprite-sheet overlays</li><li>Layered Z-order effects</li><li>Clickable/non-consuming overlays</li><li>Custom menu colors</li><li>Separated data and presentation assets</li><li>Auto-managed companion resources in DAI</li></ul><div class="registry-table"><div class="registry-row header"><span>Component</span><span>Project</span><span>File</span><span>Uploaded filename</span></div><div class="registry-row"><strong>Comic Effects Data</strong><code>1651368</code><code>8642384</code><code>DAI_ComicEffects_Data.zip</code></div><div class="registry-row"><strong>Comic Effects Resource</strong><code>1651376</code><code>8642408</code><code>DAI_ComicEffects_Resource.zip</code></div></div><div class="pack-actions"><a class="download-button" href="https://www.curseforge.com/minecraft/data-packs/dai-comic-effects-data" rel="noopener noreferrer" target="_blank">Datapack on CurseForge</a><a class="secondary-button" href="https://www.curseforge.com/minecraft/texture-packs/dai-comic-effects-resource" rel="noopener noreferrer" target="_blank">Resource Pack on CurseForge</a></div></article>
 </section>
-<section class="section">
-<h2>Available Packs</h2>
-<article class="pack-feature">
-<div class="eyebrow">Example / Proof of Concept</div>
-<h2>DAI Fundamentals — Survival</h2>
-<div class="pack-meta">
-<span>Official DAI Datapack</span>
-<span>Survival</span>
-<span>Example Pack</span>
-<span>Proof of Concept</span>
-</div>
-<p>
-<strong>DAI Fundamentals — Survival</strong> is the default example and
-        proof-of-concept gameplay datapack for Decisions and Impulses. It demonstrates
-        how a completely external datapack can use the DAI framework to create its own
-        Survival gameplay, menus, perception, objectives, and autonomous behavior
-        without modifying the core mod.
-      </p>
-<p>
-        The pack adds its own <strong>[D-F] Survival</strong> entry to DAI and
-        demonstrates contextual gameplay menus including Explore, Attack, Hunt, and
-        Harvest. Available actions can react to the world around the player, allowing
-        datapack-defined behavior to appear only when it is relevant.
-      </p>
-<p>
-        Its most developed example is connected tree harvesting. The pack demonstrates
-        how smaller DAI objectives can locate logs, remember targets as waypoints,
-        approach and mine them, scan adjacent blocks, continue through connected wood,
-        recover nearby branches, collect dropped items, and clean up temporary runtime
-        state.
-      </p>
-<ul class="feature-list">
-<li>External Survival gameplay namespace</li>
-<li>Custom Automation menu contribution</li>
-<li>Contextual Available menus</li>
-<li>Explore / Attack / Hunt / Harvest structure</li>
-<li>Recognition-driven behavior</li>
-<li>Connected-log tree harvesting example</li>
-<li>Waypoint and spatial scanning usage</li>
-<li>Reusable objective composition</li>
-<li>Third-party recognition examples</li>
-<li>Proof-of-concept framework demonstration</li>
-</ul>
-<div class="notice">
-        This pack is intended primarily as an example/default starter pack rather than
-        a complete autonomous Survival AI. Some gameplay entries are demonstrations or
-        expansion points intended to show third-party creators how DAI systems can be
-        combined.
-      </div>
-<div class="pack-actions">
-<a class="download-button" href="https://www.curseforge.com/minecraft/data-packs/dai-fun-survival" rel="noopener noreferrer" target="_blank">
-          Download on CurseForge
-        </a>
-</div>
-</article>
-
-<article class="pack-feature">
-<div class="eyebrow">Reactions / Visual Effects Showcase</div>
-<h2>DAI Comic Effects</h2>
-<div class="pack-meta">
-<span>Official DAI Pack</span>
-<span>Datapack + Resource Pack</span>
-<span>Reactions</span>
-<span>Animated Overlays</span>
-</div>
-<p>
-<strong>DAI Comic Effects</strong> is a paired datapack and resource pack that demonstrates
-        DAI's event-driven reaction and screen-presentation systems. The datapack provides
-        the behavior and reaction triggers, while the resource pack supplies the custom
-        textures and animated visual assets displayed in game.
-      </p>
-<p>
-        Both downloads are intended to be used together for the complete experience and
-        also serve as a practical example of how third-party DAI packs can separate
-        gameplay logic from presentation assets.
-      </p>
-<ul class="feature-list">
-<li>Event-driven reaction examples</li>
-<li>Static and animated overlays</li>
-<li>Custom sprite assets</li>
-<li>Datapack-defined visual behavior</li>
-<li>Companion resource-pack structure</li>
-<li>Third-party presentation example</li>
-</ul>
-<div class="pack-actions">
-<a class="download-button" href="https://www.curseforge.com/minecraft/data-packs/dai-comic-effects-data" rel="noopener noreferrer" target="_blank">
-          Download Datapack
-        </a>
-<a class="secondary-button" href="https://www.curseforge.com/minecraft/texture-packs/dai-comic-effects-resource" rel="noopener noreferrer" target="_blank">
-          Download Resource Pack
-        </a>
-</div>
-</article>
-</section>
-<section class="section">
-<h2>Upcoming / Additional Official Packs</h2>
-<div class="grid">
-<div class="card coming-soon">
-<h3>DAI Speedrun</h3>
-<p>
-          Speed-focused gameplay behavior and progression strategies built as an
-          external DAI gameplay datapack.
-        </p>
-</div>
-<div class="card coming-soon">
-<h3>DAI Adventure</h3>
-<p>
-          Adventure-oriented automation for custom maps, routes, objectives,
-          interactions, and scripted experiences.
-        </p>
-</div>
-<div class="card coming-soon">
-<h3>More Official Packs</h3>
-<p>
-          Additional official examples and gameplay packs can be listed here as the
-          DAI ecosystem expands.
-        </p>
-</div>
-</div>
-</section>
-<section class="section">
-<h2>Pack Requirements</h2>
-<p>
-      Official DAI datapacks require a compatible version of the DAI mod. Some packs
-      also include a companion resource pack for custom textures, sprites, or other
-      presentation assets.
-    </p>
-<div class="code"><pre>Install DAI
+<section class="section"><h2>Current Registry Payload</h2><p>The JSON below mirrors the live file shipped with this website package and the schema used by DAI's browser.</p><div class="code"><pre id="registryPreview">Loading /api/packs.json…</pre></div></section>
+<section class="section"><h2>Installation Behavior</h2><div class="code"><pre>Open DAI Official Packs
     ↓
-Install desired DAI datapack
+Choose a target world for datapacks
     ↓
-Enable its companion resource pack when one is provided
+Install / Update / Uninstall
     ↓
-Open / reload the world
+DAI changes only files it owns
     ↓
-DAI loads menus, objectives, reactions, logic, and recognition content</pre></div>
-<div class="notice">
-      Datapacks load from the world's datapacks folder. Companion resource packs are
-      enabled separately in Minecraft's normal Resource Packs screen.
-    </div>
-</section>
+Leave the browser
+    ↓
+Restart Required → Exit Minecraft
+    ↓
+Early registry + resource-pack bootstrap sees the final pack set on next launch</pre></div><div class="notice">Managed resource packs installed by the DAI browser are auto-enabled. Ordinary resource packs remain under the player's normal Minecraft Resource Packs controls.</div></section>
 </main>
-<footer class="footer">
-  Decisions and Impulses · Third-party automation framework for Minecraft
-</footer>
-</body>
-</html>
+<footer class="footer">Decisions and Impulses · Third-party automation framework for Minecraft</footer>
+<script>fetch('/dai/api/packs.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status))).then(x=>document.getElementById('registryPreview').textContent=JSON.stringify(x,null,2)).catch(e=>document.getElementById('registryPreview').textContent='Registry preview unavailable: '+e.message);</script>
+</body></html>
