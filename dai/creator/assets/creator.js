@@ -32,6 +32,7 @@ function freshState(kind="datapack") {
     worldgens: [],
     content: [],
     reactions: [],
+    runtimeDefinitions: [],
     groups: [],
     recognition: [],
     resourceFiles: {},
@@ -131,6 +132,39 @@ function blankReaction(){
     event:"player_attack_entity",phase:"post",priority:100,conditions:[],sequence:[]
   };
 }
+const RUNTIME_DEFINITION_TYPES={
+  recipe:{label:"DAI Processing Recipe",folder:"dai_recipes",sample:{type:"crafting_shaped",pattern:["A"],key:{A:{item:"minecraft:stone"}},result:{item:"minecraft:stone",count:1}}},
+  reaction_event:{label:"Reaction Event",folder:"reaction_events",sample:{phases:["pre","during","post"],cancellable:true,overrideable:true}},
+  screen_profile:{label:"Screen Profile",folder:"screen_profiles",sample:{variants:[]}},
+  attribute:{label:"DAI Attribute",folder:"dai_attributes",sample:{default:100,minimum:0,maximum:100}},
+  animation:{label:"DAI Animation",folder:"dai_animations",sample:{duration_ticks:20,loop:false,channel:"upper_body",priority:10,interruptible:true,markers:{},marker_actions:{},tracks:{}}}
+};
+function blankRuntimeDefinition(type="recipe"){
+  const spec=RUNTIME_DEFINITION_TYPES[type]||RUNTIME_DEFINITION_TYPES.recipe;
+  const count=state.runtimeDefinitions.filter(x=>x.type===type).length+1;
+  return {_id:uid(),type,id:`${type}_${count}`,json:JSON.stringify(spec.sample,null,2)};
+}
+function runtimeDefinitionPath(d){
+  const spec=RUNTIME_DEFINITION_TYPES[d.type]||RUNTIME_DEFINITION_TYPES.recipe;
+  return `data/${state.pack.namespace}/${spec.folder}/${slug(d.id)}.json`;
+}
+function reactionEventSpecs(){
+  const events=[...(catalog.reactionEvents||[])];
+  state.runtimeDefinitions.filter(d=>d.type==="reaction_event").forEach(d=>{
+    try{
+      const raw=JSON.parse(String(d.json||"{}"));
+      events.push({
+        id:fullId(d.id),
+        phases:Array.isArray(raw.phases)&&raw.phases.length?raw.phases:["pre","during","post"],
+        cancellable:Boolean(raw.cancellable),
+        overrideable:Boolean(raw.overrideable),
+        entityContext:Boolean(raw.entity_context),
+        purpose:raw.purpose||"Datapack-defined reaction event."
+      });
+    }catch{}
+  });
+  return events;
+}
 function blankGroup(){ return {_id:uid(),id:`group_${state.groups.length+1}`,replace:false,entries:["minecraft:stone"]}; }
 function blankRecognition(){
   return {
@@ -179,8 +213,7 @@ function readPackInputs(){
   document.getElementById(id).addEventListener("input", () => {
     readPackInputs();
     if(id==="namespace" && state.kind==="resourcepack") renderResourceFiles();
-    renderExportTree();
-    refreshPreview();
+    refreshAll();
   });
 });
 
@@ -529,7 +562,7 @@ function renderActionCard(a, onChange, onDelete, depth=0){
   });
   bindOverlayEditor(el,a,onChange);
   el.querySelector("[data-add-condition]").onclick=()=>{ a.conditions.push(blankCondition()); onChange(true); };
-  renderConditionList(el.querySelector("[data-condition-list]"),a.conditions,()=>onChange(true));
+  renderConditionList(el.querySelector("[data-condition-list]"),a.conditions,(structural=false)=>onChange(structural));
 
   const addChild=el.querySelector("[data-add-child]");
   if (addChild) {
@@ -577,24 +610,27 @@ function renderConditionCard(c,list,index,onChange){
     ${logical?`<div class="subbox"><div class="subbox-head"><strong>Child Conditions</strong><button class="btn small" data-add-child-condition>+ Condition</button></div><div data-child-conditions></div></div>`:""}
     ${c._extra && Object.keys(c._extra).length?'<div class="mini-note">Imported extra fields are preserved on export.</div>':""}
   </div>`;
-  el.querySelector("[data-del]").onclick=()=>{list.splice(index,1);onChange();};
+  el.querySelector("[data-del]").onclick=()=>{list.splice(index,1);onChange(true);};
   el.querySelector("[data-condition-type]").onchange=e=>{
     c.type=e.target.value;
     const ns=conditionMap.get(c.type);
     c.operator=(ns?.valueType==="boolean")?"is_true":"equals";
-    onChange();
+    onChange(true);
   };
   el.querySelectorAll("[data-cf]").forEach(inp=>{
-    inp.oninput=()=>{
+    const handler=()=>{
       const k=inp.dataset.cf;
       if (k==="negate"||k==="boolean_value") c[k]=inp.value==="true";
       else if (k==="number_value"||k==="parameter_number") c[k]=Number(inp.value||0);
       else c[k]=inp.value;
-      onChange(false);
+      const structural=k==="operator";
+      onChange(structural);
     };
+    if(inp.tagName==="SELECT") inp.onchange=handler;
+    else inp.oninput=handler;
   });
   if (logical) {
-    el.querySelector("[data-add-child-condition]").onclick=()=>{c.conditions.push(blankCondition());onChange();};
+    el.querySelector("[data-add-child-condition]").onclick=()=>{c.conditions.push(blankCondition());onChange(true);};
     renderConditionList(el.querySelector("[data-child-conditions]"),c.conditions,onChange);
   }
   el.onclick=()=>{selectedPreview={kind:"condition",value:c};refreshPreview();};
@@ -644,8 +680,14 @@ function renderMenus(){
       <div class="subbox"><div class="subbox-head"><strong>Buttons</strong><button class="btn small" data-add-button>+ Button</button></div><div data-buttons></div></div>
     </div>`;
     el.querySelector("[data-del]").onclick=()=>{state.menus.splice(mi,1);renderMenus();refreshAll();};
-    el.querySelectorAll("[data-mf]").forEach(inp=>inp.oninput=()=>{
-      const k=inp.dataset.mf;m[k]=k==="priority"?Number(inp.value||0):inp.value;renderMenus();refreshAll();
+    el.querySelectorAll("[data-mf]").forEach(inp=>{
+      const handler=()=>{
+        const k=inp.dataset.mf;m[k]=k==="priority"?Number(inp.value||0):inp.value;
+        if(k==="type") renderMenus();
+        refreshAll();
+      };
+      if(inp.tagName==="SELECT") inp.onchange=handler;
+      else inp.oninput=handler;
     });
     const btnRoot=el.querySelector("[data-buttons]");
     if(!m.buttons.length) btnRoot.innerHTML='<div class="empty">No buttons.</div>';
@@ -676,10 +718,10 @@ function renderMenus(){
       </div>`;
       card.querySelector("[data-del]").onclick=()=>{m.buttons.splice(bi,1);renderMenus();refreshAll();};
       card.querySelectorAll("[data-bf]").forEach(inp=>inp.oninput=()=>{const k=inp.dataset.bf;b[k]=k==="slot"?Number(inp.value||0):inp.value;refreshAll();});
-      card.querySelector("[data-style-enabled]").oninput=e=>{b.style.enabled=e.target.value==="true";renderMenus();refreshAll();};
+      card.querySelector("[data-style-enabled]").onchange=e=>{b.style.enabled=e.target.value==="true";renderMenus();refreshAll();};
       card.querySelectorAll("[data-style]").forEach(inp=>inp.oninput=()=>{b.style[inp.dataset.style]=inp.value;refreshAll();});
       card.querySelector("[data-add-cond]").onclick=()=>{b.conditions.push(blankCondition());renderMenus();refreshAll();};
-      renderConditionList(card.querySelector("[data-conds]"),b.conditions,()=>{renderMenus();refreshAll();});
+      renderConditionList(card.querySelector("[data-conds]"),b.conditions,(structural=false)=>{if(structural)renderMenus();refreshAll();});
       card.onclick=()=>{selectedPreview={kind:"menuButton",value:b};refreshPreview();};
       btnRoot.appendChild(card);
     });
@@ -696,13 +738,14 @@ function renderTitleScreens(){
   if(!state.titleScreens.length){root.innerHTML='<div class="empty">No title screens yet. Add one to replace Minecraft\'s default main menu through DAI JSON.</div>';return;}
   const actions=["open_singleplayer","open_multiplayer","open_official_packs","open_mods","open_options","open_url","quit"];
   const animations=["none","spin","bob","pulse","orbit"];
+
   state.titleScreens.forEach((t,ti)=>{
     const el=document.createElement("div");el.className="item-card title-screen-card";
     el.innerHTML=`<div class="item-head"><strong>${esc(t.id)}</strong><div class="item-actions"><button class="btn small danger" data-del>Remove</button></div></div><div class="item-body"><div class="dynamic-fields">
       ${field("Definition ID",textInput(t.id,'data-tf="id"'))}${field("Enabled",`<select data-tf="enabled"><option value="true"${t.enabled?" selected":""}>true</option><option value="false"${!t.enabled?" selected":""}>false</option></select>`)}${field("Priority",numberInput(t.priority,'data-tf="priority"'))}${field("Title",textInput(t.title,'data-tf="title"'))}${field("Subtitle",textInput(t.subtitle,'data-tf="subtitle"'))}${field("Background Top",textInput(t.backgroundTop,'data-tf="backgroundTop"'))}${field("Background Bottom",textInput(t.backgroundBottom,'data-tf="backgroundBottom"'))}${field("Title Color",textInput(t.titleColor,'data-tf="titleColor"'))}${field("Subtitle Color",textInput(t.subtitleColor,'data-tf="subtitleColor"'))}
     </div><div class="subbox"><div class="subbox-head"><strong>Buttons</strong><button class="btn small primary" data-add-button>+ Button</button></div><div data-title-buttons></div></div></div>`;
     el.querySelector('[data-del]').onclick=()=>{state.titleScreens.splice(ti,1);renderTitleScreens();refreshAll();};
-    el.querySelectorAll('[data-tf]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.tf;if(k==="enabled")t[k]=inp.value==="true";else if(k==="priority")t[k]=Number(inp.value||0);else t[k]=inp.value;renderExportTree();refreshPreview();});
+    el.querySelectorAll('[data-tf]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.tf;if(k==="enabled")t[k]=inp.value==="true";else if(k==="priority")t[k]=Number(inp.value||0);else t[k]=inp.value;refreshAll();});
     const br=el.querySelector('[data-title-buttons]');
     if(!t.buttons.length)br.innerHTML='<div class="empty">No buttons.</div>';
     t.buttons.forEach((b,bi)=>{const c=document.createElement("div");c.className="subbox title-button-card";c.innerHTML=`<div class="subbox-head"><strong>${esc(b.label||b.id)}</strong><button class="btn small danger" data-bdel>Remove</button></div><div class="dynamic-fields">
@@ -711,7 +754,7 @@ function renderTitleScreens(){
       ${field("Background",textInput(b.background,'data-bf="background"'))}${field("Hover",textInput(b.hover,'data-bf="hover"'))}${field("Border",textInput(b.border,'data-bf="border"'))}${field("Text",textInput(b.text,'data-bf="text"'))}${field("Hover Animation",`<select data-bf="animation">${animations.map(x=>`<option value="${x}"${b.animation===x?" selected":""}>${x}</option>`).join("")}</select>`)}${field("Animation Speed",numberInput(b.animationSpeed,'step="0.05" data-bf="animationSpeed"'))}${field("Animation Amount",numberInput(b.animationAmount,'step="0.1" data-bf="animationAmount"'))}
       </div>`;
       c.querySelector('[data-bdel]').onclick=()=>{t.buttons.splice(bi,1);renderTitleScreens();refreshAll();};
-      c.querySelectorAll('[data-bf]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.bf;if(["x","y","width","height","iconScale","iconOffsetX","animationSpeed","animationAmount"].includes(k))b[k]=Number(inp.value||0);else b[k]=inp.value;renderExportTree();refreshPreview();});
+      c.querySelectorAll('[data-bf]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.bf;if(["x","y","width","height","iconScale","iconOffsetX","animationSpeed","animationAmount"].includes(k))b[k]=Number(inp.value||0);else b[k]=inp.value;refreshAll();});
       c.onclick=()=>{selectedPreview={kind:"titleButton",value:b};refreshPreview();};br.appendChild(c);
     });
     el.querySelector('[data-add-button]').onclick=()=>{t.buttons.push(blankTitleButton(t));renderTitleScreens();refreshAll();};el.onclick=()=>{selectedPreview={kind:"titleScreen",value:t};refreshPreview();};root.appendChild(el);
@@ -727,7 +770,7 @@ function renderContent(){
     ${field("Content Type",`<select data-cf="type">${types.map(x=>`<option value="${x}"${c.type===x?" selected":""}>${x}</option>`).join("")}</select>`)}${field("Definition ID",textInput(c.id,'data-cf="id"'))}${field("Display Name",textInput(c.displayName,'data-cf="displayName"'))}${field("Description",textInput(c.description,'data-cf="description"'))}${field("Vanilla Carrier",textInput(c.carrier,'data-cf="carrier"'),"Example: minecraft:iron_sword")}${field("Vanilla Model Alias",textInput(c.model,'data-cf="model"'),"Example: minecraft:iron_sword")}${field("Registry Backed",`<select data-cf="registryBacked"><option value="true"${c.registryBacked?" selected":""}>true</option><option value="false"${!c.registryBacked?" selected":""}>false</option></select>`)}${field("Native Registry",`<select data-cf="nativeRegistry"><option value="item"${c.nativeRegistry==="item"?" selected":""}>item</option><option value="block"${c.nativeRegistry==="block"?" selected":""}>block</option><option value="entity_type"${c.nativeRegistry==="entity_type"?" selected":""}>entity_type</option></select>`,"Registry target used only when registry_backed is enabled.")}${field("Armor Slot",textInput(c.slot||'','data-cf="slot"'),"Optional; e.g. chest")}${field("Capabilities",`<textarea data-cf="capabilities">${esc(c.capabilities)}</textarea>`,"Comma or newline separated resource IDs.")}${field("Tags",`<textarea data-cf="tags">${esc(c.tags)}</textarea>`,"Comma or newline separated labels.")}${field("Attributes JSON",`<textarea data-cf="attributes">${esc(c.attributes)}</textarea>`)}${field("Native Attributes JSON",`<textarea data-cf="nativeAttributes">${esc(c.nativeAttributes)}</textarea>`)}${field("Events JSON",`<textarea data-cf="events">${esc(c.events)}</textarea>`)}${field("Stats JSON",`<textarea data-cf="stats">${esc(c.stats)}</textarea>`)}${field("Entity JSON",`<textarea data-cf="entity">${esc(c.entity||"{}")}</textarea>`,"Used by dai_entities: dimensions, texture, behavior and spawning.")}
     </div></div>`;
     el.querySelector('[data-del]').onclick=()=>{state.content.splice(ci,1);renderContent();refreshAll();};
-    el.querySelectorAll('[data-cf]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.cf;if(k==="registryBacked")c[k]=inp.value==="true";else c[k]=inp.value;if(k==="type"&&c.type==="block")c.nativeRegistry="block";if(k==="type"&&c.type==="entity")c.nativeRegistry="entity_type";renderExportTree();refreshPreview();});
+    el.querySelectorAll('[data-cf]').forEach(inp=>{const handler=()=>{const k=inp.dataset.cf;if(k==="registryBacked")c[k]=inp.value==="true";else c[k]=inp.value;if(k==="type"&&c.type==="block")c.nativeRegistry="block";if(k==="type"&&c.type==="entity")c.nativeRegistry="entity_type";if(k==="type")renderContent();refreshAll();};if(inp.tagName==="SELECT")inp.onchange=handler;else inp.oninput=handler;});
     el.onclick=()=>{selectedPreview={kind:"content",value:c};refreshPreview();};root.appendChild(el);
   });
 }
@@ -737,8 +780,9 @@ function renderReactions(){
   const root=$("#reactionList");root.innerHTML="";
   if(!state.reactions.length){root.innerHTML='<div class="empty">No reactions yet. Reactions subscribe JSON behavior to registered runtime events.</div>';return;}
   state.reactions.forEach((r,ri)=>{
-    const known=catalog.reactionEvents?.find(e=>e.id===r.event);
-    const eventOptions=(catalog.reactionEvents||[]).map(e=>`<option value="${e.id}"${r.event===e.id?" selected":""}>${e.id}</option>`).join("");
+    const availableEvents=reactionEventSpecs();
+    const known=availableEvents.find(e=>e.id===r.event);
+    const eventOptions=availableEvents.map(e=>`<option value="${esc(e.id)}"${r.event===e.id?" selected":""}>${esc(e.id)}${String(e.id).includes(":")?" (datapack)":""}</option>`).join("");
     const extraEvent=!known&&r.event?`<option selected value="${esc(r.event)}">${esc(r.event)} (imported)</option>`:"";
     const el=document.createElement("div");el.className="item-card reaction-card";
     el.innerHTML=`
@@ -756,12 +800,17 @@ function renderReactions(){
         <div class="subbox"><div class="subbox-head"><strong>Reaction Sequence</strong><button class="btn small" data-add-ra>+ Action</button></div><div data-raction-list></div></div>
       </div>`;
     el.querySelector("[data-del]").onclick=()=>{state.reactions.splice(ri,1);renderReactions();refreshAll();};
-    el.querySelectorAll("[data-rf2]").forEach(inp=>inp.oninput=()=>{
-      const k=inp.dataset.rf2;r[k]=k==="priority"?Number(inp.value||0):inp.value;
-      renderReactions();refreshAll();
+    el.querySelectorAll("[data-rf2]").forEach(inp=>{
+      const handler=()=>{
+        const k=inp.dataset.rf2;r[k]=k==="priority"?Number(inp.value||0):inp.value;
+        if(["event","type"].includes(k)) renderReactions();
+        refreshAll();
+      };
+      if(inp.tagName==="SELECT") inp.onchange=handler;
+      else inp.oninput=handler;
     });
     el.querySelector("[data-add-rcond]").onclick=()=>{r.conditions.push(blankCondition("reaction_active"));renderReactions();refreshAll();};
-    renderConditionList(el.querySelector("[data-rconds]"),r.conditions,()=>{renderReactions();refreshAll();});
+    renderConditionList(el.querySelector("[data-rconds]"),r.conditions,(structural=false)=>{if(structural)renderReactions();refreshAll();});
     el.querySelector("[data-add-ra]").onclick=()=>{r.sequence.push(blankAction());renderReactions();refreshAll();};
     renderActionList(el.querySelector("[data-raction-list]"),r.sequence,(rerender=false)=>{if(rerender)renderReactions();refreshAll();});
     el.onclick=()=>{selectedPreview={kind:"reaction",value:r};refreshPreview();};
@@ -866,13 +915,16 @@ function renderRecognition(){
       c.innerHTML=`<div class="item-head"><strong>${esc(q.type)}</strong><button class="btn small danger" data-del>Remove</button></div>
       <div class="item-body"><div class="dynamic-fields">${requirementFields(q,r.groups.map(g=>g.name))}</div></div>`;
       c.querySelector("[data-del]").onclick=()=>{r.requirements.splice(qi,1);renderRecognition();refreshAll();};
-      c.querySelectorAll("[data-rq]").forEach(inp=>inp.oninput=()=>{
-        const k=inp.dataset.rq;
-        if(k==="groups")q.groups=inp.value.split(",").map(x=>x.trim()).filter(Boolean);
-        else if(["minimum_height","minimum_ratio","minimum","maximum"].includes(k))q[k]=inp.value===""?"":Number(inp.value);
-        else q[k]=inp.value;
-        if(k==="type")renderRecognition();
-        refreshAll();
+      c.querySelectorAll("[data-rq]").forEach(inp=>{
+        const handler=()=>{
+          const k=inp.dataset.rq;
+          if(k==="groups")q.groups=inp.value.split(",").map(x=>x.trim()).filter(Boolean);
+          else if(["minimum_height","minimum_ratio","minimum","maximum"].includes(k))q[k]=inp.value===""?"":Number(inp.value);
+          else q[k]=inp.value;
+          if(k==="type")renderRecognition();
+          refreshAll();
+        };
+        if(inp.tagName==="SELECT")inp.onchange=handler;else inp.oninput=handler;
       });
       rr.appendChild(c);
     });
@@ -900,6 +952,24 @@ if($("#addExperience"))$("#addExperience").onclick=()=>{state.experiences.push(b
 if($("#addWorldgen"))$("#addWorldgen").onclick=()=>{state.worldgens.push(blankWorldgen());renderExperiences();refreshAll();};
 if($("#addExperienceStarter"))$("#addExperienceStarter").onclick=()=>{const w=blankWorldgen();w.id=`worldgen_${state.worldgens.length+1}`;state.worldgens.push(w);const e=blankExperience();e.id=`experience_${state.experiences.length+1}`;e.worldgen=fullId(w.id);e.uiOpenAction=`${state.pack.namespace}:open`;e.uiCloseAction=`${state.pack.namespace}:close`;e.uiAnchorOverlay="main_frame";state.experiences.push(e);renderExperiences();renderDashboard();refreshAll();};
 
+function renderRuntimeDefinitions(){
+  const root=$("#runtimeDefinitionList");if(!root)return;root.innerHTML="";
+  if(!state.runtimeDefinitions.length){root.innerHTML='<div class="empty">No managed runtime definitions yet. Add a recipe, reaction event, screen profile, attribute, or animation.</div>';return;}
+  state.runtimeDefinitions.forEach((d,di)=>{
+    const spec=RUNTIME_DEFINITION_TYPES[d.type]||RUNTIME_DEFINITION_TYPES.recipe;
+    const el=document.createElement("div");el.className="item-card runtime-definition-card";
+    el.innerHTML=`<div class="item-head"><strong>${esc(spec.label)} · ${esc(d.id)}</strong><button class="btn small danger" data-del>Remove</button></div><div class="item-body"><div class="form-grid">${field("Definition Type",`<select data-rtd="type">${Object.entries(RUNTIME_DEFINITION_TYPES).map(([k,v])=>`<option value="${esc(k)}"${k===d.type?" selected":""}>${esc(v.label)}</option>`).join("")}</select>`)}${field("Definition ID / Path",textInput(d.id,'data-rtd="id"'),`Exports under ${spec.folder}/. Slashes are allowed for nested paths.`)}<div class="field full"><label>JSON Definition</label><textarea class="runtime-json" data-rtd="json" spellcheck="false">${esc(d.json)}</textarea><span class="help">Unknown/new fields are preserved exactly as JSON. Validation checks syntax without narrowing the client schema.</span></div></div></div>`;
+    el.querySelector('[data-del]').onclick=()=>{state.runtimeDefinitions.splice(di,1);renderRuntimeDefinitions();refreshAll();};
+    el.querySelectorAll('[data-rtd]').forEach(inp=>{
+      const handler=()=>{const k=inp.dataset.rtd;if(k==="type"){d.type=inp.value;renderRuntimeDefinitions();}else d[k]=inp.value;refreshAll();};
+      if(inp.tagName==="SELECT")inp.onchange=handler;else inp.oninput=handler;
+    });
+    el.onclick=()=>{selectedPreview={kind:"runtimeDefinition",value:d};refreshPreview();};
+    root.appendChild(el);
+  });
+}
+$$('[data-add-runtime]').forEach(b=>b.onclick=()=>{state.runtimeDefinitions.push(blankRuntimeDefinition(b.dataset.addRuntime));renderRuntimeDefinitions();refreshAll();});
+
 const UNIVERSAL_TEMPLATES={
   experience:()=>[`data/${state.pack.namespace}/dai_experiences/experience.json`,JSON.stringify(experienceJson(blankExperience()),null,2)+"\n"],
   experience_ui:()=>{const e=blankExperience();e.uiOpenAction=`${state.pack.namespace}:open`;e.uiCloseAction=`${state.pack.namespace}:close`;e.uiAnchorOverlay="main_frame";return [`data/${state.pack.namespace}/dai_experiences/ui_owned_experience.json`,JSON.stringify(experienceJson(e),null,2)+"\n"];},
@@ -921,7 +991,7 @@ $$('.template-file').forEach(b=>b.onclick=()=>{const fn=UNIVERSAL_TEMPLATES[b.da
 async function importUniversalInput(input,folder=false){for(const f of input.files||[]){let path=f.webkitRelativePath||f.name;if(folder&&path.includes('/'))path=path.split('/').slice(1).join('/');addUniversal(path,new Uint8Array(await f.arrayBuffer()));}input.value="";}
 if($("#addUniversalFiles"))$("#addUniversalFiles").onchange=e=>importUniversalInput(e.target,false);
 if($("#addUniversalFolder"))$("#addUniversalFolder").onchange=e=>importUniversalInput(e.target,true);
-function renderDashboard(){const root=$("#dashboardStats");if(!root)return;const files=Object.keys(generatedFiles()).length;const vals=state.kind==="resourcepack"?[[Object.keys(state.resourceFiles||{}).length,"resource assets"],[Object.keys(state.extraFiles||{}).length,"universal files"],[files,"exported files"],[state.pack.namespace,"namespace"]]:[[state.objectives.length,"objectives"],[state.experiences.length,"experiences"],[state.content.length,"content defs"],[files,"exported files"]];root.innerHTML=vals.map(([v,l])=>`<div class="dash-stat"><strong>${esc(v)}</strong><span>${esc(l)}</span></div>`).join('');}
+function renderDashboard(){const root=$("#dashboardStats");if(!root)return;const files=Object.keys(generatedFiles()).length;const vals=state.kind==="resourcepack"?[[Object.keys(state.resourceFiles||{}).length,"resource assets"],[Object.keys(state.extraFiles||{}).length,"universal files"],[files,"exported files"],[state.pack.namespace,"namespace"]]:[[state.objectives.length,"objectives"],[state.experiences.length,"experiences"],[state.runtimeDefinitions.length,"runtime defs"],[files,"exported files"]];root.innerHTML=vals.map(([v,l])=>`<div class="dash-stat"><strong>${esc(v)}</strong><span>${esc(l)}</span></div>`).join('');}
 function generatedFiles(){
   readPackInputs();
   const files={};
@@ -959,6 +1029,7 @@ function generatedFiles(){
     files[path]=JSON.stringify(menuJson(m),null,2)+"\n";
   });
   state.reactions.forEach(r=>files[`data/${n}/reactions/${slug(r.id)}.json`]=JSON.stringify(reactionJson(r),null,2)+"\n");
+  state.runtimeDefinitions.forEach(d=>{let body=String(d.json||"{}").trim();try{body=JSON.stringify(JSON.parse(body),null,2);}catch{}files[runtimeDefinitionPath(d)]=body+"\n";});
   state.groups.forEach(g=>files[`data/${n}/objectives/groups/${slug(g.id)}.json`]=JSON.stringify(groupJson(g),null,2)+"\n");
   state.recognition.forEach(r=>files[`data/${n}/objectives/recognition/${slug(r.id)}.json`]=JSON.stringify(recognitionJson(r),null,2)+"\n");
 
@@ -998,6 +1069,7 @@ function previewValue(){
   if(p.kind==="titleButton" && p.value)return p.value;
   if(p.kind==="content" && p.value)return contentJson(p.value);
   if(p.kind==="reaction" && p.value)return reactionJson(p.value);
+  if(p.kind==="runtimeDefinition" && p.value){try{return JSON.parse(p.value.json);}catch{return {type:p.value.type,id:p.value.id,invalid_json:p.value.json};}}
   if(p.kind==="group" && p.value)return groupJson(p.value);
   if(p.kind==="recognition" && p.value)return recognitionJson(p.value);
   if(p.kind==="pack")return {pack:{description:state.pack.description,min_format:state.pack.minFormat,max_format:state.pack.maxFormat}};
@@ -1007,6 +1079,7 @@ function previewValue(){
   if(p.kind==="titles")return state.titleScreens.map(t=>({id:fullId(t.id),definition:titleScreenJson(t)}));
   if(p.kind==="content")return state.content.map(c=>({type:c.type,id:fullId(c.id),definition:contentJson(c)}));
   if(p.kind==="reactions")return state.reactions.map(r=>({id:fullId(r.id),definition:reactionJson(r)}));
+  if(p.kind==="runtime")return state.runtimeDefinitions.map(d=>({type:d.type,id:d.id,path:runtimeDefinitionPath(d)}));
   if(p.kind==="groups")return state.groups.map(g=>({id:fullId(g.id),definition:groupJson(g)}));
   if(p.kind==="recognition")return state.recognition.map(r=>({id:fullId(r.id),definition:recognitionJson(r)}));
   if(state.kind==="resourcepack")return {
@@ -1016,7 +1089,7 @@ function previewValue(){
   };
   return {
     kind:"datapack",pack:state.pack,experiences:state.experiences.length,worldgens:state.worldgens.length,objectives:state.objectives.length,menus:state.menus.length,titleScreens:state.titleScreens.length,contentDefinitions:state.content.length,
-    reactions:state.reactions.length,recognitionGroups:state.groups.length,
+    reactions:state.reactions.length,runtimeDefinitions:state.runtimeDefinitions.length,recognitionGroups:state.groups.length,
     recognitionDefinitions:state.recognition.length,
     passthroughFiles:Object.keys(state.extraFiles||{}).length
   };
@@ -1033,9 +1106,19 @@ $$(".tab").forEach(tab=>tab.onclick=()=>{
   $("#treePreview").hidden=!tree;
 });
 
-function refreshAll(){
+let refreshFrame=0;
+function refreshAllNow(){
+  if(refreshFrame){cancelAnimationFrame(refreshFrame);refreshFrame=0;}
   renderExportTree();
   refreshPreview();
+}
+function refreshAll(){
+  if(refreshFrame)return;
+  refreshFrame=requestAnimationFrame(()=>{
+    refreshFrame=0;
+    renderExportTree();
+    refreshPreview();
+  });
 }
 
 function renderAll(){
@@ -1046,6 +1129,7 @@ function renderAll(){
   state.worldgens ||= [];
   state.content ||= [];
   state.reactions ||= [];
+  state.runtimeDefinitions ||= [];
   state.groups ||= [];
   state.recognition ||= [];
   state.resourceFiles ||= {};
@@ -1061,6 +1145,7 @@ function renderAll(){
   renderTitleScreens();
   renderContent();
   renderReactions();
+  renderRuntimeDefinitions();
   renderGroups();
   renderRecognition();
   renderResourceFiles();
@@ -1242,10 +1327,18 @@ function validateProject(){
   duplicates(state.groups,"recognition group ID");
   duplicates(state.recognition,"recognition definition ID");
   duplicates(state.reactions,"reaction ID");
+  duplicates(state.runtimeDefinitions,"runtime definition path",d=>`${d.type}:${d.id}`);
   duplicates(state.titleScreens,"title screen ID");
   duplicates(state.content,"content registry ID",c=>`${c.type}:${c.id}`);
   duplicates(state.menus,"menu path",m=>`${m.type}:${m.id}`);
 
+  state.runtimeDefinitions.forEach((d,di)=>{
+    const spec=RUNTIME_DEFINITION_TYPES[d.type];
+    if(!spec)issues.push({level:"err",message:`Runtime definition ${di+1} has unknown type '${d.type}'.`});
+    if(!validLocalPath(d.id))issues.push({level:"err",message:`Runtime definition ${di+1} has invalid ID/path '${d.id}'.`});
+    try{const parsed=JSON.parse(String(d.json||"{}"));if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))issues.push({level:"warn",message:`Runtime definition '${d.id}' is valid JSON but is not an object.`});}
+    catch(e){issues.push({level:"err",message:`Runtime definition '${d.id}' contains invalid JSON: ${e.message}`});}
+  });
 
   state.titleScreens.forEach((t,ti)=>{
     if(!validLocalPath(t.id))issues.push({level:"err",message:`Title screen ${ti+1} has invalid ID/path '${t.id}'.`});
@@ -1296,7 +1389,7 @@ function validateProject(){
   state.reactions.forEach((r,ri)=>{
     if(!validLocalPath(r.id))issues.push({level:"err",message:`Reaction ${ri+1} has invalid ID/path '${r.id}'.`});
     if(!["default","override","cancel"].includes(r.type))issues.push({level:"err",message:`Reaction '${r.id}' has unknown type '${r.type}'.`});
-    const ev=(catalog.reactionEvents||[]).find(e=>e.id===r.event);
+    const ev=reactionEventSpecs().find(e=>e.id===r.event);
     if(!ev)issues.push({level:"err",message:`Reaction '${r.id}' references unknown event '${r.event}'.`});
     if(!["pre","during","post"].includes(r.phase))issues.push({level:"err",message:`Reaction '${r.id}' has invalid phase '${r.phase}'.`});
     if(ev && !ev.phases.includes(r.phase))issues.push({level:"err",message:`Reaction '${r.id}' event '${r.event}' does not support phase '${r.phase}'.`});
@@ -1473,7 +1566,7 @@ function importFiles(files,sourceLabel="datapack"){
 
   const counts={};
   Object.keys(files).forEach(path=>{
-    const m=path.match(/^data\/([^/]+)\/(dai_experiences\/|dai_worldgen\/|objectives\/(definitions|groups|recognition)\/|menus\/actions\/|reactions\/|dai_title_screens\/|dai_(items|blocks|weapons|armor|effects|potions|projectiles|particles|enchantments|entities)\/)/);
+    const m=path.match(/^data\/([^/]+)\/(dai_experiences\/|dai_worldgen\/|objectives\/(definitions|groups|recognition)\/|menus\/actions\/|reactions\/|reaction_events\/|screen_profiles\/|dai_recipes\/|dai_attributes\/|dai_animations\/|dai_title_screens\/|dai_(items|blocks|weapons|armor|effects|potions|projectiles|particles|enchantments|entities)\/)/);
     if(m)counts[m[1]]=(counts[m[1]]||0)+1;
   });
   const chosen=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0];
@@ -1487,6 +1580,7 @@ function importFiles(files,sourceLabel="datapack"){
   const recogRe=new RegExp(`^data/${n}/objectives/recognition/(.+)\\.json$`);
   const menuRe=new RegExp(`^data/${n}/menus/actions/(.+)\\.json$`);
   const reactionRe=new RegExp(`^data/${n}/reactions/(.+)\\.json$`);
+  const runtimeRe=new RegExp(`^data/${n}/(dai_recipes|reaction_events|screen_profiles|dai_attributes|dai_animations)/(.+)\\.json$`);
   const titleRe=new RegExp(`^data/${n}/dai_title_screens/(.+)\\.json$`);
   const contentRe=new RegExp(`^data/${n}/(dai_items|dai_blocks|dai_weapons|dai_armor|dai_effects|dai_potions|dai_projectiles|dai_particles|dai_enchantments|dai_entities)/(.+)\\.json$`);
 
@@ -1530,6 +1624,11 @@ function importFiles(files,sourceLabel="datapack"){
       const type=Object.entries(CONTENT_FOLDERS).find(([,folder])=>folder===m[1])?.[0]||"item";
       next.content.push({_id:uid(),type,id:m[2],carrier:raw.carrier||"",displayName:raw.display_name||"",description:raw.description||"",model:raw.model||"",registryBacked:Boolean(raw.registry_backed),nativeRegistry:raw.native_registry||((type==="block")?"block":"item"),slot:raw.slot||"",capabilities:(raw.capabilities||[]).join("\n"),tags:(raw.tags||[]).join("\n"),attributes:JSON.stringify(raw.attributes||{},null,2),nativeAttributes:JSON.stringify(raw.native_attributes||{},null,2),events:JSON.stringify(raw.events||{},null,2),stats:JSON.stringify(raw.stats||{},null,2),entity:JSON.stringify(raw.entity||{},null,2)});managed.add(path);return;
     }
+    if((m=path.match(runtimeRe))){
+      const raw=parseJson(text,path,errors);if(!raw)return;
+      const type={dai_recipes:"recipe",reaction_events:"reaction_event",screen_profiles:"screen_profile",dai_attributes:"attribute",dai_animations:"animation"}[m[1]];
+      next.runtimeDefinitions.push({_id:uid(),type,id:m[2],json:JSON.stringify(raw,null,2)});managed.add(path);return;
+    }
     if((m=path.match(reactionRe))){
       const raw=parseJson(text,path,errors);if(!raw)return;
       next.reactions.push({
@@ -1558,7 +1657,7 @@ function importFiles(files,sourceLabel="datapack"){
   selectedPreview={kind:"project"};refreshPreview();
 
   const summary=$("#importSummary");summary.hidden=false;
-  summary.textContent=`Imported '${sourceLabel}'. Editable: ${state.experiences.length} experience(s), ${state.worldgens.length} worldgen profile(s), ${state.objectives.length} objective(s), ${state.menus.length} menu(s), ${state.titleScreens.length} title screen(s), ${state.content.length} content definition(s), ${state.reactions.length} reaction(s), ${state.groups.length} recognition group(s), ${state.recognition.length} recognition definition(s). Preserving ${Object.keys(state.extraFiles).length} passthrough file(s).${errors.length?` ${errors.length} JSON file(s) could not be parsed and remain passthrough.`:""}`;
+  summary.textContent=`Imported '${sourceLabel}'. Editable: ${state.experiences.length} experience(s), ${state.worldgens.length} worldgen profile(s), ${state.objectives.length} objective(s), ${state.menus.length} menu(s), ${state.titleScreens.length} title screen(s), ${state.content.length} content definition(s), ${state.reactions.length} reaction(s), ${state.runtimeDefinitions.length} runtime definition(s), ${state.groups.length} recognition group(s), ${state.recognition.length} recognition definition(s). Preserving ${Object.keys(state.extraFiles).length} passthrough file(s).${errors.length?` ${errors.length} JSON file(s) could not be parsed and remain passthrough.`:""}`;
   if(errors.length)alert("Import completed with JSON parse warnings:\n\n"+errors.slice(0,10).join("\n"));
 }
 
@@ -1651,7 +1750,7 @@ $("#quickExport").onclick=exportPack;
 
 function wirePackInputs(){ loadPackInputs(); }
 function init(){
-  wirePackInputs();renderAll();renderExportTree();refreshPreview();showValidation([]);switchView("dashboard");
+  wirePackInputs();renderAll();refreshAll();showValidation([]);switchView("dashboard");
 }
 init();
 

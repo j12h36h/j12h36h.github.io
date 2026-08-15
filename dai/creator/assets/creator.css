@@ -9,3 +9,9 @@
 .distribution-card code{overflow-wrap:anywhere}
 .distribution-card span{color:var(--muted);font-size:.82rem}
 @media(max-width:840px){.distribution-grid{grid-template-columns:1fr}}
+
+/* Stable editor input behavior */
+.field input:focus,.field select:focus,.field textarea:focus,.nav-search input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.runtime-definition-card{border-left:3px solid #8bd5ff}
+.runtime-json{min-height:300px!important;tab-size:2;white-space:pre;font-family:"SFMono-Regular",Consolas,monospace!important;font-size:.8rem!important;line-height:1.45}
+.item-card input,.item-card textarea,.item-card select{scroll-margin-top:120px}
