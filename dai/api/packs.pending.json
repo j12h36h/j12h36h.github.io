@@ -45,6 +45,36 @@
           "sha256": ""
         }
       ]
+    },
+    {
+      "id": "decisions_and_impulses:tamacrafti",
+      "name": "TamaCrafti",
+      "summary": "A cozy DAI-powered virtual-pet experience with persistent care, farming, automatic home setup, custom UI, and a companion HD resource pack.",
+      "version": "2.2.1",
+      "type": "combo",
+      "featured": true,
+      "status": "awaiting_curseforge_file_approval",
+      "info_url": "https://j12h36h.github.io/dai/packs/#tamacrafti",
+      "icon_item": "minecraft:carrot",
+      "components": [
+        {
+          "id": "tamacrafti_data",
+          "type": "datapack",
+          "curseforge_file_id": 0,
+          "file_name": "PENDING",
+          "project_url": "https://www.curseforge.com/minecraft/data-packs/tamacrafti/",
+          "sha256": ""
+        },
+        {
+          "id": "tamacrafti_resource",
+          "type": "resource_pack",
+          "curseforge_file_id": 0,
+          "file_name": "PENDING",
+          "project_url": "https://www.curseforge.com/minecraft/texture-packs/tamacrafti-resource",
+          "sha256": ""
+        }
+      ]
     }
-  ]
+  ],
+  "note": "STAGING ONLY \u2014 not consumed by the live in-game browser until approved CurseForge file IDs are added."
 }

@@ -965,7 +965,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "run_server_command",
-      "category": "Server Authority (DAI 1.8)",
+      "category": "Server Authority (DAI 1.8+)",
       "params": [
         "action"
       ],
@@ -973,7 +973,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "server_run_function",
-      "category": "Server Authority (DAI 1.8)",
+      "category": "Server Authority (DAI 1.8+)",
       "params": [
         "action"
       ],
@@ -981,7 +981,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "server_set_block",
-      "category": "Server Authority (DAI 1.8)",
+      "category": "Server Authority (DAI 1.8+)",
       "params": [
         "action",
         "target"
@@ -990,7 +990,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "server_break_block",
-      "category": "Server Authority (DAI 1.8)",
+      "category": "Server Authority (DAI 1.8+)",
       "params": [
         "target",
         "state"
@@ -999,7 +999,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "server_give_item",
-      "category": "Server Authority (DAI 1.8)",
+      "category": "Server Authority (DAI 1.8+)",
       "params": [
         "action",
         "value"
@@ -1008,7 +1008,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "server_take_item",
-      "category": "Server Authority (DAI 1.8)",
+      "category": "Server Authority (DAI 1.8+)",
       "params": [
         "action",
         "value"
@@ -2601,21 +2601,21 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dai_server_available",
-      "category": "Server Capability (DAI 1.8)",
+      "category": "Server Capability (DAI 1.8+)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "DAI server payload channel is available."
     },
     {
       "id": "server_dai_available",
-      "category": "Server Capability (DAI 1.8)",
+      "category": "Server Capability (DAI 1.8+)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Compatibility alias: DAI server support is available."
     },
     {
       "id": "server_authority_available",
-      "category": "Server Capability (DAI 1.8)",
+      "category": "Server Capability (DAI 1.8+)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Server-authoritative DAI actions are available."

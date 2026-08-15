@@ -15,7 +15,7 @@ let selectedPreview = {kind:"project"};
 
 function freshState(kind="datapack") {
   return {
-    formatVersion: 3,
+    formatVersion: 4,
     kind,
     pack: {
       name: "My DAI Pack",
@@ -144,13 +144,13 @@ function blankRecognition(){
 
 function blankExperience(){
   const i=state.experiences.length+1;
-  return {_id:uid(),id:`experience_${i}`,enabled:true,priority:1000,saveId:`My DAI Experience ${i}`,saveName:`My DAI Experience ${i}`,createIfMissing:true,loadIfExisting:true,autoCreate:true,worldgen:`${state.pack.namespace}:worldgen_1`,onFirstJoin:`${state.pack.namespace}:first_join`,onJoin:`${state.pack.namespace}:resume`,uiAutoEnable:true,uiGraveCursor:true,uiOpenMenu:false};
+  return {_id:uid(),id:`experience_${i}`,enabled:true,priority:1000,saveId:`My DAI Experience ${i}`,saveName:`My DAI Experience ${i}`,createIfMissing:true,loadIfExisting:true,autoCreate:true,worldgen:`${state.pack.namespace}:worldgen_1`,onFirstJoin:`${state.pack.namespace}:first_join`,onJoin:`${state.pack.namespace}:resume`,uiAutoEnable:true,uiGraveCursor:true,uiOpenMenu:false,uiOpenAction:"",uiCloseAction:"",uiAnchorOverlay:""};
 }
 function blankWorldgen(){
   const i=state.worldgens.length+1;
   return {_id:uid(),id:`worldgen_${i}`,enabled:true,worldPreset:"minecraft:normal",seed:"",spawnX:0,spawnY:64,spawnZ:0,spawnYaw:0,spawnPitch:0,generationCommands:"",initialStructures:"[]",bootstrapActions:""};
 }
-function experienceJson(e){return {enabled:Boolean(e.enabled),priority:Number(e.priority||0),save_id:String(e.saveId||""),save_name:String(e.saveName||""),create_if_missing:Boolean(e.createIfMissing),load_if_existing:Boolean(e.loadIfExisting),auto_create:Boolean(e.autoCreate),worldgen:String(e.worldgen||""),on_first_join:String(e.onFirstJoin||""),on_join:String(e.onJoin||""),ui:{auto_enable:Boolean(e.uiAutoEnable),grave_cursor_toggle:Boolean(e.uiGraveCursor),open_dai_menu_on_grave:Boolean(e.uiOpenMenu)}};}
+function experienceJson(e){const ui={auto_enable:Boolean(e.uiAutoEnable),grave_cursor_toggle:Boolean(e.uiGraveCursor),open_dai_menu_on_grave:Boolean(e.uiOpenMenu)};if(String(e.uiOpenAction||"").trim())ui.grave_open_action=String(e.uiOpenAction).trim();if(String(e.uiCloseAction||"").trim())ui.grave_close_action=String(e.uiCloseAction).trim();if(String(e.uiAnchorOverlay||"").trim())ui.grave_anchor_overlay=String(e.uiAnchorOverlay).trim();return {enabled:Boolean(e.enabled),priority:Number(e.priority||0),save_id:String(e.saveId||""),save_name:String(e.saveName||""),create_if_missing:Boolean(e.createIfMissing),load_if_existing:Boolean(e.loadIfExisting),auto_create:Boolean(e.autoCreate),worldgen:String(e.worldgen||""),on_first_join:String(e.onFirstJoin||""),on_join:String(e.onJoin||""),ui};}
 function worldgenJson(w){
   const out={enabled:Boolean(w.enabled),world_preset:String(w.worldPreset||"minecraft:normal"),spawn:{x:Number(w.spawnX||0),y:Number(w.spawnY||64),z:Number(w.spawnZ||0),yaw:Number(w.spawnYaw||0),pitch:Number(w.spawnPitch||0)},generation_commands:String(w.generationCommands||"").split(/\n/).map(x=>x.trim()).filter(Boolean),initial_structures:[],bootstrap_actions:String(w.bootstrapActions||"").split(/[\n,]/).map(x=>x.trim()).filter(Boolean)};
   if(String(w.seed).trim()!=="") out.seed=Number(w.seed);
@@ -205,7 +205,7 @@ function updateModeUi(){
   $("#workspaceHeading").textContent = resource ? "DAI Resource Pack Creator" : "DAI Datapack Creator";
   $("#workspaceDescription").textContent = resource
     ? "Create or import a Minecraft resource pack, add textures and other assets, validate its structure, then export a normal editable ZIP. This is suitable for packs such as DAI ComicEffects."
-    : "Create a complete DAI 1.8 datapack: experiences, worldgen, objectives, server-authoritative actions, menus, recognition, reactions, title screens and custom content. Universal Files can create anything the guided editor does not expose.";
+    : "Create a complete DAI 1.8.3 datapack: experiences, worldgen, objectives, server-authoritative actions, menus, recognition, reactions, title screens and custom content. Universal Files can create anything the guided editor does not expose.";
   $("#packSetupSubtitle").textContent = resource ? "Identity and Minecraft resource-pack metadata" : "Identity and Minecraft datapack metadata";
   $("#exportSubtitle").textContent = resource ? "Compile a standard Minecraft resource-pack ZIP after validation" : "Compile a standard Minecraft datapack ZIP after validation";
   $("#exportZip").textContent = resource ? "Validate & Export Resource Pack ZIP" : "Validate & Export Datapack ZIP";
@@ -888,7 +888,7 @@ function renderExperiences(){
   const er=$("#experienceList"),wr=$("#worldgenList");if(!er||!wr)return;er.innerHTML="";wr.innerHTML="";
   if(!state.experiences.length)er.innerHTML='<div class="empty">No experience definitions yet.</div>';
   state.experiences.forEach((e,i)=>{const el=document.createElement("div");el.className="item-card experience-card";el.innerHTML=`<div class="item-head"><strong>${esc(fullId(e.id))}</strong><button class="btn small danger" data-del>Remove</button></div><div class="item-body"><div class="dynamic-fields">
-    ${field("Definition ID",textInput(e.id,'data-ef="id"'))}${field("Enabled",`<select data-ef="enabled"><option value="true"${e.enabled?" selected":""}>true</option><option value="false"${!e.enabled?" selected":""}>false</option></select>`)}${field("Priority",numberInput(e.priority,'data-ef="priority"'))}${field("Save ID",textInput(e.saveId,'data-ef="saveId"'))}${field("Save Name",textInput(e.saveName,'data-ef="saveName"'))}${field("Worldgen ID",textInput(e.worldgen,'data-ef="worldgen"'))}${field("On First Join",textInput(e.onFirstJoin,'data-ef="onFirstJoin"'))}${field("On Join / Resume",textInput(e.onJoin,'data-ef="onJoin"'))}${field("Create If Missing",boolSelect(e.createIfMissing,'data-ef="createIfMissing"'))}${field("Load If Existing",boolSelect(e.loadIfExisting,'data-ef="loadIfExisting"'))}${field("Auto Create",boolSelect(e.autoCreate,'data-ef="autoCreate"'))}${field("UI Auto Enable",boolSelect(e.uiAutoEnable,'data-ef="uiAutoEnable"'))}${field("Grave Cursor Toggle",boolSelect(e.uiGraveCursor,'data-ef="uiGraveCursor"'))}${field("Open DAI Menu On Grave",boolSelect(e.uiOpenMenu,'data-ef="uiOpenMenu"'))}
+    <div class="field-group-title">Identity & Save</div>${field("Definition ID",textInput(e.id,'data-ef="id"'))}${field("Enabled",`<select data-ef="enabled"><option value="true"${e.enabled?" selected":""}>true</option><option value="false"${!e.enabled?" selected":""}>false</option></select>`)}${field("Priority",numberInput(e.priority,'data-ef="priority"'))}${field("Save ID",textInput(e.saveId,'data-ef="saveId"'))}${field("Save Name",textInput(e.saveName,'data-ef="saveName"'))}${field("Worldgen ID",textInput(e.worldgen,'data-ef="worldgen"'))}<div class="field-group-title">Lifecycle</div>${field("On First Join",textInput(e.onFirstJoin,'data-ef="onFirstJoin"'))}${field("On Join / Resume",textInput(e.onJoin,'data-ef="onJoin"'))}${field("Create If Missing",boolSelect(e.createIfMissing,'data-ef="createIfMissing"'))}${field("Load If Existing",boolSelect(e.loadIfExisting,'data-ef="loadIfExisting"'))}${field("Auto Create",boolSelect(e.autoCreate,'data-ef="autoCreate"'))}<div class="field-group-title">Experience-Owned UI</div>${field("UI Auto Enable",boolSelect(e.uiAutoEnable,'data-ef="uiAutoEnable"'))}${field("Grave Cursor Toggle",boolSelect(e.uiGraveCursor,'data-ef="uiGraveCursor"'))}${field("Open Generic DAI Menu On Grave",boolSelect(e.uiOpenMenu,'data-ef="uiOpenMenu"'))}${field("Grave Open Action",textInput(e.uiOpenAction||"",'data-ef="uiOpenAction"'),"Example: tamacrafti:open")}${field("Grave Close Action",textInput(e.uiCloseAction||"",'data-ef="uiCloseAction"'),"Example: tamacrafti:close")}${field("Grave Anchor Overlay",textInput(e.uiAnchorOverlay||"",'data-ef="uiAnchorOverlay"'),"Overlay ID used to determine whether the experience UI is open.")}
   </div></div>`;el.querySelector('[data-del]').onclick=()=>{state.experiences.splice(i,1);renderExperiences();refreshAll();};el.querySelectorAll('[data-ef]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.ef;if(["enabled","createIfMissing","loadIfExisting","autoCreate","uiAutoEnable","uiGraveCursor","uiOpenMenu"].includes(k))e[k]=inp.value==="true";else if(k==="priority")e[k]=Number(inp.value||0);else e[k]=inp.value;refreshAll();});el.onclick=()=>{selectedPreview={kind:"experience",value:e};refreshPreview();};er.appendChild(el);});
   if(!state.worldgens.length)wr.innerHTML='<div class="empty">No worldgen profiles yet.</div>';
   state.worldgens.forEach((w,i)=>{const el=document.createElement("div");el.className="item-card worldgen-card";el.innerHTML=`<div class="item-head"><strong>${esc(fullId(w.id))}</strong><button class="btn small danger" data-del>Remove</button></div><div class="item-body"><div class="dynamic-fields">
@@ -898,9 +898,11 @@ function renderExperiences(){
 function boolSelect(v,attrs=""){return `<select ${attrs}><option value="true"${v?" selected":""}>true</option><option value="false"${!v?" selected":""}>false</option></select>`;}
 if($("#addExperience"))$("#addExperience").onclick=()=>{state.experiences.push(blankExperience());renderExperiences();refreshAll();};
 if($("#addWorldgen"))$("#addWorldgen").onclick=()=>{state.worldgens.push(blankWorldgen());renderExperiences();refreshAll();};
+if($("#addExperienceStarter"))$("#addExperienceStarter").onclick=()=>{const w=blankWorldgen();w.id=`worldgen_${state.worldgens.length+1}`;state.worldgens.push(w);const e=blankExperience();e.id=`experience_${state.experiences.length+1}`;e.worldgen=fullId(w.id);e.uiOpenAction=`${state.pack.namespace}:open`;e.uiCloseAction=`${state.pack.namespace}:close`;e.uiAnchorOverlay="main_frame";state.experiences.push(e);renderExperiences();renderDashboard();refreshAll();};
 
 const UNIVERSAL_TEMPLATES={
   experience:()=>[`data/${state.pack.namespace}/dai_experiences/experience.json`,JSON.stringify(experienceJson(blankExperience()),null,2)+"\n"],
+  experience_ui:()=>{const e=blankExperience();e.uiOpenAction=`${state.pack.namespace}:open`;e.uiCloseAction=`${state.pack.namespace}:close`;e.uiAnchorOverlay="main_frame";return [`data/${state.pack.namespace}/dai_experiences/ui_owned_experience.json`,JSON.stringify(experienceJson(e),null,2)+"\n"];},
   worldgen:()=>[`data/${state.pack.namespace}/dai_worldgen/worldgen.json`,JSON.stringify(worldgenJson(blankWorldgen()),null,2)+"\n"],
   attribute:()=>[`data/${state.pack.namespace}/dai_attributes/stamina.json`,JSON.stringify({default:100,minimum:0,maximum:100},null,2)+"\n"],
   animation:()=>[`data/${state.pack.namespace}/dai_animations/animation.json`,JSON.stringify({duration_ticks:20,loop:false,channel:"upper_body",priority:10,interruptible:true,markers:{},marker_actions:{},tracks:{}},null,2)+"\n"],
@@ -1040,6 +1042,7 @@ function renderAll(){
   state.kind ||= "datapack";
   state.titleScreens ||= [];
   state.experiences ||= [];
+  state.experiences.forEach(e=>{e.uiOpenAction??="";e.uiCloseAction??="";e.uiAnchorOverlay??="";});
   state.worldgens ||= [];
   state.content ||= [];
   state.reactions ||= [];
@@ -1184,7 +1187,7 @@ function validateOverlay(s,path,issues,objectiveIds,animated=false){
 
 function validateAction(a,path,issues,objectiveIds){
   if(!a.type)issues.push({level:"err",message:`${path}: action type is missing.`});
-  if(!actionMap.has(a.type))issues.push({level:"warn",message:`${path}: unknown/imported action type '${a.type}' is preserved but cannot be fully validated by this DAI 1.8 creator catalog.`});
+  if(!actionMap.has(a.type))issues.push({level:"warn",message:`${path}: unknown/imported action type '${a.type}' is preserved but cannot be fully validated by this DAI 1.8.3 creator catalog.`});
 
   const needsAction=["enqueue_action","run_if_success","run_if_failure","objective_execute","recognize_block","run_command","run_server_command","server_run_function","server_set_block","server_give_item","server_take_item","set_gamemode","key_click","key_press","key_release","remember_waypoint","remember_target_waypoint","select_waypoint","forget_waypoint","forget_failed_waypoint","craft_recipe","overlay_remove"];
   if(needsAction.includes(a.type) && !String(a.action||"").trim())issues.push({level:"err",message:`${path}: '${a.type}' requires an action/string payload.`});
@@ -1332,7 +1335,7 @@ function validateProject(){
     if(!validResourceId(r.resultId||""))issues.push({level:"err",message:`Recognition '${r.id}' result ID '${r.resultId}' is invalid.`});
   });
 
-  state.experiences.forEach(e=>{if(!validLocalPath(e.id))issues.push({level:"err",message:`Experience has invalid ID/path '${e.id}'.`});if(e.worldgen&&String(e.worldgen).startsWith(state.pack.namespace+":")&&!state.worldgens.some(w=>fullId(w.id)===e.worldgen))issues.push({level:"warn",message:`Experience '${e.id}' references local worldgen '${e.worldgen}' that is not in the visual Worldgen editor (it may exist as a Universal File).`});});
+  state.experiences.forEach(e=>{if(!validLocalPath(e.id))issues.push({level:"err",message:`Experience has invalid ID/path '${e.id}'.`});if(e.worldgen&&String(e.worldgen).startsWith(state.pack.namespace+":")&&!state.worldgens.some(w=>fullId(w.id)===e.worldgen))issues.push({level:"warn",message:`Experience '${e.id}' references local worldgen '${e.worldgen}' that is not in the visual Worldgen editor (it may exist as a Universal File).`});for(const [label,value] of [["grave open action",e.uiOpenAction],["grave close action",e.uiCloseAction]])if(String(value||"").trim()&&!validResourceId(String(value).trim()))issues.push({level:"warn",message:`Experience '${e.id}' has ${label} '${value}' that is not a namespaced resource ID.`});});
   state.worldgens.forEach(w=>{if(!validLocalPath(w.id))issues.push({level:"err",message:`Worldgen has invalid ID/path '${w.id}'.`});try{const x=JSON.parse(String(w.initialStructures||"[]"));if(!Array.isArray(x))throw new Error('must be an array');}catch(e){issues.push({level:"err",message:`Worldgen '${w.id}' initial structures JSON is invalid: ${e.message}`});}});
   Object.entries(state.extraFiles||{}).forEach(([path,data])=>{if(!validZipPath(path))issues.push({level:"err",message:`Universal file has invalid ZIP path '${path}'.`});if(path.toLowerCase().endsWith('.json')&&fileIsProbablyText(path,data)){try{JSON.parse(decodeText(data));}catch(e){issues.push({level:"err",message:`Universal JSON '${path}' is invalid: ${e.message}`});}}});
   if(!issues.length)issues.push({level:"ok",message:"No errors or warnings found. Project is ready to export."});
@@ -1491,7 +1494,7 @@ function importFiles(files,sourceLabel="datapack"){
     let m;
     if((m=path.match(experienceRe))){
       const raw=parseJson(text,path,errors);if(!raw)return;
-      const ui=raw.ui||{};next.experiences.push({_id:uid(),id:m[1],enabled:raw.enabled!==false,priority:Number(raw.priority||0),saveId:raw.save_id||"",saveName:raw.save_name||"",createIfMissing:raw.create_if_missing!==false,loadIfExisting:raw.load_if_existing!==false,autoCreate:raw.auto_create!==false,worldgen:raw.worldgen||"",onFirstJoin:raw.on_first_join||"",onJoin:raw.on_join||"",uiAutoEnable:ui.auto_enable!==false,uiGraveCursor:ui.grave_cursor_toggle!==false,uiOpenMenu:Boolean(ui.open_dai_menu_on_grave)});managed.add(path);return;
+      const ui=raw.ui||{};next.experiences.push({_id:uid(),id:m[1],enabled:raw.enabled!==false,priority:Number(raw.priority||0),saveId:raw.save_id||"",saveName:raw.save_name||"",createIfMissing:raw.create_if_missing!==false,loadIfExisting:raw.load_if_existing!==false,autoCreate:raw.auto_create!==false,worldgen:raw.worldgen||"",onFirstJoin:raw.on_first_join||"",onJoin:raw.on_join||"",uiAutoEnable:ui.auto_enable!==false,uiGraveCursor:ui.grave_cursor_toggle!==false,uiOpenMenu:Boolean(ui.open_dai_menu_on_grave),uiOpenAction:ui.grave_open_action||"",uiCloseAction:ui.grave_close_action||"",uiAnchorOverlay:ui.grave_anchor_overlay||""});managed.add(path);return;
     }
     if((m=path.match(worldgenRe))){
       const raw=parseJson(text,path,errors);if(!raw)return;const sp=raw.spawn||{};

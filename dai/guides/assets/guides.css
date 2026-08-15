@@ -324,7 +324,7 @@
   font-weight: 800;
 }
 
-/* DAI 1.8 documentation navigation */
+/* DAI 1.8.3 documentation navigation */
 .guide-sidebar a.current {
   color: var(--text, #eaf2f8);
   background: var(--panel-2, #17212d);
