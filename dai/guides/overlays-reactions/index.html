@@ -12,7 +12,7 @@
 <header class="site-header"><nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header>
 <main>
 <div class="guide-shell">
-<aside class="guide-sidebar"><strong>DAI 1.8.3 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client & Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences & Flow</a><a href="../conditions/">5. Conditions</a><a href="../menus/">6. Menus & UI</a><a href="../recognition-perception/">7. Recognition & Perception</a><a class="current" href="../overlays-reactions/">8. Overlays & Reactions</a><a href="../experiences-worldgen/">9. Experiences & Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../creator-workflow/">11. Creator & Publishing</a><a href="../global-datapacks-distribution/">12. Global Datapacks &amp; Distribution</a></aside>
+<aside class="guide-sidebar"><strong>DAI 1.9 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client & Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences & Flow</a><a href="../conditions/">5. Conditions</a><a href="../menus/">6. Menus & UI</a><a href="../recognition-perception/">7. Recognition & Perception</a><a class="current" href="../overlays-reactions/">8. Overlays & Reactions</a><a href="../experiences-worldgen/">9. Experiences & Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../game-customization/">11. Game Customization</a><a href="../creator-workflow/">12. Creator & Publishing</a><a href="../global-datapacks-distribution/">13. Global Datapacks & Distribution</a></aside>
 <article class="guide-content">
 <section class="guide-hero">
 <div class="eyebrow">Page 8 · Presentation</div>
@@ -47,12 +47,12 @@
 <div class="guide-callout warning"><strong>POST is observation-only.</strong> A post reaction must use <code>type: "default"</code> because the underlying event has already returned.</div>
 </section>
 <section class="guide-section">
-<h2>Current Registered Event</h2>
+<h2>Built-In Reaction Events</h2>
 <div class="guide-table-wrap"><table class="guide-table">
 <thead><tr><th>Event</th><th>Phases</th><th>Cancel</th><th>Override</th><th>Context</th></tr></thead>
-<tbody><tr><td><code>player_attack_entity</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>attacked entity</td></tr></tbody>
+<tbody><tr><td><code>player_attack_entity</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>entity</td></tr><tr><td><code>player_use_block</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>block + item</td></tr><tr><td><code>player_use_item</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>item</td></tr><tr><td><code>player_interact_entity</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>entity + item</td></tr><tr><td><code>player_start_break_block</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>block + item</td></tr></tbody>
 </table></div>
-<p>The hook wraps the normal client entity-attack call, so it observes both human attacks and DAI attacks that use the same vanilla path. A post event means the client attack call completed; it is not a server acknowledgement that damage was accepted.</p>
+<p>DAI 1.9 adds block use, item use, entity interaction and start-break hooks alongside attack. A post event means the wrapped client call completed; it is not a server acknowledgement that the authoritative world accepted the action.</p>
 </section>
 <section class="guide-section">
 <h2>Reaction Context Conditions</h2>
@@ -62,7 +62,12 @@ reaction_phase
 reaction_has_entity
 reaction_entity_type
 reaction_entity_living
-reaction_entity_health</pre></div>
+reaction_entity_health
+reaction_has_block
+reaction_block_id
+reaction_block_x / reaction_block_y / reaction_block_z
+reaction_has_item
+reaction_item_id</pre></div>
 <div class="guide-code"><div class="label">Only react to living attack targets</div><pre>{
   "type": "reaction_entity_living",
   "operator": "is_true"
@@ -187,6 +192,6 @@ z = 12  animated spark alpha 0.7</pre></div>
 </article>
 </div>
 </main>
-<footer class="footer">Decisions and Impulses · DAI 1.8.3 creator documentation</footer>
+<footer class="footer">Decisions and Impulses · DAI 1.9 creator documentation</footer>
 </body>
 </html>

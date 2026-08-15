@@ -15,7 +15,7 @@ let selectedPreview = {kind:"project"};
 
 function freshState(kind="datapack") {
   return {
-    formatVersion: 4,
+    formatVersion: 5,
     kind,
     pack: {
       name: "My DAI Pack",
@@ -101,7 +101,7 @@ function blankAction(type="delay") {
 function blankCondition(type="player_health") {
   const spec = conditionMap.get(type);
   const vt = spec?.valueType || "value";
-  return {_id:uid(),type,operator:vt==="boolean"?"is_true":"equals",boolean_value:false,number_value:0,string_value:"",negate:false,parameter:"",parameter_number:0,conditions:[]};
+  return {_id:uid(),type,operator:vt==="boolean"?"is_true":"equals",boolean_value:false,number_value:0,string_value:"",negate:false,target:"",parameter:"",parameter_number:0,conditions:[]};
 }
 function blankObjective(){ return {_id:uid(),id:`objective_${state.objectives.length+1}`,actions:[blankAction()]}; }
 function blankMenu(){
@@ -137,7 +137,26 @@ const RUNTIME_DEFINITION_TYPES={
   reaction_event:{label:"Reaction Event",folder:"reaction_events",sample:{phases:["pre","during","post"],cancellable:true,overrideable:true}},
   screen_profile:{label:"Screen Profile",folder:"screen_profiles",sample:{variants:[]}},
   attribute:{label:"DAI Attribute",folder:"dai_attributes",sample:{default:100,minimum:0,maximum:100}},
-  animation:{label:"DAI Animation",folder:"dai_animations",sample:{duration_ticks:20,loop:false,channel:"upper_body",priority:10,interruptible:true,markers:{},marker_actions:{},tracks:{}}}
+  animation:{label:"DAI Animation",folder:"dai_animations",sample:{duration_ticks:20,loop:false,channel:"upper_body",priority:10,interruptible:true,markers:{},marker_actions:{},tracks:{}}},
+  sound:{label:"1.9 Sound",folder:"dai_sounds",customization:true,carrierResourceId:true,sample:{display_name:"UI Chime",carrier:"minecraft:block.note_block.pling",properties:{source:"master"},numbers:{volume:1.0,pitch:1.0},events:{}}},
+  music:{label:"1.9 Music",folder:"dai_music",customization:true,carrierResourceId:true,sample:{display_name:"Experience Music",carrier:"minecraft:music.game",numbers:{volume:1.0,pitch:1.0},events:{}}},
+  hud:{label:"1.9 HUD",folder:"dai_hud",customization:true,sample:{display_name:"Status HUD",texture:"my_dai_pack:gui/status",numbers:{x:0,y:0,width:128,height:32,z:20,ticks:0,alpha:1.0},properties:{anchor:"top_left",color:"#FFFFFF",click_action:""},flags:{interactable:false,consume_click:false,hide_vanilla:false},events:{}}},
+  render_profile:{label:"1.9 Render Profile",folder:"dai_render_profiles",customization:true,sample:{display_name:"Cinematic Profile",properties:{},numbers:{},flags:{},events:{apply:"action:my_dai_pack:apply_render_profile",clear:"action:my_dai_pack:clear_render_profile"}}},
+  structure:{label:"1.9 Structure",folder:"dai_structures",customization:true,carrierResourceId:true,sample:{display_name:"Placed Structure",carrier:"minecraft:village/plains/houses/plains_small_house_1",target:"~ ~ ~",events:{}}},
+  feature:{label:"1.9 World Feature",folder:"dai_features",customization:true,carrierResourceId:true,sample:{display_name:"Placed Feature",carrier:"minecraft:ore_coal",target:"~ ~ ~",events:{}}},
+  loot:{label:"1.9 Loot",folder:"dai_loot",customization:true,carrierResourceId:true,sample:{display_name:"Reward Loot",carrier:"minecraft:chests/simple_dungeon",events:{}}},
+  currency:{label:"1.9 Currency",folder:"dai_currencies",customization:true,sample:{display_name:"Credits",properties:{objective:"credits"},numbers:{amount:1.0},events:{}}},
+  shop:{label:"1.9 Shop",folder:"dai_shops",customization:true,sample:{display_name:"Field Shop",entries:["my_dai_pack:starter_item"],events:{open:"action:my_dai_pack:shop_open",purchase:"action:my_dai_pack:shop_purchase"}}},
+  dialogue:{label:"1.9 Dialogue",folder:"dai_dialogues",customization:true,sample:{display_name:"NPC Introduction",entries:["Welcome, agent."],events:{start:"action:my_dai_pack:dialogue_start",choose:"action:my_dai_pack:dialogue_choose",end:"action:my_dai_pack:dialogue_end"}}},
+  quest:{label:"1.9 Quest",folder:"dai_quests",customization:true,sample:{display_name:"First Assignment",entries:["Reach the objective."],events:{start:"action:my_dai_pack:quest_start",advance:"action:my_dai_pack:quest_advance",complete:"action:my_dai_pack:quest_complete",fail:"action:my_dai_pack:quest_fail"}}},
+  faction:{label:"1.9 Faction",folder:"dai_factions",customization:true,sample:{display_name:"Border",properties:{tag:"faction_border"},events:{}}},
+  biome:{label:"1.9 Biome Wrapper",folder:"dai_biomes",customization:true,carrierResourceId:true,sample:{display_name:"Plains Context",carrier:"minecraft:plains",events:{apply:"action:my_dai_pack:apply_biome_context"}}},
+  dimension:{label:"1.9 Dimension",folder:"dai_dimensions",customization:true,carrierResourceId:true,sample:{display_name:"Overworld Transfer",carrier:"minecraft:overworld",target:"~ ~ ~",events:{}}},
+  ruleset:{label:"1.9 Ruleset",folder:"dai_rules",customization:true,sample:{display_name:"Adventure Rules",entries:["doDaylightCycle=false","keepInventory=true"],events:{}}},
+  vehicle:{label:"1.9 Vehicle",folder:"dai_vehicles",customization:true,carrierResourceId:true,sample:{display_name:"Minecart Vehicle",carrier:"minecraft:minecart",target:"~ ~ ~",events:{}}},
+  interactive:{label:"1.9 Interactive",folder:"dai_interactives",customization:true,sample:{display_name:"Control Console",carrier:"minecraft:lever",events:{use:"action:my_dai_pack:console_use"}}},
+  fluid:{label:"1.9 Fluid / Environment Block",folder:"dai_fluids",customization:true,carrierResourceId:true,sample:{display_name:"Water Placement",carrier:"minecraft:water",target:"~ ~ ~",events:{}}},
+  environment:{label:"1.9 Environment",folder:"dai_environments",customization:true,sample:{display_name:"Training Arena",events:{enter:"action:my_dai_pack:arena_enter",exit:"action:my_dai_pack:arena_exit"}}}
 };
 function blankRuntimeDefinition(type="recipe"){
   const spec=RUNTIME_DEFINITION_TYPES[type]||RUNTIME_DEFINITION_TYPES.recipe;
@@ -238,7 +257,7 @@ function updateModeUi(){
   $("#workspaceHeading").textContent = resource ? "DAI Resource Pack Creator" : "DAI Datapack Creator";
   $("#workspaceDescription").textContent = resource
     ? "Create or import a Minecraft resource pack, add textures and other assets, validate its structure, then export a normal editable ZIP. This is suitable for packs such as DAI ComicEffects."
-    : "Create a complete DAI 1.8.3 datapack: experiences, worldgen, objectives, server-authoritative actions, menus, recognition, reactions, title screens and custom content. Universal Files can create anything the guided editor does not expose.";
+    : "Create a complete DAI 1.9 datapack: experiences, worldgen, objectives, server-authoritative actions, menus, recognition, reactions, title screens and custom content. Universal Files can create anything the guided editor does not expose.";
   $("#packSetupSubtitle").textContent = resource ? "Identity and Minecraft resource-pack metadata" : "Identity and Minecraft datapack metadata";
   $("#exportSubtitle").textContent = resource ? "Compile a standard Minecraft resource-pack ZIP after validation" : "Compile a standard Minecraft datapack ZIP after validation";
   $("#exportZip").textContent = resource ? "Validate & Export Resource Pack ZIP" : "Validate & Export Datapack ZIP";
@@ -342,8 +361,10 @@ function cleanCondition(c){
     const spec = conditionMap.get(c.type);
     const vt = spec?.valueType || "value";
     const providerInputs = new Set(spec?.inputs || []);
+    if (providerInputs.has("target") && c.target!=="") out.target = c.target;
     if (providerInputs.has("parameter") && c.parameter!=="") out.parameter = c.parameter;
     if (providerInputs.has("parameter_number") && Number(c.parameter_number)!==0) out.parameter_number = Number(c.parameter_number);
+    if (providerInputs.has("string_value") && c.string_value!=="") out.string_value = c.string_value;
     if (providerInputs.has("boolean_value")) out.boolean_value = Boolean(c.boolean_value);
     if (vt==="number") out.number_value = Number(c.number_value||0);
     if (vt==="string") out.string_value = c.string_value ?? "";
@@ -589,8 +610,10 @@ function renderConditionCard(c,list,index,onChange){
   let dyn="";
   if (!logical) {
     dyn += field("Operator",`<select data-cf="operator">${ops.map(op=>`<option value="${op}"${op===c.operator?" selected":""}>${op}</option>`).join("")}</select>`);
+    if ((spec?.inputs||[]).includes("target")) dyn += field("target",textInput(c.target,'data-cf="target"'),"Provider input, such as a 1.9 customization kind/folder.");
     if ((spec?.inputs||[]).includes("parameter")) dyn += field("parameter",textInput(c.parameter,'data-cf="parameter"'));
     if ((spec?.inputs||[]).includes("parameter_number")) dyn += field("parameter_number",numberInput(c.parameter_number,'step="0.01" data-cf="parameter_number"'));
+    if ((spec?.inputs||[]).includes("string_value") && spec?.valueType!=="string") dyn += field("string_value (input)",textInput(c.string_value,'data-cf="string_value"'),"Provider input rather than the comparison result.");
     if (spec?.valueType==="number") dyn += field("number_value",numberInput(c.number_value,'step="0.01" data-cf="number_value"'),"Expected comparison value.");
     if (spec?.valueType==="string") dyn += field("string_value",textInput(c.string_value,'data-cf="string_value"'),"Expected comparison value.");
     if (spec?.valueType==="boolean" && ["equals","not_equals"].includes(c.operator)) dyn += field("boolean_value",`<select data-cf="boolean_value"><option value="true"${c.boolean_value?" selected":""}>true</option><option value="false"${!c.boolean_value?" selected":""}>false</option></select>`);
@@ -767,7 +790,7 @@ function renderContent(){
   if(!state.content.length){root.innerHTML='<div class="empty">No custom DAI content definitions yet.</div>';return;}
   const types=Object.keys(CONTENT_FOLDERS);
   state.content.forEach((c,ci)=>{const el=document.createElement("div");el.className="item-card content-card";el.innerHTML=`<div class="item-head"><strong>${esc(c.type)} · ${esc(c.id)}</strong><button class="btn small danger" data-del>Remove</button></div><div class="item-body"><div class="dynamic-fields">
-    ${field("Content Type",`<select data-cf="type">${types.map(x=>`<option value="${x}"${c.type===x?" selected":""}>${x}</option>`).join("")}</select>`)}${field("Definition ID",textInput(c.id,'data-cf="id"'))}${field("Display Name",textInput(c.displayName,'data-cf="displayName"'))}${field("Description",textInput(c.description,'data-cf="description"'))}${field("Vanilla Carrier",textInput(c.carrier,'data-cf="carrier"'),"Example: minecraft:iron_sword")}${field("Vanilla Model Alias",textInput(c.model,'data-cf="model"'),"Example: minecraft:iron_sword")}${field("Registry Backed",`<select data-cf="registryBacked"><option value="true"${c.registryBacked?" selected":""}>true</option><option value="false"${!c.registryBacked?" selected":""}>false</option></select>`)}${field("Native Registry",`<select data-cf="nativeRegistry"><option value="item"${c.nativeRegistry==="item"?" selected":""}>item</option><option value="block"${c.nativeRegistry==="block"?" selected":""}>block</option><option value="entity_type"${c.nativeRegistry==="entity_type"?" selected":""}>entity_type</option></select>`,"Registry target used only when registry_backed is enabled.")}${field("Armor Slot",textInput(c.slot||'','data-cf="slot"'),"Optional; e.g. chest")}${field("Capabilities",`<textarea data-cf="capabilities">${esc(c.capabilities)}</textarea>`,"Comma or newline separated resource IDs.")}${field("Tags",`<textarea data-cf="tags">${esc(c.tags)}</textarea>`,"Comma or newline separated labels.")}${field("Attributes JSON",`<textarea data-cf="attributes">${esc(c.attributes)}</textarea>`)}${field("Native Attributes JSON",`<textarea data-cf="nativeAttributes">${esc(c.nativeAttributes)}</textarea>`)}${field("Events JSON",`<textarea data-cf="events">${esc(c.events)}</textarea>`)}${field("Stats JSON",`<textarea data-cf="stats">${esc(c.stats)}</textarea>`)}${field("Entity JSON",`<textarea data-cf="entity">${esc(c.entity||"{}")}</textarea>`,"Used by dai_entities: dimensions, texture, behavior and spawning.")}
+    ${field("Content Type",`<select data-cf="type">${types.map(x=>`<option value="${x}"${c.type===x?" selected":""}>${x}</option>`).join("")}</select>`)}${field("Definition ID",textInput(c.id,'data-cf="id"'))}${field("Display Name",textInput(c.displayName,'data-cf="displayName"'))}${field("Description",textInput(c.description,'data-cf="description"'))}${field("Vanilla Carrier",textInput(c.carrier,'data-cf="carrier"'),"Example: minecraft:iron_sword")}${field("Vanilla Model Alias",textInput(c.model,'data-cf="model"'),"Example: minecraft:iron_sword")}${field("Registry Backed",`<select data-cf="registryBacked"><option value="true"${c.registryBacked?" selected":""}>true</option><option value="false"${!c.registryBacked?" selected":""}>false</option></select>`)}${field("Native Registry",`<select data-cf="nativeRegistry"><option value="item"${c.nativeRegistry==="item"?" selected":""}>item</option><option value="block"${c.nativeRegistry==="block"?" selected":""}>block</option><option value="entity_type"${c.nativeRegistry==="entity_type"?" selected":""}>entity_type</option></select>`,"Registry target used only when registry_backed is enabled.")}${field("Armor Slot",textInput(c.slot||'','data-cf="slot"'),"Optional; e.g. chest")}${field("Capabilities",`<textarea data-cf="capabilities">${esc(c.capabilities)}</textarea>`,"Comma or newline separated resource IDs.")}${field("Tags",`<textarea data-cf="tags">${esc(c.tags)}</textarea>`,"Comma or newline separated labels.")}${field("Attributes JSON",`<textarea data-cf="attributes">${esc(c.attributes)}</textarea>`)}${field("Native Attributes JSON",`<textarea data-cf="nativeAttributes">${esc(c.nativeAttributes)}</textarea>`)}${field("Events JSON",`<textarea data-cf="events">${esc(c.events)}</textarea>`)}${field("Stats JSON",`<textarea data-cf="stats">${esc(c.stats)}</textarea>`)}${field("Entity JSON",`<textarea data-cf="entity">${esc(c.entity||"{}")}</textarea>`,"Used by dai_entities: dimensions, texture, behavior, spawning, and 1.9 gameplay metadata (faction/dialogue/loot/equipment/events).")}
     </div></div>`;
     el.querySelector('[data-del]').onclick=()=>{state.content.splice(ci,1);renderContent();refreshAll();};
     el.querySelectorAll('[data-cf]').forEach(inp=>{const handler=()=>{const k=inp.dataset.cf;if(k==="registryBacked")c[k]=inp.value==="true";else c[k]=inp.value;if(k==="type"&&c.type==="block")c.nativeRegistry="block";if(k==="type"&&c.type==="entity")c.nativeRegistry="entity_type";if(k==="type")renderContent();refreshAll();};if(inp.tagName==="SELECT")inp.onchange=handler;else inp.oninput=handler;});
@@ -954,7 +977,7 @@ if($("#addExperienceStarter"))$("#addExperienceStarter").onclick=()=>{const w=bl
 
 function renderRuntimeDefinitions(){
   const root=$("#runtimeDefinitionList");if(!root)return;root.innerHTML="";
-  if(!state.runtimeDefinitions.length){root.innerHTML='<div class="empty">No managed runtime definitions yet. Add a recipe, reaction event, screen profile, attribute, or animation.</div>';return;}
+  if(!state.runtimeDefinitions.length){root.innerHTML='<div class="empty">No managed runtime definitions yet. Add a core runtime definition or one of the 19 DAI 1.9 game-customization registries.</div>';return;}
   state.runtimeDefinitions.forEach((d,di)=>{
     const spec=RUNTIME_DEFINITION_TYPES[d.type]||RUNTIME_DEFINITION_TYPES.recipe;
     const el=document.createElement("div");el.className="item-card runtime-definition-card";
@@ -969,6 +992,9 @@ function renderRuntimeDefinitions(){
   });
 }
 $$('[data-add-runtime]').forEach(b=>b.onclick=()=>{state.runtimeDefinitions.push(blankRuntimeDefinition(b.dataset.addRuntime));renderRuntimeDefinitions();refreshAll();});
+const runtimeTypePicker=$("#runtimeTypePicker");
+if(runtimeTypePicker){runtimeTypePicker.innerHTML=Object.entries(RUNTIME_DEFINITION_TYPES).map(([k,v])=>`<option value="${esc(k)}">${esc(v.label)} · ${esc(v.folder)}</option>`).join("");}
+if($("#addRuntimeSelected"))$("#addRuntimeSelected").onclick=()=>{const type=runtimeTypePicker?.value||"recipe";state.runtimeDefinitions.push(blankRuntimeDefinition(type));renderRuntimeDefinitions();refreshAll();};
 
 const UNIVERSAL_TEMPLATES={
   experience:()=>[`data/${state.pack.namespace}/dai_experiences/experience.json`,JSON.stringify(experienceJson(blankExperience()),null,2)+"\n"],
@@ -1272,7 +1298,7 @@ function validateOverlay(s,path,issues,objectiveIds,animated=false){
 
 function validateAction(a,path,issues,objectiveIds){
   if(!a.type)issues.push({level:"err",message:`${path}: action type is missing.`});
-  if(!actionMap.has(a.type))issues.push({level:"warn",message:`${path}: unknown/imported action type '${a.type}' is preserved but cannot be fully validated by this DAI 1.8.3 creator catalog.`});
+  if(!actionMap.has(a.type))issues.push({level:"warn",message:`${path}: unknown/imported action type '${a.type}' is preserved but cannot be fully validated by this DAI 1.9 creator catalog.`});
 
   const needsAction=["enqueue_action","run_if_success","run_if_failure","objective_execute","recognize_block","run_command","run_server_command","server_run_function","server_set_block","server_give_item","server_take_item","set_gamemode","key_click","key_press","key_release","remember_waypoint","remember_target_waypoint","select_waypoint","forget_waypoint","forget_failed_waypoint","craft_recipe","overlay_remove"];
   if(needsAction.includes(a.type) && !String(a.action||"").trim())issues.push({level:"err",message:`${path}: '${a.type}' requires an action/string payload.`});
@@ -1336,7 +1362,14 @@ function validateProject(){
     const spec=RUNTIME_DEFINITION_TYPES[d.type];
     if(!spec)issues.push({level:"err",message:`Runtime definition ${di+1} has unknown type '${d.type}'.`});
     if(!validLocalPath(d.id))issues.push({level:"err",message:`Runtime definition ${di+1} has invalid ID/path '${d.id}'.`});
-    try{const parsed=JSON.parse(String(d.json||"{}"));if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))issues.push({level:"warn",message:`Runtime definition '${d.id}' is valid JSON but is not an object.`});}
+    try{const parsed=JSON.parse(String(d.json||"{}"));if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))issues.push({level:"warn",message:`Runtime definition '${d.id}' is valid JSON but is not an object.`});else if(spec?.customization){
+      if(spec.carrierResourceId && String(parsed.carrier||"").trim() && !validResourceId(parsed.carrier))issues.push({level:"err",message:`Customization '${d.id}' carrier '${parsed.carrier}' is not a valid resource ID.`});
+      for(const key of ["properties","events"]){if(key in parsed && (!parsed[key]||typeof parsed[key]!=="object"||Array.isArray(parsed[key])||Object.values(parsed[key]).some(v=>typeof v!=="string")))issues.push({level:"err",message:`Customization '${d.id}' ${key} must be an object of string values.`});}
+      if("numbers" in parsed && (!parsed.numbers||typeof parsed.numbers!=="object"||Array.isArray(parsed.numbers)||Object.values(parsed.numbers).some(v=>typeof v!=="number"||!Number.isFinite(v))))issues.push({level:"err",message:`Customization '${d.id}' numbers must be an object of finite numbers.`});
+      if("flags" in parsed && (!parsed.flags||typeof parsed.flags!=="object"||Array.isArray(parsed.flags)||Object.values(parsed.flags).some(v=>typeof v!=="boolean")))issues.push({level:"err",message:`Customization '${d.id}' flags must be an object of booleans.`});
+      for(const key of ["tags","entries"]){if(key in parsed && (!Array.isArray(parsed[key])||parsed[key].some(v=>typeof v!=="string")))issues.push({level:"err",message:`Customization '${d.id}' ${key} must be an array of strings.`});}
+      if(String(parsed.sequence||"").trim() && !validResourceId(String(parsed.sequence).replace(/^action:/,"")))issues.push({level:"warn",message:`Customization '${d.id}' sequence '${parsed.sequence}' does not look like a namespaced DAI action ID.`});
+    }}
     catch(e){issues.push({level:"err",message:`Runtime definition '${d.id}' contains invalid JSON: ${e.message}`});}
   });
 
@@ -1532,8 +1565,8 @@ function normalizedImportedAction(raw){
 }
 function normalizedImportedCondition(raw){
   const c=blankCondition(raw?.type||"all");
-  const known=new Set(["type","operator","boolean_value","number_value","string_value","negate","parameter","parameter_number","conditions"]);
-  for(const k of ["operator","boolean_value","number_value","string_value","negate","parameter","parameter_number"])if(k in (raw||{}))c[k]=raw[k];
+  const known=new Set(["type","operator","boolean_value","number_value","string_value","negate","target","parameter","parameter_number","conditions"]);
+  for(const k of ["operator","boolean_value","number_value","string_value","negate","target","parameter","parameter_number"])if(k in (raw||{}))c[k]=raw[k];
   c.conditions=(raw?.conditions||[]).map(normalizedImportedCondition);
   const extra={};Object.keys(raw||{}).forEach(k=>{if(!known.has(k))extra[k]=raw[k];});if(Object.keys(extra).length)c._extra=extra;
   return c;
@@ -1566,7 +1599,7 @@ function importFiles(files,sourceLabel="datapack"){
 
   const counts={};
   Object.keys(files).forEach(path=>{
-    const m=path.match(/^data\/([^/]+)\/(dai_experiences\/|dai_worldgen\/|objectives\/(definitions|groups|recognition)\/|menus\/actions\/|reactions\/|reaction_events\/|screen_profiles\/|dai_recipes\/|dai_attributes\/|dai_animations\/|dai_title_screens\/|dai_(items|blocks|weapons|armor|effects|potions|projectiles|particles|enchantments|entities)\/)/);
+    const m=path.match(/^data\/([^/]+)\/(dai_experiences\/|dai_worldgen\/|objectives\/(definitions|groups|recognition)\/|menus\/actions\/|reactions\/|reaction_events\/|screen_profiles\/|dai_[a-z0-9_]+\/)/);
     if(m)counts[m[1]]=(counts[m[1]]||0)+1;
   });
   const chosen=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0];
@@ -1580,7 +1613,7 @@ function importFiles(files,sourceLabel="datapack"){
   const recogRe=new RegExp(`^data/${n}/objectives/recognition/(.+)\\.json$`);
   const menuRe=new RegExp(`^data/${n}/menus/actions/(.+)\\.json$`);
   const reactionRe=new RegExp(`^data/${n}/reactions/(.+)\\.json$`);
-  const runtimeRe=new RegExp(`^data/${n}/(dai_recipes|reaction_events|screen_profiles|dai_attributes|dai_animations)/(.+)\\.json$`);
+  const runtimeRe=new RegExp(`^data/${n}/(dai_recipes|reaction_events|screen_profiles|dai_attributes|dai_animations|dai_sounds|dai_music|dai_hud|dai_render_profiles|dai_structures|dai_features|dai_loot|dai_currencies|dai_shops|dai_dialogues|dai_quests|dai_factions|dai_biomes|dai_dimensions|dai_rules|dai_vehicles|dai_interactives|dai_fluids|dai_environments)/(.+)\\.json$`);
   const titleRe=new RegExp(`^data/${n}/dai_title_screens/(.+)\\.json$`);
   const contentRe=new RegExp(`^data/${n}/(dai_items|dai_blocks|dai_weapons|dai_armor|dai_effects|dai_potions|dai_projectiles|dai_particles|dai_enchantments|dai_entities)/(.+)\\.json$`);
 
@@ -1626,8 +1659,8 @@ function importFiles(files,sourceLabel="datapack"){
     }
     if((m=path.match(runtimeRe))){
       const raw=parseJson(text,path,errors);if(!raw)return;
-      const type={dai_recipes:"recipe",reaction_events:"reaction_event",screen_profiles:"screen_profile",dai_attributes:"attribute",dai_animations:"animation"}[m[1]];
-      next.runtimeDefinitions.push({_id:uid(),type,id:m[2],json:JSON.stringify(raw,null,2)});managed.add(path);return;
+      const type=Object.entries(RUNTIME_DEFINITION_TYPES).find(([,spec])=>spec.folder===m[1])?.[0];
+      if(type){next.runtimeDefinitions.push({_id:uid(),type,id:m[2],json:JSON.stringify(raw,null,2)});managed.add(path);return;}
     }
     if((m=path.match(reactionRe))){
       const raw=parseJson(text,path,errors);if(!raw)return;

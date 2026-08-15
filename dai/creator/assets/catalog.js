@@ -964,6 +964,376 @@ window.DAI_CREATOR_CATALOG = {
       "purpose": "Clear all active DAI screen overlays."
     },
     {
+      "id": "customization_event",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "direction",
+        "action",
+        "open",
+        "target",
+        "value"
+      ],
+      "purpose": "Dispatch an event to a DAI 1.9 customization definition. direction=kind, action=definition id, open=event name, target=runtime payload/position, value=numeric payload."
+    },
+    {
+      "id": "customization_activate",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "direction",
+        "action",
+        "open",
+        "target",
+        "value"
+      ],
+      "purpose": "Activate a DAI 1.9 customization definition and dispatch activate (or the event named in open)."
+    },
+    {
+      "id": "customization_deactivate",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "direction",
+        "action",
+        "open",
+        "target",
+        "value"
+      ],
+      "purpose": "Deactivate a DAI 1.9 customization definition and dispatch deactivate (or the event named in open)."
+    },
+    {
+      "id": "sound_play",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Play/activate a dai_sounds definition."
+    },
+    {
+      "id": "sound_stop",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Stop/deactivate a dai_sounds definition."
+    },
+    {
+      "id": "music_play",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Play/activate a dai_music definition."
+    },
+    {
+      "id": "music_stop",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Stop/deactivate a dai_music definition."
+    },
+    {
+      "id": "hud_show",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Show/activate a dai_hud definition."
+    },
+    {
+      "id": "hud_hide",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Hide/deactivate a dai_hud definition."
+    },
+    {
+      "id": "render_profile_apply",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Apply/activate a dai_render_profiles definition."
+    },
+    {
+      "id": "render_profile_clear",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Clear/deactivate a render profile definition."
+    },
+    {
+      "id": "structure_place",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Place the structure referenced by a dai_structures definition; target overrides its authored target."
+    },
+    {
+      "id": "feature_place",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Place the configured feature referenced by a dai_features definition."
+    },
+    {
+      "id": "loot_grant",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Grant loot through a dai_loot definition."
+    },
+    {
+      "id": "currency_add",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "value"
+      ],
+      "purpose": "Add scoreboard-backed currency; value overrides numbers.amount when non-zero."
+    },
+    {
+      "id": "currency_take",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "value"
+      ],
+      "purpose": "Remove scoreboard-backed currency."
+    },
+    {
+      "id": "currency_set",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "value"
+      ],
+      "purpose": "Set scoreboard-backed currency."
+    },
+    {
+      "id": "shop_open",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Open/activate a dai_shops definition via its authored event/sequence."
+    },
+    {
+      "id": "shop_purchase",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Dispatch purchase to a dai_shops definition."
+    },
+    {
+      "id": "dialogue_start",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Start/activate a dai_dialogues definition."
+    },
+    {
+      "id": "dialogue_choose",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Dispatch a choice payload to a dialogue."
+    },
+    {
+      "id": "dialogue_end",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "End/deactivate a dialogue."
+    },
+    {
+      "id": "quest_start",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Start/activate a quest."
+    },
+    {
+      "id": "quest_advance",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Advance a quest with optional runtime payload/value."
+    },
+    {
+      "id": "quest_complete",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Complete/deactivate a quest."
+    },
+    {
+      "id": "quest_fail",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Fail/deactivate a quest."
+    },
+    {
+      "id": "faction_join",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Join/activate a faction; direct default uses properties.tag."
+    },
+    {
+      "id": "faction_leave",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Leave/deactivate a faction."
+    },
+    {
+      "id": "biome_apply",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Dispatch apply for a biome wrapper definition."
+    },
+    {
+      "id": "dimension_transfer",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Transfer through a dimension definition; target overrides authored coordinates."
+    },
+    {
+      "id": "rules_apply",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Apply a ruleset; compact entries may use gamerule=value."
+    },
+    {
+      "id": "rules_clear",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Clear/deactivate a ruleset through authored behavior."
+    },
+    {
+      "id": "vehicle_spawn",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Spawn the vehicle entity referenced by a vehicle definition."
+    },
+    {
+      "id": "vehicle_despawn",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Despawn the nearest matching vehicle."
+    },
+    {
+      "id": "vehicle_mount",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Mount the nearest matching vehicle."
+    },
+    {
+      "id": "vehicle_dismount",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Dismount the player."
+    },
+    {
+      "id": "interactive_use",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Dispatch use for an interactive definition."
+    },
+    {
+      "id": "fluid_apply",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Apply a fluid/environment block wrapper with setblock."
+    },
+    {
+      "id": "fluid_remove",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Dispatch remove/deactivate for a fluid wrapper."
+    },
+    {
+      "id": "environment_enter",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Enter/activate an environment definition."
+    },
+    {
+      "id": "environment_exit",
+      "category": "Game Customization (DAI 1.9)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Exit/deactivate an environment definition."
+    },
+    {
       "id": "run_server_command",
       "category": "Server Authority (DAI 1.8+)",
       "params": [
@@ -2600,6 +2970,84 @@ window.DAI_CREATOR_CATALOG = {
       "purpose": "Current health of the reaction living entity."
     },
     {
+      "id": "customization_exists",
+      "category": "Game Customization (DAI 1.9)",
+      "valueType": "boolean",
+      "inputs": [
+        "target",
+        "string_value"
+      ],
+      "purpose": "True when the named customization definition exists. target=kind/folder, string_value=definition id."
+    },
+    {
+      "id": "customization_active",
+      "category": "Game Customization (DAI 1.9)",
+      "valueType": "boolean",
+      "inputs": [
+        "target",
+        "string_value"
+      ],
+      "purpose": "True when the named customization definition is active. target=kind/folder, string_value=definition id."
+    },
+    {
+      "id": "customization_count",
+      "category": "Game Customization (DAI 1.9)",
+      "valueType": "number",
+      "inputs": [
+        "string_value"
+      ],
+      "purpose": "Number of registered definitions for the kind supplied in string_value."
+    },
+    {
+      "id": "reaction_has_block",
+      "category": "Reactions (DAI 1.9)",
+      "valueType": "boolean",
+      "inputs": [],
+      "purpose": "Current reaction exposes a block position."
+    },
+    {
+      "id": "reaction_block_id",
+      "category": "Reactions (DAI 1.9)",
+      "valueType": "string",
+      "inputs": [],
+      "purpose": "Block resource ID at the current reaction block position."
+    },
+    {
+      "id": "reaction_block_x",
+      "category": "Reactions (DAI 1.9)",
+      "valueType": "number",
+      "inputs": [],
+      "purpose": "X coordinate of the current reaction block position."
+    },
+    {
+      "id": "reaction_block_y",
+      "category": "Reactions (DAI 1.9)",
+      "valueType": "number",
+      "inputs": [],
+      "purpose": "Y coordinate of the current reaction block position."
+    },
+    {
+      "id": "reaction_block_z",
+      "category": "Reactions (DAI 1.9)",
+      "valueType": "number",
+      "inputs": [],
+      "purpose": "Z coordinate of the current reaction block position."
+    },
+    {
+      "id": "reaction_has_item",
+      "category": "Reactions (DAI 1.9)",
+      "valueType": "boolean",
+      "inputs": [],
+      "purpose": "Current reaction exposes a held/used item ID."
+    },
+    {
+      "id": "reaction_item_id",
+      "category": "Reactions (DAI 1.9)",
+      "valueType": "string",
+      "inputs": [],
+      "purpose": "Held/used item resource ID for the current reaction."
+    },
+    {
       "id": "dai_server_available",
       "category": "Server Capability (DAI 1.8+)",
       "valueType": "boolean",
@@ -2690,7 +3138,55 @@ window.DAI_CREATOR_CATALOG = {
       "cancellable": true,
       "overrideable": true,
       "entityContext": true,
-      "purpose": "Fires around the normal client entity-attack call."
+      "purpose": "Fires around the normal client entity-attack call; exposes the attacked entity."
+    },
+    {
+      "id": "player_use_block",
+      "phases": [
+        "pre",
+        "during",
+        "post"
+      ],
+      "cancellable": true,
+      "overrideable": true,
+      "entityContext": false,
+      "purpose": "Fires around use-on-block; exposes block position and used item."
+    },
+    {
+      "id": "player_use_item",
+      "phases": [
+        "pre",
+        "during",
+        "post"
+      ],
+      "cancellable": true,
+      "overrideable": true,
+      "entityContext": false,
+      "purpose": "Fires around item use; exposes the used item."
+    },
+    {
+      "id": "player_interact_entity",
+      "phases": [
+        "pre",
+        "during",
+        "post"
+      ],
+      "cancellable": true,
+      "overrideable": true,
+      "entityContext": true,
+      "purpose": "Fires around entity interaction; exposes entity and used item."
+    },
+    {
+      "id": "player_start_break_block",
+      "phases": [
+        "pre",
+        "during",
+        "post"
+      ],
+      "cancellable": true,
+      "overrideable": true,
+      "entityContext": false,
+      "purpose": "Fires when starting a block break; exposes block position and held item."
     }
   ]
 };
