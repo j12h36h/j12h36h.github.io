@@ -962,6 +962,58 @@ window.DAI_CREATOR_CATALOG = {
       "category": "Presentation & Overlays",
       "params": [],
       "purpose": "Clear all active DAI screen overlays."
+    },
+    {
+      "id": "run_server_command",
+      "category": "Server Authority (DAI 1.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Compatibility server-authority command request. Prefer dedicated server actions or server_run_function."
+    },
+    {
+      "id": "server_run_function",
+      "category": "Server Authority (DAI 1.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Run a namespaced datapack function through DAI logical-server authority."
+    },
+    {
+      "id": "server_set_block",
+      "category": "Server Authority (DAI 1.8)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Set an authoritative block state. action=block state, target=x y z or relative coordinates."
+    },
+    {
+      "id": "server_break_block",
+      "category": "Server Authority (DAI 1.8)",
+      "params": [
+        "target",
+        "state"
+      ],
+      "purpose": "Destroy an authoritative block at target; state controls item drops."
+    },
+    {
+      "id": "server_give_item",
+      "category": "Server Authority (DAI 1.8)",
+      "params": [
+        "action",
+        "value"
+      ],
+      "purpose": "Give the acting player an item/count through server authority."
+    },
+    {
+      "id": "server_take_item",
+      "category": "Server Authority (DAI 1.8)",
+      "params": [
+        "action",
+        "value"
+      ],
+      "purpose": "Remove an item/count from the acting player through server authority."
     }
   ],
   "conditions": [
@@ -2546,6 +2598,27 @@ window.DAI_CREATOR_CATALOG = {
       "valueType": "number",
       "inputs": [],
       "purpose": "Current health of the reaction living entity."
+    },
+    {
+      "id": "dai_server_available",
+      "category": "Server Capability (DAI 1.8)",
+      "valueType": "boolean",
+      "inputs": [],
+      "purpose": "DAI server payload channel is available."
+    },
+    {
+      "id": "server_dai_available",
+      "category": "Server Capability (DAI 1.8)",
+      "valueType": "boolean",
+      "inputs": [],
+      "purpose": "Compatibility alias: DAI server support is available."
+    },
+    {
+      "id": "server_authority_available",
+      "category": "Server Capability (DAI 1.8)",
+      "valueType": "boolean",
+      "inputs": [],
+      "purpose": "Server-authoritative DAI actions are available."
     }
   ],
   "operators": {

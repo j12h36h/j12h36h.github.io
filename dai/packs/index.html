@@ -18,7 +18,7 @@
 <body>
 <header class="site-header"><nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a aria-current="page" class="active" href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header>
 <main>
-<section class="page-title"><div class="eyebrow">Official DAI Ecosystem</div><h1>Official Packs</h1><p>This page and the in-game DAI Pack Browser share the same official registry. DAI can install supported datapacks into a selected world, install companion resource packs into its managed client pack directory, and auto-enable those managed resources on the next launch.</p></section>
+<section class="page-title"><div class="eyebrow">Official DAI 1.8 Ecosystem</div><h1>Official Packs</h1><p>This page and the in-game DAI Pack Browser share the same official registry. DAI 1.8 can combine client presentation with server-authoritative datapack behavior, so official examples can now demonstrate full experiences as well as automation. DAI can install supported datapacks into a selected world, install companion resource packs into its managed client pack directory, and auto-enable those managed resources on the next launch.</p></section>
 <section class="section"><h2>In-Game Pack Registry</h2><p>The mod reads the live catalog from <code>/dai/api/packs.json</code>. Updating that JSON can publish a new official pack or update without requiring a new DAI mod build.</p><div class="code"><pre class="browser-flow">DAI Main Menu → Official Packs
         ↓
 https://j12h36h.github.io/dai/api/packs.json
@@ -47,6 +47,6 @@ Restart Required → Exit Minecraft
     ↓
 Early registry + resource-pack bootstrap sees the final pack set on next launch</pre></div><div class="notice">Managed resource packs installed by the DAI browser are auto-enabled. Ordinary resource packs remain under the player's normal Minecraft Resource Packs controls.</div></section>
 </main>
-<footer class="footer">Decisions and Impulses · Third-party automation framework for Minecraft</footer>
+<footer class="footer">Decisions and Impulses · JSON-driven Minecraft game framework</footer>
 <script>fetch('/dai/api/packs.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status))).then(x=>document.getElementById('registryPreview').textContent=JSON.stringify(x,null,2)).catch(e=>document.getElementById('registryPreview').textContent='Registry preview unavailable: '+e.message);</script>
 </body></html>

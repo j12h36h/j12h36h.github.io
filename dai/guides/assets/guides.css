@@ -323,3 +323,13 @@
   background: var(--panel-2, #17212d);
   font-weight: 800;
 }
+
+/* DAI 1.8 documentation navigation */
+.guide-sidebar a.current {
+  color: var(--text, #eaf2f8);
+  background: var(--panel-2, #17212d);
+  box-shadow: inset 3px 0 0 var(--accent, #75d5ff);
+}
+.guide-v18-note { padding-top: 18px; padding-bottom: 18px; }
+.guide-index-card:hover { border-color: var(--accent, #75d5ff); transform: translateY(-1px); }
+.guide-index-card { transition: transform .15s ease, border-color .15s ease; }
