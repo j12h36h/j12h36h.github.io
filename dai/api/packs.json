@@ -3,7 +3,7 @@
   "packs": [
     {
       "id": "decisions_and_impulses:fundamentals_survival",
-      "name": "DAI Fundamentals \u2014 Survival",
+      "name": "DAI Fundamentals — Survival",
       "summary": "Official Survival example pack demonstrating menus, perception, objectives, harvesting, navigation, and autonomous behavior. Installs to DAI's global datapack library.",
       "version": "0a",
       "type": "datapack",
@@ -42,6 +42,32 @@
           "type": "resource_pack",
           "curseforge_file_id": 8642408,
           "file_name": "DAI_ComicEffects_Resource.zip",
+          "sha256": ""
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:tamacrafti",
+      "name": "TamaCrafti",
+      "summary": "A cozy DAI-powered virtual-pet experience with persistent care, farming, automatic home setup, custom UI, and a companion HD resource pack.",
+      "version": "2.2.1",
+      "type": "combo",
+      "featured": true,
+      "info_url": "https://j12h36h.github.io/dai/packs/#tamacrafti",
+      "icon_item": "minecraft:carrot",
+      "components": [
+        {
+          "id": "tamacrafti_data",
+          "type": "datapack",
+          "curseforge_file_id": 8655268,
+          "file_name": "TamaCrafti_Datapack_v2.2.1_GraveToggle.zip",
+          "sha256": ""
+        },
+        {
+          "id": "tamacrafti_resource",
+          "type": "resource_pack",
+          "curseforge_file_id": 8655278,
+          "file_name": "TamaCrafti_ResourcePack_v2.0.3_HD.zip",
           "sha256": ""
         }
       ]

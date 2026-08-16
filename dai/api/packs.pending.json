@@ -3,7 +3,7 @@
   "packs": [
     {
       "id": "decisions_and_impulses:fundamentals_survival",
-      "name": "DAI Fundamentals \u2014 Survival",
+      "name": "DAI Fundamentals — Survival",
       "summary": "Official Survival example pack demonstrating menus, perception, objectives, harvesting, navigation, and autonomous behavior. Installs to DAI's global datapack library.",
       "version": "0a",
       "type": "datapack",
@@ -53,28 +53,25 @@
       "version": "2.2.1",
       "type": "combo",
       "featured": true,
-      "status": "awaiting_curseforge_file_approval",
       "info_url": "https://j12h36h.github.io/dai/packs/#tamacrafti",
       "icon_item": "minecraft:carrot",
       "components": [
         {
           "id": "tamacrafti_data",
           "type": "datapack",
-          "curseforge_file_id": 0,
-          "file_name": "PENDING",
-          "project_url": "https://www.curseforge.com/minecraft/data-packs/tamacrafti/",
+          "curseforge_file_id": 8655268,
+          "file_name": "TamaCrafti_Datapack_v2.2.1_GraveToggle.zip",
           "sha256": ""
         },
         {
           "id": "tamacrafti_resource",
           "type": "resource_pack",
-          "curseforge_file_id": 0,
-          "file_name": "PENDING",
-          "project_url": "https://www.curseforge.com/minecraft/texture-packs/tamacrafti-resource",
+          "curseforge_file_id": 8655278,
+          "file_name": "TamaCrafti_ResourcePack_v2.0.3_HD.zip",
           "sha256": ""
         }
       ]
     }
   ],
-  "note": "STAGING ONLY \u2014 not consumed by the live in-game browser until approved CurseForge file IDs are added."
+  "note": "STAGING ONLY — not consumed by the live in-game browser. This staging catalog currently mirrors the live registry; add future unapproved entries here before promotion."
 }
