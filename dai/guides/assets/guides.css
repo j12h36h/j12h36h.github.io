@@ -324,7 +324,7 @@
   font-weight: 800;
 }
 
-/* DAI 1.9.1 documentation navigation */
+/* DAI 1.9.2 documentation navigation */
 .guide-sidebar a.current {
   color: var(--text, #eaf2f8);
   background: var(--panel-2, #17212d);
@@ -335,7 +335,7 @@
 .guide-index-card { transition: transform .15s ease, border-color .15s ease; }
 
 
-/* DAI 1.9.1 documentation cockpit */
+/* DAI 1.9.2 documentation cockpit */
 .guide-shell{grid-template-columns:260px minmax(0,1fr);gap:26px}
 .guide-sidebar{top:80px;border-radius:7px;background:rgba(14,20,27,.96);padding:11px}
 .guide-sidebar strong{color:var(--accent);font:800 .7rem "SFMono-Regular",Consolas,monospace;letter-spacing:.08em;text-transform:uppercase}
