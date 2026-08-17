@@ -965,7 +965,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_event",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "direction",
         "action",
@@ -973,11 +973,11 @@ window.DAI_CREATOR_CATALOG = {
         "target",
         "value"
       ],
-      "purpose": "Dispatch an event to a DAI 1.9.4 customization definition. direction=kind, action=definition id, open=event name, target=runtime payload/position, value=numeric payload."
+      "purpose": "Dispatch an event to a DAI 1.9.5 customization definition. direction=kind, action=definition id, open=event name, target=runtime payload/position, value=numeric payload."
     },
     {
       "id": "customization_activate",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "direction",
         "action",
@@ -985,11 +985,11 @@ window.DAI_CREATOR_CATALOG = {
         "target",
         "value"
       ],
-      "purpose": "Activate a DAI 1.9.4 customization definition and dispatch activate (or the event named in open)."
+      "purpose": "Activate a DAI 1.9.5 customization definition and dispatch activate (or the event named in open)."
     },
     {
       "id": "customization_deactivate",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "direction",
         "action",
@@ -997,11 +997,11 @@ window.DAI_CREATOR_CATALOG = {
         "target",
         "value"
       ],
-      "purpose": "Deactivate a DAI 1.9.4 customization definition and dispatch deactivate (or the event named in open)."
+      "purpose": "Deactivate a DAI 1.9.5 customization definition and dispatch deactivate (or the event named in open)."
     },
     {
       "id": "sound_play",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target",
@@ -1011,7 +1011,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "sound_stop",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1019,7 +1019,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "music_play",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target",
@@ -1029,7 +1029,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "music_stop",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1037,7 +1037,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "hud_show",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1045,7 +1045,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "hud_hide",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1053,7 +1053,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "render_profile_apply",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1062,7 +1062,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "render_profile_clear",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1070,7 +1070,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "structure_place",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1079,7 +1079,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "feature_place",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1088,7 +1088,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "loot_grant",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target",
@@ -1098,7 +1098,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "currency_add",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "value"
@@ -1107,7 +1107,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "currency_take",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "value"
@@ -1116,7 +1116,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "currency_set",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "value"
@@ -1125,7 +1125,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "shop_open",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1134,7 +1134,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "shop_purchase",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target",
@@ -1144,7 +1144,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dialogue_start",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1153,7 +1153,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dialogue_choose",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target",
@@ -1163,7 +1163,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dialogue_end",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1171,7 +1171,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_start",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1180,7 +1180,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_advance",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target",
@@ -1190,7 +1190,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_complete",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1198,7 +1198,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_fail",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1206,7 +1206,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "faction_join",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1214,7 +1214,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "faction_leave",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1222,7 +1222,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "biome_apply",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1231,7 +1231,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dimension_transfer",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1240,7 +1240,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "rules_apply",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1248,7 +1248,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "rules_clear",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1256,7 +1256,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_spawn",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1265,7 +1265,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_despawn",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1273,7 +1273,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_mount",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1281,7 +1281,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_dismount",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action"
       ],
@@ -1289,7 +1289,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "interactive_use",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target",
@@ -1299,7 +1299,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "fluid_apply",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1308,7 +1308,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "fluid_remove",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1317,7 +1317,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "environment_enter",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -1326,7 +1326,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "environment_exit",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "params": [
         "action",
         "target"
@@ -2980,7 +2980,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_exists",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "valueType": "boolean",
       "inputs": [
         "target",
@@ -2990,7 +2990,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_active",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "valueType": "boolean",
       "inputs": [
         "target",
@@ -3000,7 +3000,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_count",
-      "category": "Game Customization (DAI 1.9.4)",
+      "category": "Game Customization (DAI 1.9.5)",
       "valueType": "number",
       "inputs": [
         "string_value"
@@ -3009,49 +3009,49 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reaction_has_block",
-      "category": "Reactions (DAI 1.9.4)",
+      "category": "Reactions (DAI 1.9.5)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Current reaction exposes a block position."
     },
     {
       "id": "reaction_block_id",
-      "category": "Reactions (DAI 1.9.4)",
+      "category": "Reactions (DAI 1.9.5)",
       "valueType": "string",
       "inputs": [],
       "purpose": "Block resource ID at the current reaction block position."
     },
     {
       "id": "reaction_block_x",
-      "category": "Reactions (DAI 1.9.4)",
+      "category": "Reactions (DAI 1.9.5)",
       "valueType": "number",
       "inputs": [],
       "purpose": "X coordinate of the current reaction block position."
     },
     {
       "id": "reaction_block_y",
-      "category": "Reactions (DAI 1.9.4)",
+      "category": "Reactions (DAI 1.9.5)",
       "valueType": "number",
       "inputs": [],
       "purpose": "Y coordinate of the current reaction block position."
     },
     {
       "id": "reaction_block_z",
-      "category": "Reactions (DAI 1.9.4)",
+      "category": "Reactions (DAI 1.9.5)",
       "valueType": "number",
       "inputs": [],
       "purpose": "Z coordinate of the current reaction block position."
     },
     {
       "id": "reaction_has_item",
-      "category": "Reactions (DAI 1.9.4)",
+      "category": "Reactions (DAI 1.9.5)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Current reaction exposes a held/used item ID."
     },
     {
       "id": "reaction_item_id",
-      "category": "Reactions (DAI 1.9.4)",
+      "category": "Reactions (DAI 1.9.5)",
       "valueType": "string",
       "inputs": [],
       "purpose": "Held/used item resource ID for the current reaction."

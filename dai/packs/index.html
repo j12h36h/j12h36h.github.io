@@ -19,7 +19,7 @@
 <body>
 <header class="site-header"><nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a aria-current="page" class="active" href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header>
 <main>
-<section class="page-title"><div class="eyebrow">Official DAI 1.9.4 Ecosystem</div><h1>Official Packs</h1><p>DAI 1.9.4 combines client/server game logic, native JSON entities, one main experience with unlimited addon datapacks, expanded player/creator controls, global datapack installation, and the open JSON customization layer. Official datapacks still install into /datapacks and companion resource packs install client-wide.</p></section>
+<section class="page-title"><div class="eyebrow">Official DAI 1.9.5 Ecosystem</div><h1>Official Packs</h1><p>DAI 1.9.5 combines client/server game logic, native JSON entities, MAIN/ADDON and standalone-addon loading, generated world types, expanded creator controls, and automatic resource-pack lifecycle management. Official resource components and normal DAI companion resource packs can stay enabled across installs and renamed/versioned updates.</p></section>
 <section class="section"><h2>In-Game Pack Registry</h2><p>The mod reads the live catalog from <code>/dai/api/packs.json</code>. Only approved, installable CurseForge files belong in that live JSON. Upcoming entries are staged separately until both component file IDs are public.</p><div class="code"><pre class="browser-flow">DAI Main Menu → Official Packs
         ↓
 https://j12h36h.github.io/dai/api/packs.json
@@ -48,7 +48,7 @@ Leave the browser
     ↓
 Restart Required → Exit Minecraft
     ↓
-Experience discovery + resource-pack bootstrap sees the final pack set on next launch</pre></div><div class="notice">Managed resource packs installed by the DAI browser are auto-enabled. Global datapacks are a DAI library and are deployed into the appropriate experience save instead of being force-enabled in every world.</div></section>
+Experience discovery + resource-pack bootstrap sees the final pack set on next launch</pre></div><div class="notice">Managed resource packs installed by the DAI browser are auto-enabled and persisted. Normal companion ZIPs can also auto-enable by matching a DAI datapack namespace or declaring dai.auto_enable / dai.companion_id. Global datapacks remain a DAI library and are deployed into the appropriate world/experience stack.</div></section>
 </main>
 <footer class="footer">Decisions and Impulses · JSON-driven Minecraft game framework</footer>
 <script>fetch('/dai/api/packs.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status))).then(x=>document.getElementById('registryPreview').textContent=JSON.stringify(x,null,2)).catch(e=>document.getElementById('registryPreview').textContent='Registry preview unavailable: '+e.message);</script>

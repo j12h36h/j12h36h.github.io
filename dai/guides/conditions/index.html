@@ -15,7 +15,7 @@
 </header>
 <main>
 <div class="guide-shell">
-<aside class="guide-sidebar"><strong>DAI 1.9.4 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client &amp; Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences &amp; Flow</a><a class="current" href="../conditions/">5. Conditions</a><a href="../menus/">6. Menus &amp; UI</a><a href="../recognition-perception/">7. Recognition &amp; Perception</a><a href="../overlays-reactions/">8. Overlays &amp; Reactions</a><a href="../experiences-worldgen/">9. Experiences &amp; Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../game-customization/">11. Game Customization</a><a href="../creator-workflow/">12. Creator &amp; Publishing</a><a href="../global-datapacks-distribution/">13. Global Datapacks &amp; Distribution</a></aside>
+<aside class="guide-sidebar"><strong>DAI 1.9.5 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client &amp; Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences &amp; Flow</a><a class="current" href="../conditions/">5. Conditions</a><a href="../menus/">6. Menus &amp; UI</a><a href="../recognition-perception/">7. Recognition &amp; Perception</a><a href="../overlays-reactions/">8. Overlays &amp; Reactions</a><a href="../experiences-worldgen/">9. Experiences &amp; Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../game-customization/">11. Game Customization</a><a href="../creator-workflow/">12. Creator &amp; Publishing</a><a href="../global-datapacks-distribution/">13. Global Datapacks &amp; Distribution</a></aside>
 <article class="guide-content">
 <section class="guide-hero">
 <div class="eyebrow">Page 5 · Conditions</div>
@@ -26,7 +26,7 @@
 <div class="guide-stat"><strong>Shared context snapshot</strong>A condition group evaluates against one captured context.</div>
 <div class="guide-stat"><strong>Composable logic</strong>Use all, any, none, not, comparisons, and negate.</div>
 </div>
-</section><section class="guide-section guide-v18-note"><div class="guide-callout"><strong>DAI 1.8:</strong> This system now participates in the client/server architecture. Client-facing definitions can load locally; actions that mutate authoritative server state should use the server action layer.</div></section><section class="guide-section guide-release-note"><div class="guide-callout"><strong>DAI 1.9.4:</strong> condition comparison is centralized by returned value type. A whole condition list captures one <code>DAI_ConditionContext</code> and reuses that snapshot for every entry before applying each operator and final <code>negate</code>.</div><div class="guide-flow"><pre>DAI_ActionResolver
+</section><section class="guide-section guide-v18-note"><div class="guide-callout"><strong>DAI 1.8:</strong> This system now participates in the client/server architecture. Client-facing definitions can load locally; actions that mutate authoritative server state should use the server action layer.</div></section><section class="guide-section guide-release-note"><div class="guide-callout"><strong>DAI 1.9.5:</strong> condition comparison is centralized by returned value type. A whole condition list captures one <code>DAI_ConditionContext</code> and reuses that snapshot for every entry before applying each operator and final <code>negate</code>.</div><div class="guide-flow"><pre>DAI_ActionResolver
         ↓
 DAI_ConditionEval.evaluateAll()
         ↓
@@ -232,12 +232,12 @@ negation</pre></div></section>
 <tr><td><code>reaction_entity_health</code></td><td>number</td><td>none</td><td>Reaction entity health</td></tr>
 </tbody></table></div></details>
 </section>
-<section class="guide-section"><h2>DAI 1.9.4 Customization &amp; Interaction Conditions</h2><div class="guide-cards"><div class="guide-card"><h3>Customization state</h3><p><code>customization_exists</code>, <code>customization_active</code>, and <code>customization_count</code> query the new 19-registry layer.</p></div><div class="guide-card"><h3>Block context</h3><p><code>reaction_has_block</code>, <code>reaction_block_id</code>, and block X/Y/Z expose use/break context.</p></div><div class="guide-card"><h3>Item context</h3><p><code>reaction_has_item</code> and <code>reaction_item_id</code> expose the held/used item for interaction reactions.</p></div></div><div class="guide-code"><pre>{
+<section class="guide-section"><h2>DAI 1.9.5 Customization &amp; Interaction Conditions</h2><div class="guide-cards"><div class="guide-card"><h3>Customization state</h3><p><code>customization_exists</code>, <code>customization_active</code>, and <code>customization_count</code> query the new 19-registry layer.</p></div><div class="guide-card"><h3>Block context</h3><p><code>reaction_has_block</code>, <code>reaction_block_id</code>, and block X/Y/Z expose use/break context.</p></div><div class="guide-card"><h3>Item context</h3><p><code>reaction_has_item</code> and <code>reaction_item_id</code> expose the held/used item for interaction reactions.</p></div></div><div class="guide-code"><pre>{
   "type": "customization_active",
   "target": "quest",
   "string_value": "my_pack:first_assignment",
   "operator": "is_true"
-}</pre></div></section><section class="guide-section"><h2>Player Config Conditions</h2><p>DAI 1.9.4 adds <code>config_value</code> so a game or addon can respond to supported framework preferences instead of assuming the player enabled every optional system.</p><div class="guide-code"><pre>{
+}</pre></div></section><section class="guide-section"><h2>Player Config Conditions</h2><p>DAI 1.9.5 adds <code>config_value</code> so a game or addon can respond to supported framework preferences instead of assuming the player enabled every optional system.</p><div class="guide-code"><pre>{
   "type": "config_value",
   "target": "automation_combat",
   "operator": "is_true"
@@ -245,6 +245,6 @@ negation</pre></div></section>
 </article>
 </div>
 </main>
-<footer class="footer">Decisions and Impulses · DAI 1.9.4 creator documentation</footer>
+<footer class="footer">Decisions and Impulses · DAI 1.9.5 creator documentation</footer>
 </body>
 </html>

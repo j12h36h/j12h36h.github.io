@@ -15,7 +15,7 @@ let selectedPreview = {kind:"project"};
 
 function freshState(kind="datapack") {
   return {
-    formatVersion: 7,
+    formatVersion: 8,
     kind,
     pack: {
       name: "My DAI Pack",
@@ -24,7 +24,9 @@ function freshState(kind="datapack") {
       minFormat: [107,1],
       maxFormat: 107,
       resourceFormat: 48,
-      role: "auto"
+      role: "auto",
+      companionAutoEnable: false,
+      companionId: ""
     },
     objectives: [],
     menus: [],
@@ -147,25 +149,25 @@ const RUNTIME_DEFINITION_TYPES={
   screen_profile:{label:"Screen Profile",folder:"screen_profiles",sample:{variants:[]}},
   attribute:{label:"DAI Attribute",folder:"dai_attributes",sample:{default:100,minimum:0,maximum:100}},
   animation:{label:"DAI Animation",folder:"dai_animations",sample:{duration_ticks:20,loop:false,channel:"upper_body",priority:10,interruptible:true,markers:{},marker_actions:{},tracks:{}}},
-  sound:{label:"1.9.4 Sound",folder:"dai_sounds",customization:true,carrierResourceId:true,sample:{display_name:"UI Chime",carrier:"minecraft:block.note_block.pling",properties:{source:"master"},numbers:{volume:1.0,pitch:1.0},events:{}}},
-  music:{label:"1.9.4 Music",folder:"dai_music",customization:true,carrierResourceId:true,sample:{display_name:"Experience Music",carrier:"minecraft:music.game",numbers:{volume:1.0,pitch:1.0},events:{}}},
-  hud:{label:"1.9.4 HUD",folder:"dai_hud",customization:true,sample:{display_name:"Status HUD",texture:"my_dai_pack:gui/status",numbers:{x:0,y:0,width:128,height:32,z:20,ticks:0,alpha:1.0},properties:{anchor:"top_left",color:"#FFFFFF",click_action:""},flags:{interactable:false,consume_click:false,hide_vanilla:false},events:{}}},
-  render_profile:{label:"1.9.4 Render Profile",folder:"dai_render_profiles",customization:true,sample:{display_name:"Cinematic Profile",properties:{},numbers:{},flags:{},events:{apply:"action:my_dai_pack:apply_render_profile",clear:"action:my_dai_pack:clear_render_profile"}}},
-  structure:{label:"1.9.4 Structure",folder:"dai_structures",customization:true,carrierResourceId:true,sample:{display_name:"Placed Structure",carrier:"minecraft:village/plains/houses/plains_small_house_1",target:"~ ~ ~",events:{}}},
-  feature:{label:"1.9.4 World Feature",folder:"dai_features",customization:true,carrierResourceId:true,sample:{display_name:"Placed Feature",carrier:"minecraft:ore_coal",target:"~ ~ ~",events:{}}},
-  loot:{label:"1.9.4 Loot",folder:"dai_loot",customization:true,carrierResourceId:true,sample:{display_name:"Reward Loot",carrier:"minecraft:chests/simple_dungeon",events:{}}},
-  currency:{label:"1.9.4 Currency",folder:"dai_currencies",customization:true,sample:{display_name:"Credits",properties:{objective:"credits"},numbers:{amount:1.0},events:{}}},
-  shop:{label:"1.9.4 Shop",folder:"dai_shops",customization:true,sample:{display_name:"Field Shop",entries:["my_dai_pack:starter_item"],events:{open:"action:my_dai_pack:shop_open",purchase:"action:my_dai_pack:shop_purchase"}}},
-  dialogue:{label:"1.9.4 Dialogue",folder:"dai_dialogues",customization:true,sample:{display_name:"NPC Introduction",entries:["Welcome, agent."],events:{start:"action:my_dai_pack:dialogue_start",choose:"action:my_dai_pack:dialogue_choose",end:"action:my_dai_pack:dialogue_end"}}},
-  quest:{label:"1.9.4 Quest",folder:"dai_quests",customization:true,sample:{display_name:"First Assignment",entries:["Reach the objective."],events:{start:"action:my_dai_pack:quest_start",advance:"action:my_dai_pack:quest_advance",complete:"action:my_dai_pack:quest_complete",fail:"action:my_dai_pack:quest_fail"}}},
-  faction:{label:"1.9.4 Faction",folder:"dai_factions",customization:true,sample:{display_name:"Border",properties:{tag:"faction_border"},events:{}}},
-  biome:{label:"1.9.4 Biome Wrapper",folder:"dai_biomes",customization:true,carrierResourceId:true,sample:{display_name:"Plains Context",carrier:"minecraft:plains",events:{apply:"action:my_dai_pack:apply_biome_context"}}},
-  dimension:{label:"1.9.4 Dimension",folder:"dai_dimensions",customization:true,carrierResourceId:true,sample:{display_name:"Dream Void",generation:{type:"void",dimension_type:"minecraft:overworld",biome:"minecraft:the_void",features:false,lakes:false,structures:false},events:{}}},
-  ruleset:{label:"1.9.4 Ruleset",folder:"dai_rules",customization:true,sample:{display_name:"Adventure Rules",entries:["doDaylightCycle=false","keepInventory=true"],events:{}}},
-  vehicle:{label:"1.9.4 Vehicle",folder:"dai_vehicles",customization:true,carrierResourceId:true,sample:{display_name:"Minecart Vehicle",carrier:"minecraft:minecart",target:"~ ~ ~",events:{}}},
-  interactive:{label:"1.9.4 Interactive",folder:"dai_interactives",customization:true,sample:{display_name:"Control Console",carrier:"minecraft:lever",events:{use:"action:my_dai_pack:console_use"}}},
-  fluid:{label:"1.9.4 Fluid / Environment Block",folder:"dai_fluids",customization:true,carrierResourceId:true,sample:{display_name:"Water Placement",carrier:"minecraft:water",target:"~ ~ ~",events:{}}},
-  environment:{label:"1.9.4 Environment",folder:"dai_environments",customization:true,sample:{display_name:"Training Arena",events:{enter:"action:my_dai_pack:arena_enter",exit:"action:my_dai_pack:arena_exit"}}}
+  sound:{label:"1.9.5 Sound",folder:"dai_sounds",customization:true,carrierResourceId:true,sample:{display_name:"UI Chime",carrier:"minecraft:block.note_block.pling",properties:{source:"master"},numbers:{volume:1.0,pitch:1.0},events:{}}},
+  music:{label:"1.9.5 Music",folder:"dai_music",customization:true,carrierResourceId:true,sample:{display_name:"Experience Music",carrier:"minecraft:music.game",numbers:{volume:1.0,pitch:1.0},events:{}}},
+  hud:{label:"1.9.5 HUD",folder:"dai_hud",customization:true,sample:{display_name:"Status HUD",texture:"my_dai_pack:gui/status",numbers:{x:0,y:0,width:128,height:32,z:20,ticks:0,alpha:1.0},properties:{anchor:"top_left",color:"#FFFFFF",click_action:""},flags:{interactable:false,consume_click:false,hide_vanilla:false},events:{}}},
+  render_profile:{label:"1.9.5 Render Profile",folder:"dai_render_profiles",customization:true,sample:{display_name:"Cinematic Profile",properties:{},numbers:{},flags:{},events:{apply:"action:my_dai_pack:apply_render_profile",clear:"action:my_dai_pack:clear_render_profile"}}},
+  structure:{label:"1.9.5 Structure",folder:"dai_structures",customization:true,carrierResourceId:true,sample:{display_name:"Placed Structure",carrier:"minecraft:village/plains/houses/plains_small_house_1",target:"~ ~ ~",events:{}}},
+  feature:{label:"1.9.5 World Feature",folder:"dai_features",customization:true,carrierResourceId:true,sample:{display_name:"Placed Feature",carrier:"minecraft:ore_coal",target:"~ ~ ~",events:{}}},
+  loot:{label:"1.9.5 Loot",folder:"dai_loot",customization:true,carrierResourceId:true,sample:{display_name:"Reward Loot",carrier:"minecraft:chests/simple_dungeon",events:{}}},
+  currency:{label:"1.9.5 Currency",folder:"dai_currencies",customization:true,sample:{display_name:"Credits",properties:{objective:"credits"},numbers:{amount:1.0},events:{}}},
+  shop:{label:"1.9.5 Shop",folder:"dai_shops",customization:true,sample:{display_name:"Field Shop",entries:["my_dai_pack:starter_item"],events:{open:"action:my_dai_pack:shop_open",purchase:"action:my_dai_pack:shop_purchase"}}},
+  dialogue:{label:"1.9.5 Dialogue",folder:"dai_dialogues",customization:true,sample:{display_name:"NPC Introduction",entries:["Welcome, agent."],events:{start:"action:my_dai_pack:dialogue_start",choose:"action:my_dai_pack:dialogue_choose",end:"action:my_dai_pack:dialogue_end"}}},
+  quest:{label:"1.9.5 Quest",folder:"dai_quests",customization:true,sample:{display_name:"First Assignment",entries:["Reach the objective."],events:{start:"action:my_dai_pack:quest_start",advance:"action:my_dai_pack:quest_advance",complete:"action:my_dai_pack:quest_complete",fail:"action:my_dai_pack:quest_fail"}}},
+  faction:{label:"1.9.5 Faction",folder:"dai_factions",customization:true,sample:{display_name:"Border",properties:{tag:"faction_border"},events:{}}},
+  biome:{label:"1.9.5 Biome Wrapper",folder:"dai_biomes",customization:true,carrierResourceId:true,sample:{display_name:"Plains Context",carrier:"minecraft:plains",events:{apply:"action:my_dai_pack:apply_biome_context"}}},
+  dimension:{label:"1.9.5 Dimension",folder:"dai_dimensions",customization:true,carrierResourceId:true,sample:{display_name:"Dream Void",generation:{type:"void",dimension_type:"minecraft:overworld",biome:"minecraft:the_void",features:false,lakes:false,structures:false},events:{}}},
+  ruleset:{label:"1.9.5 Ruleset",folder:"dai_rules",customization:true,sample:{display_name:"Adventure Rules",entries:["doDaylightCycle=false","keepInventory=true"],events:{}}},
+  vehicle:{label:"1.9.5 Vehicle",folder:"dai_vehicles",customization:true,carrierResourceId:true,sample:{display_name:"Minecart Vehicle",carrier:"minecraft:minecart",target:"~ ~ ~",events:{}}},
+  interactive:{label:"1.9.5 Interactive",folder:"dai_interactives",customization:true,sample:{display_name:"Control Console",carrier:"minecraft:lever",events:{use:"action:my_dai_pack:console_use"}}},
+  fluid:{label:"1.9.5 Fluid / Environment Block",folder:"dai_fluids",customization:true,carrierResourceId:true,sample:{display_name:"Water Placement",carrier:"minecraft:water",target:"~ ~ ~",events:{}}},
+  environment:{label:"1.9.5 Environment",folder:"dai_environments",customization:true,sample:{display_name:"Training Arena",events:{enter:"action:my_dai_pack:arena_enter",exit:"action:my_dai_pack:arena_exit"}}}
 };
 function blankRuntimeDefinition(type="recipe"){
   const spec=RUNTIME_DEFINITION_TYPES[type]||RUNTIME_DEFINITION_TYPES.recipe;
@@ -235,6 +237,8 @@ function loadPackInputs(){
   $("#maxFormat").value = state.pack.maxFormat ?? 107;
   $("#resourceFormat").value = state.pack.resourceFormat ?? 48;
   if($("#packRole")) $("#packRole").value = state.pack.role ?? "auto";
+  if($("#companionAutoEnable")) $("#companionAutoEnable").value = state.pack.companionAutoEnable ? "true" : "false";
+  if($("#companionId")) $("#companionId").value = state.pack.companionId ?? "";
 }
 function readPackInputs(){
   state.pack.name = $("#packName").value.trim() || (state.kind==="resourcepack" ? "My Resource Pack" : "My DAI Pack");
@@ -245,8 +249,10 @@ function readPackInputs(){
   state.pack.maxFormat = Number($("#maxFormat").value || 107);
   state.pack.resourceFormat = Number($("#resourceFormat").value || 48);
   if($("#packRole")) state.pack.role = $("#packRole").value || "auto";
+  if($("#companionAutoEnable")) state.pack.companionAutoEnable = $("#companionAutoEnable").value === "true";
+  if($("#companionId")) state.pack.companionId = $("#companionId").value.trim();
 }
-["packName","namespace","description","minFormat","maxFormat","resourceFormat","packRole"].forEach(id => {
+["packName","namespace","description","minFormat","maxFormat","resourceFormat","packRole","companionAutoEnable","companionId"].forEach(id => {
   document.getElementById(id).addEventListener("input", () => {
     readPackInputs();
     if(id==="namespace" && state.kind==="resourcepack") renderResourceFiles();
@@ -292,8 +298,8 @@ function updateModeUi(){
   $("#creatorModeSub").textContent = resource ? "Build or edit a Minecraft resource pack" : "Build or edit a DAI datapack";
   $("#workspaceHeading").textContent = resource ? "DAI Resource Pack Creator" : "DAI Datapack Creator";
   $("#workspaceDescription").textContent = resource
-    ? "Create or import a Minecraft resource pack, add textures and other assets, validate its structure, then export a normal editable ZIP. This is suitable for packs such as DAI ComicEffects."
-    : "Create a complete DAI 1.9.4 game or addon: experiences, native entities, worldgen, objectives, server-authoritative actions, menus, reactions and custom content. Universal Files can create anything the guided editor does not expose.";
+    ? "Create or import a Minecraft resource pack, add textures and other assets, opt into DAI 1.9.5 companion auto-enable with a stable update identity, then export a normal editable ZIP."
+    : "Create a complete DAI 1.9.5 game or addon: experiences, native entities, worldgen, objectives, server-authoritative actions, menus, reactions and custom content. Universal Files can create anything the guided editor does not expose.";
   $("#packSetupSubtitle").textContent = resource ? "Identity and Minecraft resource-pack metadata" : "Identity and Minecraft datapack metadata";
   $("#exportSubtitle").textContent = resource ? "Compile a standard Minecraft resource-pack ZIP after validation" : "Compile a standard Minecraft datapack ZIP after validation";
   $("#exportZip").textContent = resource ? "Validate & Export Resource Pack ZIP" : "Validate & Export Datapack ZIP";
@@ -646,7 +652,7 @@ function renderConditionCard(c,list,index,onChange){
   let dyn="";
   if (!logical) {
     dyn += field("Operator",`<select data-cf="operator">${ops.map(op=>`<option value="${op}"${op===c.operator?" selected":""}>${op}</option>`).join("")}</select>`);
-    if ((spec?.inputs||[]).includes("target")) dyn += field("target",textInput(c.target,'data-cf="target"'),"Provider input, such as a 1.9.4 customization kind/folder.");
+    if ((spec?.inputs||[]).includes("target")) dyn += field("target",textInput(c.target,'data-cf="target"'),"Provider input, such as a 1.9.5 customization kind/folder.");
     if ((spec?.inputs||[]).includes("parameter")) dyn += field("parameter",textInput(c.parameter,'data-cf="parameter"'));
     if ((spec?.inputs||[]).includes("parameter_number")) dyn += field("parameter_number",numberInput(c.parameter_number,'step="0.01" data-cf="parameter_number"'));
     if ((spec?.inputs||[]).includes("string_value") && spec?.valueType!=="string") dyn += field("string_value (input)",textInput(c.string_value,'data-cf="string_value"'),"Provider input rather than the comparison result.");
@@ -1001,11 +1007,11 @@ function renderExperiences(){
   const er=$("#experienceList"),wr=$("#worldgenList");if(!er||!wr)return;er.innerHTML="";wr.innerHTML="";
   if(!state.experiences.length)er.innerHTML='<div class="empty">No experience definitions yet.</div>';
   state.experiences.forEach((e,i)=>{const el=document.createElement("div");el.className="item-card experience-card";el.innerHTML=`<div class="item-head"><strong>${esc(fullId(e.id))}</strong><button class="btn small danger" data-del>Remove</button></div><div class="item-body"><div class="dynamic-fields">
-    <div class="field-group-title">Identity & Save</div>${field("Definition ID",textInput(e.id,'data-ef="id"'))}${field("Enabled",`<select data-ef="enabled"><option value="true"${e.enabled?" selected":""}>true</option><option value="false"${!e.enabled?" selected":""}>false</option></select>`)}${field("Priority",numberInput(e.priority,'data-ef="priority"'))}${field("Save ID",textInput(e.saveId,'data-ef="saveId"'))}${field("Save Name",textInput(e.saveName,'data-ef="saveName"'))}${field("Worldgen ID",textInput(e.worldgen,'data-ef="worldgen"'))}<div class="field-group-title">Lifecycle</div>${field("On First Join",textInput(e.onFirstJoin,'data-ef="onFirstJoin"'))}${field("On Join / Resume",textInput(e.onJoin,'data-ef="onJoin"'))}${field("Create If Missing",boolSelect(e.createIfMissing,'data-ef="createIfMissing"'))}${field("Load If Existing",boolSelect(e.loadIfExisting,'data-ef="loadIfExisting"'))}${field("Auto Create",boolSelect(e.autoCreate,'data-ef="autoCreate"'))}<div class="field-group-title">Experience-Owned UI</div>${field("UI Auto Enable",boolSelect(e.uiAutoEnable,'data-ef="uiAutoEnable"'))}${field("Grave Cursor Toggle",boolSelect(e.uiGraveCursor,'data-ef="uiGraveCursor"'))}${field("Open Generic DAI Menu On Grave",boolSelect(e.uiOpenMenu,'data-ef="uiOpenMenu"'))}${field("Grave Open Action",textInput(e.uiOpenAction||"",'data-ef="uiOpenAction"'),"Example: tamacrafti:open")}${field("Grave Close Action",textInput(e.uiCloseAction||"",'data-ef="uiCloseAction"'),"Example: tamacrafti:close")}${field("Grave Anchor Overlay",textInput(e.uiAnchorOverlay||"",'data-ef="uiAnchorOverlay"'),"Overlay ID used to determine whether the experience UI is open.")}<div class="field-group-title">1.9.4 Player-Control Ceiling</div>${field("Allow Automation",boolSelect(e.controlAutomation!==false,'data-ef="controlAutomation"'),"The player can still disable automation globally.")}${field("Allow Movement Automation",boolSelect(e.controlMovement!==false,'data-ef="controlMovement"'))}${field("Allow Combat Automation",boolSelect(e.controlCombat!==false,'data-ef="controlCombat"'))}${field("Allow World-Editing Automation",boolSelect(e.controlWorldEditing!==false,'data-ef="controlWorldEditing"'))}${field("Max Actions / Second",numberInput(e.controlMaxActions||0,'min="0" max="20" data-ef="controlMaxActions"'),"0 = no additional experience cap.")}${field("Max Queue Size",numberInput(e.controlMaxQueue||0,'min="0" max="2048" data-ef="controlMaxQueue"'),"0 = no additional experience cap.")}
+    <div class="field-group-title">Identity & Save</div>${field("Definition ID",textInput(e.id,'data-ef="id"'))}${field("Enabled",`<select data-ef="enabled"><option value="true"${e.enabled?" selected":""}>true</option><option value="false"${!e.enabled?" selected":""}>false</option></select>`)}${field("Priority",numberInput(e.priority,'data-ef="priority"'))}${field("Save ID",textInput(e.saveId,'data-ef="saveId"'))}${field("Save Name",textInput(e.saveName,'data-ef="saveName"'))}${field("Worldgen ID",textInput(e.worldgen,'data-ef="worldgen"'))}<div class="field-group-title">Lifecycle</div>${field("On First Join",textInput(e.onFirstJoin,'data-ef="onFirstJoin"'))}${field("On Join / Resume",textInput(e.onJoin,'data-ef="onJoin"'))}${field("Create If Missing",boolSelect(e.createIfMissing,'data-ef="createIfMissing"'))}${field("Load If Existing",boolSelect(e.loadIfExisting,'data-ef="loadIfExisting"'))}${field("Auto Create",boolSelect(e.autoCreate,'data-ef="autoCreate"'))}<div class="field-group-title">Experience-Owned UI</div>${field("UI Auto Enable",boolSelect(e.uiAutoEnable,'data-ef="uiAutoEnable"'))}${field("Grave Cursor Toggle",boolSelect(e.uiGraveCursor,'data-ef="uiGraveCursor"'))}${field("Open Generic DAI Menu On Grave",boolSelect(e.uiOpenMenu,'data-ef="uiOpenMenu"'))}${field("Grave Open Action",textInput(e.uiOpenAction||"",'data-ef="uiOpenAction"'),"Example: tamacrafti:open")}${field("Grave Close Action",textInput(e.uiCloseAction||"",'data-ef="uiCloseAction"'),"Example: tamacrafti:close")}${field("Grave Anchor Overlay",textInput(e.uiAnchorOverlay||"",'data-ef="uiAnchorOverlay"'),"Overlay ID used to determine whether the experience UI is open.")}<div class="field-group-title">1.9.5 Player-Control Ceiling</div>${field("Allow Automation",boolSelect(e.controlAutomation!==false,'data-ef="controlAutomation"'),"The player can still disable automation globally.")}${field("Allow Movement Automation",boolSelect(e.controlMovement!==false,'data-ef="controlMovement"'))}${field("Allow Combat Automation",boolSelect(e.controlCombat!==false,'data-ef="controlCombat"'))}${field("Allow World-Editing Automation",boolSelect(e.controlWorldEditing!==false,'data-ef="controlWorldEditing"'))}${field("Max Actions / Second",numberInput(e.controlMaxActions||0,'min="0" max="20" data-ef="controlMaxActions"'),"0 = no additional experience cap.")}${field("Max Queue Size",numberInput(e.controlMaxQueue||0,'min="0" max="2048" data-ef="controlMaxQueue"'),"0 = no additional experience cap.")}
   </div></div>`;el.querySelector('[data-del]').onclick=()=>{state.experiences.splice(i,1);renderExperiences();refreshAll();};el.querySelectorAll('[data-ef]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.ef;if(["enabled","createIfMissing","loadIfExisting","autoCreate","uiAutoEnable","uiGraveCursor","uiOpenMenu","controlAutomation","controlMovement","controlCombat","controlWorldEditing"].includes(k))e[k]=inp.value==="true";else if(["priority","controlMaxActions","controlMaxQueue"].includes(k))e[k]=Number(inp.value||0);else e[k]=inp.value;refreshAll();});el.onclick=()=>{selectedPreview={kind:"experience",value:e};refreshPreview();};er.appendChild(el);});
   if(!state.worldgens.length)wr.innerHTML='<div class="empty">No worldgen profiles yet.</div>';
   state.worldgens.forEach((w,i)=>{const el=document.createElement("div");el.className="item-card worldgen-card";el.innerHTML=`<div class="item-head"><strong>${esc(fullId(w.id))}</strong><button class="btn small danger" data-del>Remove</button></div><div class="item-body"><div class="dynamic-fields">
-    <div class="field-group-title">World Type</div>${field("Definition ID",textInput(w.id,'data-wf="id"'))}${field("Enabled",boolSelect(w.enabled,'data-wf="enabled"'))}${field("World Type",`<select data-wf="worldType">${["normal","amplified","large_biomes","single_biome","debug","void","flat","superflat","water","fixed_biome_noise","noise"].map(x=>`<option value="${x}"${(w.worldType||"normal")===x?" selected":""}>${x}</option>`).join("")}</select>`,`DAI 1.9.4 friendly generator. Void/water/flat types compile into real startup registry data.`)}${field("World Preset Override",textInput(w.worldPreset||"",'data-wf="worldPreset"'),"Optional raw minecraft/custom preset ID. When set, it overrides the friendly world type for experience creation.")}${field("Biome",textInput(w.biome||"minecraft:plains",'data-wf="biome"'))}${field("Noise Settings",textInput(w.noiseSettings||"minecraft:overworld",'data-wf="noiseSettings"'))}${field("Features",boolSelect(w.features!==false,'data-wf="features"'))}${field("Lakes",boolSelect(w.lakes!==false,'data-wf="lakes"'))}${field("Structures",boolSelect(w.structures!==false,'data-wf="structures"'))}${field("Include Nether",boolSelect(w.includeNether!==false,'data-wf="includeNether"'))}${field("Include End",boolSelect(w.includeEnd!==false,'data-wf="includeEnd"'))}${field("Flat Layers JSON",`<textarea data-wf="layers">${esc(w.layers||"[]")}</textarea>`,`Used by flat/superflat. Array of {block,height}.`)}${field("Water Depth",numberInput(w.waterDepth??60,'min="0" max="384" data-wf="waterDepth"'))}${field("Water Block",textInput(w.waterBlock||"minecraft:water",'data-wf="waterBlock"'))}${field("Floor Block",textInput(w.floorBlock||"minecraft:bedrock",'data-wf="floorBlock"'))}${field("Floor Height",numberInput(w.floorHeight??1,'min="0" max="384" data-wf="floorHeight"'))}${field("Surface Block",textInput(w.surfaceBlock||"minecraft:sand",'data-wf="surfaceBlock"'))}${field("Surface Height",numberInput(w.surfaceHeight??1,'min="0" max="384" data-wf="surfaceHeight"'))}<div class="field-group-title">Spawn & Bootstrap</div>${field("Seed (optional)",textInput(w.seed,'data-wf="seed"'))}${field("Spawn X",numberInput(w.spawnX,'data-wf="spawnX"'))}${field("Spawn Y",numberInput(w.spawnY,'data-wf="spawnY"'))}${field("Spawn Z",numberInput(w.spawnZ,'data-wf="spawnZ"'))}${field("Spawn Yaw",numberInput(w.spawnYaw,'step="0.1" data-wf="spawnYaw"'))}${field("Spawn Pitch",numberInput(w.spawnPitch,'step="0.1" data-wf="spawnPitch"'))}${field("Generation Commands",`<textarea data-wf="generationCommands">${esc(w.generationCommands)}</textarea>`,`One server command per line.`)}${field("Bootstrap Actions",`<textarea data-wf="bootstrapActions">${esc(w.bootstrapActions)}</textarea>`,`Namespaced DAI action IDs, one per line.`)}${field("Initial Structures JSON",`<textarea data-wf="initialStructures">${esc(w.initialStructures)}</textarea>`,`Array of {structure,x,y,z,rotation,mirror}.`)}
+    <div class="field-group-title">World Type</div>${field("Definition ID",textInput(w.id,'data-wf="id"'))}${field("Enabled",boolSelect(w.enabled,'data-wf="enabled"'))}${field("World Type",`<select data-wf="worldType">${["normal","amplified","large_biomes","single_biome","debug","void","flat","superflat","water","fixed_biome_noise","noise"].map(x=>`<option value="${x}"${(w.worldType||"normal")===x?" selected":""}>${x}</option>`).join("")}</select>`,`DAI 1.9.5 friendly generator. Void/water/flat types compile into real startup registry data.`)}${field("World Preset Override",textInput(w.worldPreset||"",'data-wf="worldPreset"'),"Optional raw minecraft/custom preset ID. When set, it overrides the friendly world type for experience creation.")}${field("Biome",textInput(w.biome||"minecraft:plains",'data-wf="biome"'))}${field("Noise Settings",textInput(w.noiseSettings||"minecraft:overworld",'data-wf="noiseSettings"'))}${field("Features",boolSelect(w.features!==false,'data-wf="features"'))}${field("Lakes",boolSelect(w.lakes!==false,'data-wf="lakes"'))}${field("Structures",boolSelect(w.structures!==false,'data-wf="structures"'))}${field("Include Nether",boolSelect(w.includeNether!==false,'data-wf="includeNether"'))}${field("Include End",boolSelect(w.includeEnd!==false,'data-wf="includeEnd"'))}${field("Flat Layers JSON",`<textarea data-wf="layers">${esc(w.layers||"[]")}</textarea>`,`Used by flat/superflat. Array of {block,height}.`)}${field("Water Depth",numberInput(w.waterDepth??60,'min="0" max="384" data-wf="waterDepth"'))}${field("Water Block",textInput(w.waterBlock||"minecraft:water",'data-wf="waterBlock"'))}${field("Floor Block",textInput(w.floorBlock||"minecraft:bedrock",'data-wf="floorBlock"'))}${field("Floor Height",numberInput(w.floorHeight??1,'min="0" max="384" data-wf="floorHeight"'))}${field("Surface Block",textInput(w.surfaceBlock||"minecraft:sand",'data-wf="surfaceBlock"'))}${field("Surface Height",numberInput(w.surfaceHeight??1,'min="0" max="384" data-wf="surfaceHeight"'))}<div class="field-group-title">Spawn & Bootstrap</div>${field("Seed (optional)",textInput(w.seed,'data-wf="seed"'))}${field("Spawn X",numberInput(w.spawnX,'data-wf="spawnX"'))}${field("Spawn Y",numberInput(w.spawnY,'data-wf="spawnY"'))}${field("Spawn Z",numberInput(w.spawnZ,'data-wf="spawnZ"'))}${field("Spawn Yaw",numberInput(w.spawnYaw,'step="0.1" data-wf="spawnYaw"'))}${field("Spawn Pitch",numberInput(w.spawnPitch,'step="0.1" data-wf="spawnPitch"'))}${field("Generation Commands",`<textarea data-wf="generationCommands">${esc(w.generationCommands)}</textarea>`,`One server command per line.`)}${field("Bootstrap Actions",`<textarea data-wf="bootstrapActions">${esc(w.bootstrapActions)}</textarea>`,`Namespaced DAI action IDs, one per line.`)}${field("Initial Structures JSON",`<textarea data-wf="initialStructures">${esc(w.initialStructures)}</textarea>`,`Array of {structure,x,y,z,rotation,mirror}.`)}
   </div></div>`;el.querySelector('[data-del]').onclick=()=>{state.worldgens.splice(i,1);renderExperiences();refreshAll();};el.querySelectorAll('[data-wf]').forEach(inp=>inp.oninput=()=>{const k=inp.dataset.wf;if(["enabled","features","lakes","structures","includeNether","includeEnd"].includes(k))w[k]=inp.value==="true";else if(["spawnX","spawnY","spawnZ","spawnYaw","spawnPitch","waterDepth","floorHeight","surfaceHeight"].includes(k))w[k]=Number(inp.value||0);else w[k]=inp.value;refreshAll();});el.onclick=()=>{selectedPreview={kind:"worldgen",value:w};refreshPreview();};wr.appendChild(el);});
 }
 function boolSelect(v,attrs=""){return `<select ${attrs}><option value="true"${v?" selected":""}>true</option><option value="false"${!v?" selected":""}>false</option></select>`;}
@@ -1015,7 +1021,7 @@ if($("#addExperienceStarter"))$("#addExperienceStarter").onclick=()=>{const w=bl
 
 function renderRuntimeDefinitions(){
   const root=$("#runtimeDefinitionList");if(!root)return;root.innerHTML="";
-  if(!state.runtimeDefinitions.length){root.innerHTML='<div class="empty">No managed runtime definitions yet. Add a core runtime definition or one of the 19 DAI 1.9.4 game-customization registries.</div>';return;}
+  if(!state.runtimeDefinitions.length){root.innerHTML='<div class="empty">No managed runtime definitions yet. Add a core runtime definition or one of the 19 DAI 1.9.5 game-customization registries.</div>';return;}
   state.runtimeDefinitions.forEach((d,di)=>{
     const spec=RUNTIME_DEFINITION_TYPES[d.type]||RUNTIME_DEFINITION_TYPES.recipe;
     const el=document.createElement("div");el.className="item-card runtime-definition-card";
@@ -1066,6 +1072,11 @@ function generatedFiles(){
     meta.pack={...(meta.pack||{}),description:state.pack.description,pack_format:Number(state.pack.resourceFormat||48)};
     delete meta.pack.min_format;
     delete meta.pack.max_format;
+    const daiMeta=meta.dai && typeof meta.dai==="object" && !Array.isArray(meta.dai) ? {...meta.dai} : {};
+    delete daiMeta.auto_enable; delete daiMeta.autoEnable; delete daiMeta.companion_id; delete daiMeta.companionId;
+    if(state.pack.companionAutoEnable) daiMeta.auto_enable=true;
+    if(String(state.pack.companionId||"").trim()) daiMeta.companion_id=String(state.pack.companionId).trim();
+    if(Object.keys(daiMeta).length) meta.dai=daiMeta; else delete meta.dai;
     files["pack.mcmeta"]=JSON.stringify(meta,null,2)+"\n";
     if(state.packIcon) files["pack.png"]=state.packIcon;
     Object.entries(state.resourceFiles||{}).forEach(([path,data])=>{
@@ -1402,7 +1413,7 @@ function validateOverlay(s,path,issues,objectiveIds,animated=false){
 
 function validateAction(a,path,issues,objectiveIds){
   if(!a.type)issues.push({level:"err",message:`${path}: action type is missing.`});
-  if(!actionMap.has(a.type))issues.push({level:"warn",message:`${path}: unknown/imported action type '${a.type}' is preserved but cannot be fully validated by this DAI 1.9.4 creator catalog.`});
+  if(!actionMap.has(a.type))issues.push({level:"warn",message:`${path}: unknown/imported action type '${a.type}' is preserved but cannot be fully validated by this DAI 1.9.5 creator catalog.`});
 
   const needsAction=["enqueue_action","run_if_success","run_if_failure","objective_execute","recognize_block","run_command","run_server_command","server_run_function","server_set_block","server_give_item","server_take_item","set_gamemode","key_click","key_press","key_release","remember_waypoint","remember_target_waypoint","select_waypoint","forget_waypoint","forget_failed_waypoint","craft_recipe","overlay_remove"];
   if(needsAction.includes(a.type) && !String(a.action||"").trim())issues.push({level:"err",message:`${path}: '${a.type}' requires an action/string payload.`});
@@ -1808,6 +1819,10 @@ function importResourcePackFiles(files,sourceLabel="resource_pack"){
       next.pack.description=mc.pack.description??"";
       next.pack.resourceFormat=Number(mc.pack.pack_format??48);
     }
+    if(mc.dai && typeof mc.dai==="object"){
+      next.pack.companionAutoEnable = mc.dai.auto_enable===true || mc.dai.autoEnable===true;
+      next.pack.companionId = String(mc.dai.companion_id??mc.dai.companionId??"");
+    }
   }
 
   const counts={};
@@ -1865,6 +1880,7 @@ $("#newResourcePack").onclick=()=>{
   state=freshState("resourcepack");
   state.pack.name="My Resource Pack";
   state.pack.description="A custom Minecraft resource pack for Decisions and Impulses.";
+  state.pack.companionAutoEnable=true;
   selectedPreview={kind:"project"};renderAll();switchView("pack");showValidation([]);
 };
 
@@ -1887,7 +1903,7 @@ $("#exportZip").onclick=exportPack;
 $("#quickExport").onclick=exportPack;
 
 
-// ---- DAI 1.9.4 Browser Gameplay Tester ------------------------------------
+// ---- DAI 1.9.5 Browser Gameplay Tester ------------------------------------
 const tester={running:true,built:false,keys:new Set(),last:0,player:{x:450,y:260,health:20,food:20,slot:0,dimension:""},entities:[],dimensions:[],log:[],overlay:"",uiMode:"none"};
 function testerParse(text,fallback={}){try{return JSON.parse(String(text||"{}"));}catch{return fallback;}}
 function testerLog(message,kind="info"){
