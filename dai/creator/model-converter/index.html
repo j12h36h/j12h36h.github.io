@@ -74,7 +74,8 @@
 <div><strong>Minecraft JSON</strong><span>elements, cuboid bounds, rotations, faces, UV data, textures and display metadata.</span></div>
 <div><strong>Blockbench / GeckoLib</strong><span>bones, pivots, rotations, cube geometry, hierarchy and texture dimensions when present.</span></div>
 <div><strong>Wavefront OBJ</strong><span>vertices, texture coordinates, normals, object/group names, materials and polygon faces. Polygons are triangulated without discarding the original material/group assignment.</span></div>
-<div class="warning-note"><strong>OBJ mesh compatibility</strong><span>OBJ is arbitrary triangle geometry, not Minecraft cuboids. The converter therefore emits <code>geometry.type = "mesh"</code>. A DAI runtime build must support mesh geometry to render that output directly; the website does not silently voxelize or destroy the source mesh.</span></div>
+<div class="warning-note"><strong>OBJ mesh compatibility</strong><span>OBJ is arbitrary triangle geometry, not Minecraft cuboids. The converter therefore emits <code>geometry.type = "mesh"</code>. DAI native-mesh runtime builds render this <code>geometry.type = "mesh"</code> output directly. Put the downloaded <code>.dai.json</code> in <code>assets/&lt;namespace&gt;/dai/models/</code>. Older DAI builds without native-mesh support will leave the native entity on its existing presentation path.</span></div>
+<div><strong>Texture convention</strong><span>If the model JSON has no <code>texture</code> field, DAI looks for <code>assets/&lt;namespace&gt;/textures/dai/models/&lt;model-id&gt;.png</code>; if that is absent, the mesh renders with DAI's built-in white fallback texture.</span></div>
 </div>
 </div>
 </div>

@@ -270,7 +270,7 @@ function switchView(view){
   selectedPreview = {kind:view};
   refreshPreview();
 }
-$$(".nav-btn").forEach(b => b.addEventListener("click",()=>switchView(b.dataset.view)));
+$$(".nav-btn[data-view]").forEach(b => b.addEventListener("click",()=>switchView(b.dataset.view)));
 $$('[data-jump]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.jump)));
 if($("#creatorNavSearch"))$("#creatorNavSearch").addEventListener("input",e=>{
   const q=e.target.value.trim().toLowerCase();
@@ -2009,5 +2009,4 @@ function init(){
 }
 init();
 
-$("#openModelConverter")?.addEventListener("click",()=>{ window.location.href="model-converter/"; });
 })();
