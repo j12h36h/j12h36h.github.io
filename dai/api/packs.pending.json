@@ -73,5 +73,5 @@
       ]
     }
   ],
-  "note": "STAGING ONLY — not consumed by the live in-game browser. This staging catalog currently mirrors the live registry; add future unapproved entries here before promotion."
+  "note": "STAGING ONLY — not consumed by the live in-game browser. This staging catalog mirrors the current live registry. Hollow Spiral should be added here/live only when its public CurseForge component file IDs are available."
 }

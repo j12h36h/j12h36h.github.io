@@ -1,61 +1,86 @@
 <!DOCTYPE html>
 
-<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><title>DAI 1.9.5 Information</title><meta content="DAI 1.9.5 architecture, global datapacks, experience UI ownership, and capabilities." name="description"/><link href="../assets/css/site.css" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a aria-current="page" class="active" href="/dai/info/">Info</a><a href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header><main><section class="page-title"><div class="eyebrow">DAI 1.9.5</div><h1>A JSON Game Framework for Minecraft</h1><p>Decisions and Impulses provides reusable runtime capabilities for building Minecraft games from data. DAI 1.9.5 adds native JSON entities, custom entity AI/hitboxes, layered addons, and player/creator control boundaries on top of the existing client/server game framework.</p></section><div class="version-banner"><strong>Current in 1.9.5:</strong> native JSON entities and AI, one-main-plus-unlimited-addon loading, expanded player configuration, creator-authored control ceilings, config-aware conditions, automatic old-config migration, and full compatibility with legacy DAI packs.</div>
-<section class="section"><h2>Engine, Not One Fixed Game Mode</h2><div class="code"><pre>DAI Java Runtime = reusable engine + side-safe execution
-Datapack = gameplay, logic, state, world rules
-Resource Pack = textures, models, sounds, presentation assets
-Creator = visual editor + universal pack/file builder</pre></div><p>That means a third-party pack can be a tiny automation, a UI system, a custom content library, or an entire standalone Minecraft experience without requiring experience-specific Java.</p></section>
-<section class="section"><h2>Global Datapacks: Main Experiences + Addons</h2><p>DAI 1.9.5 treats <code>&lt;gameDir&gt;/datapacks/</code> as a game library with roles instead of assuming every DAI pack competes for the same slot.</p><div class="code"><pre>Global /datapacks/
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><title>DAI 1.9.7 Information</title><meta content="DAI 1.9.7 architecture, global datapacks, experience UI ownership, and capabilities." name="description"/><link href="../assets/css/site.css" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a aria-current="page" class="active" href="/dai/info/">Info</a><a href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header><main>
+<section class="page-title"><div class="eyebrow">DAI 1.9.7</div><h1>A JSON Game Framework for Minecraft</h1><p>Decisions and Impulses turns datapacks, resource packs and JSON into a reusable game-development layer. DAI 1.9.7 expands the framework around native Minecraft registries, Data Components, reusable natural generation, custom worlds and full MAIN-experience presentation.</p></section>
+<div class="version-banner"><strong>Current in 1.9.7:</strong> one MAIN + unlimited ADDON stacks, native JSON entities and AI, native item Data Components, open Mojang registry/data bridges, runtime capability discovery, natural structures/features/spawns, native biomes/dimensions/environment attributes, automatic companion resources, and complete experience branding from early startup through world entry.</div>
+
+<section class="section"><h2>Engine, Not One Fixed Game Mode</h2><div class="code"><pre>DAI JSON → friendly reusable abstraction
+        ↓
+Minecraft / NeoForge native capability when available
+        ↓
+Generic DAI runtime primitive only when necessary
+        ↓
+Pack-specific behavior stays in the datapack</pre></div><p>The framework is intentionally moving away from reimplementing systems Minecraft already exposes. A pack can be a tiny addon, a content library, a UI layer, an automation system or a complete standalone game.</p></section>
+
+<section class="section"><h2>Global Datapacks: One MAIN + Unlimited Addons</h2><p><code>&lt;gameDir&gt;/datapacks/</code> acts as DAI's global game library. One MAIN experience may own the launched save and presentation while any number of ADDON packs contribute reusable systems.</p><div class="code"><pre>Global /datapacks/
 ├─ MyGame.zip                → MAIN
 ├─ DamageIndicators.zip      → ADDON
 ├─ ComicEffects.zip          → ADDON
-└─ ordinary_pack.zip         → UNMANAGED</pre></div><p>Only one DAI <strong>main</strong> experience owns a launched game/save. There is no engine-imposed count limit on <strong>addons</strong>. The launcher builds one combined stack and performs one resource reload.</p><div class="notice"><strong>Role declaration is optional.</strong> New packs can use a <code>dai.role</code> field in <code>pack.mcmeta</code>. Legacy DAI packs with an experience or title-screen definition are inferred as main; other legacy DAI content packs are inferred as addons.</div></section>
-<section class="section"><h2>Client / Common / Server</h2><div class="architecture"><div class="lane"><h3>Client</h3><p>Input, camera, player automation, menus, title screens, overlays, recognition, presentation, client-local action/condition data and optional server bridge.</p></div><div class="bridge">↔</div><div class="lane"><h3>Server</h3><p>Worldgen, experience persistence, authoritative functions, block mutation, inventory mutation, server access policy and registry preflight.</p></div></div><div class="notice"><strong>Shared/common definitions</strong> stay side-neutral: codecs, content definitions, registries, payload records, reaction definitions and other data models can be used without loading physical-client classes on a headless server.</div></section>
-<section class="section"><h2>Server-Authoritative JSON Actions</h2><p>DAI 1.8 distinguishes ordinary player commands from actions that require server ownership.</p><div class="grid two"><div class="card"><h3>Player authority</h3><p><code>run_command</code> behaves like the player typed a normal command. Server permissions still apply.</p></div><div class="card"><h3>DAI server authority</h3><p><code>server_run_function</code>, <code>server_set_block</code>, <code>server_break_block</code>, <code>server_give_item</code> and <code>server_take_item</code> execute through the DAI server layer when available.</p></div></div><div class="notice warning">Privileged client-originated mutation is intentionally restricted on dedicated servers. Integrated singleplayer can trust its local DAI client; multiplayer experiences should use server-approved capabilities rather than arbitrary remote privilege.</div></section>
-<section class="section"><h2>Client-Only Compatibility</h2><p>DAI-specific payloads are optional. The client checks whether the connected server negotiated DAI support before sending authoritative requests. If the server does not expose DAI, client automation and presentation can continue operating where they do not require server authority.</p><div class="chip-row"><span class="chip">dai_server_available</span><span class="chip">server_dai_available</span><span class="chip">server_authority_available</span></div></section>
-<section class="section"><h2>Launchable Experiences</h2><p>Experience definitions can own a save, choose whether to create/load it, select a DAI worldgen profile, define first-join and resume actions, and control experience UI behavior. In 1.9.5 an experience can own the grave/backtick key with explicit open/close actions and an anchor overlay, so a complete game can replace DAI's generic menu cleanly. Worldgen profiles can select a normal Minecraft world preset, seed, spawn, structures, generation commands and bootstrap actions.</p><div class="code"><pre>Title Screen / Experience Entry
-        ↓
-DAI Experience Definition
-        ↓
-Save + Worldgen Profile
-        ↓
-Server Bootstrap
-        ↓
-First Join or Resume Action
-        ↓
-Client UI + Server-Owned Gameplay</pre></div></section><section class="section"><h2>Player Preferences + Creator Ceilings</h2><p>DAI 1.9.5 exposes a deliberately focused set of framework controls: autonomous automation, movement, combat, world editing, action rate, queue size, addon auto-enable, managed resource packs, custom title screens and overlay opacity.</p><div class="architecture"><div class="lane"><h3>Player Config</h3><p>Defines the maximum amount of autonomous control and presentation the player permits.</p></div><div class="bridge">∩</div><div class="lane"><h3>Experience Controls</h3><p>The main game may restrict automation or lower performance caps, but cannot enable something the player disabled.</p></div></div><div class="code"><pre>"controls": {
-  "automation": true,
-  "automation_movement": true,
-  "automation_combat": true,
-  "automation_world_editing": true,
-  "max_actions_per_second": 10,
-  "max_action_queue_size": 128
-}</pre></div><p>Older experience definitions omit <code>controls</code> and receive permissive legacy defaults.</p></section>
-<section class="section"><h2>Custom Content &amp; Registries</h2><p>DAI can load datapack-defined content identities for items, blocks, weapons, armor, effects, potions, projectiles, particles, enchantments and entities, plus attributes and animations. Legacy carrier-backed definitions remain supported, while entities may now opt into a fully native DAI physical type.</p><div class="notice"><strong>Native registry content is startup-sensitive.</strong> EntityType dimensions and other registry-backed definitions are created during startup. Behavior sequences and other reloadable JSON can still be iterated much more quickly.</div></section><section class="section"><h2>Native JSON Entities</h2><p>A native DAI entity does not need to inherit a Zombie, Skeleton, Spider or other vanilla species class. The datapack defines the real entity dimensions, attributes and behavior sequence; the generic DAI entity engine supplies Minecraft physics, networking and lifecycle integration.</p><div class="code"><pre>{
+└─ ordinary_pack.zip         → UNMANAGED</pre></div><div class="notice"><strong>Backwards compatible:</strong> explicit <code>dai.role</code> metadata is optional. Older packs that never declared a role continue through legacy inference.</div></section>
+
+<section class="section"><h2>Client / Common / Server</h2><div class="architecture"><div class="lane"><h3>Client</h3><p>Input, camera, menus, title screens, overlays, loading presentation, application branding, recognition and client-facing automation.</p></div><div class="bridge">↔</div><div class="lane"><h3>Server</h3><p>Worldgen, persistence, authoritative functions, block/inventory mutation, natural generation/spawning, registry preflight and generated server-data packs.</p></div></div><div class="notice"><strong>Common definitions stay side-safe.</strong> JSON models, registries and payload records are kept away from physical-client classes so the same content remains usable on integrated and dedicated servers.</div></section>
+
+<section class="section"><h2>Open Mojang Registry + Data Bridge</h2><p>DAI 1.9.7 can compile JSON directly into Minecraft's native registry/data locations instead of creating a parallel DAI engine for every Mojang system.</p><div class="chip-row"><span class="chip">dialogs</span><span class="chip">enchantments</span><span class="chip">paintings</span><span class="chip">songs</span><span class="chip">instruments</span><span class="chip">trades</span><span class="chip">variants</span><span class="chip">worldgen</span></div><div class="code"><pre>data/my_pack/dai_registry/example.json
+{
+  "registry": "damage_type",
+  "raw": {
+    "message_id": "example",
+    "exhaustion": 0.1,
+    "scaling": "never"
+  }
+}</pre></div><p><code>dai_registry</code> targets arbitrary registry paths and <code>dai_data</code> targets arbitrary server-data paths. Dedicated friendly folders also exist for common Mojang registries and native recipes, loot tables, advancements, predicates and item modifiers.</p></section>
+
+<section class="section"><h2>Native Data Components + Runtime Discovery</h2><p>Registry-backed DAI items can define a <code>components</code> (or explicit <code>native_components</code>) object. DAI resolves the registered Minecraft <code>DataComponentType</code> and decodes the authored JSON with that component's codec.</p><div class="code"><pre>{
+  "registry_backed": true,
+  "native_registry": "item",
+  "components": {
+    "minecraft:max_stack_size": 1,
+    "minecraft:enchantment_glint_override": true
+  }
+}</pre></div><p>At runtime DAI also writes <code>config/decisions_and_impulses/capabilities.json</code> containing discovered Minecraft registry keys, built-in Data Components and direct DAI→Mojang bridge folders. Creator tools can inspect the engine instead of hardcoding every future Mojang addition.</p></section>
+
+<section class="section"><h2>Native JSON Entities, AI &amp; Natural Spawning</h2><p>Carrierless registry-backed DAI entities define their actual dimensions, attributes, behavior sequence and spawn policy. Legacy carrier-backed entities remain supported.</p><div class="code"><pre>{
   "registry_backed": true,
   "native_registry": "entity",
   "native_attributes": {
     "minecraft:max_health": 30.0,
-    "minecraft:movement_speed": 0.28,
-    "minecraft:attack_damage": 5.0
+    "minecraft:movement_speed": 0.28
   },
   "entity": {
     "category": "monster",
     "width": 1.15,
     "height": 1.35,
-    "behavior_sequence": "example:native_hunter_behavior",
-    "behavior_interval": 2,
-    "vanilla_ai": false
+    "behavior_sequence": "example:hunter_ai",
+    "vanilla_ai": false,
+    "spawning": {
+      "natural": true,
+      "dimensions": ["minecraft:overworld"],
+      "placement": "on_ground",
+      "min_group": 1,
+      "max_group": 3,
+      "cap_per_player": 6
+    }
   }
-}</pre></div><div class="chip-row"><span class="chip">target_player</span><span class="chip">look_at_target</span><span class="chip">move_to_target</span><span class="chip">melee_attack</span><span class="chip">flee_player</span><span class="chip">wander</span></div></section>
-<section class="section"><h2>DAI 1.9.5 Game Customization Layer</h2><p>DAI 1.9.5 includes 19 open-ended JSON registries above Minecraft's native data primitives: <code>dai_sounds</code>, <code>dai_music</code>, <code>dai_hud</code>, <code>dai_render_profiles</code>, <code>dai_structures</code>, <code>dai_features</code>, <code>dai_loot</code>, <code>dai_currencies</code>, <code>dai_shops</code>, <code>dai_dialogues</code>, <code>dai_quests</code>, <code>dai_factions</code>, <code>dai_biomes</code>, <code>dai_dimensions</code>, <code>dai_rules</code>, <code>dai_vehicles</code>, <code>dai_interactives</code>, <code>dai_fluids</code> and <code>dai_environments</code>.</p><div class="notice"><strong>Composition instead of duplicate engines.</strong> Vanilla-owned structures, features, loot, biomes, dimensions, sounds and entity types remain vanilla resource IDs. DAI definitions wrap them with state, events, actions, functions, commands and presentation so packs remain JSON-driven.</div></section><section class="section"><h2>Creator-Facing Systems</h2><div class="capability-grid"><div class="capability"><strong>Actions &amp; Flow</strong><span>Sequences, nested actions, queues, fallbacks, barriers and result-based routing.</span></div><div class="capability"><strong>Perception</strong><span>Conditions, recognition groups, structural recognition and nearby recognition.</span></div><div class="capability"><strong>Presentation</strong><span>Menus, title screens, overlays, sprite sheets, reactions and resource assets.</span></div><div class="capability"><strong>Advanced Data</strong><span>Experiences, worldgen, attributes, animations, recipes, screen profiles, reaction events, 19 game-customization registries and arbitrary Minecraft data files.</span></div></div></section>
-<section class="section"><div class="section-kicker">DAI 1.9.5</div><h2>Managed + Companion Resource-Pack Lifecycle</h2><p>DAI now supports two automatic resource-pack paths. Packs installed through the Official Packs system use stable <code>dai_managed:*</code> repository IDs. Normal ZIPs in <code>&lt;gameDir&gt;/resourcepacks/</code> can also be treated as DAI companions.</p><div class="grid two"><div class="card"><h3>Automatic companion detection</h3><p>A normal resource pack is considered a companion when its <code>assets/&lt;namespace&gt;/</code> namespace matches a namespace exposed by a datapack in DAI's global library, or when <code>pack.mcmeta</code> explicitly sets <code>dai.auto_enable</code>.</p></div><div class="card"><h3>Stable update identity</h3><p>Use <code>dai.companion_id</code> when you want an explicit stable identity. DAI remembers the previously selected <code>file/...</code> entry, removes that owned filename after an update, and selects the newest matching companion.</p></div></div><div class="code"><pre>{
-  "pack": {
-    "pack_format": 48,
-    "description": "My Experience Resource Pack"
-  },
-  "dai": {
-    "auto_enable": true,
-    "companion_id": "my_experience"
-  }
-}</pre></div><div class="notice"><strong>User-safe selection:</strong> DAI reconciles both Minecraft's saved <code>options.txt</code> selection and the live client Options object, while only removing resource-pack IDs that DAI previously owned. Unrelated user-selected packs remain alone.</div></section><section class="section"><div class="section-kicker">DAI 1.9.5</div><h2>Portals, Dimensions &amp; Standalone Addons</h2><p class="section-lead">Native JSON entities can now carry movement and portal profiles; DAI can compile high-level custom dimension/world-type definitions into startup registry data; and ADDON packs can run in ordinary worlds without requiring a MAIN experience.</p></section></main><footer class="footer">Decisions and Impulses · JSON-driven Minecraft game framework</footer></body></html>
+}</pre></div><div class="chip-row"><span class="chip">target_player</span><span class="chip">chase_target</span><span class="chip">melee_attack</span><span class="chip">wander</span><span class="chip">flee_player</span><span class="chip">entity_has_target</span><span class="chip">entity_target_distance</span></div></section>
+
+<section class="section"><h2>Reusable Natural Structures &amp; Features</h2><p><code>dai_structures</code> and <code>dai_features</code> can opt into generic natural generation. Placement is deterministic from the world seed and chunk coordinates and supports spacing/separation, frequency, dimension and biome filters, surface/cave/ocean/fixed/random Y placement, rotation, mirroring and persistent placement markers.</p><div class="notice"><strong>Reusable primitive:</strong> games no longer need their own tick-loop just to scatter authored structures or features across a world.</div></section>
+
+<section class="section"><h2>Native Biomes, Dimension Types, Timelines &amp; Dimensions</h2><p><code>dai_biomes</code>, <code>dai_dimension_types</code>, <code>dai_timelines</code> and <code>dai_dimensions</code> compile into Minecraft-native server data. Advanced authors can use friendly fields, raw/native bases or the open bridge for the underlying Mojang format.</p><p>Environment attributes can describe sky/fog/cloud/light/celestial presentation, including cloud height, star brightness, sun/moon angles and other native environment controls. Multi-noise biome sources and custom world presets are supported as part of the generated world-data path.</p></section>
+
+<section class="section"><h2>Complete MAIN Experience Branding</h2><p>A MAIN experience may provide its own window title, application/taskbar icon, FML early-startup theme, Minecraft resource-reload loading screen, world-generation/terrain-loading presentation and DAI title screen. Assets stay in the companion resource pack.</p><div class="code"><pre>JVM launch
+  ↓ FancyModLoader early theme
+DAI / Minecraft resource reload
+  ↓ MAIN loading presentation
+DAI title / save entry
+  ↓
+World generation + terrain loading
+  ↓ MAIN world_loading presentation
+Gameplay</pre></div><div class="notice"><strong>Early-startup timing:</strong> normal DAI Java initializes after FML's earliest display. DAI synchronizes the active MAIN theme into <code>config/fml/</code>, so a newly discovered MAIN becomes the early startup theme on the next JVM launch.</div></section>
+
+<section class="section"><h2>Experience Ownership &amp; Player Controls</h2><p>Experience definitions can own a save, choose/create/load it, select worldgen, run first-join/resume actions, own the grave/backtick UI, define branding and place a creator-authored ceiling over optional automation. The player's own configuration always remains the upper permission boundary.</p></section>
+
+<section class="section"><h2>Managed + Companion Resource-Pack Lifecycle</h2><p>Official Packs can use stable <code>dai_managed:*</code> repository IDs, while normal ZIPs in <code>/resourcepacks</code> can auto-enable through namespace matching or explicit <code>dai.auto_enable</code> / <code>dai.companion_id</code>. DAI replaces stale versioned filenames while preserving unrelated user-selected packs.</p><div class="code"><pre>{
+  "pack": { "pack_format": 48, "description": "My Experience" },
+  "dai": { "auto_enable": true, "companion_id": "my_experience" }
+}</pre></div></section>
+</main><footer class="footer">Decisions and Impulses · JSON-driven Minecraft game framework</footer></body></html>
