@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>DAI Model Converter · JSON / OBJ → DAI JSON</title>
+<meta content="Client-side model converter for Decisions and Impulses. Convert Minecraft JSON, Blockbench/GeckoLib JSON, and OBJ meshes into normalized DAI model JSON." name="description"/>
+<link href="../../assets/css/site.css" rel="stylesheet"/>
+<link href="assets/converter.css" rel="stylesheet"/>
+</head>
+<body>
+<header class="site-header"><nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a href="/dai/guides/">Guides</a><a aria-current="page" class="active" href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header>
+<main class="converter-main">
+<section class="page-title converter-title">
+<div><div class="eyebrow">DAI CREATOR TOOL // LOCAL CONVERSION</div><h1>Model Converter</h1><p>Convert common Minecraft model JSON, Blockbench/GeckoLib geometry, or Wavefront <code>.obj</code> files into a single normalized DAI model JSON format. Everything runs in your browser; model files are not uploaded anywhere.</p></div>
+<div class="title-actions"><a class="button" href="../">← Universal Creator</a><span class="format-badge">DAI MODEL / 1.0</span></div>
+</section>
+
+<section class="converter-grid">
+<div class="converter-column">
+<div class="tool-panel">
+<div class="tool-panel-head"><div><span class="system-tag">01 // SOURCE</span><strong>Drop a model</strong></div><span id="detectedBadge" class="state-badge idle">Waiting</span></div>
+<div class="tool-panel-body">
+<label class="drop-zone" id="dropZone" for="modelFile" tabindex="0">
+<input id="modelFile" type="file" accept=".json,.geo.json,.bbmodel,.obj,application/json,text/plain" hidden/>
+<span class="drop-icon">⬡</span><strong>Drop JSON / BBMODEL / OBJ here</strong><span>or click to choose a file</span><small>Minecraft JSON · Blockbench · GeckoLib · DAI JSON · Wavefront OBJ</small>
+</label>
+<div class="source-meta" id="sourceMeta"><span>No source loaded.</span></div>
+<div class="input-tabs" role="tablist"><button class="input-tab active" id="fileTab" type="button">File</button><button class="input-tab" id="pasteTab" type="button">Paste Text</button></div>
+<div id="pasteArea" hidden><textarea id="sourceText" class="code-input" spellcheck="false" placeholder="Paste model JSON or OBJ text here…"></textarea><div class="inline-actions"><button class="button" id="parsePaste" type="button">Parse Text</button><button class="button" id="sampleObj" type="button">Load OBJ Sample</button><button class="button" id="sampleJson" type="button">Load JSON Sample</button></div></div>
+</div>
+</div>
+
+<div class="tool-panel">
+<div class="tool-panel-head"><div><span class="system-tag">02 // OUTPUT IDENTITY</span><strong>DAI model settings</strong></div></div>
+<div class="tool-panel-body form-layout">
+<label><span>Namespace</span><input id="namespace" value="my_pack" autocomplete="off"/></label>
+<label><span>Model ID</span><input id="modelId" value="custom_model" autocomplete="off"/></label>
+<label><span>OBJ Scale</span><input id="objScale" type="number" value="1" step="0.01"/></label>
+<label><span>OBJ Up Axis</span><select id="objUp"><option value="y" selected>Y Up (Blender OBJ default)</option><option value="z">Z Up</option></select></label>
+<label class="check-field"><input id="centerHorizontal" type="checkbox" checked/><span>Center OBJ on X/Z</span></label>
+<label class="check-field"><input id="groundModel" type="checkbox" checked/><span>Move OBJ feet to Y = 0</span></label>
+<label class="check-field"><input id="flipV" type="checkbox" checked/><span>Flip OBJ V texture coordinate</span></label>
+<label class="check-field"><input id="keepSource" type="checkbox" checked/><span>Keep source metadata</span></label>
+</div>
+<div class="tool-panel-body action-row"><button class="button primary" id="convertBtn" type="button" disabled>Convert to DAI JSON</button><button class="button" id="resetBtn" type="button">Reset</button></div>
+</div>
+
+<div class="tool-panel">
+<div class="tool-panel-head"><div><span class="system-tag">03 // REPORT</span><strong>Conversion report</strong></div></div>
+<div class="tool-panel-body"><div id="report" class="report"><div class="report-row muted"><b>•</b><span>Load a model to inspect it.</span></div></div></div>
+</div>
+</div>
+
+<div class="converter-column output-column">
+<div class="tool-panel preview-panel">
+<div class="tool-panel-head"><div><span class="system-tag">PREVIEW</span><strong>Geometry wireframe</strong></div><span id="previewHint">drag to rotate</span></div>
+<div class="preview-wrap"><canvas id="previewCanvas" width="900" height="560" aria-label="Model wireframe preview"></canvas><div class="preview-empty" id="previewEmpty">NO GEOMETRY LOADED</div></div>
+<div class="preview-controls"><button class="button" id="resetView" type="button">Reset View</button><span id="previewStats">0 vertices · 0 faces</span></div>
+</div>
+
+<div class="tool-panel output-panel">
+<div class="tool-panel-head"><div><span class="system-tag">DAI JSON</span><strong>Converted output</strong></div><span id="outputState" class="state-badge idle">Not generated</span></div>
+<div class="output-toolbar"><button class="button" id="copyBtn" type="button" disabled>Copy JSON</button><button class="button success" id="downloadBtn" type="button" disabled>Download .json</button></div>
+<pre id="outputJson" class="output-json">{
+  "format": "dai:model/1.0",
+  "status": "waiting_for_source"
+}</pre>
+</div>
+
+<div class="tool-panel compatibility-panel">
+<div class="tool-panel-head"><div><span class="system-tag">FORMAT NOTES</span><strong>What gets preserved</strong></div></div>
+<div class="tool-panel-body format-notes">
+<div><strong>Minecraft JSON</strong><span>elements, cuboid bounds, rotations, faces, UV data, textures and display metadata.</span></div>
+<div><strong>Blockbench / GeckoLib</strong><span>bones, pivots, rotations, cube geometry, hierarchy and texture dimensions when present.</span></div>
+<div><strong>Wavefront OBJ</strong><span>vertices, texture coordinates, normals, object/group names, materials and polygon faces. Polygons are triangulated without discarding the original material/group assignment.</span></div>
+<div class="warning-note"><strong>OBJ mesh compatibility</strong><span>OBJ is arbitrary triangle geometry, not Minecraft cuboids. The converter therefore emits <code>geometry.type = "mesh"</code>. A DAI runtime build must support mesh geometry to render that output directly; the website does not silently voxelize or destroy the source mesh.</span></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="footer">Decisions and Impulses · DAI model conversion runs locally in your browser</footer>
+<script src="assets/converter.js"></script>
+</body>
+</html>

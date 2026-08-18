@@ -2009,4 +2009,5 @@ function init(){
 }
 init();
 
+$("#openModelConverter")?.addEventListener("click",()=>{ window.location.href="model-converter/"; });
 })();
