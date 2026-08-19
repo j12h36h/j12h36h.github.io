@@ -45,33 +45,7 @@
           "sha256": ""
         }
       ]
-    },
-    {
-      "id": "decisions_and_impulses:tamacrafti",
-      "name": "TamaCrafti",
-      "summary": "A cozy DAI-powered virtual-pet experience with persistent care, farming, automatic home setup, custom UI, and a companion HD resource pack.",
-      "version": "2.2.1",
-      "type": "combo",
-      "featured": true,
-      "info_url": "https://j12h36h.github.io/dai/packs/#tamacrafti",
-      "icon_item": "minecraft:carrot",
-      "components": [
-        {
-          "id": "tamacrafti_data",
-          "type": "datapack",
-          "curseforge_file_id": 8655268,
-          "file_name": "TamaCrafti_Datapack_v2.2.1_GraveToggle.zip",
-          "sha256": ""
-        },
-        {
-          "id": "tamacrafti_resource",
-          "type": "resource_pack",
-          "curseforge_file_id": 8655278,
-          "file_name": "TamaCrafti_ResourcePack_v2.0.3_HD.zip",
-          "sha256": ""
-        }
-      ]
     }
   ],
-  "note": "STAGING ONLY — not consumed by the live in-game browser. This staging catalog mirrors the current live registry. Hollow Spiral should be added here/live only when its public CurseForge component file IDs are available."
+  "note": "STAGING ONLY — not consumed by the live in-game browser. This staging catalog mirrors the current live ADDON-only registry. MAIN experiences are intentionally excluded."
 }
