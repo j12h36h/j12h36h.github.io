@@ -965,7 +965,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_event",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "direction",
         "action",
@@ -973,11 +973,11 @@ window.DAI_CREATOR_CATALOG = {
         "target",
         "value"
       ],
-      "purpose": "Dispatch an event to a DAI 1.9.7 customization definition. direction=kind, action=definition id, open=event name, target=runtime payload/position, value=numeric payload."
+      "purpose": "Dispatch an event to a DAI 1.9.8 customization definition. direction=kind, action=definition id, open=event name, target=runtime payload/position, value=numeric payload."
     },
     {
       "id": "customization_activate",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "direction",
         "action",
@@ -985,11 +985,11 @@ window.DAI_CREATOR_CATALOG = {
         "target",
         "value"
       ],
-      "purpose": "Activate a DAI 1.9.7 customization definition and dispatch activate (or the event named in open)."
+      "purpose": "Activate a DAI 1.9.8 customization definition and dispatch activate (or the event named in open)."
     },
     {
       "id": "customization_deactivate",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "direction",
         "action",
@@ -997,11 +997,11 @@ window.DAI_CREATOR_CATALOG = {
         "target",
         "value"
       ],
-      "purpose": "Deactivate a DAI 1.9.7 customization definition and dispatch deactivate (or the event named in open)."
+      "purpose": "Deactivate a DAI 1.9.8 customization definition and dispatch deactivate (or the event named in open)."
     },
     {
       "id": "sound_play",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target",
@@ -1011,7 +1011,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "sound_stop",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1019,7 +1019,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "music_play",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target",
@@ -1029,7 +1029,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "music_stop",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1037,7 +1037,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "hud_show",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1045,7 +1045,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "hud_hide",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1053,7 +1053,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "render_profile_apply",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1062,7 +1062,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "render_profile_clear",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1070,7 +1070,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "structure_place",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1079,7 +1079,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "feature_place",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1088,7 +1088,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "loot_grant",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target",
@@ -1098,7 +1098,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "currency_add",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "value"
@@ -1107,7 +1107,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "currency_take",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "value"
@@ -1116,7 +1116,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "currency_set",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "value"
@@ -1125,7 +1125,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "shop_open",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1134,7 +1134,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "shop_purchase",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target",
@@ -1144,7 +1144,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dialogue_start",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1153,7 +1153,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dialogue_choose",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target",
@@ -1163,7 +1163,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dialogue_end",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1171,7 +1171,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_start",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1180,7 +1180,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_advance",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target",
@@ -1190,7 +1190,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_complete",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1198,7 +1198,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_fail",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1206,7 +1206,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "faction_join",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1214,7 +1214,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "faction_leave",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1222,7 +1222,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "biome_apply",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1231,7 +1231,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dimension_transfer",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1240,7 +1240,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "rules_apply",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1248,7 +1248,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "rules_clear",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1256,7 +1256,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_spawn",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1265,7 +1265,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_despawn",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1273,7 +1273,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_mount",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1281,7 +1281,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_dismount",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action"
       ],
@@ -1289,7 +1289,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "interactive_use",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target",
@@ -1299,7 +1299,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "fluid_apply",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1308,7 +1308,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "fluid_remove",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1317,7 +1317,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "environment_enter",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1326,7 +1326,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "environment_exit",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "params": [
         "action",
         "target"
@@ -1436,6 +1436,380 @@ window.DAI_CREATOR_CATALOG = {
       "category": "Native Entity AI",
       "params": [],
       "purpose": "Clear the native DAI entity current target."
+    },
+    {
+      "id": "state_set_boolean",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "params": [
+        "action",
+        "state"
+      ],
+      "purpose": "Set a named runtime state value to boolean."
+    },
+    {
+      "id": "state_set_number",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "params": [
+        "action",
+        "value"
+      ],
+      "purpose": "Set a named runtime state value to a number."
+    },
+    {
+      "id": "state_set_string",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "params": [
+        "action",
+        "direction"
+      ],
+      "purpose": "Set a named runtime state string; direction carries the text payload."
+    },
+    {
+      "id": "state_add_number",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "params": [
+        "action",
+        "value"
+      ],
+      "purpose": "Add a numeric delta to a named runtime state."
+    },
+    {
+      "id": "state_toggle_boolean",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Toggle a named boolean runtime state."
+    },
+    {
+      "id": "state_clear",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Remove a named runtime state value."
+    },
+    {
+      "id": "capability_add",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Advertise/add a runtime capability ID."
+    },
+    {
+      "id": "capability_remove",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Remove a runtime capability ID."
+    },
+    {
+      "id": "capability_clear",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "params": [],
+      "purpose": "Clear all runtime capability IDs."
+    },
+    {
+      "id": "reference_remember_target_entity",
+      "category": "Runtime References (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Store the currently selected entity under a named reference."
+    },
+    {
+      "id": "reference_remember_reaction_entity",
+      "category": "Runtime References (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Store the current reaction entity under a named reference."
+    },
+    {
+      "id": "reference_remember_target_block",
+      "category": "Runtime References (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Store the currently selected block under a named reference."
+    },
+    {
+      "id": "reference_remember_player_position",
+      "category": "Runtime References (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Store the player position under a named reference."
+    },
+    {
+      "id": "reference_select",
+      "category": "Runtime References (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Resolve a named entity/block/position reference back into DAI target state."
+    },
+    {
+      "id": "reference_clear",
+      "category": "Runtime References (DAI 1.9.8)",
+      "params": [
+        "action"
+      ],
+      "purpose": "Remove a named runtime reference."
+    },
+    {
+      "id": "emit_reaction_event",
+      "category": "Reactions (DAI 1.9.8)",
+      "params": [
+        "action",
+        "direction"
+      ],
+      "purpose": "Fire a registered reaction event; direction selects pre/during/post and defaults to during."
+    },
+    {
+      "id": "attribute_set",
+      "category": "Attributes (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Set a custom DAI attribute on the resolved entity target."
+    },
+    {
+      "id": "attribute_add",
+      "category": "Attributes (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Add to a custom DAI attribute on the resolved entity target."
+    },
+    {
+      "id": "attribute_reset",
+      "category": "Attributes (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Reset a custom DAI attribute to its definition/default value."
+    },
+    {
+      "id": "attribute_modifier_add",
+      "category": "Attributes (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "direction",
+        "value",
+        "open",
+        "slot"
+      ],
+      "purpose": "Add a custom attribute modifier; direction=id, open=operation, slot=priority."
+    },
+    {
+      "id": "attribute_modifier_remove",
+      "category": "Attributes (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "direction"
+      ],
+      "purpose": "Remove a custom attribute modifier by ID."
+    },
+    {
+      "id": "native_attribute_set",
+      "category": "Native Attributes (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "value"
+      ],
+      "purpose": "Set a Minecraft native living-entity attribute through server authority."
+    },
+    {
+      "id": "native_attribute_modifier_add",
+      "category": "Native Attributes (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "direction",
+        "value",
+        "open",
+        "state"
+      ],
+      "purpose": "Add a native Minecraft attribute modifier; state controls persistence."
+    },
+    {
+      "id": "native_attribute_modifier_remove",
+      "category": "Native Attributes (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "direction"
+      ],
+      "purpose": "Remove a native Minecraft attribute modifier by ID."
+    },
+    {
+      "id": "animation_play",
+      "category": "Animation Runtime (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Play a registered DAI animation on the resolved entity target."
+    },
+    {
+      "id": "animation_stop",
+      "category": "Animation Runtime (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Stop a registered DAI animation on the resolved entity target."
+    },
+    {
+      "id": "animation_pause",
+      "category": "Animation Runtime (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Pause a registered DAI animation on the resolved entity target."
+    },
+    {
+      "id": "animation_resume",
+      "category": "Animation Runtime (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Resume a paused DAI animation on the resolved entity target."
+    },
+    {
+      "id": "wait_for_animation",
+      "category": "Animation Runtime (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Hold the action queue barrier until the named animation is no longer playing."
+    },
+    {
+      "id": "content_activate",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "ticks",
+        "slot"
+      ],
+      "purpose": "Activate registered DAI content on an entity; ticks and slot can override duration/amplifier."
+    },
+    {
+      "id": "content_deactivate",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target"
+      ],
+      "purpose": "Deactivate registered DAI content on an entity."
+    },
+    {
+      "id": "content_event",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "direction"
+      ],
+      "purpose": "Emit a named event such as use, attack, equip, consume, impact, or custom for registered content."
+    },
+    {
+      "id": "content_give",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "params": [
+        "action",
+        "slot"
+      ],
+      "purpose": "Give the registry-backed item or legacy content carrier; slot is the count when greater than zero."
+    },
+    {
+      "id": "status_set_health",
+      "category": "Entity Status (DAI 1.9.8)",
+      "params": [
+        "target",
+        "value"
+      ],
+      "purpose": "Set target health through DAI server mutation authority."
+    },
+    {
+      "id": "status_heal",
+      "category": "Entity Status (DAI 1.9.8)",
+      "params": [
+        "target",
+        "value"
+      ],
+      "purpose": "Heal the resolved target by value through server authority."
+    },
+    {
+      "id": "status_damage",
+      "category": "Entity Status (DAI 1.9.8)",
+      "params": [
+        "target",
+        "value"
+      ],
+      "purpose": "Damage the resolved target by value through server authority."
+    },
+    {
+      "id": "status_set_absorption",
+      "category": "Entity Status (DAI 1.9.8)",
+      "params": [
+        "target",
+        "value"
+      ],
+      "purpose": "Set target absorption amount through server authority."
+    },
+    {
+      "id": "status_set_food",
+      "category": "Entity Status (DAI 1.9.8)",
+      "params": [
+        "target",
+        "value"
+      ],
+      "purpose": "Set player food level through server authority."
+    },
+    {
+      "id": "status_set_air",
+      "category": "Entity Status (DAI 1.9.8)",
+      "params": [
+        "target",
+        "value"
+      ],
+      "purpose": "Set target air supply through server authority."
+    },
+    {
+      "id": "status_set_fire_ticks",
+      "category": "Entity Status (DAI 1.9.8)",
+      "params": [
+        "target",
+        "value"
+      ],
+      "purpose": "Set remaining fire ticks through server authority."
+    },
+    {
+      "id": "server_mark_experience_started",
+      "category": "Server Authority (DAI 1.9.8)",
+      "params": [
+        "action",
+        "target",
+        "state",
+        "value"
+      ],
+      "purpose": "Send the experience-startup-dispatched marker through the logical-server action channel."
     }
   ],
   "conditions": [
@@ -3032,7 +3406,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_exists",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "valueType": "boolean",
       "inputs": [
         "target",
@@ -3042,7 +3416,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_active",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "valueType": "boolean",
       "inputs": [
         "target",
@@ -3052,7 +3426,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_count",
-      "category": "Game Customization (DAI 1.9.7)",
+      "category": "Game Customization (DAI 1.9.8)",
       "valueType": "number",
       "inputs": [
         "string_value"
@@ -3061,49 +3435,49 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reaction_has_block",
-      "category": "Reactions (DAI 1.9.7)",
+      "category": "Reactions (DAI 1.9.8)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Current reaction exposes a block position."
     },
     {
       "id": "reaction_block_id",
-      "category": "Reactions (DAI 1.9.7)",
+      "category": "Reactions (DAI 1.9.8)",
       "valueType": "string",
       "inputs": [],
       "purpose": "Block resource ID at the current reaction block position."
     },
     {
       "id": "reaction_block_x",
-      "category": "Reactions (DAI 1.9.7)",
+      "category": "Reactions (DAI 1.9.8)",
       "valueType": "number",
       "inputs": [],
       "purpose": "X coordinate of the current reaction block position."
     },
     {
       "id": "reaction_block_y",
-      "category": "Reactions (DAI 1.9.7)",
+      "category": "Reactions (DAI 1.9.8)",
       "valueType": "number",
       "inputs": [],
       "purpose": "Y coordinate of the current reaction block position."
     },
     {
       "id": "reaction_block_z",
-      "category": "Reactions (DAI 1.9.7)",
+      "category": "Reactions (DAI 1.9.8)",
       "valueType": "number",
       "inputs": [],
       "purpose": "Z coordinate of the current reaction block position."
     },
     {
       "id": "reaction_has_item",
-      "category": "Reactions (DAI 1.9.7)",
+      "category": "Reactions (DAI 1.9.8)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Current reaction exposes a held/used item ID."
     },
     {
       "id": "reaction_item_id",
-      "category": "Reactions (DAI 1.9.7)",
+      "category": "Reactions (DAI 1.9.8)",
       "valueType": "string",
       "inputs": [],
       "purpose": "Held/used item resource ID for the current reaction."
@@ -3205,6 +3579,233 @@ window.DAI_CREATOR_CATALOG = {
       "valueType": "number",
       "inputs": [],
       "purpose": "Random chance gate; accepts 0..1 or percent-style values."
+    },
+    {
+      "id": "state",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "valueType": "value",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Read a named runtime state as its stored boolean, number, or string value."
+    },
+    {
+      "id": "state_exists",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Whether a named runtime state exists."
+    },
+    {
+      "id": "capability",
+      "category": "Runtime State & Capabilities (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Whether a runtime capability ID is currently advertised."
+    },
+    {
+      "id": "reference_exists",
+      "category": "Runtime References (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Whether a named runtime reference exists."
+    },
+    {
+      "id": "reference_type",
+      "category": "Runtime References (DAI 1.9.8)",
+      "valueType": "string",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Return the stored reference type: entity, block, or position."
+    },
+    {
+      "id": "reference_age",
+      "category": "Runtime References (DAI 1.9.8)",
+      "valueType": "number",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Age of a named runtime reference in ticks."
+    },
+    {
+      "id": "reference_distance",
+      "category": "Runtime References (DAI 1.9.8)",
+      "valueType": "number",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Distance from the player to a named entity/block/position reference."
+    },
+    {
+      "id": "reference_entity_alive",
+      "category": "Runtime References (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Whether a named entity reference currently resolves to a living entity."
+    },
+    {
+      "id": "attribute",
+      "category": "Attributes (DAI 1.9.8)",
+      "valueType": "number",
+      "inputs": [
+        "parameter",
+        "target"
+      ],
+      "purpose": "Read a custom DAI attribute from the resolved entity target."
+    },
+    {
+      "id": "attribute_exists",
+      "category": "Attributes (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Whether a custom DAI attribute definition exists."
+    },
+    {
+      "id": "attribute_modifier",
+      "category": "Attributes (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter",
+        "string_value",
+        "target"
+      ],
+      "purpose": "Whether the target custom attribute has the modifier ID in string_value."
+    },
+    {
+      "id": "native_attribute",
+      "category": "Native Attributes (DAI 1.9.8)",
+      "valueType": "number",
+      "inputs": [
+        "parameter",
+        "target"
+      ],
+      "purpose": "Read a native Minecraft living-entity attribute."
+    },
+    {
+      "id": "native_attribute_modifier",
+      "category": "Native Attributes (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter",
+        "string_value",
+        "target"
+      ],
+      "purpose": "Whether a native Minecraft attribute has the named modifier."
+    },
+    {
+      "id": "animation_playing",
+      "category": "Animation Runtime (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter",
+        "target"
+      ],
+      "purpose": "Whether the named animation is currently playing on the target."
+    },
+    {
+      "id": "animation_paused",
+      "category": "Animation Runtime (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter",
+        "target"
+      ],
+      "purpose": "Whether the named animation is currently paused on the target."
+    },
+    {
+      "id": "animation_finished",
+      "category": "Animation Runtime (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter",
+        "target"
+      ],
+      "purpose": "Whether the named animation has finished on the target."
+    },
+    {
+      "id": "animation_tick",
+      "category": "Animation Runtime (DAI 1.9.8)",
+      "valueType": "number",
+      "inputs": [
+        "parameter",
+        "target"
+      ],
+      "purpose": "Current tick of the named animation on the target."
+    },
+    {
+      "id": "content_exists",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Whether a registered DAI content ID exists."
+    },
+    {
+      "id": "content_kind",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "valueType": "string",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Return the registered content kind for a DAI content ID."
+    },
+    {
+      "id": "content_tag",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter",
+        "string_value"
+      ],
+      "purpose": "Whether registered content carries the requested tag."
+    },
+    {
+      "id": "content_capability",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter",
+        "string_value"
+      ],
+      "purpose": "Whether registered content advertises the requested capability."
+    },
+    {
+      "id": "content_active",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter",
+        "target"
+      ],
+      "purpose": "Whether registered content is active on the resolved target."
+    },
+    {
+      "id": "held_content",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "valueType": "string",
+      "inputs": [],
+      "purpose": "Return the DAI content ID represented by the player main-hand stack."
+    },
+    {
+      "id": "holding_content",
+      "category": "Custom Content Runtime (DAI 1.9.8)",
+      "valueType": "boolean",
+      "inputs": [
+        "parameter"
+      ],
+      "purpose": "Whether the player main hand represents the requested DAI content ID."
     }
   ],
   "operators": {

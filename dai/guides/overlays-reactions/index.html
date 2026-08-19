@@ -12,7 +12,7 @@
 <header class="site-header"><nav class="nav"><a class="brand" href="/dai/">Decisions <span>&amp;</span> Impulses</a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header>
 <main>
 <div class="guide-shell">
-<aside class="guide-sidebar"><strong>DAI 1.9.7 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client &amp; Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences &amp; Flow</a><a href="../conditions/">5. Conditions</a><a href="../menus/">6. Menus &amp; UI</a><a href="../recognition-perception/">7. Recognition &amp; Perception</a><a class="current" href="../overlays-reactions/">8. Overlays &amp; Reactions</a><a href="../experiences-worldgen/">9. Experiences &amp; Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../game-customization/">11. Game Customization</a><a href="../creator-workflow/">12. Creator &amp; Publishing</a><a href="../global-datapacks-distribution/">13. Global Datapacks &amp; Distribution</a><a href="../gameplay-tester/">14. Gameplay Tester</a><a href="../native-minecraft-bridge/">15. Native Minecraft Bridge</a><a href="../branding-loading/">16. Branding &amp; Loading</a></aside>
+<aside class="guide-sidebar"><strong>DAI 1.9.8 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client &amp; Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences &amp; Flow</a><a href="../conditions/">5. Conditions</a><a href="../menus/">6. Menus &amp; UI</a><a href="../recognition-perception/">7. Recognition &amp; Perception</a><a class="current" href="../overlays-reactions/">8. Overlays &amp; Reactions</a><a href="../experiences-worldgen/">9. Experiences &amp; Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../game-customization/">11. Game Customization</a><a href="../creator-workflow/">12. Creator &amp; Publishing</a><a href="../global-datapacks-distribution/">13. Global Datapacks &amp; Distribution</a><a href="../gameplay-tester/">14. Gameplay Tester</a><a href="../native-minecraft-bridge/">15. Native Minecraft Bridge</a><a href="../branding-loading/">16. Branding &amp; Loading</a></aside>
 <article class="guide-content">
 <section class="guide-hero">
 <div class="eyebrow">Page 8 · Presentation</div>
@@ -52,7 +52,7 @@
 <thead><tr><th>Event</th><th>Phases</th><th>Cancel</th><th>Override</th><th>Context</th></tr></thead>
 <tbody><tr><td><code>player_attack_entity</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>entity</td></tr><tr><td><code>player_use_block</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>block + item</td></tr><tr><td><code>player_use_item</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>item</td></tr><tr><td><code>player_interact_entity</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>entity + item</td></tr><tr><td><code>player_start_break_block</code></td><td>pre, during, post</td><td>yes</td><td>yes</td><td>block + item</td></tr></tbody>
 </table></div>
-<p>DAI 1.9.7 includes block use, item use, entity interaction and start-break hooks alongside attack. A post event means the wrapped client call completed; it is not a server acknowledgement that the authoritative world accepted the action.</p>
+<p>DAI 1.9.8 includes block use, item use, entity interaction and start-break hooks alongside attack. A post event means the wrapped client call completed; it is not a server acknowledgement that the authoritative world accepted the action.</p>
 </section>
 <section class="guide-section">
 <h2>Reaction Context Conditions</h2>
@@ -192,6 +192,6 @@ z = 12  animated spark alpha 0.7</pre></div>
 </article>
 </div>
 </main>
-<footer class="footer">Decisions and Impulses · DAI 1.9.7 creator documentation</footer>
+<footer class="footer">Decisions and Impulses · DAI 1.9.8 creator documentation</footer>
 </body>
 </html>
