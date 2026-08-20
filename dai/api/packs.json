@@ -3,12 +3,12 @@
   "packs": [
     {
       "id": "decisions_and_impulses:fundamentals_survival",
-      "name": "DAI Fundamentals — Survival",
-      "summary": "Official Survival example pack demonstrating menus, perception, objectives, harvesting, navigation, and autonomous behavior. Installs to DAI's global datapack library.",
+      "name": "DAI Fun Survival",
+      "summary": "Official DAI Engine Survival addon demonstrating menus, perception, objectives, harvesting, navigation, autonomous behavior and reusable automation.",
       "version": "0a",
       "type": "datapack",
       "featured": true,
-      "info_url": "https://j12h36h.github.io/dai/packs/#fundamentals-survival",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-fun-survival",
       "icon_item": "minecraft:wooden_pickaxe",
       "components": [
         {

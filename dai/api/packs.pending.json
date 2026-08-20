@@ -3,12 +3,12 @@
   "packs": [
     {
       "id": "decisions_and_impulses:fundamentals_survival",
-      "name": "DAI Fundamentals — Survival",
-      "summary": "Official Survival example pack demonstrating menus, perception, objectives, harvesting, navigation, and autonomous behavior. Installs to DAI's global datapack library.",
+      "name": "DAI Fun Survival",
+      "summary": "Official DAI Engine Survival addon demonstrating menus, perception, objectives, harvesting, navigation, autonomous behavior and reusable automation.",
       "version": "0a",
       "type": "datapack",
       "featured": true,
-      "info_url": "https://j12h36h.github.io/dai/packs/#fundamentals-survival",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-fun-survival",
       "icon_item": "minecraft:wooden_pickaxe",
       "components": [
         {
@@ -85,5 +85,5 @@
       ]
     }
   ],
-  "note": "STAGING ONLY — not consumed by the live in-game browser. This staging catalog mirrors the current live ADDON-only registry. MAIN experiences are intentionally excluded."
+  "note": "STAGING ONLY — not consumed by the live in-game browser. The website project directory can list the full DAI Engine ecosystem, but installer entries should only be added after every required component has a public downloadable CurseForge file ID."
 }
