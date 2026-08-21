@@ -128,15 +128,33 @@ function blankTitleButton(screen){
 }
 const CONTENT_FOLDERS={item:"dai_items",block:"dai_blocks",weapon:"dai_weapons",armor:"dai_armor",effect:"dai_effects",potion:"dai_potions",projectile:"dai_projectiles",particle:"dai_particles",enchantment:"dai_enchantments",entity:"dai_entities"};
 function blankContent(){
-  return {_id:uid(),type:"item",id:`content_${state.content.length+1}`,carrier:"minecraft:flint",displayName:"Custom DAI Item",description:"A datapack-defined DAI content identity.",model:"minecraft:flint",registryBacked:true,nativeRegistry:"item",slot:"",capabilities:"",tags:"",attributes:"{}",nativeAttributes:"{}",nativeComponents:"{}",events:"{}",stats:'{"stack_size": 64}',entity:'{}'};
+  return {_id:uid(),type:"item",id:`content_${state.content.length+1}`,carrier:"minecraft:flint",displayName:"Custom DAI Item",description:"A datapack-defined DAI content identity.",model:"minecraft:flint",registryBacked:true,nativeRegistry:"item",slot:"",capabilities:"",tags:"",attributes:"{}",nativeAttributes:"{}",nativeComponents:"{}",events:"{}",stats:'{"stack_size": 64}',block:"{}",projectile:"{}",particle:"{}",effect:"{}",potion:"{}",entity:"{}"};
 }
 function blankNativeEntity(){
   const i=state.content.filter(x=>x.type==="entity").length+1;
-  return {_id:uid(),type:"entity",id:`native_entity_${i}`,carrier:"",displayName:`Native Entity ${i}`,description:"A carrierless JSON-defined DAI entity.",model:"",registryBacked:true,nativeRegistry:"entity",slot:"",capabilities:"",tags:"",attributes:"{}",nativeAttributes:JSON.stringify({"minecraft:max_health":20.0,"minecraft:movement_speed":0.25,"minecraft:attack_damage":3.0,"minecraft:follow_range":24.0},null,2),nativeComponents:"{}",events:"{}",stats:"{}",entity:JSON.stringify({category:"monster",width:0.8,height:1.8,tracking_range:10,update_interval:3,behavior_sequence:`${state.pack.namespace}:native_entity_ai`,behavior_interval:2,vanilla_ai:false,spawning:{natural:false}},null,2)};
+  return {_id:uid(),type:"entity",id:`native_entity_${i}`,carrier:"",displayName:`Native Entity ${i}`,description:"A carrierless JSON-defined DAI entity.",model:"",registryBacked:true,nativeRegistry:"entity",slot:"",capabilities:"",tags:"",attributes:"{}",nativeAttributes:JSON.stringify({"minecraft:max_health":20.0,"minecraft:movement_speed":0.25,"minecraft:attack_damage":3.0,"minecraft:follow_range":24.0},null,2),nativeComponents:"{}",events:"{}",stats:"{}",block:"{}",projectile:"{}",particle:"{}",effect:"{}",potion:"{}",entity:JSON.stringify({category:"monster",width:0.8,height:1.8,tracking_range:10,update_interval:3,behavior_sequence:`${state.pack.namespace}:native_entity_ai`,behavior_interval:2,vanilla_ai:false,spawning:{natural:false}},null,2)};
 }
 function blankLivingPortal(){
   const i=state.content.filter(x=>x.type==="entity").length+1;
-  return {_id:uid(),type:"entity",id:`living_portal_${i}`,carrier:"",displayName:`Living Portal ${i}`,description:"A registry-backed living DAI entity with reloadable movement and portal behavior.",model:"",registryBacked:true,nativeRegistry:"entity",slot:"",capabilities:"",tags:"portal",attributes:"{}",nativeAttributes:JSON.stringify({"minecraft:max_health":20.0,"minecraft:movement_speed":0.20,"minecraft:follow_range":32.0},null,2),nativeComponents:"{}",events:"{}",stats:"{}",entity:JSON.stringify({category:"creature",width:2.5,height:3.5,tracking_range:12,update_interval:2,vanilla_ai:false,spawning:{natural:false},movement:{type:"floating_wander",speed:0.04,radius:12,vertical_range:3,interval_ticks:40,no_gravity:true,no_collision:true,look_at_player:true},portal:{enabled:true,destination:"minecraft:overworld",target_mode:"same_coordinates",trigger_radius:1.5,cooldown_ticks:40,preserve_velocity:true,preserve_rotation:true,enter_command:"",exit_command:""}},null,2)};
+  return {_id:uid(),type:"entity",id:`living_portal_${i}`,carrier:"",displayName:`Living Portal ${i}`,description:"A registry-backed living DAI entity with reloadable movement and portal behavior.",model:"",registryBacked:true,nativeRegistry:"entity",slot:"",capabilities:"",tags:"portal",attributes:"{}",nativeAttributes:JSON.stringify({"minecraft:max_health":20.0,"minecraft:movement_speed":0.20,"minecraft:follow_range":32.0},null,2),nativeComponents:"{}",events:"{}",stats:"{}",block:"{}",projectile:"{}",particle:"{}",effect:"{}",potion:"{}",entity:JSON.stringify({category:"creature",width:2.5,height:3.5,tracking_range:12,update_interval:2,vanilla_ai:false,spawning:{natural:false},movement:{type:"floating_wander",speed:0.04,radius:12,vertical_range:3,interval_ticks:40,no_gravity:true,no_collision:true,look_at_player:true},portal:{enabled:true,destination:"minecraft:overworld",target_mode:"same_coordinates",trigger_radius:1.5,cooldown_ticks:40,preserve_velocity:true,preserve_rotation:true,enter_command:"",exit_command:""}},null,2)};
+}
+
+
+function blankNativeBlock(){
+  const i=state.content.filter(x=>x.type==="block").length+1;
+  return {_id:uid(),type:"block",id:`native_block_${i}`,carrier:"",displayName:`Native Block ${i}`,description:"A registry-backed DAI block with native physical properties and lifecycle events.",model:"minecraft:stone",registryBacked:true,nativeRegistry:"block",slot:"",capabilities:"",tags:"",attributes:"{}",nativeAttributes:"{}",nativeComponents:"{}",events:JSON.stringify({use:`action:${state.pack.namespace}:block_use`,step:`action:${state.pack.namespace}:block_step`},null,2),stats:"{}",block:JSON.stringify({hardness:1.5,explosion_resistance:6.0,sound:"metal",luminance:12,friction:0.6,speed_factor:1.0,jump_factor:1.0,no_occlusion:false,no_collision:false,emissive_rendering:true,states:["powered"],redstone_state:"powered",redstone_signal:0,scheduled_tick_delay:0},null,2),projectile:"{}",particle:"{}",effect:"{}",potion:"{}",entity:"{}"};
+}
+function blankProjectile(){
+  const i=state.content.filter(x=>x.type==="projectile").length+1;
+  return {_id:uid(),type:"projectile",id:`projectile_${i}`,carrier:"minecraft:snowball",displayName:`DAI Projectile ${i}`,description:"A DAI projectile with live speed, gravity, collision and lifecycle physics.",model:"",registryBacked:false,nativeRegistry:"item",slot:"",capabilities:"",tags:"",attributes:"{}",nativeAttributes:"{}",nativeComponents:"{}",events:JSON.stringify({spawn:`action:${state.pack.namespace}:projectile_spawn`,hit_entity:`action:${state.pack.namespace}:projectile_hit`,hit_block:`action:${state.pack.namespace}:projectile_block`,expire:`action:${state.pack.namespace}:projectile_expire`},null,2),stats:JSON.stringify({projectile_speed:1.8,gravity:0.03},null,2),block:"{}",projectile:JSON.stringify({drag:0.0,lifetime:100,hit_radius:0.35,damage:4.0,knockback:0.2,pierce:0,ricochets:0,homing_radius:0.0,homing_strength:0.0,return_to_owner:false,return_after_ticks:20,hit_owner:false,hit_allies:true,collide_blocks:true,collide_entities:true},null,2),particle:"{}",effect:"{}",potion:"{}",entity:"{}"};
+}
+function blankParticle(){
+  const i=state.content.filter(x=>x.type==="particle").length+1;
+  return {_id:uid(),type:"particle",id:`particle_${i}`,carrier:"",displayName:`Native Particle ${i}`,description:"A registry-backed DAI particle type with authored emitter and render physics.",model:"",registryBacked:true,nativeRegistry:"particle",slot:"",capabilities:"",tags:"",attributes:"{}",nativeAttributes:"{}",nativeComponents:"{}",events:JSON.stringify({emit:`action:${state.pack.namespace}:particle_emit`},null,2),stats:"{}",block:"{}",projectile:"{}",particle:JSON.stringify({shape:"point",count:8,spread_x:0.15,spread_y:0.15,spread_z:0.15,speed:0.05,radius:1.0,force:false,texture:`${state.pack.namespace}:particle/example`,lifetime:20,gravity:0.0,friction:0.98,scale:1.0,color:65535,alpha:1.0,full_bright:true,collision:false},null,2),effect:"{}",potion:"{}",entity:"{}"};
+}
+function blankNativeEffect(){
+  const i=state.content.filter(x=>x.type==="effect").length+1;
+  return {_id:uid(),type:"effect",id:`effect_${i}`,carrier:"",displayName:`Native Effect ${i}`,description:"A registry-backed MobEffect with DAI apply/start/tick/remove/end hooks.",model:"",registryBacked:true,nativeRegistry:"effect",slot:"",capabilities:"",tags:"",attributes:"{}",nativeAttributes:"{}",nativeComponents:"{}",events:JSON.stringify({apply:`action:${state.pack.namespace}:effect_apply`,tick:`action:${state.pack.namespace}:effect_tick`,remove:`action:${state.pack.namespace}:effect_remove`},null,2),stats:JSON.stringify({tick_interval:20},null,2),block:"{}",projectile:"{}",particle:"{}",effect:JSON.stringify({category:"beneficial",color:65535,tick_interval:20},null,2),potion:"{}",entity:"{}"};
 }
 
 function blankReaction(){
@@ -151,29 +169,30 @@ const RUNTIME_DEFINITION_TYPES={
   screen_profile:{label:"Screen Profile",folder:"screen_profiles",sample:{variants:[]}},
   attribute:{label:"DAI Attribute",folder:"dai_attributes",sample:{default:100,minimum:0,maximum:100}},
   animation:{label:"DAI Animation",folder:"dai_animations",sample:{duration_ticks:20,loop:false,channel:"upper_body",priority:10,interruptible:true,markers:{},marker_actions:{},tracks:{}}},
-  sound:{label:"1.9.8 Sound",folder:"dai_sounds",customization:true,carrierResourceId:true,sample:{display_name:"UI Chime",carrier:"minecraft:block.note_block.pling",properties:{source:"master"},numbers:{volume:1.0,pitch:1.0},events:{}}},
-  music:{label:"1.9.8 Music",folder:"dai_music",customization:true,carrierResourceId:true,sample:{display_name:"Experience Music",carrier:"minecraft:music.game",numbers:{volume:1.0,pitch:1.0},events:{}}},
-  hud:{label:"1.9.8 HUD",folder:"dai_hud",customization:true,sample:{display_name:"Status HUD",texture:"my_dai_pack:gui/status",numbers:{x:0,y:0,width:128,height:32,z:20,ticks:0,alpha:1.0},properties:{anchor:"top_left",color:"#FFFFFF",click_action:""},flags:{interactable:false,consume_click:false,hide_vanilla:false},events:{}}},
-  render_profile:{label:"1.9.8 Render Profile",folder:"dai_render_profiles",customization:true,sample:{display_name:"Cinematic Profile",properties:{},numbers:{},flags:{},events:{apply:"action:my_dai_pack:apply_render_profile",clear:"action:my_dai_pack:clear_render_profile"}}},
-  structure:{label:"1.9.8 Structure / Natural Structure",folder:"dai_structures",customization:true,carrierResourceId:true,sample:{display_name:"Placed Structure",carrier:"minecraft:village/plains/houses/plains_small_house_1",target:"~ ~ ~",flags:{natural:false},properties:{placement:"surface",dimensions:"minecraft:overworld",rotation:"random",mirror:"none"},numbers:{spacing_chunks:24,separation_chunks:8,frequency:1.0,min_y:-64,max_y:320},events:{}}},
-  feature:{label:"1.9.8 World Feature / Natural Feature",folder:"dai_features",customization:true,carrierResourceId:true,sample:{display_name:"Placed Feature",carrier:"minecraft:ore_coal",target:"~ ~ ~",flags:{natural:false},properties:{placement:"surface",dimensions:"minecraft:overworld"},numbers:{spacing_chunks:6,separation_chunks:2,frequency:1.0},events:{}}},
-  loot:{label:"1.9.8 Loot",folder:"dai_loot",customization:true,carrierResourceId:true,sample:{display_name:"Reward Loot",carrier:"minecraft:chests/simple_dungeon",events:{}}},
-  currency:{label:"1.9.8 Currency",folder:"dai_currencies",customization:true,sample:{display_name:"Credits",properties:{objective:"credits"},numbers:{amount:1.0},events:{}}},
-  shop:{label:"1.9.8 Shop",folder:"dai_shops",customization:true,sample:{display_name:"Field Shop",entries:["my_dai_pack:starter_item"],events:{open:"action:my_dai_pack:shop_open",purchase:"action:my_dai_pack:shop_purchase"}}},
-  dialogue:{label:"1.9.8 Dialogue",folder:"dai_dialogues",customization:true,sample:{display_name:"NPC Introduction",entries:["Welcome, agent."],events:{start:"action:my_dai_pack:dialogue_start",choose:"action:my_dai_pack:dialogue_choose",end:"action:my_dai_pack:dialogue_end"}}},
-  quest:{label:"1.9.8 Quest",folder:"dai_quests",customization:true,sample:{display_name:"First Assignment",entries:["Reach the objective."],events:{start:"action:my_dai_pack:quest_start",advance:"action:my_dai_pack:quest_advance",complete:"action:my_dai_pack:quest_complete",fail:"action:my_dai_pack:quest_fail"}}},
-  faction:{label:"1.9.8 Faction",folder:"dai_factions",customization:true,sample:{display_name:"Border",properties:{tag:"faction_border"},events:{}}},
-  biome:{label:"1.9.8 Native Biome",folder:"dai_biomes",sample:{has_precipitation:true,temperature:0.8,downfall:0.4,water_color:"#3f76e4",effects:{fog_color:12638463,sky_color:7907327},spawners:{},spawn_costs:{}}},
-  dimension_type:{label:"1.9.8 Dimension Type",folder:"dai_dimension_types",sample:{natural:true,ultrawarm:false,has_skylight:true,has_ceiling:false,coordinate_scale:1.0,ambient_light:0.0,min_y:-64,height:384,logical_height:384,infiniburn:"#minecraft:infiniburn_overworld",effects:"minecraft:overworld"}},
-  timeline:{label:"1.9.8 Timeline / World Clock",folder:"dai_timelines",sample:{world_clock:"minecraft:overworld",day_length:24000}},
-  dimension:{label:"1.9.8 Native Dimension",folder:"dai_dimensions",sample:{generation:{type:"void",dimension_type:"minecraft:overworld",biome:"minecraft:the_void",features:false,lakes:false,structures:false}}},
-  native_registry:{label:"1.9.8 Open Mojang Registry Bridge",folder:"dai_registry",sample:{registry:"damage_type",raw:{message_id:"my_damage",exhaustion:0.1,scaling:"never"}}},
-  native_data:{label:"1.9.8 Open Server-Data Bridge",folder:"dai_data",sample:{output:"predicate",raw:{condition:"minecraft:entity_properties",entity:"this",predicate:{}}}},
-  ruleset:{label:"1.9.8 Ruleset",folder:"dai_rules",customization:true,sample:{display_name:"Adventure Rules",entries:["doDaylightCycle=false","keepInventory=true"],events:{}}},
-  vehicle:{label:"1.9.8 Vehicle",folder:"dai_vehicles",customization:true,carrierResourceId:true,sample:{display_name:"Minecart Vehicle",carrier:"minecraft:minecart",target:"~ ~ ~",events:{}}},
-  interactive:{label:"1.9.8 Interactive",folder:"dai_interactives",customization:true,sample:{display_name:"Control Console",carrier:"minecraft:lever",events:{use:"action:my_dai_pack:console_use"}}},
-  fluid:{label:"1.9.8 Fluid / Environment Block",folder:"dai_fluids",customization:true,carrierResourceId:true,sample:{display_name:"Water Placement",carrier:"minecraft:water",target:"~ ~ ~",events:{}}},
-  environment:{label:"1.9.8 Environment",folder:"dai_environments",customization:true,sample:{display_name:"Training Arena",events:{enter:"action:my_dai_pack:arena_enter",exit:"action:my_dai_pack:arena_exit"}}}
+  sound:{label:"DAI 2.1 Sound",folder:"dai_sounds",customization:true,carrierResourceId:true,sample:{display_name:"UI Chime",carrier:"minecraft:block.note_block.pling",properties:{source:"master"},numbers:{volume:1.0,pitch:1.0},events:{}}},
+  music:{label:"DAI 2.1 Music",folder:"dai_music",customization:true,carrierResourceId:true,sample:{display_name:"Experience Music",carrier:"minecraft:music.game",numbers:{volume:1.0,pitch:1.0},events:{}}},
+  hud:{label:"DAI 2.1 HUD",folder:"dai_hud",customization:true,sample:{display_name:"Status HUD",texture:"my_dai_pack:gui/status",numbers:{x:0,y:0,width:128,height:32,z:20,ticks:0,alpha:1.0},properties:{anchor:"top_left",color:"#FFFFFF",click_action:""},flags:{interactable:false,consume_click:false,hide_vanilla:false},events:{}}},
+  render_profile:{label:"DAI 2.1 Render Profile",folder:"dai_render_profiles",customization:true,sample:{display_name:"Cinematic Profile",properties:{},numbers:{},flags:{},events:{apply:"action:my_dai_pack:apply_render_profile",clear:"action:my_dai_pack:clear_render_profile"}}},
+  structure:{label:"DAI 2.1 Structure / Natural Structure",folder:"dai_structures",customization:true,carrierResourceId:true,sample:{display_name:"Placed Structure",carrier:"minecraft:village/plains/houses/plains_small_house_1",target:"~ ~ ~",flags:{natural:false},properties:{placement:"surface",dimensions:"minecraft:overworld",rotation:"random",mirror:"none"},numbers:{spacing_chunks:24,separation_chunks:8,frequency:1.0,min_y:-64,max_y:320},events:{}}},
+  feature:{label:"DAI 2.1 World Feature / Natural Feature",folder:"dai_features",customization:true,carrierResourceId:true,sample:{display_name:"Placed Feature",carrier:"minecraft:ore_coal",target:"~ ~ ~",flags:{natural:false},properties:{placement:"surface",dimensions:"minecraft:overworld"},numbers:{spacing_chunks:6,separation_chunks:2,frequency:1.0},events:{}}},
+  loot:{label:"DAI 2.1 Loot",folder:"dai_loot",customization:true,carrierResourceId:true,sample:{display_name:"Reward Loot",carrier:"minecraft:chests/simple_dungeon",events:{}}},
+  currency:{label:"DAI 2.1 Currency",folder:"dai_currencies",customization:true,sample:{display_name:"Credits",properties:{objective:"credits"},numbers:{amount:1.0},events:{}}},
+  shop:{label:"DAI 2.1 Shop",folder:"dai_shops",customization:true,sample:{display_name:"Field Shop",entries:["my_dai_pack:starter_item"],events:{open:"action:my_dai_pack:shop_open",purchase:"action:my_dai_pack:shop_purchase"}}},
+  dialogue:{label:"DAI 2.1 Dialogue",folder:"dai_dialogues",customization:true,sample:{display_name:"NPC Introduction",entries:["Welcome, agent."],events:{start:"action:my_dai_pack:dialogue_start",choose:"action:my_dai_pack:dialogue_choose",end:"action:my_dai_pack:dialogue_end"}}},
+  quest:{label:"DAI 2.1 Quest",folder:"dai_quests",customization:true,sample:{display_name:"First Assignment",entries:["Reach the objective."],events:{start:"action:my_dai_pack:quest_start",advance:"action:my_dai_pack:quest_advance",complete:"action:my_dai_pack:quest_complete",fail:"action:my_dai_pack:quest_fail"}}},
+  faction:{label:"DAI 2.1 Faction",folder:"dai_factions",customization:true,sample:{display_name:"Border",properties:{tag:"faction_border"},events:{}}},
+  biome:{label:"DAI 2.1 Native Biome",folder:"dai_biomes",sample:{has_precipitation:true,temperature:0.8,downfall:0.4,water_color:"#3f76e4",effects:{fog_color:12638463,sky_color:7907327},spawners:{},spawn_costs:{}}},
+  dimension_type:{label:"DAI 2.1 Dimension Type",folder:"dai_dimension_types",sample:{natural:true,ultrawarm:false,has_skylight:true,has_ceiling:false,coordinate_scale:1.0,ambient_light:0.0,min_y:-64,height:384,logical_height:384,infiniburn:"#minecraft:infiniburn_overworld",effects:"minecraft:overworld"}},
+  timeline:{label:"DAI 2.1 Timeline / World Clock",folder:"dai_timelines",sample:{world_clock:"minecraft:overworld",day_length:24000}},
+  dimension:{label:"DAI 2.1 Native Dimension",folder:"dai_dimensions",sample:{generation:{type:"void",dimension_type:"minecraft:overworld",biome:"minecraft:the_void",features:false,lakes:false,structures:false}}},
+  native_registry:{label:"DAI 2.1 Open Mojang Registry Bridge",folder:"dai_registry",sample:{registry:"damage_type",raw:{message_id:"my_damage",exhaustion:0.1,scaling:"never"}}},
+  native_data:{label:"DAI 2.1 Open Server-Data Bridge",folder:"dai_data",sample:{output:"predicate",raw:{condition:"minecraft:entity_properties",entity:"this",predicate:{}}}},
+  ruleset:{label:"DAI 2.1 Ruleset",folder:"dai_rules",customization:true,sample:{display_name:"Adventure Rules",entries:["doDaylightCycle=false","keepInventory=true"],events:{}}},
+  vehicle:{label:"DAI 2.1 Vehicle",folder:"dai_vehicles",customization:true,carrierResourceId:true,sample:{display_name:"Light Vehicle",carrier:"minecraft:minecart",numbers:{acceleration:0.045,reverse_acceleration:0.035,max_speed:0.8,reverse_speed:0.32,drag:0.06,braking:0.14,turn_rate:6.0,strafe_factor:0.0,jump_velocity:0.42,boost_multiplier:1.35},flags:{camera_steering:true,allow_reverse:true,allow_jump:false,gravity:true,lock_driver_pitch:false},events:{tick:"",boost:""}}},
+  portal:{label:"DAI 2.1 Standalone Portal Volume",folder:"dai_portals",customization:true,sample:{display_name:"Portal Volume",target:"0 64 0",properties:{shape:"box",dimension:"minecraft:overworld",destination:"minecraft:the_nether",destination_target:"0 80 0",affects:"players",required_tag:"",forbidden_tag:""},numbers:{width:3,height:5,depth:1,cooldown_ticks:40,yaw:0,pitch:0},flags:{enabled:true,preserve_velocity:true,preserve_rotation:true},events:{enter:"",exit:""}}},
+  interactive:{label:"DAI 2.1 Interactive Volume",folder:"dai_interactives",customization:true,sample:{display_name:"Control Zone",target:"0 64 0",properties:{shape:"box",dimension:"minecraft:overworld",required_tag:"",forbidden_tag:""},numbers:{width:3,height:3,depth:3,tick_interval:1},flags:{enabled:true},events:{enter:"",tick:"",exit:"",use:`action:${state.pack.namespace}:console_use`,attack:""}}},
+  fluid:{label:"DAI 2.1 Fluid Behavior",folder:"dai_fluids",customization:true,carrierResourceId:true,sample:{display_name:"Energy Fluid",carrier:"minecraft:water",numbers:{drag:0.2,vertical_drag:0.2,buoyancy:0.02,damage:0,damage_interval:20,tick_interval:1},flags:{extinguish:false,no_gravity:false},events:{enter:"",tick:"",exit:""}}},
+  environment:{label:"DAI 2.1 Environment",folder:"dai_environments",customization:true,sample:{display_name:"Training Arena",events:{enter:"action:my_dai_pack:arena_enter",exit:"action:my_dai_pack:arena_exit"}}}
 };
 function blankRuntimeDefinition(type="recipe"){
   const spec=RUNTIME_DEFINITION_TYPES[type]||RUNTIME_DEFINITION_TYPES.recipe;
@@ -468,7 +487,7 @@ function contentJson(c){
   const caps=csvList(c.capabilities),tags=csvList(c.tags);if(caps.length)out.capabilities=caps;if(tags.length)out.tags=tags;
   const attrs=parseObjectField(c.attributes),nativeAttrs=parseObjectField(c.nativeAttributes),nativeComponents=parseObjectField(c.nativeComponents),events=parseObjectField(c.events),stats=parseObjectField(c.stats);
   if(Object.keys(attrs).length)out.attributes=attrs;if(Object.keys(nativeAttrs).length)out.native_attributes=nativeAttrs;if(Object.keys(nativeComponents).length)out.components=nativeComponents;if(Object.keys(events).length)out.events=events;if(Object.keys(stats).length)out.stats=stats;
-  const entity=parseObjectField(c.entity);if(Object.keys(entity).length)out.entity=entity;
+  for(const key of ["block","projectile","particle","effect","potion","entity"]){const value=parseObjectField(c[key]);if(Object.keys(value).length)out[key]=value;}
   return out;
 }
 
@@ -662,7 +681,7 @@ function renderConditionCard(c,list,index,onChange){
   let dyn="";
   if (!logical) {
     dyn += field("Operator",`<select data-cf="operator">${ops.map(op=>`<option value="${op}"${op===c.operator?" selected":""}>${op}</option>`).join("")}</select>`);
-    if ((spec?.inputs||[]).includes("target")) dyn += field("target",textInput(c.target,'data-cf="target"'),"Provider input, such as a 1.9.8 customization kind/folder.");
+    if ((spec?.inputs||[]).includes("target")) dyn += field("target",textInput(c.target,'data-cf="target"'),"Provider input, such as a DAI customization kind/folder.");
     if ((spec?.inputs||[]).includes("parameter")) dyn += field("parameter",textInput(c.parameter,'data-cf="parameter"'));
     if ((spec?.inputs||[]).includes("parameter_number")) dyn += field("parameter_number",numberInput(c.parameter_number,'step="0.01" data-cf="parameter_number"'));
     if ((spec?.inputs||[]).includes("string_value") && spec?.valueType!=="string") dyn += field("string_value (input)",textInput(c.string_value,'data-cf="string_value"'),"Provider input rather than the comparison result.");
@@ -841,17 +860,30 @@ function renderContent(){
   const root=$("#contentList");if(!root)return;root.innerHTML="";
   if(!state.content.length){root.innerHTML='<div class="empty">No custom DAI content definitions yet.</div>';return;}
   const types=Object.keys(CONTENT_FOLDERS);
-  state.content.forEach((c,ci)=>{const el=document.createElement("div");el.className="item-card content-card";el.innerHTML=`<div class="item-head"><strong>${esc(c.type)} · ${esc(c.id)}</strong><button class="btn small danger" data-del>Remove</button></div><div class="item-body"><div class="dynamic-fields">
-    ${field("Content Type",`<select data-cf="type">${types.map(x=>`<option value="${x}"${c.type===x?" selected":""}>${x}</option>`).join("")}</select>`)}${field("Definition ID",textInput(c.id,'data-cf="id"'))}${field("Display Name",textInput(c.displayName,'data-cf="displayName"'))}${field("Description",textInput(c.description,'data-cf="description"'))}${field(c.type==="entity"?"Legacy Carrier (optional)":"Vanilla Carrier",textInput(c.carrier,'data-cf="carrier"'),c.type==="entity"?"Leave blank for a native DAI entity; legacy packs may use minecraft:zombie, minecraft:spider, etc.":"Example: minecraft:iron_sword")}${field("Vanilla Model Alias",textInput(c.model,'data-cf="model"'),"Example: minecraft:iron_sword")}${field("Registry Backed",`<select data-cf="registryBacked"><option value="true"${c.registryBacked?" selected":""}>true</option><option value="false"${!c.registryBacked?" selected":""}>false</option></select>`)}${field("Native Registry",`<select data-cf="nativeRegistry"><option value="item"${c.nativeRegistry==="item"?" selected":""}>item</option><option value="block"${c.nativeRegistry==="block"?" selected":""}>block</option><option value="entity"${c.nativeRegistry==="entity"?" selected":""}>entity</option></select>`,"Registry target used only when registry_backed is enabled.")}${field("Armor Slot",textInput(c.slot||'','data-cf="slot"'),"Optional; e.g. chest")}${field("Capabilities",`<textarea data-cf="capabilities">${esc(c.capabilities)}</textarea>`,"Comma or newline separated resource IDs.")}${field("Tags",`<textarea data-cf="tags">${esc(c.tags)}</textarea>`,"Comma or newline separated labels.")}${field("Attributes JSON",`<textarea data-cf="attributes">${esc(c.attributes)}</textarea>`)}${field("Native Attributes JSON",`<textarea data-cf="nativeAttributes">${esc(c.nativeAttributes)}</textarea>`)}${field("Native Data Components JSON",`<textarea data-cf="nativeComponents">${esc(c.nativeComponents||"{}")}</textarea>`,"DAI 2.1 registry-backed items: Minecraft DataComponentType IDs mapped to codec-shaped JSON values.")}${field("Events JSON",`<textarea data-cf="events">${esc(c.events)}</textarea>`)}${field("Stats JSON",`<textarea data-cf="stats">${esc(c.stats)}</textarea>`)}${field("Entity JSON",`<textarea data-cf="entity">${esc(c.entity||"{}")}</textarea>`,"Used by dai_entities: native width/height, behavior_sequence, update/tracking settings, spawning, and gameplay metadata.")}
+  const registryOptions=["item","block","entity","effect","potion","particle"];
+  state.content.forEach((c,ci)=>{const el=document.createElement("div");el.className="item-card content-card";
+    const specialized=[];
+    if(c.type==="block")specialized.push(field("Block Settings JSON",`<textarea data-cf="block">${esc(c.block||"{}")}</textarea>`,"Static physical shell + states/shapes/redstone: hardness, luminance, friction, states, outline_shape, collision_shape, redstone_state, use_toggle_state, etc."));
+    if(c.type==="projectile")specialized.push(field("Projectile Physics JSON",`<textarea data-cf="projectile">${esc(c.projectile||"{}")}</textarea>`,"drag, lifetime, hit_radius, damage, knockback, pierce, ricochets, homing, return and collision behavior. Speed/gravity remain in Stats JSON."));
+    if(c.type==="particle")specialized.push(field("Particle Settings JSON",`<textarea data-cf="particle">${esc(c.particle||"{}")}</textarea>`,"Emitter + render physics: shape/count/spread/speed/radius, texture/lifetime/gravity/friction/scale/color/alpha/full_bright/collision."));
+    if(c.type==="effect")specialized.push(field("Native Effect JSON",`<textarea data-cf="effect">${esc(c.effect||"{}")}</textarea>`,"Registry-backed MobEffect shell: category, color, tick_interval."));
+    if(c.type==="potion")specialized.push(field("Native Potion JSON",`<textarea data-cf="potion">${esc(c.potion||"{}")}</textarea>`,"Native potion effect entries use strings: 'namespace:effect duration amplifier'."));
+    if(c.type==="entity")specialized.push(field("Entity JSON",`<textarea data-cf="entity">${esc(c.entity||"{}")}</textarea>`,"Native shell, spawn/movement/gameplay/portal/riding. Gameplay events include hurt, damage_dealt, death, kill, attacked, interact, jump/fall, target and passenger/mount lifecycle."));
+    el.innerHTML=`<div class="item-head"><strong>${esc(c.type)} · ${esc(c.id)}</strong><button class="btn small danger" data-del>Remove</button></div><div class="item-body"><div class="dynamic-fields">
+    ${field("Content Type",`<select data-cf="type">${types.map(x=>`<option value="${x}"${c.type===x?" selected":""}>${x}</option>`).join("")}</select>`)}${field("Definition ID",textInput(c.id,'data-cf="id"'))}${field("Display Name",textInput(c.displayName,'data-cf="displayName"'))}${field("Description",textInput(c.description,'data-cf="description"'))}${field(c.type==="entity"?"Legacy Carrier (optional)":"Carrier (optional for native types)",textInput(c.carrier,'data-cf="carrier"'),c.type==="entity"?"Leave blank for a native DAI entity; legacy packs may use a vanilla/modded carrier.":"Carrier-backed definitions can point at a vanilla/modded ID; registry-backed native types may leave this blank where supported.")}${field("Vanilla Model Alias",textInput(c.model,'data-cf="model"'),"Optional model/item alias where relevant.")}${field("Registry Backed",`<select data-cf="registryBacked"><option value="true"${c.registryBacked?" selected":""}>true</option><option value="false"${!c.registryBacked?" selected":""}>false</option></select>`)}${field("Native Registry",`<select data-cf="nativeRegistry">${registryOptions.map(x=>`<option value="${x}"${c.nativeRegistry===x?" selected":""}>${x}</option>`).join("")}</select>`,"Static registry targets: item, block, entity, effect, potion or particle.")}${field("Armor Slot",textInput(c.slot||'','data-cf="slot"'),"Optional; e.g. chest")}${field("Capabilities",`<textarea data-cf="capabilities">${esc(c.capabilities)}</textarea>`,"Comma or newline separated resource IDs.")}${field("Tags",`<textarea data-cf="tags">${esc(c.tags)}</textarea>`,"Comma or newline separated labels.")}${field("Attributes JSON",`<textarea data-cf="attributes">${esc(c.attributes)}</textarea>`)}${field("Native Attributes JSON",`<textarea data-cf="nativeAttributes">${esc(c.nativeAttributes)}</textarea>`)}${field("Native Data Components JSON",`<textarea data-cf="nativeComponents">${esc(c.nativeComponents||"{}")}</textarea>`,"Open Mojang DataComponentType map. Component edits are static-shell changes when they affect a native item.")}${field("Events JSON",`<textarea data-cf="events">${esc(c.events)}</textarea>`,"Hot-reloadable lifecycle dispatch map. Item, block, projectile, particle and effect runtimes consume their documented event names.")}${field("Stats JSON",`<textarea data-cf="stats">${esc(c.stats)}</textarea>`,"Common stats. Projectile speed/gravity are live physics in Pass II.")}${specialized.join("")}
     </div></div>`;
     el.querySelector('[data-del]').onclick=()=>{state.content.splice(ci,1);renderContent();refreshAll();};
-    el.querySelectorAll('[data-cf]').forEach(inp=>{const handler=()=>{const k=inp.dataset.cf;if(k==="registryBacked")c[k]=inp.value==="true";else c[k]=inp.value;if(k==="type"&&c.type==="block")c.nativeRegistry="block";if(k==="type"&&c.type==="entity")c.nativeRegistry="entity";if(k==="type")renderContent();refreshAll();};if(inp.tagName==="SELECT")inp.onchange=handler;else inp.oninput=handler;});
+    el.querySelectorAll('[data-cf]').forEach(inp=>{const handler=()=>{const k=inp.dataset.cf;if(k==="registryBacked")c[k]=inp.value==="true";else c[k]=inp.value;if(k==="type"){const map={block:"block",entity:"entity",effect:"effect",potion:"potion",particle:"particle"};c.nativeRegistry=map[c.type]||"item";renderContent();}refreshAll();};if(inp.tagName==="SELECT")inp.onchange=handler;else inp.oninput=handler;});
     el.onclick=()=>{selectedPreview={kind:"content",value:c};refreshPreview();};root.appendChild(el);
   });
 }
 if($("#addContent"))$("#addContent").onclick=()=>{state.content.push(blankContent());renderContent();refreshAll();};
 if($("#addNativeEntity"))$("#addNativeEntity").onclick=()=>{state.content.push(blankNativeEntity());renderContent();refreshAll();};
 if($("#addLivingPortal"))$("#addLivingPortal").onclick=()=>{state.content.push(blankLivingPortal());renderContent();refreshAll();};
+if($("#addNativeBlock"))$("#addNativeBlock").onclick=()=>{state.content.push(blankNativeBlock());renderContent();refreshAll();};
+if($("#addProjectile"))$("#addProjectile").onclick=()=>{state.content.push(blankProjectile());renderContent();refreshAll();};
+if($("#addParticle"))$("#addParticle").onclick=()=>{state.content.push(blankParticle());renderContent();refreshAll();};
+if($("#addNativeEffect"))$("#addNativeEffect").onclick=()=>{state.content.push(blankNativeEffect());renderContent();refreshAll();};
 
 function renderReactions(){
   const root=$("#reactionList");root.innerHTML="";
@@ -1277,7 +1309,7 @@ function renderAll(){
   state.experiences.forEach(e=>{e.uiOpenAction??="";e.uiCloseAction??="";e.uiAnchorOverlay??="";e.uiGraveMenu??="";e.uiGraveMenuOpen??="";e.brandingJson??="{}";e.controlAutomation??=true;e.controlMovement??=true;e.controlCombat??=true;e.controlWorldEditing??=true;e.controlMaxActions??=0;e.controlMaxQueue??=0;});
   state.worldgens ||= [];
   state.content ||= [];
-  state.content.forEach(c=>{c.nativeComponents??="{}";});
+  state.content.forEach(c=>{c.nativeComponents??="{}";c.block??="{}";c.projectile??="{}";c.particle??="{}";c.effect??="{}";c.potion??="{}";c.entity??="{}";});
   state.reactions ||= [];
   state.runtimeDefinitions ||= [];
   state.groups ||= [];
@@ -1744,7 +1776,7 @@ function importFiles(files,sourceLabel="datapack"){
   const recogRe=new RegExp(`^data/${n}/objectives/recognition/(.+)\\.json$`);
   const menuRe=new RegExp(`^data/${n}/menus/actions/(.+)\\.json$`);
   const reactionRe=new RegExp(`^data/${n}/reactions/(.+)\\.json$`);
-  const runtimeRe=new RegExp(`^data/${n}/(dai_recipes|reaction_events|screen_profiles|dai_attributes|dai_animations|dai_sounds|dai_music|dai_hud|dai_render_profiles|dai_structures|dai_features|dai_loot|dai_currencies|dai_shops|dai_dialogues|dai_quests|dai_factions|dai_biomes|dai_dimension_types|dai_timelines|dai_dimensions|dai_registry|dai_data|dai_rules|dai_vehicles|dai_interactives|dai_fluids|dai_environments)/(.+)\\.json$`);
+  const runtimeRe=new RegExp(`^data/${n}/(dai_recipes|reaction_events|screen_profiles|dai_attributes|dai_animations|dai_sounds|dai_music|dai_hud|dai_render_profiles|dai_structures|dai_features|dai_loot|dai_currencies|dai_shops|dai_dialogues|dai_quests|dai_factions|dai_biomes|dai_dimension_types|dai_timelines|dai_dimensions|dai_registry|dai_data|dai_rules|dai_vehicles|dai_portals|dai_interactives|dai_fluids|dai_environments)/(.+)\\.json$`);
   const titleRe=new RegExp(`^data/${n}/dai_title_screens/(.+)\\.json$`);
   const contentRe=new RegExp(`^data/${n}/(dai_items|dai_blocks|dai_weapons|dai_armor|dai_effects|dai_potions|dai_projectiles|dai_particles|dai_enchantments|dai_entities)/(.+)\\.json$`);
 
@@ -1786,7 +1818,7 @@ function importFiles(files,sourceLabel="datapack"){
     if((m=path.match(contentRe))){
       const raw=parseJson(text,path,errors);if(!raw)return;
       const type=Object.entries(CONTENT_FOLDERS).find(([,folder])=>folder===m[1])?.[0]||"item";
-      next.content.push({_id:uid(),type,id:m[2],carrier:raw.carrier||"",displayName:raw.display_name||"",description:raw.description||"",model:raw.model||"",registryBacked:Boolean(raw.registry_backed),nativeRegistry:raw.native_registry||((type==="block")?"block":(type==="entity"?"entity":"item")),slot:raw.slot||"",capabilities:(raw.capabilities||[]).join("\n"),tags:(raw.tags||[]).join("\n"),attributes:JSON.stringify(raw.attributes||{},null,2),nativeAttributes:JSON.stringify(raw.native_attributes||{},null,2),nativeComponents:JSON.stringify(raw.components||raw.native_components||{},null,2),events:JSON.stringify(raw.events||{},null,2),stats:JSON.stringify(raw.stats||{},null,2),entity:JSON.stringify(raw.entity||{},null,2)});managed.add(path);return;
+      next.content.push({_id:uid(),type,id:m[2],carrier:raw.carrier||"",displayName:raw.display_name||"",description:raw.description||"",model:raw.model||"",registryBacked:Boolean(raw.registry_backed),nativeRegistry:raw.native_registry||((type==="block")?"block":(type==="entity"?"entity":"item")),slot:raw.slot||"",capabilities:(raw.capabilities||[]).join("\n"),tags:(raw.tags||[]).join("\n"),attributes:JSON.stringify(raw.attributes||{},null,2),nativeAttributes:JSON.stringify(raw.native_attributes||{},null,2),nativeComponents:JSON.stringify(raw.components||raw.native_components||{},null,2),events:JSON.stringify(raw.events||{},null,2),stats:JSON.stringify(raw.stats||{},null,2),block:JSON.stringify(raw.block||{},null,2),projectile:JSON.stringify(raw.projectile||{},null,2),particle:JSON.stringify(raw.particle||{},null,2),effect:JSON.stringify(raw.effect||{},null,2),potion:JSON.stringify(raw.potion||{},null,2),entity:JSON.stringify(raw.entity||{},null,2)});managed.add(path);return;
     }
     if((m=path.match(runtimeRe))){
       const raw=parseJson(text,path,errors);if(!raw)return;
@@ -2013,9 +2045,68 @@ function setupGameplayTester(){
   $("#testerBuild").onclick=testerBuildScene;$("#testerReset").onclick=()=>{tester.player.x=450;tester.player.y=260;tester.player.health=20;testerLog("Player reset.");};$("#testerPause").onclick=()=>{tester.running=!tester.running;$("#testerPause").textContent=tester.running?"Pause":"Resume";testerLog(tester.running?"Simulation resumed.":"Simulation paused.");};$("#testerAttack").onclick=()=>{const n=testerNearest();testerLog(n?`Attacked ${n.entity.name}.`:"No entity available.","event");testerFireReaction("player_attack_entity");};$("#testerInteract").onclick=()=>{const n=testerNearest();testerLog(n?`Interacted with ${n.entity.name}.`:"No entity available.","event");testerFireReaction("player_interact_entity");};$("#testerUseBlock").onclick=()=>{testerLog("Used simulated test block.","event");testerFireReaction("player_use_block");};$("#testerDamage").onclick=()=>{tester.player.health=Math.max(0,tester.player.health-4);testerLog(`Player took 4 damage → ${tester.player.health}/20 HP.`,tester.player.health?"warn":"err");};$("#testerClearLog").onclick=()=>{tester.log=[];testerLog("Runtime trace cleared.");};$("#testerRunObjective").onclick=()=>{const id=$("#testerObjective").value;if(id)testerExecuteReference(id);};$("#testerDimension").onchange=e=>testerTransfer(e.target.value,"manual tester switch");$("#testerMenu").onchange=()=>{$("#testerTitle").value="";testerRenderUi();};$("#testerTitle").onchange=()=>{$("#testerMenu").value="";testerRenderUi();};requestAnimationFrame(testerFrame);
 }
 
+
+// ---- Public Pack Base Importer -------------------------------------------
+let publicBaseRegistry=null;
+function forgeCdnUrl(fileId,fileName){
+  const raw=String(Math.trunc(Number(fileId)||0));if(!raw||raw==="0")return "";
+  const prefix=raw.length>3?raw.slice(0,-3):"0", suffix=raw.slice(-3).padStart(3,"0");
+  return `https://edge.forgecdn.net/files/${prefix}/${suffix}/${encodeURIComponent(String(fileName||"pack.zip")).replace(/%2F/gi,"/")}`;
+}
+function publicBaseStatus(message,level="ok"){
+  const root=$("#publicBaseStatus");if(!root)return;root.innerHTML=`<div class="status ${level}">${esc(message)}</div>`;
+}
+async function publicBaseRegistryLoad(){
+  if(publicBaseRegistry)return publicBaseRegistry;
+  const response=await fetch("../api/packs.json",{cache:"no-store"});if(!response.ok)throw new Error(`Registry HTTP ${response.status}`);
+  publicBaseRegistry=await response.json();return publicBaseRegistry;
+}
+function selectedPublicPack(){const id=$("#publicBasePack")?.value||"";return (publicBaseRegistry?.packs||[]).find(x=>x.id===id)||null;}
+function renderPublicBaseComponents(){
+  const pack=selectedPublicPack(),sel=$("#publicBaseComponent"),summary=$("#publicBaseSummary"),link=$("#publicBaseDownload");if(!sel)return;
+  const components=pack?.components||[];sel.innerHTML=components.map((c,i)=>`<option value="${i}">${esc(c.type||"datapack")} · ${esc(c.file_name||c.id||`component ${i+1}`)}</option>`).join("");
+  const chosen=components[Number(sel.value||0)]||components[0];
+  if(summary)summary.textContent=pack?`${pack.name}\n${pack.summary||""}\nVersion: ${pack.version||"?"} · ${components.length} component(s)`:'No public pack selected.';
+  const url=chosen?forgeCdnUrl(chosen.curseforge_file_id,chosen.file_name):"";if(link){link.hidden=!url;if(url)link.href=url;}
+}
+async function openPublicBaseModal(){
+  const modal=$("#publicBaseModal");if(!modal)return;modal.hidden=false;document.body.style.overflow="hidden";publicBaseStatus("Loading public registry…","warn");
+  try{const registry=await publicBaseRegistryLoad(),sel=$("#publicBasePack");sel.innerHTML=(registry.packs||[]).map((p,i)=>`<option value="${esc(p.id)}"${i===0?" selected":""}>${esc(p.name)} · ${esc(p.version||"")}</option>`).join("");renderPublicBaseComponents();publicBaseStatus(`${(registry.packs||[]).length} public registry pack(s) available as Creator bases.`,"ok");}
+  catch(err){publicBaseStatus(`Could not load the official registry: ${err.message}. You can still use a direct public ZIP URL.`,"warn");}
+}
+function closePublicBaseModal(){const modal=$("#publicBaseModal");if(modal)modal.hidden=true;document.body.style.overflow="";}
+function addPublicBaseSourceNote(meta){
+  if(!$("#publicBaseSourceNote")?.checked)return;
+  const lines=["DAI Creator public-base source note","",`Source: ${meta.name||"Public pack"}`,`Source page: ${meta.infoUrl||""}`,`Source ZIP: ${meta.url||""}`,`Source file: ${meta.fileName||""}`,`Imported: ${new Date().toISOString()}`,"","This project was imported as an editable starting base. Review the original project's license and attribution/redistribution terms before publishing your derivative work.","The DAI Creator does not grant rights to third-party assets or code.",""];
+  state.extraFiles["DAI_CREATOR_BASE_SOURCE.txt"]=lines.join("\n");renderUniversalFiles();refreshAll();
+}
+async function importPublicBaseUrl(url,meta={}){
+  if(!url)throw new Error("No ZIP URL was provided.");
+  if(!confirm("Load this public pack as the current Creator base? Unsaved changes in the current project will be replaced."))return false;
+  const modal=$("#publicBaseModal");modal?.classList.add("loading");publicBaseStatus("Downloading and importing public ZIP…","warn");
+  try{
+    const response=await fetch(url,{mode:"cors",cache:"no-store"});if(!response.ok)throw new Error(`ZIP HTTP ${response.status}`);
+    const blob=await response.blob();const files=await readZip(blob);const type=meta.type||"datapack";const label=meta.name||meta.fileName||url.split("/").pop()||"Public Base";
+    if(type==="resource_pack")importResourcePackFiles(files,label);else importFiles(files,label);
+    addPublicBaseSourceNote({...meta,url});
+    const summary=$("#importSummary");if(summary){summary.hidden=false;summary.textContent=`Public base loaded from ${meta.name||url}. Rename IDs/namespace and review the source license before publishing. `+summary.textContent;}
+    publicBaseStatus("Public pack loaded as the editable project base.","ok");closePublicBaseModal();switchView("pack");return true;
+  } catch(err){
+    publicBaseStatus(`Direct browser import failed: ${err.message}. If the host blocks CORS, open/download the ZIP and use Import Datapack ZIP / Import Resource ZIP instead.`,"err");return false;
+  } finally {modal?.classList.remove("loading");}
+}
+function setupPublicBaseImporter(){
+  $("#usePublicBase")?.addEventListener("click",openPublicBaseModal);$("[data-public-base-card]")?.addEventListener("click",openPublicBaseModal);$("[data-public-base-card-resource]")?.addEventListener("click",openPublicBaseModal);
+  $$('[data-public-base-close]').forEach(x=>x.addEventListener("click",closePublicBaseModal));
+  $("#publicBasePack")?.addEventListener("change",renderPublicBaseComponents);$("#publicBaseComponent")?.addEventListener("change",renderPublicBaseComponents);
+  $("#loadPublicBase")?.addEventListener("click",async()=>{const pack=selectedPublicPack(),components=pack?.components||[],component=components[Number($("#publicBaseComponent")?.value||0)];if(!pack||!component){publicBaseStatus("Choose a public pack/component first.","warn");return;}const url=forgeCdnUrl(component.curseforge_file_id,component.file_name);if(!url){publicBaseStatus("This registry component has no public downloadable file ID yet.","warn");return;}await importPublicBaseUrl(url,{name:pack.name,infoUrl:pack.info_url,fileName:component.file_name,type:component.type});});
+  $("#loadPublicBaseUrl")?.addEventListener("click",async()=>{const url=$("#publicBaseUrl")?.value.trim();await importPublicBaseUrl(url,{name:"Public URL Base",infoUrl:url,fileName:(url||"").split("/").pop()||"public-pack.zip",type:$("#publicBaseUrlType")?.value|| (state.kind==="resourcepack"?"resource_pack":"datapack")});});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#publicBaseModal")?.hidden)closePublicBaseModal();});
+}
+
 function wirePackInputs(){ loadPackInputs(); }
 function init(){
-  wirePackInputs();renderAll();refreshAll();showValidation([]);setupGameplayTester();switchView("dashboard");
+  wirePackInputs();renderAll();refreshAll();showValidation([]);setupGameplayTester();setupPublicBaseImporter();switchView("dashboard");
 }
 init();
 

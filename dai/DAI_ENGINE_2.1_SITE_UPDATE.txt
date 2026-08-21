@@ -20,3 +20,17 @@ Learn-by-building documentation expansion
 - Added a Quick Recipes page for common 5–10 minute creator patterns.
 - Added prominent tutorial/custom-dimension/recipe entry points to the main Creator Guides index.
 - Tutorial pages explicitly teach reduced learning versions of public projects rather than claiming to reproduce every project-internal file.
+
+Native Exposure Pass II website/Creator refresh
+
+- Documented native block physical properties, states, shapes, redstone and lifecycle callbacks.
+- Documented item lifecycle hooks, entity combat/interact/death/riding lifecycle, projectile physics, real vehicle input, standalone portals/interactives, native particles/effects/potions and fluid behavior.
+- Added a dedicated Native Runtime Exposure reference page.
+- Added new learn-by-building tutorials for native blocks, entity lifecycle, projectiles, vehicles, standalone portals, particles/effects/fluids, and public-pack bases.
+- Expanded Quick Recipes with native runtime patterns.
+- Creator DAI Content editor now preserves/edits block, projectile, particle, effect and potion specialization JSON instead of dropping those fields on import.
+- Creator native registry selector now exposes item/block/entity/effect/potion/particle.
+- Added native block/projectile/particle/effect starter templates and updated runtime templates for vehicles, standalone portals, interactives and fluids.
+- Added “Use Public Pack as Base” to the Creator. Official public registry components resolve from /api/packs.json; any direct public ZIP URL can also be imported when CORS permits.
+- Public-base imports can add DAI_CREATOR_BASE_SOURCE.txt so source provenance is preserved while users learn/fork.
+- Public-base UI explicitly reminds creators that public availability is not a license grant.
