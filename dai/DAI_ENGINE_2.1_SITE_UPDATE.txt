@@ -2,7 +2,7 @@ DAI Engine 2.1 website refresh
 
 - Current site, Creator and guide chrome updated from DAI 2.0 to DAI 2.1.
 - DAI Universe home page visual identity retained.
-- Historical sections describing features introduced in 2.0 remain labeled 2.0.
+- Normalized remaining current-facing DAI 2.0 labels across Official Packs, Creator, metadata and guides to DAI 2.1 or version-neutral wording.
 - Added DAI 2.1 universal physical left-click reaction coverage.
 - Added DAI 2.1 per-tick physical-input reaction coverage.
 - Added JSON keybind_held, keybind_pressed, keybind_released and keybind_exists documentation.
