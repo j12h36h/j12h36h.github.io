@@ -4,12 +4,12 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>DAI Engine 2.1 — DAI Universe</title>
-<meta content="DAI Engine 2.1 is a JSON-driven Minecraft Java game framework powering complete experiences, reusable addons, custom content, UI, automation and world systems." name="description"/>
+<title>DAI Engine 2.2 — DAI Universe</title>
+<meta content="DAI Engine 2.2 is a JSON-driven Minecraft Java game framework powering complete experiences, reusable addons, custom content, UI, automation and world systems." name="description"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
 <meta content="no-cache" http-equiv="Pragma"/>
 <meta content="0" http-equiv="Expires"/>
-<link href="assets/css/site.css?v=20260820-engine-2" rel="stylesheet"/>
+<link href="assets/css/site.css?v=20260821-engine-22" rel="stylesheet"/>
 </head>
 <body class="universe-home">
 <div aria-hidden="true" class="universe-frame">
@@ -41,10 +41,10 @@
 <div class="pixel-dust"></div>
 </div>
 <div aria-hidden="true" class="hero-telemetry telemetry-left">
-<span>DAI // 2.1</span><span>MINECRAFT JAVA // 26.2</span><span>ACTION RUNTIME // 229 TYPES</span>
+<span>DAI // 2.2</span><span>MINECRAFT JAVA // 26.2</span><span>ACTION REGISTRY // 232 TYPES</span>
 </div>
 <div aria-hidden="true" class="hero-telemetry telemetry-right">
-<span>MAIN EXPERIENCES // READY</span><span>NATIVE RUNTIME EXPOSURE // READY</span><span>CONDITION MATRIX // 263 TYPES</span>
+<span>MAIN EXPERIENCES // READY</span><span>NATIVE RUNTIME EXPOSURE // READY</span><span>CONDITION REGISTRY // 248 PROVIDERS</span>
 </div>
 <div class="universe-stage">
 <div class="system-orbit orbit-outer"></div>
@@ -64,7 +64,7 @@
 <div class="planet-continent pc-a"></div><div class="planet-continent pc-b"></div><div class="planet-continent pc-c"></div>
 </div>
 <div class="core-copy">
-<div class="core-kicker">DAI ENGINE // 2.1</div>
+<div class="core-kicker">DAI ENGINE // 2.2</div>
 <h1 id="universe-title">DAI<br/><span>UNIVERSE</span></h1>
 <p>One framework. Entirely different worlds.</p>
 <div class="core-status">NETWORK CORE // ONLINE</div>
@@ -93,7 +93,7 @@
 <a class="text-link" href="packs/">OPEN OFFICIAL PACK DIRECTORY →</a>
 </div>
 <div class="ecosystem-grid">
-<a class="ecosystem-card core-card" href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank"><span>CORE // FRAMEWORK</span><strong>DAI Engine</strong><p>The shared game-engine layer underneath the entire ecosystem.</p><i>DAI 2.1</i></a>
+<a class="ecosystem-card core-card" href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank"><span>CORE // FRAMEWORK</span><strong>DAI Engine</strong><p>The shared game-engine layer underneath the entire ecosystem.</p><i>DAI 2.2</i></a>
 <a class="ecosystem-card" href="https://www.curseforge.com/minecraft/data-packs/claygrounds-data" rel="noopener noreferrer" target="_blank"><span>MAIN // RPG</span><strong>ClayGrounds</strong><p>Custom RPG world, classes, enemies, articulated rigs and authored progression.</p><i>ENTER WORLD →</i></a>
 <a class="ecosystem-card" href="https://www.curseforge.com/minecraft/data-packs/minetrigger-data" rel="noopener noreferrer" target="_blank"><span>MAIN // COMBAT</span><strong>MineTrigger</strong><p>Trigger combat training with Trion, roles, weapons, radar, stealth and mobility.</p><i>ENTER WORLD →</i></a>
 <a class="ecosystem-card" href="https://www.curseforge.com/minecraft/data-packs/hollow-spiral-data" rel="noopener noreferrer" target="_blank"><span>MAIN // SURVIVAL</span><strong>Hollow Spiral</strong><p>An endless six-direction survival dungeon with permanent procedural rooms.</p><i>ENTER WORLD →</i></a>
@@ -108,14 +108,14 @@
 </div>
 </section>
 <section class="universe-section release-zone">
-<div class="section-kicker">DAI 2.1 // CURRENT SIGNAL</div>
+<div class="section-kicker">DAI 2.2 // CURRENT SIGNAL</div>
 <h2>The engine underneath the worlds.</h2>
-<div class="release-grid universe-release-grid">
-<div class="release-item"><span class="system-tag">2.1 INPUT CONTROL</span><strong>Datapacks can read physical and custom keybind state directly</strong><p>DAI 2.1 adds universal left-click input, a per-tick input reaction, and JSON conditions for registered keybind held, press, release and existence state—including mappings registered by other NeoForge mods.</p></div>
+<div class="release-grid universe-release-grid"><div class="release-item"><span class="system-tag">2.2 NATIVE DISPATCH</span><strong>Projectiles, particles, effects and potions are first-class actions</strong><p>The general registry now exposes direct and explicit server aliases for registered projectile spawning, particle emission, effect apply/remove and potion application through normal action JSON.</p></div><div class="release-item"><span class="system-tag">INPUT CONTROL</span><strong>Datapacks can read physical and custom keybind state directly</strong><p>Universal left-click input, per-tick input reactions and registered/custom keybind held, press, release and existence conditions remain available in 2.2.</p></div><div class="release-item"><span class="system-tag">SCOPED ENTITY AI</span><strong>Native entity behaviors have their own explicit vocabulary</strong><p>DAI 2.2 documents 27 native entity behavior verbs and 22 behavior predicates separately from the 232-action and 248-provider general registries, preventing scope confusion in creator tooling.</p></div>
+<div class="release-item"><span class="system-tag">2.2 INPUT CONTROL</span><strong>Datapacks can read physical and custom keybind state directly</strong><p>DAI 2.2 adds universal left-click input, a per-tick input reaction, and JSON conditions for registered keybind held, press, release and existence state—including mappings registered by other NeoForge mods.</p></div>
 <div class="release-item"><span class="system-tag">DIRECTIONAL COMBAT</span><strong>First-person weapons can move like the attack they represent</strong><p>DAI provides a client render/input path used by Musashi Story for eight screen-space slash directions, a neutral forward thrust and a half-draw guard instead of Minecraft's default vertical hand bob.</p></div>
 <div class="release-item"><span class="system-tag">CAMERA-DRIVEN INPUT</span><strong>Look movement can become combat intent</strong><p>The Musashi reference implementation captures the draw-origin camera angle, resolves directional motion after a five-degree threshold and synchronizes the physical hand/weapon pose with the matching screen effect.</p></div>
 <div class="release-item"><span class="system-tag">SELECTIVE VANILLA OVERRIDE</span><strong>Custom combat does not need to replace Minecraft globally</strong><p>Vanilla attack/use presentation is suppressed only for supported experience weapons, preserving normal controls and compatibility everywhere else.</p></div>
-<div class="release-item"><span class="system-tag">MOD-JAR + GLOBAL DATA</span><strong>DAI experiences can ship as ZIPs or inside mods</strong><p>DAI keeps the 1.9.9 distribution foundation: early mod-JAR DAI discovery, stable global pack identities and automatic replacement of stale save-local versions.</p></div>
+<div class="release-item"><span class="system-tag">MOD-JAR + GLOBAL DATA</span><strong>DAI experiences can ship as ZIPs or inside mods</strong><p>DAI keeps the global distribution foundation: early mod-JAR DAI discovery, stable global pack identities and automatic replacement of stale save-local versions.</p></div>
 <div class="release-item"><span class="system-tag">NATIVE MINECRAFT BRIDGE</span><strong>Content stays close to Minecraft</strong><p>Registry-backed content, Data Components, native entities, world data, dimensions and Mojang registries remain available through JSON rather than requiring a parallel engine for every system.</p></div>
 <div class="release-item"><span class="system-tag">FULL EXPERIENCE BRANDING</span><strong>Games can own the presentation</strong><p>MAIN experiences can control title presentation, application branding, startup/loading assets, companion resources and authored game flow while ADDON packs remain stackable.</p></div>
 </div>
@@ -155,8 +155,8 @@
 <div><div class="section-kicker">CREATOR ACCESS</div><h2>Create the next world in the DAI universe.</h2><p>Use guided editors and the universal file workspace to build game logic, content, presentation and complete experiences without creating a dedicated Java mod for every mechanic.</p></div>
 <div class="portal-actions"><a class="button primary" href="creator/">Open Creator</a><a class="button" href="guides/">Creator Guides</a><a class="button" href="info/">Architecture</a></div>
 </section>
-<section class="universe-section"><div class="section-kicker">DAI 2.1 // NATIVE EXPOSURE PASS II</div><div class="section-heading-row"><div><h2>JSON now reaches deeper into the actual game runtime.</h2><p class="section-lead">Native blocks can emit light and own states/shapes; items/entities have lifecycle hooks; projectiles have real physics; vehicles consume player input; standalone portals/interactives own volumes; particles/effects/potions can own native registry IDs.</p></div><a class="text-link" href="guides/native-runtime-exposure/">OPEN NATIVE RUNTIME GUIDE →</a></div></section></main>
-<footer class="footer universe-footer"><span>DAI UNIVERSE // DAI ENGINE 2.1</span><span>JSON-DRIVEN MINECRAFT GAME FRAMEWORK</span></footer>
+<section class="universe-section"><div class="section-kicker">DAI 2.2 // NATIVE RUNTIME + DISPATCH</div><div class="section-heading-row"><div><h2>JSON now reaches deeper into the actual game runtime.</h2><p class="section-lead">Native blocks can emit light and own states/shapes; items/entities have lifecycle hooks; projectiles have real physics; vehicles consume player input; standalone portals/interactives own volumes; and projectiles/particles/effects/potions can be dispatched directly from ordinary action JSON.</p></div><a class="text-link" href="guides/native-runtime-exposure/">OPEN NATIVE RUNTIME GUIDE →</a></div></section></main>
+<footer class="footer universe-footer"><span>DAI UNIVERSE // DAI ENGINE 2.2</span><span>JSON-DRIVEN MINECRAFT GAME FRAMEWORK</span></footer>
 <script>
     const videoSlides=[...document.querySelectorAll('.video-slide')],prev=document.querySelector('.video-nav-prev'),next=document.querySelector('.video-nav-next');
     let active=0;
