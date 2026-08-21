@@ -11,3 +11,12 @@ DAI Engine 2.1 website refresh
 - Creator reference catalog updated from 257 to 263 documented conditions.
 - Creator reaction reference updated from 5 to 7 built-in reaction events.
 - Existing project catalog, pack installer data, layouts and styling were preserved.
+
+Learn-by-building documentation expansion
+
+- Added a dedicated Tutorials hub separate from the exact capability/reference manual.
+- Added public-project workshops for Damage Indicators, Comic Effects, Survival Interface, Echo Time, Fun Survival, Tamacrafti, MineTrigger, ClayGrounds, Hollow Spiral, AutoCraft MineShaft and Musashi Story.
+- Added standalone system tutorials for custom abilities and custom generated dimensions.
+- Added a Quick Recipes page for common 5–10 minute creator patterns.
+- Added prominent tutorial/custom-dimension/recipe entry points to the main Creator Guides index.
+- Tutorial pages explicitly teach reduced learning versions of public projects rather than claiming to reproduce every project-internal file.
