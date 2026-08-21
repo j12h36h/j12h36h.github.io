@@ -15,14 +15,14 @@
 </header>
 <main>
 <div class="guide-shell">
-<aside class="guide-sidebar"><strong>DAI 2.0 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client &amp; Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences &amp; Flow</a><a class="current" href="../conditions/">5. Conditions</a><a href="../menus/">6. Menus &amp; UI</a><a href="../recognition-perception/">7. Recognition &amp; Perception</a><a href="../overlays-reactions/">8. Overlays &amp; Reactions</a><a href="../experiences-worldgen/">9. Experiences &amp; Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../game-customization/">11. Game Customization</a><a href="../creator-workflow/">12. Creator &amp; Publishing</a><a href="../global-datapacks-distribution/">13. Global Datapacks &amp; Distribution</a><a href="../gameplay-tester/">14. Gameplay Tester</a><a href="../native-minecraft-bridge/">15. Native Minecraft Bridge</a><a href="../branding-loading/">16. Branding &amp; Loading</a><a href="../directional-combat/">17. Directional Combat</a></aside>
+<aside class="guide-sidebar"><strong>DAI 2.1 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client &amp; Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences &amp; Flow</a><a class="current" href="../conditions/">5. Conditions</a><a href="../menus/">6. Menus &amp; UI</a><a href="../recognition-perception/">7. Recognition &amp; Perception</a><a href="../overlays-reactions/">8. Overlays &amp; Reactions</a><a href="../experiences-worldgen/">9. Experiences &amp; Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../game-customization/">11. Game Customization</a><a href="../creator-workflow/">12. Creator &amp; Publishing</a><a href="../global-datapacks-distribution/">13. Global Datapacks &amp; Distribution</a><a href="../gameplay-tester/">14. Gameplay Tester</a><a href="../native-minecraft-bridge/">15. Native Minecraft Bridge</a><a href="../branding-loading/">16. Branding &amp; Loading</a><a href="../directional-combat/">17. Directional Combat</a></aside>
 <article class="guide-content">
 <section class="guide-hero">
 <div class="eyebrow">Page 5 · Conditions</div>
 <h1>Conditions &amp; Decision Making</h1>
 <p>Conditions ask questions about DAI's current context. They can gate atomic actions, filter Available-menu buttons, compare numeric/string/boolean values, and combine into nested logical groups.</p>
 <div class="guide-stats">
-<div class="guide-stat"><strong>257 documented conditions</strong>242 registered client providers + 4 logical groups + 11 native entity-AI behavior conditions in the Creator reference.</div>
+<div class="guide-stat"><strong>263 documented conditions</strong>242 registered client providers + 4 logical groups + 11 native entity-AI behavior conditions in the Creator reference.</div>
 <div class="guide-stat"><strong>Shared context snapshot</strong>A condition group evaluates against one captured context.</div>
 <div class="guide-stat"><strong>Composable logic</strong>Use all, any, none, not, comparisons, and negate.</div>
 </div>
@@ -134,10 +134,41 @@ negation</pre></div></section>
 <tr><td><code>reaction_entity_health</code></td><td>number</td><td>Health of the living event entity.</td></tr>
 </tbody></table></div>
 </section>
-<section class="guide-section"><h2>Server Capability Conditions</h2><p>Use these boolean providers before an objective requires server-authoritative actions. They currently report the same negotiated server capability under compatibility-friendly names.</p><div class="guide-param-grid"><div class="guide-param"><code>dai_server_available</code><small>DAI server channel is available.</small></div><div class="guide-param"><code>server_dai_available</code><small>Alias for server capability checks.</small></div><div class="guide-param"><code>server_authority_available</code><small>Recommended semantic name when branching around privileged actions.</small></div></div></section><section class="guide-section">
+<section class="guide-section"><h2>Server Capability Conditions</h2><p>Use these boolean providers before an objective requires server-authoritative actions. They currently report the same negotiated server capability under compatibility-friendly names.</p><div class="guide-param-grid"><div class="guide-param"><code>dai_server_available</code><small>DAI server channel is available.</small></div><div class="guide-param"><code>server_dai_available</code><small>Alias for server capability checks.</small></div><div class="guide-param"><code>server_authority_available</code><small>Recommended semantic name when branching around privileged actions.</small></div></div></section><section class="guide-section guide-release-note">
+<h2>DAI 2.1 Input &amp; Keybind Conditions</h2>
+<p>DAI 2.1 can query physical Minecraft input and any key mapping registered into the live client key-mapping list. This makes press/hold/release control schemes available directly to datapack JSON.</p>
+<div class="guide-cards">
+<div class="guide-card"><h3>Held</h3><p><code>keybind_held</code> is true while a registered mapping is down.</p></div>
+<div class="guide-card"><h3>Press edge</h3><p><code>keybind_pressed</code> is true only on the up → down transition tick.</p></div>
+<div class="guide-card"><h3>Release edge</h3><p><code>keybind_released</code> is true only on the down → up transition tick.</p></div>
+<div class="guide-card"><h3>Capability check</h3><p><code>keybind_exists</code> lets a pack fail gracefully when an optional mod mapping is absent.</p></div>
+</div>
+<div class="guide-code"><div class="label">Built-in alias</div><pre>{
+  "type": "keybind_held",
+  "parameter": "jump",
+  "operator": "is_true"
+}</pre></div>
+<div class="guide-code"><div class="label">Registered mod keybind</div><pre>{
+  "type": "keybind_pressed",
+  "parameter": "examplemod:special_ability",
+  "operator": "is_true"
+}</pre></div>
+<p>DAI accepts built-in aliases such as <code>attack</code>, <code>use</code>, movement keys, inventory controls and <code>hotbar_1</code> through <code>hotbar_9</code>. Custom mappings may use their translation ID such as <code>key.examplemod.special_ability</code> or the convenience <code>examplemod:special_ability</code> form when the mapping follows the standard naming convention.</p>
+<div class="guide-callout"><strong>Compatibility:</strong> <code>input_attack_held</code> and <code>input_use_held</code> remain valid compatibility conditions.</div>
+</section><section class="guide-section">
 <h2>Complete Current Condition Catalog</h2>
 <p>The provider-input column lists fields read directly by the provider itself. Comparison fields such as <code>number_value</code> may also be used by the central evaluator depending on the provider's return type.</p>
-<details class="guide-details"><summary>Advancement · 2 conditions</summary>
+<details class="guide-details"><summary>Input &amp; Keybinds · 6 conditions</summary>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>input_attack_held</code></td><td>boolean</td><td>none</td><td>Compatibility physical attack/LMB held state.</td></tr>
+<tr><td><code>input_use_held</code></td><td>boolean</td><td>none</td><td>Compatibility physical use/RMB held state.</td></tr>
+<tr><td><code>keybind_exists</code></td><td>boolean</td><td>parameter</td><td>Requested registered mapping exists.</td></tr>
+<tr><td><code>keybind_held</code></td><td>boolean</td><td>parameter</td><td>Requested mapping is currently held.</td></tr>
+<tr><td><code>keybind_pressed</code></td><td>boolean</td><td>parameter</td><td>Requested mapping was pressed this tick.</td></tr>
+<tr><td><code>keybind_released</code></td><td>boolean</td><td>parameter</td><td>Requested mapping was released this tick.</td></tr>
+</tbody></table></div></details><details class="guide-details"><summary>Advancement · 2 conditions</summary>
 <div class="guide-table-wrap"><table class="guide-table">
 <thead><tr><th>Condition</th><th>Value type</th><th>Provider inputs</th><th>Meaning</th></tr></thead>
 <tbody><tr><td><code>advancement_complete</code></td><td>boolean</td><td>parameter</td><td>Advancement complete</td></tr><tr><td><code>advancement_category_complete</code></td><td>boolean</td><td>parameter</td><td>Advancement category complete</td></tr></tbody></table></div></details><details class="guide-details"><summary>Block · 9 conditions</summary>
@@ -250,6 +281,6 @@ negation</pre></div></section>
 </article>
 </div>
 </main>
-<footer class="footer">DAI Engine · DAI 2.0 creator documentation</footer>
+<footer class="footer">DAI Engine · DAI 2.1 creator documentation</footer>
 </body>
 </html>

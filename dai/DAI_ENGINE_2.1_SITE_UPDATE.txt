@@ -1,0 +1,13 @@
+DAI Engine 2.1 website refresh
+
+- Current site, Creator and guide chrome updated from DAI 2.0 to DAI 2.1.
+- DAI Universe home page visual identity retained.
+- Historical sections describing features introduced in 2.0 remain labeled 2.0.
+- Added DAI 2.1 universal physical left-click reaction coverage.
+- Added DAI 2.1 per-tick physical-input reaction coverage.
+- Added JSON keybind_held, keybind_pressed, keybind_released and keybind_exists documentation.
+- Added compatibility documentation for input_attack_held and input_use_held.
+- Added registered/custom NeoForge keybind examples and built-in alias guidance.
+- Creator reference catalog updated from 257 to 263 documented conditions.
+- Creator reaction reference updated from 5 to 7 built-in reaction events.
+- Existing project catalog, pack installer data, layouts and styling were preserved.
