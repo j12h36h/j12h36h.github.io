@@ -965,7 +965,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_event",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "direction",
         "action",
@@ -973,11 +973,11 @@ window.DAI_CREATOR_CATALOG = {
         "target",
         "value"
       ],
-      "purpose": "Dispatch an event to a DAI 2.2 customization definition. direction=kind, action=definition id, open=event name, target=runtime payload/position, value=numeric payload."
+      "purpose": "Dispatch an event to a DAI 3.0 customization definition. direction=kind, action=definition id, open=event name, target=runtime payload/position, value=numeric payload."
     },
     {
       "id": "customization_activate",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "direction",
         "action",
@@ -985,11 +985,11 @@ window.DAI_CREATOR_CATALOG = {
         "target",
         "value"
       ],
-      "purpose": "Activate a DAI 2.2 customization definition and dispatch activate (or the event named in open)."
+      "purpose": "Activate a DAI 3.0 customization definition and dispatch activate (or the event named in open)."
     },
     {
       "id": "customization_deactivate",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "direction",
         "action",
@@ -997,11 +997,11 @@ window.DAI_CREATOR_CATALOG = {
         "target",
         "value"
       ],
-      "purpose": "Deactivate a DAI 2.2 customization definition and dispatch deactivate (or the event named in open)."
+      "purpose": "Deactivate a DAI 3.0 customization definition and dispatch deactivate (or the event named in open)."
     },
     {
       "id": "sound_play",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1011,7 +1011,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "sound_stop",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1019,7 +1019,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "music_play",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1029,7 +1029,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "music_stop",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1037,7 +1037,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "hud_show",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1045,7 +1045,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "hud_hide",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1053,7 +1053,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "render_profile_apply",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1062,7 +1062,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "render_profile_clear",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1070,7 +1070,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "structure_place",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1079,7 +1079,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "feature_place",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1088,7 +1088,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "loot_grant",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1098,7 +1098,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "currency_add",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "value"
@@ -1107,7 +1107,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "currency_take",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "value"
@@ -1116,7 +1116,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "currency_set",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "value"
@@ -1125,7 +1125,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "shop_open",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1134,7 +1134,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "shop_purchase",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1144,7 +1144,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dialogue_start",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1153,7 +1153,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dialogue_choose",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1163,7 +1163,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dialogue_end",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1171,7 +1171,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_start",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1180,7 +1180,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_advance",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1190,7 +1190,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_complete",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1198,7 +1198,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "quest_fail",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1206,7 +1206,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "faction_join",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1214,7 +1214,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "faction_leave",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1222,7 +1222,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "biome_apply",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1231,7 +1231,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "dimension_transfer",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1240,7 +1240,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "rules_apply",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1248,7 +1248,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "rules_clear",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1256,7 +1256,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_spawn",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1265,7 +1265,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_despawn",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1273,7 +1273,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_mount",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1281,7 +1281,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "vehicle_dismount",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1289,7 +1289,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "interactive_use",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1299,7 +1299,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "fluid_apply",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1308,7 +1308,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "fluid_remove",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1317,7 +1317,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "environment_enter",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1326,7 +1326,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "environment_exit",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1387,7 +1387,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "state_set_boolean",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "params": [
         "action",
         "state"
@@ -1396,7 +1396,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "state_set_number",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "params": [
         "action",
         "value"
@@ -1405,7 +1405,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "state_set_string",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "params": [
         "action",
         "direction"
@@ -1414,7 +1414,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "state_add_number",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "params": [
         "action",
         "value"
@@ -1423,7 +1423,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "state_toggle_boolean",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1431,7 +1431,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "state_clear",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1439,7 +1439,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "capability_add",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1447,7 +1447,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "capability_remove",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1455,13 +1455,13 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "capability_clear",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "params": [],
       "purpose": "Clear all runtime capability IDs."
     },
     {
       "id": "reference_remember_target_entity",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1469,7 +1469,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_remember_reaction_entity",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1477,7 +1477,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_remember_target_block",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1485,7 +1485,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_remember_player_position",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1493,7 +1493,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_select",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1501,7 +1501,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_clear",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "params": [
         "action"
       ],
@@ -1509,7 +1509,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "emit_reaction_event",
-      "category": "Reactions (DAI 2.2)",
+      "category": "Reactions (DAI 3.0)",
       "params": [
         "action",
         "direction"
@@ -1518,7 +1518,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "attribute_set",
-      "category": "Attributes (DAI 2.2)",
+      "category": "Attributes (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1528,7 +1528,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "attribute_add",
-      "category": "Attributes (DAI 2.2)",
+      "category": "Attributes (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1538,7 +1538,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "attribute_reset",
-      "category": "Attributes (DAI 2.2)",
+      "category": "Attributes (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1547,7 +1547,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "attribute_modifier_add",
-      "category": "Attributes (DAI 2.2)",
+      "category": "Attributes (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1560,7 +1560,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "attribute_modifier_remove",
-      "category": "Attributes (DAI 2.2)",
+      "category": "Attributes (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1570,7 +1570,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "native_attribute_set",
-      "category": "Native Attributes (DAI 2.2)",
+      "category": "Native Attributes (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1580,7 +1580,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "native_attribute_modifier_add",
-      "category": "Native Attributes (DAI 2.2)",
+      "category": "Native Attributes (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1593,7 +1593,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "native_attribute_modifier_remove",
-      "category": "Native Attributes (DAI 2.2)",
+      "category": "Native Attributes (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1603,7 +1603,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "animation_play",
-      "category": "Animation Runtime (DAI 2.2)",
+      "category": "Animation Runtime (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1612,7 +1612,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "animation_stop",
-      "category": "Animation Runtime (DAI 2.2)",
+      "category": "Animation Runtime (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1621,7 +1621,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "animation_pause",
-      "category": "Animation Runtime (DAI 2.2)",
+      "category": "Animation Runtime (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1630,7 +1630,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "animation_resume",
-      "category": "Animation Runtime (DAI 2.2)",
+      "category": "Animation Runtime (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1639,7 +1639,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "wait_for_animation",
-      "category": "Animation Runtime (DAI 2.2)",
+      "category": "Animation Runtime (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1648,7 +1648,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "content_activate",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1659,7 +1659,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "content_deactivate",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "params": [
         "action",
         "target"
@@ -1668,7 +1668,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "content_event",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -1678,7 +1678,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "content_give",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "params": [
         "action",
         "slot"
@@ -1687,7 +1687,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "status_set_health",
-      "category": "Entity Status (DAI 2.2)",
+      "category": "Entity Status (DAI 3.0)",
       "params": [
         "target",
         "value"
@@ -1696,7 +1696,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "status_heal",
-      "category": "Entity Status (DAI 2.2)",
+      "category": "Entity Status (DAI 3.0)",
       "params": [
         "target",
         "value"
@@ -1705,7 +1705,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "status_damage",
-      "category": "Entity Status (DAI 2.2)",
+      "category": "Entity Status (DAI 3.0)",
       "params": [
         "target",
         "value"
@@ -1714,7 +1714,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "status_set_absorption",
-      "category": "Entity Status (DAI 2.2)",
+      "category": "Entity Status (DAI 3.0)",
       "params": [
         "target",
         "value"
@@ -1723,7 +1723,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "status_set_food",
-      "category": "Entity Status (DAI 2.2)",
+      "category": "Entity Status (DAI 3.0)",
       "params": [
         "target",
         "value"
@@ -1732,7 +1732,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "status_set_air",
-      "category": "Entity Status (DAI 2.2)",
+      "category": "Entity Status (DAI 3.0)",
       "params": [
         "target",
         "value"
@@ -1741,7 +1741,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "status_set_fire_ticks",
-      "category": "Entity Status (DAI 2.2)",
+      "category": "Entity Status (DAI 3.0)",
       "params": [
         "target",
         "value"
@@ -1750,7 +1750,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "server_mark_experience_started",
-      "category": "Server Authority (DAI 2.2)",
+      "category": "Server Authority (DAI 3.0)",
       "params": [
         "action",
         "target",
@@ -3438,7 +3438,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_exists",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "target",
@@ -3448,7 +3448,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_active",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "target",
@@ -3458,7 +3458,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "customization_count",
-      "category": "Game Customization (DAI 2.2)",
+      "category": "Game Customization (DAI 3.0)",
       "valueType": "number",
       "inputs": [
         "string_value"
@@ -3467,49 +3467,49 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reaction_has_block",
-      "category": "Reactions (DAI 2.2)",
+      "category": "Reactions (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Current reaction exposes a block position."
     },
     {
       "id": "reaction_block_id",
-      "category": "Reactions (DAI 2.2)",
+      "category": "Reactions (DAI 3.0)",
       "valueType": "string",
       "inputs": [],
       "purpose": "Block resource ID at the current reaction block position."
     },
     {
       "id": "reaction_block_x",
-      "category": "Reactions (DAI 2.2)",
+      "category": "Reactions (DAI 3.0)",
       "valueType": "number",
       "inputs": [],
       "purpose": "X coordinate of the current reaction block position."
     },
     {
       "id": "reaction_block_y",
-      "category": "Reactions (DAI 2.2)",
+      "category": "Reactions (DAI 3.0)",
       "valueType": "number",
       "inputs": [],
       "purpose": "Y coordinate of the current reaction block position."
     },
     {
       "id": "reaction_block_z",
-      "category": "Reactions (DAI 2.2)",
+      "category": "Reactions (DAI 3.0)",
       "valueType": "number",
       "inputs": [],
       "purpose": "Z coordinate of the current reaction block position."
     },
     {
       "id": "reaction_has_item",
-      "category": "Reactions (DAI 2.2)",
+      "category": "Reactions (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Current reaction exposes a held/used item ID."
     },
     {
       "id": "reaction_item_id",
-      "category": "Reactions (DAI 2.2)",
+      "category": "Reactions (DAI 3.0)",
       "valueType": "string",
       "inputs": [],
       "purpose": "Held/used item resource ID for the current reaction."
@@ -3537,7 +3537,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "state",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "valueType": "value",
       "inputs": [
         "parameter"
@@ -3546,7 +3546,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "state_exists",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3555,7 +3555,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "capability",
-      "category": "Runtime State & Capabilities (DAI 2.2)",
+      "category": "Runtime State & Capabilities (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3564,7 +3564,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_exists",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3573,7 +3573,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_type",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "valueType": "string",
       "inputs": [
         "parameter"
@@ -3582,7 +3582,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_age",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "valueType": "number",
       "inputs": [
         "parameter"
@@ -3591,7 +3591,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_distance",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "valueType": "number",
       "inputs": [
         "parameter"
@@ -3600,7 +3600,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "reference_entity_alive",
-      "category": "Runtime References (DAI 2.2)",
+      "category": "Runtime References (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3609,7 +3609,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "attribute",
-      "category": "Attributes (DAI 2.2)",
+      "category": "Attributes (DAI 3.0)",
       "valueType": "number",
       "inputs": [
         "parameter",
@@ -3619,7 +3619,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "attribute_exists",
-      "category": "Attributes (DAI 2.2)",
+      "category": "Attributes (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3628,7 +3628,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "attribute_modifier",
-      "category": "Attributes (DAI 2.2)",
+      "category": "Attributes (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter",
@@ -3639,7 +3639,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "native_attribute",
-      "category": "Native Attributes (DAI 2.2)",
+      "category": "Native Attributes (DAI 3.0)",
       "valueType": "number",
       "inputs": [
         "parameter",
@@ -3649,7 +3649,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "native_attribute_modifier",
-      "category": "Native Attributes (DAI 2.2)",
+      "category": "Native Attributes (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter",
@@ -3660,7 +3660,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "animation_playing",
-      "category": "Animation Runtime (DAI 2.2)",
+      "category": "Animation Runtime (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter",
@@ -3670,7 +3670,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "animation_paused",
-      "category": "Animation Runtime (DAI 2.2)",
+      "category": "Animation Runtime (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter",
@@ -3680,7 +3680,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "animation_finished",
-      "category": "Animation Runtime (DAI 2.2)",
+      "category": "Animation Runtime (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter",
@@ -3690,7 +3690,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "animation_tick",
-      "category": "Animation Runtime (DAI 2.2)",
+      "category": "Animation Runtime (DAI 3.0)",
       "valueType": "number",
       "inputs": [
         "parameter",
@@ -3700,7 +3700,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "content_exists",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3709,7 +3709,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "content_kind",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "valueType": "string",
       "inputs": [
         "parameter"
@@ -3718,7 +3718,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "content_tag",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter",
@@ -3728,7 +3728,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "content_capability",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter",
@@ -3738,7 +3738,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "content_active",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter",
@@ -3748,14 +3748,14 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "held_content",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "valueType": "string",
       "inputs": [],
       "purpose": "Return the DAI content ID represented by the player main-hand stack."
     },
     {
       "id": "holding_content",
-      "category": "Custom Content Runtime (DAI 2.2)",
+      "category": "Custom Content Runtime (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3764,21 +3764,21 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "input_attack_held",
-      "category": "Input & Keybinds (DAI 2.2)",
+      "category": "Input & Keybinds (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Compatibility condition that is true while the physical attack/LMB mapping is held."
     },
     {
       "id": "input_use_held",
-      "category": "Input & Keybinds (DAI 2.2)",
+      "category": "Input & Keybinds (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [],
       "purpose": "Compatibility condition that is true while the physical use/RMB mapping is held."
     },
     {
       "id": "keybind_exists",
-      "category": "Input & Keybinds (DAI 2.2)",
+      "category": "Input & Keybinds (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3787,7 +3787,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "keybind_held",
-      "category": "Input & Keybinds (DAI 2.2)",
+      "category": "Input & Keybinds (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3796,7 +3796,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "keybind_pressed",
-      "category": "Input & Keybinds (DAI 2.2)",
+      "category": "Input & Keybinds (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"
@@ -3805,7 +3805,7 @@ window.DAI_CREATOR_CATALOG = {
     },
     {
       "id": "keybind_released",
-      "category": "Input & Keybinds (DAI 2.2)",
+      "category": "Input & Keybinds (DAI 3.0)",
       "valueType": "boolean",
       "inputs": [
         "parameter"

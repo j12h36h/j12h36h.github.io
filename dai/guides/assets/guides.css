@@ -324,7 +324,7 @@
   font-weight: 800;
 }
 
-/* DAI 2.2 documentation navigation */
+/* DAI 3.0 documentation navigation */
 .guide-sidebar a.current {
   color: var(--text, #eaf2f8);
   background: var(--panel-2, #17212d);
@@ -335,7 +335,7 @@
 .guide-index-card { transition: transform .15s ease, border-color .15s ease; }
 
 
-/* DAI 2.2 documentation cockpit */
+/* DAI 3.0 documentation cockpit */
 .guide-shell{grid-template-columns:260px minmax(0,1fr);gap:26px}
 .guide-sidebar{top:80px;border-radius:7px;background:rgba(14,20,27,.96);padding:11px}
 .guide-sidebar strong{color:var(--accent);font:800 .7rem "SFMono-Regular",Consolas,monospace;letter-spacing:.08em;text-transform:uppercase}
@@ -354,7 +354,7 @@
 .guide-release-note{padding-top:18px}
 
 
-/* DAI 2.2 learn-by-building tutorials */
+/* DAI 3.0 learn-by-building tutorials */
 .tutorial-side-label{display:block;margin:13px 8px 6px;color:var(--accent-2,#ffd84d);font-size:.68rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
 .tutorial-hero{background:linear-gradient(110deg,rgba(170,124,255,.08),rgba(255,216,77,.035) 45%,transparent),var(--panel,#111821)}
 .tutorial-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.tutorial-meta span{padding:5px 8px;border:1px solid var(--border,#263545);background:rgba(5,10,14,.36);color:var(--muted,#a8b7c5);font-size:.76rem}.tutorial-meta b{color:var(--accent-2,#ffd84d)}
@@ -366,3 +366,10 @@
 @media(max-width:900px){.tutorial-feature-grid,.tutorial-grid,.tutorial-ref-grid,.recipe-grid{grid-template-columns:1fr}}
 
 .learn-index{grid-template-columns:repeat(3,minmax(0,1fr));margin:0 0 28px}.learn-card{background:linear-gradient(155deg,rgba(20,38,42,.72),rgba(9,14,20,.96))}.guide-reference-heading{margin:34px 0 14px;font-size:1.2rem;color:var(--muted,#a8b7c5)}@media(max-width:900px){.learn-index{grid-template-columns:1fr}}
+
+/* DAI 3.0 build-lab additions */
+.guide-content code{color:var(--accent,#b894ff)}
+.tutorial-feature-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.tutorial-card{min-height:190px}
+.guide-section h2{scroll-margin-top:90px}
+.tutorial-steps li span code{font-size:.9em}
