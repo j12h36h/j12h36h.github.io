@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owns(field) { return signedIn() && request.auth.uid == field; }
+    function validReasoningType(t) { return t in ['unclassified','observation','premise','deduction','assumption','hypothesis','question']; }
+    function validKind(k) { return k in ['idea','problem','project']; }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 1200
+        && validReasoningType(request.resource.data.reasoningType)
+        && validKind(request.resource.data.kind);
+      allow update: if owns(resource.data.authorUid)
+        && request.resource.data.authorUid == resource.data.authorUid;
+      allow delete: if owns(resource.data.authorUid);
+    }
+
+    match /objects/{objectId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.authorUid == request.auth.uid
+        && validKind(request.resource.data.kind)
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() <= 700;
+      allow update: if owns(resource.data.authorUid)
+        && request.resource.data.authorUid == resource.data.authorUid;
+      allow delete: if owns(resource.data.authorUid);
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == userId;
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}
