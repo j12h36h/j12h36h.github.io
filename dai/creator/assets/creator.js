@@ -2073,21 +2073,29 @@ function publicBaseStatus(message,level="ok"){
 }
 async function publicBaseRegistryLoad(){
   if(publicBaseRegistry)return publicBaseRegistry;
-  const response=await fetch("../api/packs.json",{cache:"no-store"});if(!response.ok)throw new Error(`Registry HTTP ${response.status}`);
+  let response=await fetch("../api/public-bases.json",{cache:"no-store"});
+  if(!response.ok){
+    response=await fetch("../api/packs.json",{cache:"no-store"});
+    if(!response.ok)throw new Error(`Registry HTTP ${response.status}`);
+  }
   publicBaseRegistry=await response.json();return publicBaseRegistry;
 }
 function selectedPublicPack(){const id=$("#publicBasePack")?.value||"";return (publicBaseRegistry?.packs||[]).find(x=>x.id===id)||null;}
+function publicBaseComponentUrl(component){
+  if(!component)return "";
+  return String(component.source_url||component.github_raw_url||component.download_url||forgeCdnUrl(component.curseforge_file_id,component.file_name)||"");
+}
 function renderPublicBaseComponents(){
   const pack=selectedPublicPack(),sel=$("#publicBaseComponent"),summary=$("#publicBaseSummary"),link=$("#publicBaseDownload");if(!sel)return;
   const components=pack?.components||[];sel.innerHTML=components.map((c,i)=>`<option value="${i}">${esc(c.type||"datapack")} · ${esc(c.file_name||c.id||`component ${i+1}`)}</option>`).join("");
   const chosen=components[Number(sel.value||0)]||components[0];
   if(summary)summary.textContent=pack?`${pack.name}\n${pack.summary||""}\nVersion: ${pack.version||"?"} · ${components.length} component(s)`:'No public pack selected.';
-  const url=chosen?forgeCdnUrl(chosen.curseforge_file_id,chosen.file_name):"";if(link){link.hidden=!url;if(url)link.href=url;}
+  const url=publicBaseComponentUrl(chosen);if(link){link.hidden=!url;if(url){link.href=chosen?.source_page||url;link.textContent=(chosen?.source==="github"||String(url).includes("github"))?"Open GitHub source":"Open source ZIP";}}
 }
 async function openPublicBaseModal(){
   const modal=$("#publicBaseModal");if(!modal)return;modal.hidden=false;document.body.style.overflow="hidden";publicBaseStatus("Loading public registry…","warn");
-  try{const registry=await publicBaseRegistryLoad(),sel=$("#publicBasePack");sel.innerHTML=(registry.packs||[]).map((p,i)=>`<option value="${esc(p.id)}"${i===0?" selected":""}>${esc(p.name)} · ${esc(p.version||"")}</option>`).join("");renderPublicBaseComponents();publicBaseStatus(`${(registry.packs||[]).length} public registry pack(s) available as Creator bases.`,"ok");}
-  catch(err){publicBaseStatus(`Could not load the official registry: ${err.message}. You can still use a direct public ZIP URL.`,"warn");}
+  try{const registry=await publicBaseRegistryLoad(),sel=$("#publicBasePack");sel.innerHTML=(registry.packs||[]).map((p,i)=>`<option value="${esc(p.id)}"${i===0?" selected":""}>${esc(p.name)} · ${esc(p.version||"")}</option>`).join("");renderPublicBaseComponents();publicBaseStatus(`${(registry.packs||[]).length} public project source(s) available as Creator bases. Official entries prefer GitHub raw ZIPs.`,"ok");}
+  catch(err){publicBaseStatus(`Could not load the public-base registry: ${err.message}. You can still use a direct public ZIP URL.`,"warn");}
 }
 function closePublicBaseModal(){const modal=$("#publicBaseModal");if(modal)modal.hidden=true;document.body.style.overflow="";}
 function addPublicBaseSourceNote(meta){
@@ -2107,14 +2115,15 @@ async function importPublicBaseUrl(url,meta={}){
     const summary=$("#importSummary");if(summary){summary.hidden=false;summary.textContent=`Public base loaded from ${meta.name||url}. Rename IDs/namespace and review the source license before publishing. `+summary.textContent;}
     publicBaseStatus("Public pack loaded as the editable project base.","ok");closePublicBaseModal();switchView("pack");return true;
   } catch(err){
-    publicBaseStatus(`Direct browser import failed: ${err.message}. If the host blocks CORS, open/download the ZIP and use Import Datapack ZIP / Import Resource ZIP instead.`,"err");return false;
+    const githubHint=String(url).includes("githubusercontent.com")||String(url).includes("github.com")?" Check that this release ZIP has been pushed to the configured GitHub path.":" If the host blocks browser access, open/download the ZIP and use Import Datapack ZIP / Import Resource ZIP instead.";
+    publicBaseStatus(`Direct browser import failed: ${err.message}.${githubHint}`,"err");return false;
   } finally {modal?.classList.remove("loading");}
 }
 function setupPublicBaseImporter(){
   $("#usePublicBase")?.addEventListener("click",openPublicBaseModal);$("[data-public-base-card]")?.addEventListener("click",openPublicBaseModal);$("[data-public-base-card-resource]")?.addEventListener("click",openPublicBaseModal);
   $$('[data-public-base-close]').forEach(x=>x.addEventListener("click",closePublicBaseModal));
   $("#publicBasePack")?.addEventListener("change",renderPublicBaseComponents);$("#publicBaseComponent")?.addEventListener("change",renderPublicBaseComponents);
-  $("#loadPublicBase")?.addEventListener("click",async()=>{const pack=selectedPublicPack(),components=pack?.components||[],component=components[Number($("#publicBaseComponent")?.value||0)];if(!pack||!component){publicBaseStatus("Choose a public pack/component first.","warn");return;}const url=forgeCdnUrl(component.curseforge_file_id,component.file_name);if(!url){publicBaseStatus("This registry component has no public downloadable file ID yet.","warn");return;}await importPublicBaseUrl(url,{name:pack.name,infoUrl:pack.info_url,fileName:component.file_name,type:component.type});});
+  $("#loadPublicBase")?.addEventListener("click",async()=>{const pack=selectedPublicPack(),components=pack?.components||[],component=components[Number($("#publicBaseComponent")?.value||0)];if(!pack||!component){publicBaseStatus("Choose a public pack/component first.","warn");return;}const url=publicBaseComponentUrl(component);if(!url){publicBaseStatus("This registry component has no direct public source URL yet.","warn");return;}await importPublicBaseUrl(url,{name:pack.name,infoUrl:pack.info_url||component.source_page||url,fileName:component.file_name,type:component.type,source:component.source||"public"});});
   $("#loadPublicBaseUrl")?.addEventListener("click",async()=>{const url=$("#publicBaseUrl")?.value.trim();await importPublicBaseUrl(url,{name:"Public URL Base",infoUrl:url,fileName:(url||"").split("/").pop()||"public-pack.zip",type:$("#publicBaseUrlType")?.value|| (state.kind==="resourcepack"?"resource_pack":"datapack")});});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#publicBaseModal")?.hidden)closePublicBaseModal();});
 }

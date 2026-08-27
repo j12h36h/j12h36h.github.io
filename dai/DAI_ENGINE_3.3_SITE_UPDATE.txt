@@ -17,3 +17,13 @@ Guides
 - Added Runtime Dispatch 3.3 and a compatibility redirect from the old 3.0 path.
 - Added Create Anything tutorials for Data Screens, Datapack Keybinds, and Persistent Content State.
 - Refreshed Actions, Conditions, Menus, Overlays/Reactions, Custom Content, Experiences/Worldgen and Creator Workflow for 3.3.
+
+2026-08-27 experience + public-source expansion
+- Added Space Between Blocks and Tower of DLC as additional front-page universe planet nodes.
+- Added Tower of DLC and Kitty's Dagger to the ecosystem directory and tutorial hub.
+- Added dedicated Tower of DLC and Kitty's Dagger project workshops.
+- Added /api/public-bases.json as a Creator-only source registry.
+- Switched Creator official public-base loading to direct GitHub raw ZIP URLs, with /api/packs.json retained only as a fallback.
+- Kept /api/packs.json semantics isolated for the in-game Official Packs installer.
+- Added clearer GitHub 404/source troubleshooting for public-base imports.
+- Added current public GitHub source entries for DAI project data/resource packs, including staged Space Between Blocks and Tower of DLC paths for the release push.

@@ -1,0 +1,337 @@
+{
+  "schema": 1,
+  "source": "github",
+  "repository": "https://github.com/j12h36h/decisions_and_impulses",
+  "packs": [
+    {
+      "id": "decisions_and_impulses:autocraft_mineshaft",
+      "name": "AutoCraft MineShaft",
+      "version": "2.2.0 GitHub snapshot",
+      "type": "datapack",
+      "featured": true,
+      "summary": "Official AutoCraft MineShaft source snapshot for learning from a complete DAI dungeon experience.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/autocraft-mineshaft",
+      "components": [
+        {
+          "id": "autocraft_data",
+          "type": "datapack",
+          "file_name": "AutoCraft_MineShaft_v2.2.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/AutoCraft_MineShaft_v2.2.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/AutoCraft_MineShaft_v2.2.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:claygrounds",
+      "name": "ClayGrounds",
+      "version": "0.5.0",
+      "type": "combo",
+      "featured": true,
+      "summary": "Official ClayGrounds data + resource source pair for studying a larger authored DAI RPG experience.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/claygrounds-data",
+      "components": [
+        {
+          "id": "claygrounds_data",
+          "type": "datapack",
+          "file_name": "ClayGrounds_Data_v0.5.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/ClayGrounds_Data_v0.5.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/ClayGrounds_Data_v0.5.0.zip"
+        },
+        {
+          "id": "claygrounds_resource",
+          "type": "resource_pack",
+          "file_name": "ClayGrounds_Resource_v0.5.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/ClayGrounds_Resource_v0.5.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/ClayGrounds_Resource_v0.5.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:comic_effects",
+      "name": "DAI Comic Effects",
+      "version": "1.4.0",
+      "type": "combo",
+      "featured": false,
+      "summary": "Reusable comic-reaction addon and companion resource pack.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-comic-effects-data",
+      "components": [
+        {
+          "id": "comic_effects_data",
+          "type": "datapack",
+          "file_name": "DAI_ComicEffects_Data_v1.4.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_ComicEffects_Data_v1.4.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_ComicEffects_Data_v1.4.0.zip"
+        },
+        {
+          "id": "comic_effects_resource",
+          "type": "resource_pack",
+          "file_name": "DAI_ComicEffects_Resource_v1.4.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/DAI_ComicEffects_Resource_v1.4.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/DAI_ComicEffects_Resource_v1.4.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:damage_indicators",
+      "name": "DAI Damage Indicators",
+      "version": "1.5.0",
+      "type": "datapack",
+      "featured": false,
+      "summary": "Standalone floating damage feedback addon; a compact example of reusable combat presentation.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-damage-indicators",
+      "components": [
+        {
+          "id": "damage_indicators_data",
+          "type": "datapack",
+          "file_name": "DAI_Damage_Indicators_v1.5.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Damage_Indicators_v1.5.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Damage_Indicators_v1.5.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:fun_survival",
+      "name": "DAI Fun Survival",
+      "version": "0.6.0",
+      "type": "datapack",
+      "featured": false,
+      "summary": "Reusable survival automation and gameplay systems source pack.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-fun-survival",
+      "components": [
+        {
+          "id": "fun_survival_data",
+          "type": "datapack",
+          "file_name": "DAI_Fun_v0.6.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Fun_v0.6.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Fun_v0.6.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:kittys_dagger",
+      "name": "Kitty's Dagger",
+      "version": "0.4.0",
+      "type": "datapack",
+      "featured": true,
+      "summary": "Ability-driven dagger addon with multiple skills and visible cooldown state; useful as a compact combat/input base.",
+      "info_url": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Kittys_Dagger_Data_v0.4.0.zip",
+      "components": [
+        {
+          "id": "kittys_dagger_data",
+          "type": "datapack",
+          "file_name": "DAI_Kittys_Dagger_Data_v0.4.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Kittys_Dagger_Data_v0.4.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Kittys_Dagger_Data_v0.4.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:survival_interface",
+      "name": "DAI Survival Interface",
+      "version": "0.3.0",
+      "type": "datapack",
+      "featured": false,
+      "summary": "Compact target HUD addon for studying screen-space gameplay presentation.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-survival-interface",
+      "components": [
+        {
+          "id": "survival_interface_data",
+          "type": "datapack",
+          "file_name": "DAI_Survival_Interface_v0.3.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Survival_Interface_v0.3.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Survival_Interface_v0.3.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:echo_time",
+      "name": "Echo Time",
+      "version": "1.1.0",
+      "type": "datapack",
+      "featured": true,
+      "summary": "Time-control ability addon source pack for studying reusable abilities and visual state.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-echo-time-data",
+      "components": [
+        {
+          "id": "echo_time_data",
+          "type": "datapack",
+          "file_name": "EchoTime_v1.1.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/EchoTime_v1.1.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/EchoTime_v1.1.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:hollow_spiral",
+      "name": "Hollow Spiral",
+      "version": "0.5.0",
+      "type": "combo",
+      "featured": true,
+      "summary": "Endless survival experience source pair for studying persistent procedural rooms and presentation.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/hollow-spiral-data",
+      "components": [
+        {
+          "id": "hollow_spiral_data",
+          "type": "datapack",
+          "file_name": "HollowSpiral_Data_v0.5.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/HollowSpiral_Data_v0.5.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/HollowSpiral_Data_v0.5.0.zip"
+        },
+        {
+          "id": "hollow_spiral_resource",
+          "type": "resource_pack",
+          "file_name": "HollowSpiral_Resource_v0.5.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/HollowSpiral_Resource_v0.5.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/HollowSpiral_Resource_v0.5.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:minetrigger",
+      "name": "MineTrigger",
+      "version": "0.5.0",
+      "type": "combo",
+      "featured": true,
+      "summary": "Class-combat experience source pair for studying weapons, abilities, HUD and combat feedback.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/minetrigger-data",
+      "components": [
+        {
+          "id": "minetrigger_data",
+          "type": "datapack",
+          "file_name": "MineTrigger_Data_v0.5.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/MineTrigger_Data_v0.5.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/MineTrigger_Data_v0.5.0.zip"
+        },
+        {
+          "id": "minetrigger_resource",
+          "type": "resource_pack",
+          "file_name": "MineTrigger_Resource_v0.5.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/MineTrigger_Resource_v0.5.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/MineTrigger_Resource_v0.5.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:musashi_story",
+      "name": "Musashi Story",
+      "version": "1.2.0",
+      "type": "combo",
+      "featured": true,
+      "summary": "Authored samurai-RPG source pair with directional combat and presentation systems.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-musashi-story-data/preview",
+      "components": [
+        {
+          "id": "musashi_story_data",
+          "type": "datapack",
+          "file_name": "MusashiStory_Data_v1.2.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/MusashiStory_Data_v1.2.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/MusashiStory_Data_v1.2.0.zip"
+        },
+        {
+          "id": "musashi_story_resource",
+          "type": "resource_pack",
+          "file_name": "MusashiStory_Resource_v1.2.0.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/MusashiStory_Resource_v1.2.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/MusashiStory_Resource_v1.2.0.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:tamacrafti",
+      "name": "TamaCrafti",
+      "version": "2.4.10",
+      "type": "combo",
+      "featured": true,
+      "summary": "Persistent virtual-pet experience source pair for studying owned saves, UI and long-lived simulation state.",
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/tamacrafti",
+      "components": [
+        {
+          "id": "tamacrafti_data",
+          "type": "datapack",
+          "file_name": "TamaCrafti_Data_v2.4.10.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/TamaCrafti_Data_v2.4.10.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/TamaCrafti_Data_v2.4.10.zip"
+        },
+        {
+          "id": "tamacrafti_resource",
+          "type": "resource_pack",
+          "file_name": "TamaCrafti_Resource_v2.4.10.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/TamaCrafti_Resource_v2.4.10.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/TamaCrafti_Resource_v2.4.10.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:space_between_blocks",
+      "name": "Space Between Blocks",
+      "version": "0.1.19",
+      "type": "combo",
+      "featured": true,
+      "summary": "Space experience data + resource source pair, including the current public reference build used by the complete-game tutorial.",
+      "info_url": "/dai/guides/tutorials/space-between-blocks/",
+      "components": [
+        {
+          "id": "space_between_blocks_data",
+          "type": "datapack",
+          "file_name": "Space_Between_Blocks_Data_v0.1.19.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Space_Between_Blocks_Data_v0.1.19.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Space_Between_Blocks_Data_v0.1.19.zip"
+        },
+        {
+          "id": "space_between_blocks_resource",
+          "type": "resource_pack",
+          "file_name": "Space_Between_Blocks_Resource_v0.1.19.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Space_Between_Blocks_Resource_v0.1.19.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Space_Between_Blocks_Resource_v0.1.19.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:tower_of_dlc",
+      "name": "Tower of DLC",
+      "version": "0.1.4",
+      "type": "combo",
+      "featured": true,
+      "summary": "Tower of DLC data + resource source pair, exposed as a public Creator base and project workshop.",
+      "info_url": "/dai/guides/tutorials/tower-of-dlc/",
+      "components": [
+        {
+          "id": "tower_of_dlc_data",
+          "type": "datapack",
+          "file_name": "Tower_of_DLC_Data_v0.1.4_DAI2.1.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Tower_of_DLC_Data_v0.1.4_DAI2.1.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Tower_of_DLC_Data_v0.1.4_DAI2.1.zip"
+        },
+        {
+          "id": "tower_of_dlc_resource",
+          "type": "resource_pack",
+          "file_name": "Tower_of_DLC_Resource_v0.1.4_DAI2.1.zip",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Tower_of_DLC_Resource_v0.1.4_DAI2.1.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Tower_of_DLC_Resource_v0.1.4_DAI2.1.zip"
+        }
+      ]
+    }
+  ]
+}

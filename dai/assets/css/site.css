@@ -212,3 +212,7 @@ body::before{
 .universe-header .brand span{color:var(--accent-2)}
 .universe-core #universe-title{color:var(--dai-green)}
 .universe-core #universe-title span{color:var(--accent-2)}
+
+/* 2026-08-27 universe expansion: additional public experience nodes */
+.node-space{left:12%;top:11%}.node-tower{right:11%;top:11%;text-align:right}.node-tower b{margin-left:auto}
+@media(max-width:820px){.node-space{left:3%;top:13%}.node-tower{right:3%;top:13%}}
