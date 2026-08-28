@@ -417,8 +417,7 @@ function renderAuth(){
   const area=$('#authArea');
   if(state.user){
     const profile=ownPublicProfile();
-    area.innerHTML=`<div class="auth-user"><button class="auth-account-main" id="openAccountButton" type="button" title="Open account">${profileAvatarMarkup(profile)}<span>${escapeHtml(profile.displayName||'Account')}</span></button><button id="signOutButton" type="button" title="Sign out" aria-label="Sign out">↪</button></div>`;
-    $('#openAccountButton').addEventListener('click',()=>setView('account'));
+    area.innerHTML=`<div class="auth-user"><button class="auth-account-main" id="openAccountButton" data-open-account type="button" title="Open account" aria-label="Open account settings for ${escapeHtml(profile.displayName||'your profile')}">${profileAvatarMarkup(profile)}<span>${escapeHtml(profile.displayName||'Account')}</span></button><button id="signOutButton" type="button" title="Sign out" aria-label="Sign out">↪</button></div>`;
     $('#signOutButton').addEventListener('click',signOutUser);
     $('#composerName').textContent=profile.displayName||'Share a thought';
     $('#composerHint').textContent='This is your public LCS identity. Your Google name and email stay private.';
@@ -569,6 +568,13 @@ async function createObject(event){
 function renderAll(){renderSpaces();renderFeed();renderCatalogs();renderTrends();renderAuth();renderAccount();}
 
 function bindUI(){
+  $('#authArea').addEventListener('click',event=>{
+    const accountButton=event.target.closest('[data-open-account]');
+    if(!accountButton) return;
+    event.preventDefault();
+    setView('account');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
   $$('.nav-item').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
   $$('.thought-chip').forEach(b=>b.addEventListener('click',()=>{$$('.thought-chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.activeType=b.dataset.type;}));
   $$('.segment').forEach(b=>b.addEventListener('click',()=>{$$('.segment').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.activeFilter=b.dataset.filter;renderFeed();}));
