@@ -10,13 +10,14 @@ export const LCS_CONFIG = {
   // Firebase Console -> Project settings -> Your apps -> Web app -> SDK setup and configuration.
   // The app automatically switches from local-demo mode to live realtime mode when apiKey/projectId/appId are present.
   firebase: {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
-  },
+    apiKey: "AIzaSyAyoCH-n3rgJ1TgLRa_qxoef9sibggFYOE",
+    authDomain: "logicalcommunicationservice.firebaseapp.com",
+    projectId: "logicalcommunicationservice",
+    storageBucket: "logicalcommunicationservice.firebasestorage.app",
+    messagingSenderId: "752872197816",
+    appId: "1:752872197816:web:d13177e2b26f757438ee4d",
+    measurementId: "G-DKXZF7T5F5"
+  };
 
   // Optional moderation/display settings for the first public release.
   allowedReasoningTypes: [
