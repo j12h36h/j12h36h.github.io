@@ -2,62 +2,169 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function owns(field) { return signedIn() && request.auth.uid == field; }
-    function validReasoningType(t) { return t in ['unclassified','observation','premise','deduction','assumption','hypothesis','question']; }
+    function own(uid) { return signedIn() && request.auth.uid == uid; }
+    function validReasoning(t) { return t in ['unclassified','observation','premise','deduction','assumption','hypothesis','question']; }
     function validKind(k) { return k in ['idea','problem','project']; }
-    function validPublicProfile(data) {
+    function validTargetType(t) { return t in ['post','object']; }
+    function validFollowTargetType(t) { return t in ['object','profile']; }
+    function validRelation(r) { return r in ['related to','context for','supports','challenges','solves','depends on','inspired by']; }
+
+    function validProfile(data) {
       return data.keys().hasOnly(['displayName','bio','useGooglePhoto','photoURL','createdAt','updatedAt'])
-        && data.displayName is string
-        && data.displayName.size() >= 2
-        && data.displayName.size() <= 40
-        && data.bio is string
-        && data.bio.size() <= 240
+        && data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 40
+        && data.bio is string && data.bio.size() <= 240
         && data.useGooglePhoto is bool
-        && data.photoURL is string
-        && data.photoURL.size() <= 700
-        && data.createdAt is timestamp
-        && data.updatedAt is timestamp;
+        && data.photoURL is string && data.photoURL.size() <= 700
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validPost(data) {
+      return data.keys().hasOnly(['text','reasoningType','kind','spaceId','authorUid','authorName','authorPhoto','createdAt','updatedAt','deleted'])
+        && data.text is string && data.text.size() > 0 && data.text.size() <= 1200
+        && validReasoning(data.reasoningType)
+        && validKind(data.kind)
+        && data.spaceId is string && data.spaceId.size() > 0 && data.spaceId.size() <= 128
+        && data.authorUid is string
+        && data.authorName is string && data.authorName.size() >= 2 && data.authorName.size() <= 40
+        && data.authorPhoto is string && data.authorPhoto.size() <= 700
+        && data.createdAt is timestamp && data.updatedAt is timestamp
+        && (!('deleted' in data) || data.deleted is bool);
+    }
+
+    function validObject(data) {
+      return data.keys().hasOnly(['kind','title','description','tags','spaceId','authorUid','authorName','authorPhoto','createdAt','updatedAt','deleted'])
+        && validKind(data.kind)
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 100
+        && data.description is string && data.description.size() > 0 && data.description.size() <= 700
+        && data.tags is list && data.tags.size() <= 8
+        && data.spaceId is string && data.spaceId.size() > 0 && data.spaceId.size() <= 128
+        && data.authorUid is string
+        && data.authorName is string && data.authorName.size() >= 2 && data.authorName.size() <= 40
+        && data.authorPhoto is string && data.authorPhoto.size() <= 700
+        && data.createdAt is timestamp && data.updatedAt is timestamp
+        && (!('deleted' in data) || data.deleted is bool);
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if own(userId) && validProfile(request.resource.data);
+      allow delete: if own(userId);
     }
 
     match /posts/{postId} {
       allow read: if true;
-      allow create: if signedIn()
-        && request.resource.data.authorUid == request.auth.uid
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 1200
-        && validReasoningType(request.resource.data.reasoningType)
-        && validKind(request.resource.data.kind);
-      allow update: if owns(resource.data.authorUid)
-        && request.resource.data.authorUid == resource.data.authorUid;
-      allow delete: if owns(resource.data.authorUid);
+      allow create: if signedIn() && own(request.resource.data.authorUid) && validPost(request.resource.data);
+      allow update: if own(resource.data.authorUid)
+        && request.resource.data.authorUid == resource.data.authorUid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validPost(request.resource.data);
+      allow delete: if own(resource.data.authorUid);
     }
 
     match /objects/{objectId} {
       allow read: if true;
-      allow create: if signedIn()
-        && request.resource.data.authorUid == request.auth.uid
-        && validKind(request.resource.data.kind)
-        && request.resource.data.title is string
-        && request.resource.data.title.size() > 0
-        && request.resource.data.title.size() <= 100
-        && request.resource.data.description is string
-        && request.resource.data.description.size() > 0
-        && request.resource.data.description.size() <= 700;
-      allow update: if owns(resource.data.authorUid)
-        && request.resource.data.authorUid == resource.data.authorUid;
-      allow delete: if owns(resource.data.authorUid);
+      allow create: if signedIn() && own(request.resource.data.authorUid) && validObject(request.resource.data);
+      allow update: if own(resource.data.authorUid)
+        && request.resource.data.authorUid == resource.data.authorUid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validObject(request.resource.data);
+      allow delete: if own(resource.data.authorUid);
     }
 
-    // Public profile only. Google email/provider name are intentionally not valid fields here.
-    match /users/{userId} {
+    match /spaces/{spaceId} {
       allow read: if true;
-      allow create, update: if signedIn()
-        && request.auth.uid == userId
-        && validPublicProfile(request.resource.data);
-      allow delete: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn()
+        && own(request.resource.data.ownerUid)
+        && request.resource.data.keys().hasOnly(['name','description','ownerUid','createdAt','updatedAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 50
+        && request.resource.data.description is string && request.resource.data.description.size() <= 240
+        && request.resource.data.createdAt is timestamp && request.resource.data.updatedAt is timestamp;
+      allow update: if own(resource.data.ownerUid)
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.keys().hasOnly(['name','description','ownerUid','createdAt','updatedAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 50
+        && request.resource.data.description is string && request.resource.data.description.size() <= 240
+        && request.resource.data.updatedAt is timestamp;
+      allow delete: if own(resource.data.ownerUid);
     }
 
-    match /{document=**} { allow read, write: if false; }
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && own(request.resource.data.authorUid)
+        && request.resource.data.keys().hasOnly(['targetKey','targetType','targetId','text','reasoningType','authorUid','authorName','authorPhoto','createdAt','updatedAt'])
+        && validTargetType(request.resource.data.targetType)
+        && request.resource.data.targetKey == request.resource.data.targetType + ':' + request.resource.data.targetId
+        && request.resource.data.targetId is string && request.resource.data.targetId.size() > 0
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 800
+        && validReasoning(request.resource.data.reasoningType)
+        && request.resource.data.authorName is string && request.resource.data.authorName.size() >= 2 && request.resource.data.authorName.size() <= 40
+        && request.resource.data.authorPhoto is string && request.resource.data.authorPhoto.size() <= 700
+        && request.resource.data.createdAt is timestamp && request.resource.data.updatedAt is timestamp;
+      allow update: if own(resource.data.authorUid)
+        && request.resource.data.authorUid == resource.data.authorUid
+        && request.resource.data.targetKey == resource.data.targetKey
+        && request.resource.data.targetType == resource.data.targetType
+        && request.resource.data.targetId == resource.data.targetId
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if own(resource.data.authorUid);
+    }
+
+    match /reactions/{reactionId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && own(request.resource.data.userUid)
+        && request.resource.data.keys().hasOnly(['targetKey','targetType','targetId','userUid','type','createdAt'])
+        && validTargetType(request.resource.data.targetType)
+        && request.resource.data.targetKey == request.resource.data.targetType + ':' + request.resource.data.targetId
+        && request.resource.data.type == 'helpful'
+        && request.resource.data.createdAt is timestamp;
+      allow update: if false;
+      allow delete: if own(resource.data.userUid);
+    }
+
+    match /follows/{followId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && own(request.resource.data.userUid)
+        && request.resource.data.keys().hasOnly(['targetKey','targetType','targetId','userUid','createdAt'])
+        && validFollowTargetType(request.resource.data.targetType)
+        && request.resource.data.targetKey == request.resource.data.targetType + ':' + request.resource.data.targetId
+        && request.resource.data.createdAt is timestamp;
+      allow update: if false;
+      allow delete: if own(resource.data.userUid);
+    }
+
+    match /connections/{connectionId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && own(request.resource.data.authorUid)
+        && request.resource.data.keys().hasOnly(['sourceId','targetId','relation','authorUid','createdAt'])
+        && request.resource.data.sourceId is string && request.resource.data.sourceId.size() > 0
+        && request.resource.data.targetId is string && request.resource.data.targetId.size() > 0
+        && request.resource.data.sourceId != request.resource.data.targetId
+        && validRelation(request.resource.data.relation)
+        && request.resource.data.createdAt is timestamp;
+      allow update: if false;
+      allow delete: if own(resource.data.authorUid);
+    }
+
+    match /postLinks/{linkId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && own(request.resource.data.authorUid)
+        && request.resource.data.keys().hasOnly(['postId','objectId','relation','authorUid','createdAt'])
+        && request.resource.data.postId is string && request.resource.data.postId.size() > 0
+        && request.resource.data.objectId is string && request.resource.data.objectId.size() > 0
+        && validRelation(request.resource.data.relation)
+        && request.resource.data.createdAt is timestamp;
+      allow update: if false;
+      allow delete: if own(resource.data.authorUid);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

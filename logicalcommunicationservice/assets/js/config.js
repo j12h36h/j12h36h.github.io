@@ -11,7 +11,7 @@ export const LCS_CONFIG = {
 
   // Paste the Firebase Web App config from:
   // Firebase Console -> Project settings -> Your apps -> Web app -> SDK setup and configuration.
-  // The app automatically switches from local-demo mode to live realtime mode when apiKey/projectId/appId are present.
+  // This production build requires Firebase for shared authentication and realtime network data.
   firebase: {
     apiKey: "AIzaSyAyoCH-n3rgJ1TgLRa_qxoef9sibggFYOE",
     authDomain: "logicalcommunicationservice.firebaseapp.com",

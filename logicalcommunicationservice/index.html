@@ -7,7 +7,7 @@
   <meta name="description" content="Logical Communication Service — a browser-based network for ideas, projects, problems, and clear reasoning." />
   <title>Logical Communication Service</title>
   <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-account-header-fix1" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-full-functional-v03" />
 </head>
 <body>
   <div class="ambient ambient-a"></div>
@@ -29,8 +29,9 @@
 
     <div class="top-search">
       <span aria-hidden="true">⌕</span>
-      <input id="globalSearch" type="search" placeholder="Find ideas, problems, projects, or people" aria-label="Search" />
+      <input id="globalSearch" type="search" placeholder="Find ideas, problems, projects, or people" aria-label="Search" autocomplete="off" />
       <kbd>/</kbd>
+      <div class="search-panel" id="searchResultsPanel" hidden></div>
     </div>
 
     <div class="top-actions">
@@ -43,7 +44,7 @@
   <main class="shell">
     <aside class="left-rail" aria-label="Main navigation">
       <nav class="primary-nav">
-        <button class="nav-item active" data-view="home"><span>✦</span><b>For you</b></button>
+        <button class="nav-item active" data-view="home"><span>✦</span><b>Live feed</b></button>
         <button class="nav-item" data-view="universe"><span>◎</span><b>Idea map</b></button>
         <button class="nav-item" data-view="ideas"><span>◈</span><b>Ideas</b></button>
         <button class="nav-item" data-view="problems"><span>?</span><b>Problems</b></button>
@@ -59,15 +60,15 @@
       </section>
 
       <section class="rail-card compact-card">
-        <p class="eyebrow">Your spaces</p>
+        <p class="eyebrow">Spaces</p>
         <div class="space-list" id="spaceList"></div>
-        <button class="add-space" id="newSpaceButton" type="button">＋ Start something</button>
+        <button class="add-space" id="newSpaceButton" type="button">＋ New space</button>
       </section>
 
       <footer class="rail-footer">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
-        <span>v0.2</span>
+        <span>v0.3</span>
       </footer>
     </aside>
 
@@ -109,9 +110,17 @@
           </div>
 
           <div class="composer-footer">
-            <div class="composer-context">
-              <label for="postSpace">Post in</label>
-              <select id="postSpace"></select>
+            <div class="composer-context composer-context-group">
+              <label>About
+                <select id="postKind" aria-label="Post kind">
+                  <option value="idea">Idea</option>
+                  <option value="problem">Problem</option>
+                  <option value="project">Project</option>
+                </select>
+              </label>
+              <label>Post in
+                <select id="postSpace" aria-label="Post space"></select>
+              </label>
             </div>
             <div class="composer-actions">
               <span id="charCounter">0 / 1200</span>
@@ -143,7 +152,7 @@
             <h1>See how things connect.</h1>
             <p>Instead of forcing everything into folders, this view shows ideas, problems, and projects as relationships.</p>
           </div>
-          <button class="primary-button" id="focusMapButton" type="button">Center map</button>
+          <button class="primary-button" id="focusMapButton" type="button">Re-center map</button>
         </div>
         <section class="universe-panel">
           <svg id="universeLines" class="universe-lines" aria-hidden="true"></svg>
@@ -180,7 +189,16 @@
           </div>
         </div>
 
-        <section class="account-card account-signed-out" id="accountSignedOut">
+        <section class="account-card account-auth-loading" id="accountAuthLoading">
+          <div class="account-card-icon" aria-hidden="true">◉</div>
+          <div>
+            <p class="eyebrow">Checking sign-in</p>
+            <h2>Connecting your LCS identity…</h2>
+            <p>Checking the saved Firebase session before showing account controls.</p>
+          </div>
+        </section>
+
+        <section class="account-card account-signed-out" id="accountSignedOut" hidden>
           <div class="account-card-icon" aria-hidden="true">◉</div>
           <div>
             <p class="eyebrow">Not signed in</p>
@@ -240,6 +258,7 @@
                 <h2>Google account</h2>
                 <p class="muted">These details are shown here only so you know which Google account is signed in. They are not copied into your public LCS profile.</p>
                 <dl class="private-account-list">
+                  <div><dt>Connection</dt><dd id="accountConnectionStatus">Connected to LCS</dd></div>
                   <div><dt>Google account name</dt><dd id="accountProviderName">—</dd></div>
                   <div><dt>Email</dt><dd id="accountProviderEmail">—</dd></div>
                 </dl>
@@ -313,7 +332,9 @@
       </div>
       <label class="field"><span>Name it</span><input id="createTitle" maxlength="100" required placeholder="A short, clear name" /></label>
       <label class="field"><span>Explain it normally</span><textarea id="createDescription" maxlength="700" required placeholder="What is it, why does it matter, or what are you trying to figure out?"></textarea></label>
+      <label class="field"><span>Space</span><select id="createSpaceSelect"></select></label>
       <label class="field"><span>Optional tags</span><input id="createTags" maxlength="120" placeholder="games, research, accessibility" /></label>
+      <label class="field"><span>Optional starting connection</span><select id="createRelatedObject"><option value="">No initial relationship</option></select><small>Link this new item to existing work immediately.</small></label>
       <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Create</button></div>
     </form>
   </dialog>
@@ -330,7 +351,6 @@
       <p id="authErrorText"></p>
       <code id="authErrorCode"></code>
     </div>
-    <button class="ghost-button" id="localGuestButton" type="button" hidden style="width:100%;margin-top:4px">Try the interface as a local guest</button>
     <p class="tiny muted">By continuing, you agree to the <a href="terms.html">Terms</a> and acknowledge the <a href="privacy.html">Privacy Policy</a>.</p>
     <div class="setup-warning" id="authSetupWarning" hidden>
       <b>Owner setup needed</b>
@@ -339,8 +359,64 @@
     </div>
   </dialog>
 
+  <dialog id="spaceDialog" class="modal create-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Organize context</p>
+    <h2>Create a public space</h2>
+    <p class="muted">Spaces group related posts and work without hiding them from the wider network.</p>
+    <form id="spaceForm">
+      <label class="field"><span>Space name</span><input id="spaceName" maxlength="50" minlength="2" required placeholder="Game Design, Accessibility, Research…" /></label>
+      <label class="field"><span>Description</span><textarea id="spaceDescription" maxlength="240" placeholder="What belongs in this space?"></textarea></label>
+      <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Create space</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="connectDialog" class="modal create-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Preserve relationships</p>
+    <h2 id="connectDialogTitle">Connect work</h2>
+    <form id="connectForm">
+      <label class="field"><span>Connect to</span><select id="connectTargetObject" required></select></label>
+      <label class="field"><span id="connectRelationLabel">How are they connected?</span><select id="connectRelation">
+        <option value="related to">Related to</option>
+        <option value="context for">Context for</option>
+        <option value="supports">Supports</option>
+        <option value="challenges">Challenges</option>
+        <option value="solves">Solves</option>
+        <option value="depends on">Depends on</option>
+        <option value="inspired by">Inspired by</option>
+      </select></label>
+      <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Save connection</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog" class="modal detail-modal">
+    <button class="modal-close" id="detailCloseButton" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow" id="detailEyebrow">Details</p>
+    <h2 id="detailTitle">Details</h2>
+    <div id="detailBody"></div>
+    <section class="detail-thread" id="detailThreadSection">
+      <div class="thread-heading"><div><p class="eyebrow">Discussion</p><h3>Keep the reasoning attached.</h3></div></div>
+      <div id="detailCommentList" class="comment-list"></div>
+      <form id="detailCommentForm" class="comment-composer">
+        <label class="field"><span>How are you responding?</span><select id="detailCommentReasoning">
+          <option value="unclassified">Just say it</option>
+          <option value="observation">I noticed · Observation</option>
+          <option value="premise">We know · Premise</option>
+          <option value="deduction">This follows · Deduction</option>
+          <option value="assumption">I'm assuming · Assumption</option>
+          <option value="hypothesis">Maybe · Hypothesis</option>
+          <option value="question">I need to know · Question</option>
+        </select></label>
+        <label class="field"><span>Your response</span><textarea id="detailCommentText" maxlength="800" required placeholder="Add context, evidence, a question, or a next step…"></textarea></label>
+        <div class="modal-actions"><button class="primary-button" type="submit">Add response</button></div>
+      </form>
+      <button class="ghost-button" id="detailCommentSignIn" type="button">Sign in to join this discussion</button>
+    </section>
+  </dialog>
+
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
-  <script type="module" src="assets/js/app.js?v=20260828-account-header-fix1"></script>
+  <script type="module" src="assets/js/app.js?v=20260828-full-functional-v03"></script>
 </body>
 </html>

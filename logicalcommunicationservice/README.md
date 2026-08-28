@@ -1,173 +1,84 @@
-# Logical Communication Service — GitHub Pages package
+# Logical Communication Service — v0.3 full functional build
 
 Target URL:
 
 `https://j12h36h.github.io/logicalcommunicationservice/`
 
-This package is intentionally a static GitHub Pages frontend with an optional Google/Firebase backend. It works immediately as a local interactive demo. Once Firebase is configured, it gains real Google authentication and realtime shared data through Cloud Firestore.
+LCS is a static GitHub Pages frontend backed by Firebase Authentication and Cloud Firestore. This build removes the seed/demo content and replaces the previously staged UI actions with live Firestore-backed behavior.
 
-## 1. Install into j12h36h.github.io
+## What is functional in v0.3
 
-Copy the entire `logicalcommunicationservice` folder into the root of the repository that publishes `j12h36h.github.io`, then commit and push it.
+- persistent Google/Firebase sign-in across page refreshes;
+- privacy-first public profiles with editable display name and bio;
+- Google email/provider identity kept out of public profile documents;
+- public realtime post feed;
+- reasoning labels for posts and discussion responses;
+- post category selection: idea, problem, or project;
+- public spaces with live creation and filtering;
+- realtime ideas, problems, and projects;
+- functional Helpful reactions;
+- functional Follow actions for work and public profiles;
+- post-to-work connections;
+- work-to-work relationships;
+- realtime discussion threads on posts and work objects;
+- object detail and public profile detail dialogs;
+- live idea map using actual work and actual relationships;
+- computed trending tags/connection types rather than fixed examples;
+- search across people, posts, work, and spaces;
+- global space filters across feed/catalog/map;
+- DAI Universe navigation preserved.
 
-Expected structure:
+There is no local demo dataset in this build. If Firebase is unavailable, LCS reports the backend problem instead of silently replacing live data with example content.
 
-```text
-j12h36h.github.io/
-├── ...existing site...
-└── logicalcommunicationservice/
-    ├── index.html
-    ├── privacy.html
-    ├── terms.html
-    ├── firestore.rules
-    ├── firebase.json
-    └── assets/
-```
+## Firebase setup
 
-GitHub Pages will then serve the site at the target URL.
-
-## 2. Turn on real Google login + realtime data
-
-The site uses the current modular Firebase Web SDK and Firebase Authentication's Google provider. No OAuth client secret or service-account key belongs in this repository.
-
-### Create/connect Firebase
-
-1. Open https://console.firebase.google.com/ and create or choose a project.
-2. Add a **Web app** to that project.
-3. Copy its public Firebase configuration object.
-4. Open `assets/js/config.js` in this package.
-5. Paste the values into `LCS_CONFIG.firebase`.
-
-Example shape:
-
-```js
-firebase: {
-  apiKey: "...",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "...",
-  appId: "..."
-}
-```
-
-These web configuration values identify the Firebase project; they are not server secrets. Do **not** add service-account JSON, OAuth client secrets, or private keys to GitHub.
-
-### GitHub secret-scanning note
-
-GitHub may flag the Firebase Web App `apiKey` as a possible Google API key. A Firebase browser key is client configuration and must be delivered to the browser for this static GitHub Pages architecture, so it cannot be made secret by moving it to another JavaScript or JSON file. Do not obfuscate it to evade scanning.
-
-Instead, verify in Google Cloud that the browser key is restricted to the APIs required by this Firebase project and, where applicable, to the intended website/referrer environment. If the current key was ever usable outside the intended scope, rotate it first and then replace the public Firebase web key in `assets/js/config.js`.
-
-### Enable Google authentication
+The checked-in Firebase Web App configuration is browser client configuration. Never add service-account JSON, OAuth client secrets, or private keys to this repository.
 
 In Firebase Console:
 
-1. Go to **Security → Authentication → Sign-in method**.
-2. Enable **Google**.
-3. Go to Authentication settings / Authorized domains.
-4. Add:
+1. Enable **Authentication → Google**.
+2. Under Authentication **Authorized domains**, include `j12h36h.github.io`.
+3. Create a Cloud Firestore database.
+4. Deploy the included `firestore.rules`.
 
-`j12h36h.github.io`
+If the Firebase Web API key has HTTP-referrer restrictions, allow the GitHub Pages host and the Firebase Authentication helper domain used by this project.
 
-For local development, also authorize the localhost host you actually use.
+## Deploy Firestore rules
 
-### If the Google popup flashes and immediately closes
-
-Check **Google Cloud Console → APIs & Services → Credentials → the Firebase Web API key**. If you enabled **Website / HTTP referrer application restrictions**, the popup helper is served from the Firebase `authDomain`, not from GitHub Pages. For this project, allow both:
-
-```text
-https://j12h36h.github.io/*
-https://logicalcommunicationservice.firebaseapp.com/*
-```
-
-Also keep the key's **API restrictions** compatible with Firebase Authentication/Firestore. Firebase-provisioned Web API keys are public client identifiers; security for Firestore is enforced by Security Rules (and optionally App Check), not by hiding this browser configuration.
-
-The LCS sign-in dialog now displays the exact Firebase error code and targeted setup guidance rather than letting an auth popup fail silently.
-
-Firebase's Google provider automatically uses the Google OAuth configuration associated with the Firebase project. The UI uses `signInWithPopup()`. Because this app is hosted on GitHub Pages rather than Firebase Hosting, it intentionally does not silently fall back to `signInWithRedirect()`; modern browser third-party-storage rules require extra proxy/self-hosting work for reliable redirect authentication on non-Firebase hosting.
-
-### Create Firestore
-
-1. In Firebase Console, create a Cloud Firestore database.
-2. Start it with locked/production rules rather than open test rules.
-3. Deploy or paste the included `firestore.rules`.
-
-With Firebase CLI, from this folder:
+From this folder with Firebase CLI:
 
 ```bash
 firebase login
-firebase use YOUR_FIREBASE_PROJECT_ID
+firebase use logicalcommunicationservice
 firebase deploy --only firestore:rules
 ```
 
-The included rules:
+The v0.3 rules cover these collections:
 
-- allow public reads of public posts/objects and intentionally limited public profile documents;
-- require authentication for creation;
-- require `authorUid` to match the authenticated user;
-- restrict updates/deletes to the author;
-- validate post length, object length, reasoning types, and object kinds;
-- restrict public profile documents to display name, bio, photo opt-in/URL, and timestamps — Google email/provider name are not permitted public-profile fields;
-- deny undeclared collections by default.
+- `users`
+- `posts`
+- `objects`
+- `spaces`
+- `comments`
+- `reactions`
+- `follows`
+- `connections`
+- `postLinks`
 
+Unknown collections are denied by default.
 
-### Public account/profile privacy model
+## Public identity model
 
-After first Google sign-in, LCS creates a privacy-safe public profile using a generated `Member-XXXXXX` name and **does not publish the Google account name or email**. The user is taken to the Account view where they can choose a nickname, creator name, or alias. Google-profile-picture sharing is off by default and requires an explicit opt-in.
+Google/Firebase authenticates the account. LCS separately stores the public profile under `users/{firebaseUid}`. The public profile contains only:
 
-The public profile is stored in `users/{firebaseUid}` and contains only the public fields allowed by `firestore.rules`. The Google provider name/email remain in Firebase Authentication and are rendered only to the signed-in user on their own Account page.
+- chosen display name;
+- optional public bio;
+- whether the user opted into their Google profile image;
+- public image URL when opted in;
+- created/updated timestamps.
 
-When a public name/photo choice changes, the frontend also makes a best-effort batch update of the user's existing authored posts and objects so old content does not keep displaying an obsolete provider-derived identity.
+The Google account name and email are displayed only to the signed-in user on the Account page and are not written into public Firestore profile documents.
 
-**Deploy the included Firestore rules when updating this release.** The previous rules are compatible enough for the new profile UI to work, but the v0.2 rules deliberately prevent future client code from placing provider email/name or arbitrary extra fields in public profile documents.
+## Architecture boundary
 
-## 3. Google/Firebase production checklist
-
-Before treating this as a production public community:
-
-- Replace the placeholder support/contact language in `privacy.html` and `terms.html`.
-- Confirm the public home page, Privacy Policy, and Terms URLs in your Google/Firebase authentication branding settings.
-- Configure an OAuth consent screen/branding as required by Google.
-- Verify the site/domain ownership if Google requests production verification.
-- Consider Firebase App Check before opening the database to significant traffic.
-- Add moderation/reporting, content deletion, account deletion, abuse controls, rate limits, and administrative roles.
-- Do not use a permissive `allow read, write: if true` Firestore rule in production.
-
-## 4. Design model
-
-The interface deliberately exposes plain language first:
-
-| Plain language | Formal label | Meaning |
-|---|---|---|
-| I noticed | Observation | Something directly observed or recorded |
-| We know | Premise | A starting fact/rule/agreed point |
-| This follows | Deduction | A conclusion connected by reasoning |
-| I'm assuming | Assumption | Treated as true but not established |
-| Maybe | Hypothesis | A possible explanation or solution to test |
-| I need to know | Question | Missing information |
-| Just say it | Unclassified | Normal speech; no label required |
-
-The formal model stays available without becoming an onboarding requirement.
-
-## 5. Current v0.1 capabilities
-
-- responsive browser UI;
-- plain-language reasoning composer;
-- idea / problem / project objects;
-- visual idea map;
-- project/space navigation;
-- search and filtering;
-- Google sign-in through Firebase Authentication when configured;
-- Firestore realtime posts and objects when configured;
-- safe local demo fallback when Firebase is not configured;
-- editable privacy-first public account/profile page;
-- public display names independent from Google account/legal names;
-- optional public bio and opt-in Google profile photo;
-- profile changes propagated to existing authored posts/objects where possible;
-- baseline Firestore security rules;
-- Privacy and Terms pages.
-
-## 6. Important architecture boundary
-
-GitHub Pages can host static client code, but it cannot itself securely execute trusted server logic. Firebase provides authenticated server-backed persistence for this package. Any future privileged features — administrator actions, secret API calls, private data processing, server-side AI, payment handling, etc. — should use a trusted backend such as Cloud Functions/Cloud Run rather than putting secrets in browser JavaScript.
+GitHub Pages cannot safely execute privileged server logic. Authentication and public persistence are delegated to Firebase. Features that require trusted moderation/admin authority, private server processing, secret API credentials, payments, or privileged deletion should be implemented with a trusted backend such as Cloud Functions or Cloud Run rather than browser JavaScript.
