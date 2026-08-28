@@ -16,13 +16,10 @@ export const LCS_CONFIG = {
     apiKey: "AIzaSyAyoCH-n3rgJ1TgLRa_qxoef9sibggFYOE",
     authDomain: "logicalcommunicationservice.firebaseapp.com",
     projectId: "logicalcommunicationservice",
-    storageBucket: "logicalcommunicationservice.firebasestorage.app",
-    messagingSenderId: "752872197816",
     appId: "1:752872197816:web:d13177e2b26f757438ee4d",
-    measurementId: "G-DKXZF7T5F5"
   },
 
-  // Optional moderation/display settings for the first public release.
+  // Public client behavior only. No provider PII, tokens, secrets, or private account data belong in this repository.
   allowedReasoningTypes: [
     "unclassified",
     "observation",

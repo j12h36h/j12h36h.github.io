@@ -1,1 +1,0 @@
-Compatibility pointer: current tutorial map is DAI_3.3_TUTORIAL_MAP.txt

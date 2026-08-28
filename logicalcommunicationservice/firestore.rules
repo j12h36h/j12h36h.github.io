@@ -2,169 +2,318 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function own(uid) { return signedIn() && request.auth.uid == uid; }
+    function ownAuth(uid) { return signedIn() && request.auth.uid == uid; }
+    function hasPrivateAccount() { return signedIn() && exists(/databases/$(database)/documents/privateAccounts/$(request.auth.uid)); }
+    function callerProfileId() { return get(/databases/$(database)/documents/privateAccounts/$(request.auth.uid)).data.publicProfileId; }
+    function isCallerProfile(profileId) { return hasPrivateAccount() && callerProfileId() == profileId; }
+    function validPublicId(id) { return id is string && id.size() == 36 && id.matches('[0-9a-fA-F-]{36}'); }
     function validReasoning(t) { return t in ['unclassified','observation','premise','deduction','assumption','hypothesis','question']; }
     function validKind(k) { return k in ['idea','problem','project']; }
     function validTargetType(t) { return t in ['post','object']; }
     function validFollowTargetType(t) { return t in ['object','profile']; }
     function validRelation(r) { return r in ['related to','context for','supports','challenges','solves','depends on','inspired by']; }
+    function validChannelType(t) { return t in ['discussion','ideas','problems','projects','research','releases','announcements']; }
+    function validLfgPurpose(p) { return p in ['play','create','share']; }
+    function validRequestStatus(s) { return s in ['pending','accepted','declined','cancelled']; }
+    function profileExists(id) { return validPublicId(id) && exists(/databases/$(database)/documents/publicProfiles/$(id)); }
+    function canPublishToChannel(data) {
+      return data.spaceId == 'open-commons'
+        || (exists(/databases/$(database)/documents/publicChannels/$(data.channelId))
+          && get(/databases/$(database)/documents/publicChannels/$(data.channelId)).data.spaceId == data.spaceId
+          && (get(/databases/$(database)/documents/publicChannels/$(data.channelId)).data.type != 'announcements'
+            || get(/databases/$(database)/documents/publicChannels/$(data.channelId)).data.ownerProfileId == callerProfileId()));
+    }
+
+    // PRIVATE AUTH BOUNDARY. The Firebase Auth UID exists only as this private document path.
+    // No provider email/name/photo/token fields are accepted here.
+    match /privateAccounts/{uid} {
+      allow read: if ownAuth(uid);
+      allow create: if ownAuth(uid)
+        && request.resource.data.keys().hasOnly(['publicProfileId','securityVersion','createdAt'])
+        && validPublicId(request.resource.data.publicProfileId)
+        && !exists(/databases/$(database)/documents/publicProfiles/$(request.resource.data.publicProfileId))
+        && request.resource.data.securityVersion == 5
+        && request.resource.data.createdAt is timestamp;
+      allow update: if ownAuth(uid)
+        && request.resource.data.keys().hasOnly(['publicProfileId','securityVersion','createdAt'])
+        && request.resource.data.publicProfileId == resource.data.publicProfileId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.securityVersion == 5;
+      allow delete: if false;
+    }
 
     function validProfile(data) {
-      return data.keys().hasOnly(['displayName','bio','useGooglePhoto','photoURL','createdAt','updatedAt'])
+      return data.keys().hasOnly(['displayName','bio','createdAt','updatedAt'])
         && data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 40
         && data.bio is string && data.bio.size() <= 240
-        && data.useGooglePhoto is bool
-        && data.photoURL is string && data.photoURL.size() <= 700
         && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+    match /publicProfiles/{profileId} {
+      allow read: if true;
+      allow create: if isCallerProfile(profileId) && validProfile(request.resource.data);
+      allow update: if isCallerProfile(profileId)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validProfile(request.resource.data);
+      allow delete: if false;
     }
 
     function validPost(data) {
-      return data.keys().hasOnly(['text','reasoningType','kind','spaceId','authorUid','authorName','authorPhoto','createdAt','updatedAt','deleted'])
+      return data.keys().hasOnly(['text','reasoningType','kind','spaceId','channelId','authorProfileId','createdAt','updatedAt','deleted'])
         && data.text is string && data.text.size() > 0 && data.text.size() <= 1200
-        && validReasoning(data.reasoningType)
-        && validKind(data.kind)
+        && validReasoning(data.reasoningType) && validKind(data.kind)
         && data.spaceId is string && data.spaceId.size() > 0 && data.spaceId.size() <= 128
-        && data.authorUid is string
-        && data.authorName is string && data.authorName.size() >= 2 && data.authorName.size() <= 40
-        && data.authorPhoto is string && data.authorPhoto.size() <= 700
-        && data.createdAt is timestamp && data.updatedAt is timestamp
-        && (!('deleted' in data) || data.deleted is bool);
+        && data.channelId is string && data.channelId.size() > 0 && data.channelId.size() <= 128
+        && validPublicId(data.authorProfileId)
+        && data.createdAt is timestamp && data.updatedAt is timestamp && data.deleted is bool;
+    }
+    match /publicPosts/{postId} {
+      allow read: if true;
+      allow create: if isCallerProfile(request.resource.data.authorProfileId) && validPost(request.resource.data) && canPublishToChannel(request.resource.data);
+      allow update: if isCallerProfile(resource.data.authorProfileId)
+        && request.resource.data.authorProfileId == resource.data.authorProfileId
+        && request.resource.data.createdAt == resource.data.createdAt && validPost(request.resource.data);
+      allow delete: if isCallerProfile(resource.data.authorProfileId);
     }
 
     function validObject(data) {
-      return data.keys().hasOnly(['kind','title','description','tags','spaceId','authorUid','authorName','authorPhoto','createdAt','updatedAt','deleted'])
+      return data.keys().hasOnly(['kind','title','description','tags','spaceId','channelId','authorProfileId','createdAt','updatedAt','deleted'])
         && validKind(data.kind)
         && data.title is string && data.title.size() > 0 && data.title.size() <= 100
         && data.description is string && data.description.size() > 0 && data.description.size() <= 700
         && data.tags is list && data.tags.size() <= 8
         && data.spaceId is string && data.spaceId.size() > 0 && data.spaceId.size() <= 128
-        && data.authorUid is string
-        && data.authorName is string && data.authorName.size() >= 2 && data.authorName.size() <= 40
-        && data.authorPhoto is string && data.authorPhoto.size() <= 700
-        && data.createdAt is timestamp && data.updatedAt is timestamp
-        && (!('deleted' in data) || data.deleted is bool);
+        && data.channelId is string && data.channelId.size() > 0 && data.channelId.size() <= 128
+        && validPublicId(data.authorProfileId)
+        && data.createdAt is timestamp && data.updatedAt is timestamp && data.deleted is bool;
+    }
+    match /publicObjects/{objectId} {
+      allow read: if true;
+      allow create: if isCallerProfile(request.resource.data.authorProfileId) && validObject(request.resource.data) && canPublishToChannel(request.resource.data);
+      allow update: if isCallerProfile(resource.data.authorProfileId)
+        && request.resource.data.authorProfileId == resource.data.authorProfileId
+        && request.resource.data.createdAt == resource.data.createdAt && validObject(request.resource.data);
+      allow delete: if isCallerProfile(resource.data.authorProfileId);
     }
 
-    match /users/{userId} {
+    function validSpace(data) {
+      return data.keys().hasOnly(['name','description','ownerProfileId','createdAt','updatedAt'])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 50
+        && data.description is string && data.description.size() <= 240
+        && validPublicId(data.ownerProfileId)
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+    match /publicSpaces/{spaceId} {
       allow read: if true;
-      allow create, update: if own(userId) && validProfile(request.resource.data);
-      allow delete: if own(userId);
+      allow create: if isCallerProfile(request.resource.data.ownerProfileId) && validSpace(request.resource.data);
+      allow update: if isCallerProfile(resource.data.ownerProfileId)
+        && request.resource.data.ownerProfileId == resource.data.ownerProfileId
+        && request.resource.data.createdAt == resource.data.createdAt && validSpace(request.resource.data);
+      allow delete: if isCallerProfile(resource.data.ownerProfileId);
     }
 
-    match /posts/{postId} {
+    function validChannel(data) {
+      return data.keys().hasOnly(['spaceId','name','description','type','ownerProfileId','createdAt','updatedAt'])
+        && data.spaceId is string && data.spaceId.size() > 0 && data.spaceId.size() <= 128
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 40
+        && data.description is string && data.description.size() <= 240
+        && validChannelType(data.type) && validPublicId(data.ownerProfileId)
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+    match /publicChannels/{channelId} {
       allow read: if true;
-      allow create: if signedIn() && own(request.resource.data.authorUid) && validPost(request.resource.data);
-      allow update: if own(resource.data.authorUid)
-        && request.resource.data.authorUid == resource.data.authorUid
-        && request.resource.data.createdAt == resource.data.createdAt
-        && validPost(request.resource.data);
-      allow delete: if own(resource.data.authorUid);
+      allow create: if isCallerProfile(request.resource.data.ownerProfileId)
+        && exists(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId))
+        && get(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId)).data.ownerProfileId == request.resource.data.ownerProfileId
+        && validChannel(request.resource.data);
+      allow update: if isCallerProfile(resource.data.ownerProfileId)
+        && request.resource.data.ownerProfileId == resource.data.ownerProfileId
+        && request.resource.data.spaceId == resource.data.spaceId
+        && request.resource.data.createdAt == resource.data.createdAt && validChannel(request.resource.data);
+      allow delete: if isCallerProfile(resource.data.ownerProfileId);
     }
 
-    match /objects/{objectId} {
-      allow read: if true;
-      allow create: if signedIn() && own(request.resource.data.authorUid) && validObject(request.resource.data);
-      allow update: if own(resource.data.authorUid)
-        && request.resource.data.authorUid == resource.data.authorUid
-        && request.resource.data.createdAt == resource.data.createdAt
-        && validObject(request.resource.data);
-      allow delete: if own(resource.data.authorUid);
+    function validComment(data) {
+      return data.keys().hasOnly(['targetKey','targetType','targetId','text','reasoningType','authorProfileId','createdAt','updatedAt'])
+        && validTargetType(data.targetType)
+        && data.targetId is string && data.targetId.size() > 0
+        && data.targetKey == data.targetType + ':' + data.targetId
+        && data.text is string && data.text.size() > 0 && data.text.size() <= 800
+        && validReasoning(data.reasoningType) && validPublicId(data.authorProfileId)
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
     }
-
-    match /spaces/{spaceId} {
+    match /publicComments/{commentId} {
       allow read: if true;
-      allow create: if signedIn()
-        && own(request.resource.data.ownerUid)
-        && request.resource.data.keys().hasOnly(['name','description','ownerUid','createdAt','updatedAt'])
-        && request.resource.data.name is string && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 50
-        && request.resource.data.description is string && request.resource.data.description.size() <= 240
-        && request.resource.data.createdAt is timestamp && request.resource.data.updatedAt is timestamp;
-      allow update: if own(resource.data.ownerUid)
-        && request.resource.data.ownerUid == resource.data.ownerUid
-        && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.keys().hasOnly(['name','description','ownerUid','createdAt','updatedAt'])
-        && request.resource.data.name is string && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 50
-        && request.resource.data.description is string && request.resource.data.description.size() <= 240
-        && request.resource.data.updatedAt is timestamp;
-      allow delete: if own(resource.data.ownerUid);
-    }
-
-    match /comments/{commentId} {
-      allow read: if true;
-      allow create: if signedIn()
-        && own(request.resource.data.authorUid)
-        && request.resource.data.keys().hasOnly(['targetKey','targetType','targetId','text','reasoningType','authorUid','authorName','authorPhoto','createdAt','updatedAt'])
-        && validTargetType(request.resource.data.targetType)
-        && request.resource.data.targetKey == request.resource.data.targetType + ':' + request.resource.data.targetId
-        && request.resource.data.targetId is string && request.resource.data.targetId.size() > 0
-        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 800
-        && validReasoning(request.resource.data.reasoningType)
-        && request.resource.data.authorName is string && request.resource.data.authorName.size() >= 2 && request.resource.data.authorName.size() <= 40
-        && request.resource.data.authorPhoto is string && request.resource.data.authorPhoto.size() <= 700
-        && request.resource.data.createdAt is timestamp && request.resource.data.updatedAt is timestamp;
-      allow update: if own(resource.data.authorUid)
-        && request.resource.data.authorUid == resource.data.authorUid
+      allow create: if isCallerProfile(request.resource.data.authorProfileId) && validComment(request.resource.data);
+      allow update: if isCallerProfile(resource.data.authorProfileId)
+        && request.resource.data.authorProfileId == resource.data.authorProfileId
         && request.resource.data.targetKey == resource.data.targetKey
-        && request.resource.data.targetType == resource.data.targetType
-        && request.resource.data.targetId == resource.data.targetId
-        && request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if own(resource.data.authorUid);
+        && request.resource.data.createdAt == resource.data.createdAt && validComment(request.resource.data);
+      allow delete: if isCallerProfile(resource.data.authorProfileId);
     }
 
-    match /reactions/{reactionId} {
+    match /publicReactions/{reactionId} {
       allow read: if true;
-      allow create: if signedIn()
-        && own(request.resource.data.userUid)
-        && request.resource.data.keys().hasOnly(['targetKey','targetType','targetId','userUid','type','createdAt'])
+      allow create: if isCallerProfile(request.resource.data.actorProfileId)
+        && reactionId == request.resource.data.actorProfileId + '__' + request.resource.data.targetType + '__' + request.resource.data.targetId
+        && request.resource.data.keys().hasOnly(['actorProfileId','targetType','targetId','type','createdAt'])
         && validTargetType(request.resource.data.targetType)
-        && request.resource.data.targetKey == request.resource.data.targetType + ':' + request.resource.data.targetId
-        && request.resource.data.type == 'helpful'
-        && request.resource.data.createdAt is timestamp;
+        && request.resource.data.targetId is string && request.resource.data.targetId.size() > 0
+        && request.resource.data.type == 'helpful' && request.resource.data.createdAt is timestamp;
       allow update: if false;
-      allow delete: if own(resource.data.userUid);
+      allow delete: if isCallerProfile(resource.data.actorProfileId);
     }
 
-    match /follows/{followId} {
+    match /publicFollows/{followId} {
       allow read: if true;
-      allow create: if signedIn()
-        && own(request.resource.data.userUid)
-        && request.resource.data.keys().hasOnly(['targetKey','targetType','targetId','userUid','createdAt'])
+      allow create: if isCallerProfile(request.resource.data.followerProfileId)
+        && followId == request.resource.data.followerProfileId + '__' + request.resource.data.targetType + '__' + request.resource.data.targetId
+        && request.resource.data.keys().hasOnly(['followerProfileId','targetType','targetId','createdAt'])
         && validFollowTargetType(request.resource.data.targetType)
-        && request.resource.data.targetKey == request.resource.data.targetType + ':' + request.resource.data.targetId
+        && request.resource.data.targetId is string && request.resource.data.targetId.size() > 0
+        && (request.resource.data.targetType != 'profile' || (profileExists(request.resource.data.targetId)
+          && !exists(/databases/$(database)/documents/privateBlocks/$(request.resource.data.followerProfileId + '__' + request.resource.data.targetId))
+          && !exists(/databases/$(database)/documents/privateBlocks/$(request.resource.data.targetId + '__' + request.resource.data.followerProfileId))))
         && request.resource.data.createdAt is timestamp;
       allow update: if false;
-      allow delete: if own(resource.data.userUid);
+      allow delete: if isCallerProfile(resource.data.followerProfileId);
     }
 
-    match /connections/{connectionId} {
+    match /publicConnections/{connectionId} {
       allow read: if true;
-      allow create: if signedIn()
-        && own(request.resource.data.authorUid)
-        && request.resource.data.keys().hasOnly(['sourceId','targetId','relation','authorUid','createdAt'])
+      allow create: if isCallerProfile(request.resource.data.authorProfileId)
+        && request.resource.data.keys().hasOnly(['sourceId','targetId','relation','authorProfileId','createdAt'])
         && request.resource.data.sourceId is string && request.resource.data.sourceId.size() > 0
         && request.resource.data.targetId is string && request.resource.data.targetId.size() > 0
         && request.resource.data.sourceId != request.resource.data.targetId
-        && validRelation(request.resource.data.relation)
-        && request.resource.data.createdAt is timestamp;
+        && validRelation(request.resource.data.relation) && request.resource.data.createdAt is timestamp;
       allow update: if false;
-      allow delete: if own(resource.data.authorUid);
+      allow delete: if isCallerProfile(resource.data.authorProfileId);
     }
-
-    match /postLinks/{linkId} {
+    match /publicPostLinks/{linkId} {
       allow read: if true;
-      allow create: if signedIn()
-        && own(request.resource.data.authorUid)
-        && request.resource.data.keys().hasOnly(['postId','objectId','relation','authorUid','createdAt'])
+      allow create: if isCallerProfile(request.resource.data.authorProfileId)
+        && request.resource.data.keys().hasOnly(['postId','objectId','relation','authorProfileId','createdAt'])
         && request.resource.data.postId is string && request.resource.data.postId.size() > 0
         && request.resource.data.objectId is string && request.resource.data.objectId.size() > 0
-        && validRelation(request.resource.data.relation)
-        && request.resource.data.createdAt is timestamp;
+        && validRelation(request.resource.data.relation) && request.resource.data.createdAt is timestamp;
       allow update: if false;
-      allow delete: if own(resource.data.authorUid);
+      allow delete: if isCallerProfile(resource.data.authorProfileId);
     }
 
-    match /{document=**} {
-      allow read, write: if false;
+    function validLfg(data) {
+      return data.keys().hasOnly(['purpose','title','topic','description','availability','tags','authorProfileId','status','createdAt','updatedAt'])
+        && validLfgPurpose(data.purpose)
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 100
+        && data.topic is string && data.topic.size() > 0 && data.topic.size() <= 80
+        && data.description is string && data.description.size() > 0 && data.description.size() <= 700
+        && data.availability is string && data.availability.size() <= 120
+        && data.tags is list && data.tags.size() <= 8
+        && validPublicId(data.authorProfileId)
+        && data.status in ['open','closed']
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
     }
+    match /publicLfg/{lfgId} {
+      allow read: if true;
+      allow create: if isCallerProfile(request.resource.data.authorProfileId) && validLfg(request.resource.data);
+      allow update: if isCallerProfile(resource.data.authorProfileId)
+        && request.resource.data.authorProfileId == resource.data.authorProfileId
+        && request.resource.data.createdAt == resource.data.createdAt && validLfg(request.resource.data);
+      allow delete: if isCallerProfile(resource.data.authorProfileId);
+    }
+
+    // PRIVATE BLOCK LIST. Only the blocker can read/write their block records.
+    match /privateBlocks/{blockId} {
+      allow read: if hasPrivateAccount() && resource.data.blockerProfileId == callerProfileId();
+      allow create: if isCallerProfile(request.resource.data.blockerProfileId)
+        && blockId == request.resource.data.blockerProfileId + '__' + request.resource.data.blockedProfileId
+        && request.resource.data.keys().hasOnly(['blockerProfileId','blockedProfileId','createdAt'])
+        && profileExists(request.resource.data.blockedProfileId)
+        && request.resource.data.blockerProfileId != request.resource.data.blockedProfileId
+        && request.resource.data.createdAt is timestamp;
+      allow update: if false;
+      allow delete: if hasPrivateAccount() && resource.data.blockerProfileId == callerProfileId();
+    }
+
+    // PRIVATE SOCIAL GRAPH: friend requests and accepted friendships are never public reads.
+    match /privateFriendRequests/{requestId} {
+      allow read: if hasPrivateAccount() && (resource.data.fromProfileId == callerProfileId() || resource.data.toProfileId == callerProfileId());
+      allow create: if isCallerProfile(request.resource.data.fromProfileId)
+        && (requestId == request.resource.data.fromProfileId + '__' + request.resource.data.toProfileId || requestId == request.resource.data.toProfileId + '__' + request.resource.data.fromProfileId)
+        && request.resource.data.keys().hasOnly(['fromProfileId','toProfileId','status','createdAt','updatedAt'])
+        && profileExists(request.resource.data.toProfileId)
+        && !exists(/databases/$(database)/documents/privateBlocks/$(request.resource.data.fromProfileId + '__' + request.resource.data.toProfileId))
+        && !exists(/databases/$(database)/documents/privateBlocks/$(request.resource.data.toProfileId + '__' + request.resource.data.fromProfileId))
+        && request.resource.data.toProfileId != request.resource.data.fromProfileId
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt is timestamp && request.resource.data.updatedAt is timestamp;
+      allow update: if hasPrivateAccount()
+        && request.resource.data.fromProfileId == resource.data.fromProfileId
+        && request.resource.data.toProfileId == resource.data.toProfileId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.keys().hasOnly(['fromProfileId','toProfileId','status','createdAt','updatedAt'])
+        && validRequestStatus(request.resource.data.status)
+        && request.resource.data.updatedAt is timestamp
+        && ((resource.data.toProfileId == callerProfileId() && resource.data.status == 'pending' && request.resource.data.status in ['accepted','declined'])
+          || (resource.data.fromProfileId == callerProfileId() && resource.data.status == 'pending' && request.resource.data.status == 'cancelled'));
+      allow delete: if hasPrivateAccount() && (resource.data.fromProfileId == callerProfileId() || resource.data.toProfileId == callerProfileId());
+    }
+
+    match /privateFriendships/{friendshipId} {
+      allow read: if hasPrivateAccount() && callerProfileId() in resource.data.members;
+      allow create: if hasPrivateAccount()
+        && (friendshipId == request.resource.data.members[0] + '__' + request.resource.data.members[1] || friendshipId == request.resource.data.members[1] + '__' + request.resource.data.members[0])
+        && request.resource.data.keys().hasOnly(['members','requestId','createdAt'])
+        && request.resource.data.members is list && request.resource.data.members.size() == 2
+        && request.resource.data.members[0] != request.resource.data.members[1]
+        && callerProfileId() in request.resource.data.members
+        && request.resource.data.requestId is string && request.resource.data.requestId.size() > 0
+        && request.resource.data.createdAt is timestamp
+        && getAfter(/databases/$(database)/documents/privateFriendRequests/$(request.resource.data.requestId)).data.status == 'accepted'
+        && getAfter(/databases/$(database)/documents/privateFriendRequests/$(request.resource.data.requestId)).data.fromProfileId in request.resource.data.members
+        && getAfter(/databases/$(database)/documents/privateFriendRequests/$(request.resource.data.requestId)).data.toProfileId in request.resource.data.members;
+      allow update: if false;
+      allow delete: if hasPrivateAccount() && callerProfileId() in resource.data.members;
+    }
+
+    match /privateLfgRequests/{requestId} {
+      allow read: if hasPrivateAccount() && (resource.data.fromProfileId == callerProfileId() || resource.data.toProfileId == callerProfileId());
+      allow create: if isCallerProfile(request.resource.data.fromProfileId)
+        && requestId == request.resource.data.lfgId + '__' + request.resource.data.fromProfileId
+        && request.resource.data.keys().hasOnly(['lfgId','fromProfileId','toProfileId','status','createdAt','updatedAt'])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.fromProfileId != request.resource.data.toProfileId
+        && !exists(/databases/$(database)/documents/privateBlocks/$(request.resource.data.fromProfileId + '__' + request.resource.data.toProfileId))
+        && !exists(/databases/$(database)/documents/privateBlocks/$(request.resource.data.toProfileId + '__' + request.resource.data.fromProfileId))
+        && request.resource.data.createdAt is timestamp && request.resource.data.updatedAt is timestamp
+        && exists(/databases/$(database)/documents/publicLfg/$(request.resource.data.lfgId))
+        && get(/databases/$(database)/documents/publicLfg/$(request.resource.data.lfgId)).data.authorProfileId == request.resource.data.toProfileId
+        && get(/databases/$(database)/documents/publicLfg/$(request.resource.data.lfgId)).data.status == 'open';
+      allow update: if hasPrivateAccount()
+        && request.resource.data.lfgId == resource.data.lfgId
+        && request.resource.data.fromProfileId == resource.data.fromProfileId
+        && request.resource.data.toProfileId == resource.data.toProfileId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.keys().hasOnly(['lfgId','fromProfileId','toProfileId','status','createdAt','updatedAt'])
+        && validRequestStatus(request.resource.data.status)
+        && request.resource.data.updatedAt is timestamp
+        && ((resource.data.toProfileId == callerProfileId() && resource.data.status == 'pending' && request.resource.data.status in ['accepted','declined'])
+          || (resource.data.fromProfileId == callerProfileId() && resource.data.status == 'pending' && request.resource.data.status == 'cancelled'));
+      allow delete: if hasPrivateAccount() && (resource.data.fromProfileId == callerProfileId() || resource.data.toProfileId == callerProfileId());
+    }
+
+    // LEGACY v0.4 DATA QUARANTINE. Old UID-bearing documents are no longer public.
+    // The signed-in owner may read/delete only their own legacy records so v0.5 can migrate them.
+    match /users/{uid} { allow read, delete: if ownAuth(uid); allow create, update: if false; }
+    match /posts/{id} { allow read, delete: if signedIn() && resource.data.authorUid == request.auth.uid; allow create, update: if false; }
+    match /objects/{id} { allow read, delete: if signedIn() && resource.data.authorUid == request.auth.uid; allow create, update: if false; }
+    match /spaces/{id} { allow read, delete: if signedIn() && resource.data.ownerUid == request.auth.uid; allow create, update: if false; }
+    match /channels/{id} { allow read, delete: if signedIn() && resource.data.ownerUid == request.auth.uid; allow create, update: if false; }
+    match /comments/{id} { allow read, delete: if signedIn() && resource.data.authorUid == request.auth.uid; allow create, update: if false; }
+    match /reactions/{id} { allow read, delete: if signedIn() && resource.data.userUid == request.auth.uid; allow create, update: if false; }
+    match /follows/{id} { allow read, delete: if signedIn() && resource.data.userUid == request.auth.uid; allow create, update: if false; }
+    match /connections/{id} { allow read, delete: if signedIn() && resource.data.authorUid == request.auth.uid; allow create, update: if false; }
+    match /postLinks/{id} { allow read, delete: if signedIn() && resource.data.authorUid == request.auth.uid; allow create, update: if false; }
+
+    match /{document=**} { allow read, write: if false; }
   }
 }
