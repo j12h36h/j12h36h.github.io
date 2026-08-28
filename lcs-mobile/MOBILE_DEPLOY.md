@@ -35,5 +35,5 @@ already covers both `/logicalcommunicationservice/` and `/lcs-mobile/`.
 - Mobile map nodes use high-contrast dark surfaces and light text.
 - Existing v0.7.6 functionality, including v0.7.5 live popup/reply/tag fixes, is retained.
 
-## v0.7.10 header note
+## v0.7.11 header note
 The mobile header includes a persistent top-right **Account** shortcut. Authentication controls themselves remain inside the Account view to keep the narrow mobile header stable.
