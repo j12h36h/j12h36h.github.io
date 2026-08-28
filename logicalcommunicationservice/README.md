@@ -53,6 +53,12 @@ firebase: {
 
 These web configuration values identify the Firebase project; they are not server secrets. Do **not** add service-account JSON, OAuth client secrets, or private keys to GitHub.
 
+### GitHub secret-scanning note
+
+GitHub may flag the Firebase Web App `apiKey` as a possible Google API key. A Firebase browser key is client configuration and must be delivered to the browser for this static GitHub Pages architecture, so it cannot be made secret by moving it to another JavaScript or JSON file. Do not obfuscate it to evade scanning.
+
+Instead, verify in Google Cloud that the browser key is restricted to the APIs required by this Firebase project and, where applicable, to the intended website/referrer environment. If the current key was ever usable outside the intended scope, rotate it first and then replace the public Firebase web key in `assets/js/config.js`.
+
 ### Enable Google authentication
 
 In Firebase Console:

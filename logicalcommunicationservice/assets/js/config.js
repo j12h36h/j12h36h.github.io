@@ -1,5 +1,6 @@
 // Logical Communication Service configuration.
-// Firebase web configuration values are PUBLIC client configuration, not secrets.
+// Firebase web configuration values are PUBLIC client configuration, not server secrets.
+// Restrict the browser API key in Google Cloud; do not obfuscate it to evade secret scanning.
 // Never place service-account keys, OAuth client secrets, or private keys in this file.
 
 export const LCS_CONFIG = {
@@ -17,7 +18,7 @@ export const LCS_CONFIG = {
     messagingSenderId: "752872197816",
     appId: "1:752872197816:web:d13177e2b26f757438ee4d",
     measurementId: "G-DKXZF7T5F5"
-  };
+  },
 
   // Optional moderation/display settings for the first public release.
   allowedReasoningTypes: [

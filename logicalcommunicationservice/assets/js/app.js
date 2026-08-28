@@ -164,7 +164,7 @@ async function initFirebase(){
       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
     ]);
     const app=appMod.initializeApp(LCS_CONFIG.firebase); const auth=authMod.getAuth(app); const db=fsMod.getFirestore(app);
-    auth.useDeviceLanguage(); state.firebase={app,auth,db,authMod,fsMod}; state.firebaseReady=true;
+    authMod.useDeviceLanguage(auth); state.firebase={app,auth,db,authMod,fsMod}; state.firebaseReady=true;
     try{ await authMod.getRedirectResult(auth); }catch(e){ console.warn(e); }
     authMod.onAuthStateChanged(auth,user=>{state.user=user;renderAuth();});
     state.unsubPosts=fsMod.onSnapshot(fsMod.query(fsMod.collection(db,'posts'),fsMod.orderBy('createdAt','desc'),fsMod.limit(80)),snap=>{

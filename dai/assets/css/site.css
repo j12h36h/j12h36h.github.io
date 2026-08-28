@@ -48,6 +48,8 @@ body::before{
 .brand span{color:var(--accent-2)}
 .nav-links a{border:1px solid transparent;border-radius:6px;font-size:.86rem}
 .nav-links a:hover,.nav-links a.active{border-color:var(--border);background:rgba(19,28,36,.86);color:var(--text)}
+.nav-links a.connect-link{color:var(--accent-2);border-color:rgba(255,216,77,.24);background:rgba(255,216,77,.045)}
+.nav-links a.connect-link:hover{color:#fff2a6;border-color:rgba(255,216,77,.48);background:rgba(255,216,77,.09)}
 .hero{padding-top:56px}
 .eyebrow,.section-kicker{color:var(--accent);font-weight:900;letter-spacing:.18em;text-transform:uppercase;font-size:.7rem}
 .hero h1,.page-title h1{font-weight:850;text-wrap:balance}
@@ -177,6 +179,8 @@ body::before{
 
 .universe-hero-copy{position:relative;z-index:4;max-width:900px;text-align:center;margin-top:-20px;padding:0 12px}.universe-hero-copy h2{margin:8px auto 10px;max-width:860px;font-size:clamp(1.35rem,2.6vw,2.35rem);line-height:1.14;letter-spacing:-.025em}.universe-hero-copy>p{margin:0 auto;color:#aebbc8;max-width:830px}.universe-hero-copy .eyebrow{color:var(--u-green)}
 .universe-hero .button.primary{background:var(--u-green);color:#10091b;box-shadow:0 0 18px rgba(170,124,255,.24)}.universe-hero .button{border-color:rgba(170,124,255,.25);background:rgba(7,16,17,.78)}
+.universe-hero .button.connect-button{background:rgba(255,216,77,.92);border-color:rgba(255,216,77,.72);color:#171200;box-shadow:0 0 18px rgba(255,216,77,.14)}
+.universe-hero .button.connect-button:hover{color:#171200;background:#ffe36f;border-color:#ffe36f}
 .universe-scroll{position:absolute;bottom:17px;display:grid;place-items:center;color:rgba(255,226,122,.72);font:800 .58rem/1.2 "SFMono-Regular",Consolas,monospace;letter-spacing:.14em}.universe-scroll b{font-size:1.25rem;color:var(--u-green)}
 
 .universe-section{position:relative;max-width:1180px;margin:0 auto;padding:74px 22px;border-bottom:1px solid rgba(170,124,255,.12)}
