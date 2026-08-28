@@ -49,7 +49,7 @@ function timeValue(ts) { if (typeof ts === 'number') return ts; if (ts?.toMillis
 function timeAgo(ts) { const s = Math.max(1, Math.floor((Date.now() - (timeValue(ts) || Date.now())) / 1000)); if (s < 60) return `${s}s ago`; const m = Math.floor(s / 60); if (m < 60) return `${m}m ago`; const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`; const d = Math.floor(h / 24); return d < 30 ? `${d}d ago` : new Date(timeValue(ts)).toLocaleDateString(); }
 function initialsFor(name = 'Member') { return String(name).trim().split(/\s+/).slice(0, 2).map(s => s[0] || '').join('').toUpperCase() || 'M'; }
 function generatedPublicName(profileId = '') { return `Member-${String(profileId).replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase() || 'NEW'}`; }
-const AVATAR_FONTS = Object.freeze(['Arial','Verdana','Georgia','Courier New','Trebuchet MS','Times New Roman','monospace','sans-serif','serif']);
+const AVATAR_FONTS = Object.freeze(['Arial','Verdana','Georgia','Courier New','Trebuchet MS','Times New Roman','system-ui','monospace','sans-serif','serif']);
 const AVATAR_WEIGHTS = Object.freeze([400,700,900]);
 const AVATAR_ALIGNS = Object.freeze(['start','middle','end']);
 const AVATAR_MAX_LAYERS = 96;
@@ -77,8 +77,12 @@ function validateAvatarSpec(input) {
   if (!Array.isArray(input.layers) || input.layers.length < 1 || input.layers.length > AVATAR_MAX_LAYERS) throw new Error(`layers must contain between 1 and ${AVATAR_MAX_LAYERS} character layers.`);
   const layers = input.layers.map((raw, index) => {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error(`Layer ${index + 1} must be an object.`);
-    const chars = Array.from(String(raw.char ?? ''));
-    if (chars.length < 1 || chars.length > 4 || chars.some(c => /[\u0000-\u001f\u007f]/.test(c))) throw new Error(`Layer ${index + 1} char must contain 1–4 visible characters.`);
+    const rawText = String(raw.char ?? '').normalize('NFC');
+    if (!rawText || /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/u.test(rawText)) throw new Error(`Layer ${index + 1} char must contain 1–4 visible Unicode characters and cannot contain control or bidi-override characters.`);
+    const graphemes = typeof Intl !== 'undefined' && Intl.Segmenter
+      ? [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(rawText)].map(part => part.segment)
+      : Array.from(rawText);
+    if (graphemes.length < 1 || graphemes.length > 4 || graphemes.every(g => /^\s+$/u.test(g))) throw new Error(`Layer ${index + 1} char must contain 1–4 visible Unicode characters.`);
     const number = (key, min, max, fallback) => {
       const value = raw[key] ?? fallback;
       if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max) throw new Error(`Layer ${index + 1} ${key} must be between ${min} and ${max}.`);
@@ -91,7 +95,7 @@ function validateAvatarSpec(input) {
     const align = String(raw.align ?? 'middle');
     if (!AVATAR_ALIGNS.includes(align)) throw new Error(`Layer ${index + 1} align must be start, middle, or end.`);
     return {
-      char: chars.join(''),
+      char: rawText,
       x: number('x', -64, 192, 64), y: number('y', -64, 192, 64), fontSize: number('fontSize', 4, 192, 42),
       color: normalizeHexColor(raw.color ?? '#ffffff', `Layer ${index + 1} color`), fontFamily, fontWeight,
       rotation: number('rotation', -360, 360, 0), opacity: number('opacity', 0, 1, 1), align
@@ -499,7 +503,7 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;renderLfg();renderConnections();renderSearchPanel();},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentity();
-    setBackendStatus('LCS v0.7.1 avatar + Status network connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    setBackendStatus('LCS v0.7.2 multilingual avatar + Status network connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7.1 firestore.rules.','error');renderAuth();renderAccount();}
 }
 
