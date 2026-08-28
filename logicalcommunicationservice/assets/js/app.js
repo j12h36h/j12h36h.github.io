@@ -61,7 +61,7 @@ function defaultAvatarSpec(profile = null) {
     background: '#34264c',
     layers: [{
       char: initialsFor(profile?.displayName || 'Member'), x: 64, y: 66, fontSize: 42,
-      color: '#ffffff', fontFamily: 'Arial', fontWeight: 900, rotation: 0, opacity: 1, align: 'middle'
+      color: '#ffffff', fontFamily: 'Arial', fontWeight: 900, rotation: 0, scaleX: 1, scaleY: 1, skewX: 0, skewY: 0, opacity: 1, align: 'middle'
     }]
   };
 }
@@ -98,7 +98,10 @@ function validateAvatarSpec(input) {
       char: rawText,
       x: number('x', -64, 192, 64), y: number('y', -64, 192, 64), fontSize: number('fontSize', 4, 192, 42),
       color: normalizeHexColor(raw.color ?? '#ffffff', `Layer ${index + 1} color`), fontFamily, fontWeight,
-      rotation: number('rotation', -360, 360, 0), opacity: number('opacity', 0, 1, 1), align
+      rotation: number('rotation', -360, 360, 0),
+      scaleX: number('scaleX', -4, 4, 1), scaleY: number('scaleY', -4, 4, 1),
+      skewX: number('skewX', -75, 75, 0), skewY: number('skewY', -75, 75, 0),
+      opacity: number('opacity', 0, 1, 1), align
     };
   });
   return { version: 1, background, layers };
@@ -113,7 +116,7 @@ function avatarSvgInner(spec) {
   const cacheKey = JSON.stringify(safe);
   const cached = AVATAR_RENDER_CACHE.get(cacheKey);
   if (cached) return cached;
-  const layers = safe.layers.map(layer => `<text x="${layer.x}" y="${layer.y}" fill="${layer.color}" font-family="${escapeHtml(layer.fontFamily)}" font-size="${layer.fontSize}" font-weight="${layer.fontWeight}" opacity="${layer.opacity}" text-anchor="${layer.align}" dominant-baseline="middle" transform="rotate(${layer.rotation} ${layer.x} ${layer.y})">${escapeHtml(layer.char)}</text>`).join('');
+  const layers = safe.layers.map(layer => `<g transform="translate(${layer.x} ${layer.y}) rotate(${layer.rotation}) skewX(${layer.skewX}) skewY(${layer.skewY}) scale(${layer.scaleX} ${layer.scaleY})"><text x="0" y="0" fill="${layer.color}" font-family="${escapeHtml(layer.fontFamily)}" font-size="${layer.fontSize}" font-weight="${layer.fontWeight}" opacity="${layer.opacity}" text-anchor="${layer.align}" dominant-baseline="middle">${escapeHtml(layer.char)}</text></g>`).join('');
   const svg = `<svg viewBox="0 0 128 128" focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="128" height="128" fill="${safe.background}"/>${layers}</svg>`;
   AVATAR_RENDER_CACHE.set(cacheKey, svg);
   if (AVATAR_RENDER_CACHE.size > 128) AVATAR_RENDER_CACHE.delete(AVATAR_RENDER_CACHE.keys().next().value);
@@ -503,7 +506,7 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;renderLfg();renderConnections();renderSearchPanel();},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentity();
-    setBackendStatus('LCS v0.7.2 multilingual avatar + Status network connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    setBackendStatus('LCS v0.7.3 transformable avatar + Status network connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7.1 firestore.rules.','error');renderAuth();renderAccount();}
 }
 

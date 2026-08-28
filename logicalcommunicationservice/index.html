@@ -13,7 +13,7 @@
   <link rel="dns-prefetch" href="https://www.gstatic.com" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-avatar-v072" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-avatar-v073" />
 </head>
 <body>
   <div class="ambient ambient-a"></div>
@@ -81,7 +81,7 @@
       <footer class="rail-footer">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
-        <span>v0.7.2</span>
+        <span>v0.7.3</span>
       </footer>
     </aside>
 
@@ -468,7 +468,7 @@
       </div>
       <div class="avatar-editor-code-panel">
         <label class="field"><span>Current JSON definition</span><textarea id="avatarJsonEditor" class="avatar-json-editor" spellcheck="false" autocomplete="off" aria-describedby="avatarEditorHelp avatarEditorError"></textarea></label>
-        <p class="tiny muted" id="avatarEditorHelp">Up to 96 character layers. Each layer supports <code>char</code>, <code>x</code>, <code>y</code>, <code>fontSize</code>, <code>color</code>, <code>fontFamily</code>, <code>fontWeight</code>, <code>rotation</code>, <code>opacity</code>, and <code>align</code>.</p>
+        <p class="tiny muted" id="avatarEditorHelp">Up to 96 character layers. Each layer supports <code>char</code>, <code>x</code>, <code>y</code>, <code>fontSize</code>, <code>color</code>, <code>fontFamily</code>, <code>fontWeight</code>, <code>rotation</code>, <code>scaleX</code>, <code>scaleY</code>, <code>skewX</code>, <code>skewY</code>, <code>opacity</code>, and <code>align</code>. Negative scale values mirror a glyph.</p>
         <div class="setup-warning auth-error" id="avatarEditorError" hidden role="alert"><b>JSON needs attention</b><p id="avatarEditorErrorText"></p></div>
       </div>
     </div>
@@ -597,6 +597,6 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
-  <script type="module" src="assets/js/app.js?v=20260828-avatar-v072"></script>
+  <script type="module" src="assets/js/app.js?v=20260828-avatar-v073"></script>
 </body>
 </html>
