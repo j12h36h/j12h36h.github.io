@@ -13,8 +13,12 @@ const state = {
   activeFilter: 'all',
   activeView: 'home',
   spaces: ['Open Commons', 'DAI', 'Game Design', 'Research'],
+  profiles: {},
+  publicProfile: null,
+  profilePrompted: false,
   unsubPosts: null,
-  unsubObjects: null
+  unsubObjects: null,
+  unsubProfiles: null
 };
 
 const reasoning = {
@@ -150,27 +154,231 @@ function showAuthError(error){
   box.hidden=false;
 }
 
+function generatedPublicName(user){
+  const suffix=String(user?.uid||'member').replace(/[^a-z0-9]/gi,'').slice(0,6).toUpperCase()||'NEW';
+  return `Member-${suffix}`;
+}
+
+function fallbackPublicProfile(user=state.user){
+  return {
+    displayName: generatedPublicName(user),
+    bio: '',
+    useGooglePhoto: false,
+    photoURL: ''
+  };
+}
+
+function ownPublicProfile(){
+  if(!state.user) return null;
+  return state.publicProfile || state.profiles[state.user.uid] || fallbackPublicProfile(state.user);
+}
+
+function publicIdentityForContent(content={}){
+  const profile=content.authorUid ? state.profiles[content.authorUid] : null;
+  return {
+    displayName: profile?.displayName || content.authorName || 'Member',
+    photoURL: profile ? (profile.photoURL||'') : (content.authorPhoto||''),
+    bio: profile?.bio || ''
+  };
+}
+
+function initialsFor(name='Member'){
+  return String(name).trim().split(/\s+/).filter(Boolean).map(x=>x[0]).join('').slice(0,2).toUpperCase() || 'ME';
+}
+
+function profileAvatarMarkup(profile, className='auth-fallback-avatar'){
+  if(profile?.photoURL) return `<img src="${escapeHtml(profile.photoURL)}" alt="" referrerpolicy="no-referrer">`;
+  return `<span class="${className}">${escapeHtml(initialsFor(profile?.displayName))}</span>`;
+}
+
+function updateAccountPreview(){
+  const input=$('#accountDisplayName');
+  if(!input) return;
+  const name=input.value.trim() || ownPublicProfile()?.displayName || 'Member';
+  const bio=$('#accountBio').value.trim();
+  const usePhoto=$('#accountUseGooglePhoto').checked;
+  const photo=usePhoto ? (state.user?.photoURL||'') : '';
+  $('#accountPreviewName').textContent=name;
+  $('#accountPreviewBio').textContent=bio || 'No public bio yet.';
+  $('#accountBioCounter').textContent=`${$('#accountBio').value.length} / 240`;
+  $('#accountPublicAvatar').innerHTML=photo
+    ? `<img src="${escapeHtml(photo)}" alt="" referrerpolicy="no-referrer">`
+    : escapeHtml(initialsFor(name));
+}
+
+function renderAccount(){
+  const signedOut=$('#accountSignedOut');
+  const signedIn=$('#accountSignedIn');
+  if(!signedOut || !signedIn) return;
+
+  if(!state.user){
+    signedOut.hidden=false;
+    signedIn.hidden=true;
+    return;
+  }
+
+  signedOut.hidden=true;
+  signedIn.hidden=false;
+  const profile=ownPublicProfile();
+  $('#accountDisplayName').value=profile.displayName||generatedPublicName(state.user);
+  $('#accountBio').value=profile.bio||'';
+  $('#accountUseGooglePhoto').checked=Boolean(profile.useGooglePhoto && state.user.photoURL);
+  $('#accountProviderName').textContent=state.user.displayName||'Not provided';
+  $('#accountProviderEmail').textContent=state.user.email||'Not provided';
+  $('#accountSaveStatus').textContent='';
+  updateAccountPreview();
+}
+
+async function ensurePublicProfile(user){
+  if(!user) return;
+
+  if(!state.firebaseReady){
+    state.publicProfile=state.profiles[user.uid] || fallbackPublicProfile(user);
+    state.profiles[user.uid]=state.publicProfile;
+    renderAuth(); renderAccount(); renderFeed();
+    return;
+  }
+
+  const {db,fsMod}=state.firebase;
+  const ref=fsMod.doc(db,'users',user.uid);
+  try{
+    const snap=await fsMod.getDoc(ref);
+    if(snap.exists()){
+      state.publicProfile={id:snap.id,...snap.data()};
+      state.profiles[user.uid]=state.publicProfile;
+    }else{
+      const profile={
+        displayName:generatedPublicName(user),
+        bio:'',
+        useGooglePhoto:false,
+        photoURL:'',
+        createdAt:fsMod.serverTimestamp(),
+        updatedAt:fsMod.serverTimestamp()
+      };
+      await fsMod.setDoc(ref,profile);
+      state.publicProfile={...profile,createdAt:Date.now(),updatedAt:Date.now()};
+      state.profiles[user.uid]=state.publicProfile;
+      if(!state.profilePrompted){
+        state.profilePrompted=true;
+        setView('account');
+        toast('Choose the public name people should know you by.');
+      }
+    }
+  }catch(error){
+    console.error('Could not load/create public profile:',error);
+    state.publicProfile=fallbackPublicProfile(user);
+    state.profiles[user.uid]=state.publicProfile;
+    toast('Signed in, but the public profile could not be loaded yet.');
+  }
+  renderAuth(); renderAccount(); renderFeed(); renderCatalogs();
+}
+
+async function syncAuthoredContentProfile(profile){
+  if(!state.firebaseReady || !state.user) return 0;
+  const {db,fsMod}=state.firebase;
+  const batch=fsMod.writeBatch(db);
+  let changed=0;
+  for(const collectionName of ['posts','objects']){
+    const q=fsMod.query(
+      fsMod.collection(db,collectionName),
+      fsMod.where('authorUid','==',state.user.uid),
+      fsMod.limit(200)
+    );
+    const snap=await fsMod.getDocs(q);
+    snap.forEach(docSnap=>{
+      batch.update(docSnap.ref,{authorName:profile.displayName,authorPhoto:profile.photoURL||''});
+      changed++;
+    });
+  }
+  if(changed) await batch.commit();
+  return changed;
+}
+
+async function savePublicProfile(event){
+  event.preventDefault();
+  if(!state.user){
+    $('#authDialog').showModal();
+    return;
+  }
+
+  const name=$('#accountDisplayName').value.trim().replace(/\s+/g,' ');
+  const bio=$('#accountBio').value.trim();
+  const useGooglePhoto=$('#accountUseGooglePhoto').checked && Boolean(state.user.photoURL);
+  if(name.length<2 || name.length>40){
+    toast('Display name must be 2–40 characters.');
+    $('#accountDisplayName').focus();
+    return;
+  }
+  if(/[\u0000-\u001F\u007F]/.test(name)){
+    toast('Display name contains unsupported control characters.');
+    return;
+  }
+  if(bio.length>240){
+    toast('Public bio must be 240 characters or less.');
+    return;
+  }
+
+  const profile={displayName:name,bio,useGooglePhoto,photoURL:useGooglePhoto?(state.user.photoURL||''):''};
+  const button=$('#accountSaveButton');
+  const previous=button.textContent;
+  button.disabled=true;
+  button.textContent='Saving…';
+  $('#accountSaveStatus').textContent='Saving public identity…';
+
+  try{
+    if(state.firebaseReady){
+      const {db,fsMod}=state.firebase;
+      const ref=fsMod.doc(db,'users',state.user.uid);
+      const existing=state.publicProfile || state.profiles[state.user.uid];
+      const payload={...profile,updatedAt:fsMod.serverTimestamp()};
+      if(!existing?.createdAt) payload.createdAt=fsMod.serverTimestamp();
+      await fsMod.setDoc(ref,payload,{merge:true});
+    }
+
+    state.publicProfile={...(state.publicProfile||{}),...profile,updatedAt:Date.now()};
+    state.profiles[state.user.uid]=state.publicProfile;
+    renderAuth(); renderFeed(); renderCatalogs(); updateAccountPreview();
+
+    let migrated=0;
+    try{ migrated=await syncAuthoredContentProfile(profile); }
+    catch(error){ console.warn('Profile saved, but authored-content identity sync was incomplete:',error); }
+
+    $('#accountSaveStatus').textContent=migrated?`Saved · updated ${migrated} existing item${migrated===1?'':'s'}`:'Saved';
+    toast('Public profile saved. Your Google account name stays private.');
+  }catch(error){
+    console.error('Could not save public profile:',error);
+    $('#accountSaveStatus').textContent='Could not save';
+    toast('Could not save the public profile. Check Firestore rules and try again.');
+  }finally{
+    button.disabled=false;
+    button.textContent=previous;
+  }
+}
+
 function renderSpaces(){
   $('#spaceList').innerHTML = state.spaces.map(s=>`<div class="space-item"><i></i><span>${escapeHtml(s)}</span></div>`).join('');
   $('#postSpace').innerHTML = state.spaces.map(s=>`<option>${escapeHtml(s)}</option>`).join('');
 }
 
-function avatarMarkup(post){
-  if(post.authorPhoto) return `<img src="${escapeHtml(post.authorPhoto)}" alt="" referrerpolicy="no-referrer" />`;
-  const initials=(post.authorName||'?').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
-  return `<span class="fallback-avatar">${escapeHtml(initials)}</span>`;
+function avatarMarkup(identity){
+  if(identity.photoURL) return `<img src="${escapeHtml(identity.photoURL)}" alt="" referrerpolicy="no-referrer" />`;
+  return `<span class="fallback-avatar">${escapeHtml(initialsFor(identity.displayName))}</span>`;
 }
 
 function renderFeed(){
   let posts=[...state.posts];
   if(state.activeFilter!=='all') posts=posts.filter(p=>p.kind===state.activeFilter);
   const q=$('#globalSearch').value.trim().toLowerCase();
-  if(q) posts=posts.filter(p=>`${p.text} ${p.authorName} ${p.space} ${p.kind}`.toLowerCase().includes(q));
+  if(q) posts=posts.filter(p=>{
+    const identity=publicIdentityForContent(p);
+    return `${p.text} ${identity.displayName} ${p.space} ${p.kind}`.toLowerCase().includes(q);
+  });
   if(!posts.length){ $('#feed').innerHTML='<div class="empty-state">Nothing matches that yet. Try another search or publish the first one.</div>'; return; }
   $('#feed').innerHTML=posts.map(p=>{
     const r=reasoning[p.reasoningType]||reasoning.unclassified;
+    const identity=publicIdentityForContent(p);
     return `<article class="post-card">
-      <div class="post-head"><div class="post-author">${avatarMarkup(p)}<span class="post-author-copy"><b>${escapeHtml(p.authorName||'Unknown')}</b><small>${escapeHtml(p.space||'Open Commons')}</small></span></div><span class="post-time">${timeAgo(p.createdAt)}</span></div>
+      <div class="post-head"><div class="post-author">${avatarMarkup(identity)}<span class="post-author-copy"><b>${escapeHtml(identity.displayName||'Unknown')}</b><small>${escapeHtml(p.space||'Open Commons')}</small></span></div><span class="post-time">${timeAgo(p.createdAt)}</span></div>
       <div class="post-text">${escapeHtml(p.text)}</div>
       <div class="post-meta"><span class="type-pill type-${escapeHtml(p.reasoningType||'unclassified')}">${escapeHtml(r.plain)} · ${escapeHtml(r.formal)}</span><span class="kind-pill">${escapeHtml(p.kind||'idea')}</span></div>
       <div class="post-actions"><button type="button" data-react="${escapeHtml(p.id)}">♡ Helpful</button><button type="button" data-connect="${escapeHtml(p.id)}">↗ Connect</button><button type="button" data-reason="${escapeHtml(p.reasoningType||'unclassified')}">Why this label?</button></div>
@@ -208,16 +416,19 @@ function renderUniverse(){
 function renderAuth(){
   const area=$('#authArea');
   if(state.user){
-    area.innerHTML=`<div class="auth-user">${state.user.photoURL?`<img src="${escapeHtml(state.user.photoURL)}" alt="" referrerpolicy="no-referrer">`:''}<span>${escapeHtml(state.user.displayName||'Signed in')}</span><button id="signOutButton" type="button" title="Sign out">↪</button></div>`;
+    const profile=ownPublicProfile();
+    area.innerHTML=`<div class="auth-user"><button class="auth-account-main" id="openAccountButton" type="button" title="Open account">${profileAvatarMarkup(profile)}<span>${escapeHtml(profile.displayName||'Account')}</span></button><button id="signOutButton" type="button" title="Sign out" aria-label="Sign out">↪</button></div>`;
+    $('#openAccountButton').addEventListener('click',()=>setView('account'));
     $('#signOutButton').addEventListener('click',signOutUser);
-    $('#composerName').textContent=state.user.displayName||'Share a thought';
-    $('#composerHint').textContent='Your post will carry your account identity.';
-    $('#composerAvatar').innerHTML=state.user.photoURL?`<img src="${escapeHtml(state.user.photoURL)}" alt="" referrerpolicy="no-referrer">`:(state.user.displayName||'You').slice(0,2);
+    $('#composerName').textContent=profile.displayName||'Share a thought';
+    $('#composerHint').textContent='This is your public LCS identity. Your Google name and email stay private.';
+    $('#composerAvatar').innerHTML=profile.photoURL?`<img src="${escapeHtml(profile.photoURL)}" alt="" referrerpolicy="no-referrer">`:escapeHtml(initialsFor(profile.displayName));
   }else{
     area.innerHTML='<button class="ghost-button signin-button" id="openAuthButton" type="button"><span>G</span> Sign in</button>';
     $('#openAuthButton').addEventListener('click',()=>{ clearAuthError(); $('#authDialog').showModal(); });
     $('#composerName').textContent='Share a thought'; $('#composerHint').textContent='Sign in to publish to the shared network.'; $('#composerAvatar').textContent='You';
   }
+  renderAccount();
 }
 
 function openLogicGuide(type){
@@ -253,7 +464,25 @@ async function initFirebase(){
     authMod.useDeviceLanguage(auth);
     try{ await authMod.setPersistence(auth,authMod.browserLocalPersistence); }catch(e){ console.warn('Auth persistence setup failed:',e); }
     state.firebase={app,auth,db,authMod,fsMod}; state.firebaseReady=true;
-    authMod.onAuthStateChanged(auth,user=>{state.user=user;renderAuth(); if(user) clearAuthError();});
+    authMod.onAuthStateChanged(auth,async user=>{
+      state.user=user;
+      if(user){
+        clearAuthError();
+        await ensurePublicProfile(user);
+      }else{
+        state.publicProfile=null;
+        state.profilePrompted=false;
+        renderAuth();
+        if(state.activeView==='account') renderAccount();
+      }
+    });
+    state.unsubProfiles=fsMod.onSnapshot(fsMod.query(fsMod.collection(db,'users'),fsMod.limit(250)),snap=>{
+      const next={};
+      snap.docs.forEach(d=>{next[d.id]={id:d.id,...d.data()};});
+      state.profiles=next;
+      if(state.user && next[state.user.uid]) state.publicProfile=next[state.user.uid];
+      renderAuth(); renderFeed(); renderCatalogs();
+    },err=>console.warn('Public profile directory unavailable:',err));
     state.unsubPosts=fsMod.onSnapshot(fsMod.query(fsMod.collection(db,'posts'),fsMod.orderBy('createdAt','desc'),fsMod.limit(80)),snap=>{
       state.posts=snap.docs.map(d=>({id:d.id,...d.data()})); if(!state.posts.length) state.posts=[...seedPosts]; renderFeed();
     },err=>{console.warn(err); state.posts=[...seedPosts];renderFeed();toast('Shared feed could not be loaded. Showing examples.');});
@@ -305,13 +534,17 @@ async function signInGoogle(){
 }
 
 async function signOutUser(){
-  if(state.firebaseReady) await state.firebase.authMod.signOut(state.firebase.auth); state.user=null;renderAuth();toast('Signed out.');
+  if(state.firebaseReady) await state.firebase.authMod.signOut(state.firebase.auth);
+  state.user=null; state.publicProfile=null; state.profilePrompted=false;
+  if(state.activeView==='account') setView('home');
+  renderAuth(); toast('Signed out.');
 }
 
 async function publishPost(){
   const text=$('#composerText').value.trim(); if(!text){toast('Write something first.');return;} if(text.length>LCS_CONFIG.maxPostLength){toast('That post is too long.');return;}
   if(!state.user){$('#authDialog').showModal();return;}
-  const payload={text,reasoningType:state.activeType,kind:'idea',space:$('#postSpace').value||'Open Commons',authorUid:state.user.uid,authorName:state.user.displayName||'Member',authorPhoto:state.user.photoURL||'',createdAt:Date.now()};
+  const profile=ownPublicProfile();
+  const payload={text,reasoningType:state.activeType,kind:'idea',space:$('#postSpace').value||'Open Commons',authorUid:state.user.uid,authorName:profile.displayName||'Member',authorPhoto:profile.photoURL||'',createdAt:Date.now()};
   if(state.firebaseReady){
     const {db,fsMod}=state.firebase; await fsMod.addDoc(fsMod.collection(db,'posts'),{...payload,createdAt:fsMod.serverTimestamp()});
   }else{ payload.id=`local-${Date.now()}`;state.posts.unshift(payload);renderFeed(); }
@@ -326,13 +559,14 @@ async function createObject(event){
   event.preventDefault(); if(!state.user){$('#createDialog').close();$('#authDialog').showModal();return;}
   const kind=$('input[name="kind"]:checked',$('#createForm')).value; const title=$('#createTitle').value.trim(); const description=$('#createDescription').value.trim(); const tags=$('#createTags').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,8);
   if(!title||!description)return;
-  const payload={kind,title,description,tags,authorUid:state.user.uid,authorName:state.user.displayName||'Member',createdAt:Date.now(),x:15+Math.random()*70,y:15+Math.random()*70};
+  const profile=ownPublicProfile();
+  const payload={kind,title,description,tags,authorUid:state.user.uid,authorName:profile.displayName||'Member',authorPhoto:profile.photoURL||'',createdAt:Date.now(),x:15+Math.random()*70,y:15+Math.random()*70};
   if(state.firebaseReady){const {db,fsMod}=state.firebase;await fsMod.addDoc(fsMod.collection(db,'objects'),{...payload,createdAt:fsMod.serverTimestamp()});}
   else{payload.id=`local-obj-${Date.now()}`;state.objects.unshift(payload);renderCatalogs();}
   $('#createForm').reset();$('#createDialog').close();setView(`${kind}s`);toast(`${kind[0].toUpperCase()+kind.slice(1)} created.`);
 }
 
-function renderAll(){renderSpaces();renderFeed();renderCatalogs();renderTrends();renderAuth();}
+function renderAll(){renderSpaces();renderFeed();renderCatalogs();renderTrends();renderAuth();renderAccount();}
 
 function bindUI(){
   $$('.nav-item').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
@@ -341,7 +575,13 @@ function bindUI(){
   $('#composerText').addEventListener('input',e=>$('#charCounter').textContent=`${e.target.value.length} / ${LCS_CONFIG.maxPostLength}`);
   $('#publishButton').addEventListener('click',()=>publishPost().catch(e=>{console.error(e);toast('Could not publish.');}));
   $('#googleSignInButton').addEventListener('click',()=>signInGoogle().catch(console.error));
-  $('#localGuestButton').addEventListener('click',()=>{ state.user={uid:'local-demo-user',displayName:'Local Guest',photoURL:''}; renderAuth(); $('#authDialog').close(); toast('Local demo identity enabled. Nothing is uploaded.'); });
+  $('#accountSignInButton').addEventListener('click',()=>{clearAuthError();$('#authDialog').showModal();});
+  $('#accountSignOutButton').addEventListener('click',()=>signOutUser().catch(console.error));
+  $('#accountProfileForm').addEventListener('submit',e=>savePublicProfile(e).catch(console.error));
+  $('#accountDisplayName').addEventListener('input',updateAccountPreview);
+  $('#accountBio').addEventListener('input',updateAccountPreview);
+  $('#accountUseGooglePhoto').addEventListener('change',updateAccountPreview);
+  $('#localGuestButton').addEventListener('click',()=>{ state.user={uid:'local-demo-user',displayName:'Local Guest',email:'',photoURL:''}; state.publicProfile={displayName:'Local Guest',bio:'',useGooglePhoto:false,photoURL:''}; state.profiles[state.user.uid]=state.publicProfile; renderAuth(); $('#authDialog').close(); setView('account'); toast('Local demo identity enabled. Nothing is uploaded.'); });
   $('#openLogicGuide').addEventListener('click',()=>openLogicGuide()); $('#explainButton').addEventListener('click',()=>openLogicGuide());
   $$('[data-guide]').forEach(b=>b.addEventListener('click',()=>openLogicGuide(b.dataset.guide)));
   $$('[data-close-dialog]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));

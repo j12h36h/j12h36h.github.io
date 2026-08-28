@@ -103,12 +103,24 @@ firebase deploy --only firestore:rules
 
 The included rules:
 
-- allow public reads of public posts/objects;
+- allow public reads of public posts/objects and intentionally limited public profile documents;
 - require authentication for creation;
 - require `authorUid` to match the authenticated user;
 - restrict updates/deletes to the author;
 - validate post length, object length, reasoning types, and object kinds;
+- restrict public profile documents to display name, bio, photo opt-in/URL, and timestamps — Google email/provider name are not permitted public-profile fields;
 - deny undeclared collections by default.
+
+
+### Public account/profile privacy model
+
+After first Google sign-in, LCS creates a privacy-safe public profile using a generated `Member-XXXXXX` name and **does not publish the Google account name or email**. The user is taken to the Account view where they can choose a nickname, creator name, or alias. Google-profile-picture sharing is off by default and requires an explicit opt-in.
+
+The public profile is stored in `users/{firebaseUid}` and contains only the public fields allowed by `firestore.rules`. The Google provider name/email remain in Firebase Authentication and are rendered only to the signed-in user on their own Account page.
+
+When a public name/photo choice changes, the frontend also makes a best-effort batch update of the user's existing authored posts and objects so old content does not keep displaying an obsolete provider-derived identity.
+
+**Deploy the included Firestore rules when updating this release.** The previous rules are compatible enough for the new profile UI to work, but the v0.2 rules deliberately prevent future client code from placing provider email/name or arbitrary extra fields in public profile documents.
 
 ## 3. Google/Firebase production checklist
 
@@ -149,6 +161,10 @@ The formal model stays available without becoming an onboarding requirement.
 - Google sign-in through Firebase Authentication when configured;
 - Firestore realtime posts and objects when configured;
 - safe local demo fallback when Firebase is not configured;
+- editable privacy-first public account/profile page;
+- public display names independent from Google account/legal names;
+- optional public bio and opt-in Google profile photo;
+- profile changes propagated to existing authored posts/objects where possible;
 - baseline Firestore security rules;
 - Privacy and Terms pages.
 

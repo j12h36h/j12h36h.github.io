@@ -5,6 +5,19 @@ service cloud.firestore {
     function owns(field) { return signedIn() && request.auth.uid == field; }
     function validReasoningType(t) { return t in ['unclassified','observation','premise','deduction','assumption','hypothesis','question']; }
     function validKind(k) { return k in ['idea','problem','project']; }
+    function validPublicProfile(data) {
+      return data.keys().hasOnly(['displayName','bio','useGooglePhoto','photoURL','createdAt','updatedAt'])
+        && data.displayName is string
+        && data.displayName.size() >= 2
+        && data.displayName.size() <= 40
+        && data.bio is string
+        && data.bio.size() <= 240
+        && data.useGooglePhoto is bool
+        && data.photoURL is string
+        && data.photoURL.size() <= 700
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
 
     match /posts/{postId} {
       allow read: if true;
@@ -36,9 +49,12 @@ service cloud.firestore {
       allow delete: if owns(resource.data.authorUid);
     }
 
+    // Public profile only. Google email/provider name are intentionally not valid fields here.
     match /users/{userId} {
       allow read: if true;
-      allow create, update: if signedIn() && request.auth.uid == userId;
+      allow create, update: if signedIn()
+        && request.auth.uid == userId
+        && validPublicProfile(request.resource.data);
       allow delete: if signedIn() && request.auth.uid == userId;
     }
 
