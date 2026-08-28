@@ -49,7 +49,66 @@ function timeValue(ts) { if (typeof ts === 'number') return ts; if (ts?.toMillis
 function timeAgo(ts) { const s = Math.max(1, Math.floor((Date.now() - (timeValue(ts) || Date.now())) / 1000)); if (s < 60) return `${s}s ago`; const m = Math.floor(s / 60); if (m < 60) return `${m}m ago`; const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`; const d = Math.floor(h / 24); return d < 30 ? `${d}d ago` : new Date(timeValue(ts)).toLocaleDateString(); }
 function initialsFor(name = 'Member') { return String(name).trim().split(/\s+/).slice(0, 2).map(s => s[0] || '').join('').toUpperCase() || 'M'; }
 function generatedPublicName(profileId = '') { return `Member-${String(profileId).replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase() || 'NEW'}`; }
-function avatarMarkup(profile, cls = 'fallback-avatar') { return `<span class="${cls}" aria-hidden="true">${escapeHtml(initialsFor(profile?.displayName || 'Member'))}</span>`; }
+const AVATAR_FONTS = Object.freeze(['Arial','Verdana','Georgia','Courier New','Trebuchet MS','Times New Roman','monospace','sans-serif','serif']);
+const AVATAR_WEIGHTS = Object.freeze([400,700,900]);
+const AVATAR_ALIGNS = Object.freeze(['start','middle','end']);
+function defaultAvatarSpec(profile = null) {
+  return {
+    version: 1,
+    background: '#34264c',
+    layers: [{
+      char: initialsFor(profile?.displayName || 'Member'), x: 64, y: 66, fontSize: 42,
+      color: '#ffffff', fontFamily: 'Arial', fontWeight: 900, rotation: 0, opacity: 1, align: 'middle'
+    }]
+  };
+}
+function normalizeHexColor(value, label) {
+  const v = String(value || '').trim();
+  if (!/^#[0-9a-fA-F]{6}$/.test(v)) throw new Error(`${label} must be a six-digit hex color such as #ffb22e.`);
+  return v.toLowerCase();
+}
+function validateAvatarSpec(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('The root JSON value must be an object.');
+  if (input.version !== 1) throw new Error('version must be 1.');
+  const background = normalizeHexColor(input.background, 'background');
+  if (!Array.isArray(input.layers) || input.layers.length < 1 || input.layers.length > 24) throw new Error('layers must contain between 1 and 24 character layers.');
+  const layers = input.layers.map((raw, index) => {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error(`Layer ${index + 1} must be an object.`);
+    const chars = Array.from(String(raw.char ?? ''));
+    if (chars.length < 1 || chars.length > 4 || chars.some(c => /[\u0000-\u001f\u007f]/.test(c))) throw new Error(`Layer ${index + 1} char must contain 1–4 visible characters.`);
+    const number = (key, min, max, fallback) => {
+      const value = raw[key] ?? fallback;
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max) throw new Error(`Layer ${index + 1} ${key} must be between ${min} and ${max}.`);
+      return value;
+    };
+    const fontFamily = String(raw.fontFamily ?? 'Arial');
+    if (!AVATAR_FONTS.includes(fontFamily)) throw new Error(`Layer ${index + 1} fontFamily is not allowed.`);
+    const fontWeight = Number(raw.fontWeight ?? 700);
+    if (!AVATAR_WEIGHTS.includes(fontWeight)) throw new Error(`Layer ${index + 1} fontWeight must be 400, 700, or 900.`);
+    const align = String(raw.align ?? 'middle');
+    if (!AVATAR_ALIGNS.includes(align)) throw new Error(`Layer ${index + 1} align must be start, middle, or end.`);
+    return {
+      char: chars.join(''),
+      x: number('x', -64, 192, 64), y: number('y', -64, 192, 64), fontSize: number('fontSize', 4, 192, 42),
+      color: normalizeHexColor(raw.color ?? '#ffffff', `Layer ${index + 1} color`), fontFamily, fontWeight,
+      rotation: number('rotation', -360, 360, 0), opacity: number('opacity', 0, 1, 1), align
+    };
+  });
+  return { version: 1, background, layers };
+}
+function avatarSpecFor(profile) {
+  if (!profile?.avatarJson) return defaultAvatarSpec(profile);
+  try { return validateAvatarSpec(JSON.parse(profile.avatarJson)); }
+  catch (error) { console.warn('Invalid saved avatar JSON; using initials fallback.', error); return defaultAvatarSpec(profile); }
+}
+function avatarSvgInner(spec) {
+  const safe = validateAvatarSpec(spec);
+  const layers = safe.layers.map(layer => `<text x="${layer.x}" y="${layer.y}" fill="${layer.color}" font-family="${escapeHtml(layer.fontFamily)}" font-size="${layer.fontSize}" font-weight="${layer.fontWeight}" opacity="${layer.opacity}" text-anchor="${layer.align}" dominant-baseline="middle" transform="rotate(${layer.rotation} ${layer.x} ${layer.y})">${escapeHtml(layer.char)}</text>`).join('');
+  return `<svg viewBox="0 0 128 128" focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="128" height="128" fill="${safe.background}"/>${layers}</svg>`;
+}
+function avatarMarkup(profile, cls = 'fallback-avatar') { return `<span class="${cls} avatar-composite" aria-hidden="true">${avatarSvgInner(avatarSpecFor(profile))}</span>`; }
+function prettyAvatarJson(profile = null) { return JSON.stringify(avatarSpecFor(profile), null, 2); }
+
 function showDialog(selector) { const d = typeof selector === 'string' ? $(selector) : selector; if (d && !d.open) d.showModal(); }
 function toast(message) { const region = $('#toastRegion'); if (!region) return; const el = document.createElement('div'); el.className = 'toast'; el.textContent = message; region.appendChild(el); setTimeout(() => el.remove(), 3600); }
 function setBackendStatus(title, text, tone = '') { $('#backendStatusTitle').textContent = title; $('#backendStatusText').textContent = text; $('#backendStatusCard').dataset.tone = tone; }
@@ -111,7 +170,7 @@ function renderAuth() {
   if (!state.profileId) { area.innerHTML = '<div class="auth-checking"><span class="auth-checking-dot"></span><span>Linking public identity…</span></div>'; return; }
   const p = ownProfile();
   area.innerHTML = `<div class="auth-user"><button class="auth-account-main" data-open-account type="button">${avatarMarkup(p,'auth-fallback-avatar')}<span>${escapeHtml(p.displayName || 'Account')}</span><span class="status-badge-row">${statusBadgeMarkup(state.profileId)}</span></button><button id="signOutButton" type="button" aria-label="Sign out">↪</button></div>`;
-  $('#composerName').textContent = p.displayName || 'Share a thought'; $('#composerAvatar').textContent = initialsFor(p.displayName);
+  $('#composerName').textContent = p.displayName || 'Share a thought'; $('#composerAvatar').innerHTML = avatarMarkup(p,'composer-avatar-composite');
 }
 
 function renderAccount() {
@@ -123,7 +182,7 @@ function renderAccount() {
   if (!state.accountDirty) { $('#accountDisplayName').value = p.displayName || generatedPublicName(state.profileId); $('#accountBio').value = p.bio || ''; }
   $('#accountPreviewName').textContent = $('#accountDisplayName').value || p.displayName || 'Member';
   $('#accountPreviewBio').textContent = $('#accountBio').value || 'No public bio yet.';
-  $('#accountPublicAvatar').textContent = initialsFor($('#accountDisplayName').value || p.displayName);
+  $('#accountPublicAvatar').innerHTML = avatarMarkup(p,'account-avatar-composite');
   $('#accountBioCounter').textContent = `${$('#accountBio').value.length} / 240`;
   $('#accountConnectionStatus').textContent = state.profileId ? 'Connected · private Firebase mapping active · public profile separated' : 'Creating private identity mapping…';
   $('#accountPublicId').textContent = state.profileId ? publicIdShort(state.profileId) : 'Creating…';
@@ -136,6 +195,49 @@ function renderAccount() {
 }
 
 function markAccountDirty() { state.accountDirty = true; state.profileSaveStatus = 'Unsaved changes'; renderAccount(); }
+
+function avatarEditorRead() {
+  const raw = $('#avatarJsonEditor')?.value || '';
+  try {
+    const parsed = validateAvatarSpec(JSON.parse(raw));
+    $('#avatarEditorPreview').innerHTML = `<span class="avatar-editor-live avatar-composite">${avatarSvgInner(parsed)}</span>`;
+    $('#avatarEditorError').hidden = true;
+    $('#avatarEditorErrorText').textContent = '';
+    $('#avatarSaveButton').disabled = false;
+    $('#avatarEditorStatus').textContent = 'Valid · preview updated live';
+    return parsed;
+  } catch (error) {
+    $('#avatarEditorError').hidden = false;
+    $('#avatarEditorErrorText').textContent = error?.message || 'Invalid avatar JSON.';
+    $('#avatarSaveButton').disabled = true;
+    $('#avatarEditorStatus').textContent = 'Fix the JSON before saving';
+    return null;
+  }
+}
+function openAvatarEditor() {
+  if (!requireUser() || !state.profileId) return;
+  $('#avatarJsonEditor').value = prettyAvatarJson(ownProfile());
+  avatarEditorRead();
+  showDialog('#avatarEditorDialog');
+  setTimeout(() => $('#avatarJsonEditor')?.focus(), 0);
+}
+async function saveAvatarJson() {
+  if (!requireUser() || !state.profileId) return;
+  const parsed = avatarEditorRead(); if (!parsed) return;
+  const canonical = JSON.stringify(parsed, null, 2);
+  if (canonical.length > 6000) { $('#avatarEditorError').hidden = false; $('#avatarEditorErrorText').textContent = 'The canonical avatar JSON is larger than the 6000-character profile limit.'; return; }
+  const button = $('#avatarSaveButton'); button.disabled = true; button.textContent = 'Saving…'; $('#avatarEditorStatus').textContent = 'Saving public avatar…';
+  try {
+    const {db,fsMod}=state.firebase;
+    await fsMod.setDoc(fsMod.doc(db,'publicProfiles',state.profileId),{avatarJson:canonical,updatedAt:fsMod.serverTimestamp()},{merge:true});
+    state.publicProfile = {...ownProfile(), avatarJson: canonical}; state.profiles[state.profileId] = state.publicProfile;
+    $('#accountPublicAvatar').innerHTML = avatarMarkup(state.publicProfile,'account-avatar-composite');
+    $('#avatarEditorStatus').textContent = 'Saved · public avatar updated'; toast('Profile image JSON saved.');
+    setTimeout(() => { const d=$('#avatarEditorDialog'); if(d?.open)d.close(); }, 350);
+  } catch (error) {
+    console.error(error); $('#avatarEditorError').hidden = false; $('#avatarEditorErrorText').textContent = 'Firestore rejected or could not save the avatar JSON.'; $('#avatarEditorStatus').textContent = 'Save failed';
+  } finally { button.disabled = false; button.textContent = 'Save profile image'; renderAuth(); renderAccount(); renderFeed(); renderConnections(); }
+}
 
 function renderSpaces() {
   const root = $('#spaceList'); if (!root) return;
@@ -333,7 +435,7 @@ async function signOutUser(){if(!state.firebase?.auth)return;stopPrivateSubscrip
 
 function stopOwnProfileListener(){if(state.ownProfileUnsub){state.ownProfileUnsub();state.ownProfileUnsub=null;}}
 function stopPrivateSubscriptions(){state.privateUnsubs.splice(0).forEach(fn=>{try{fn();}catch{}});state.friendRequests=[];state.friendships=[];state.lfgRequests=[];state.blocks=[];state.statusOwn=[];stopModerationSubscriptions();}
-function publicSubscribe(name,apply,{orderBy='',limit=500,filters=[]}={}){const {db,fsMod}=state.firebase;let parts=[fsMod.collection(db,name),...filters.map(([field,op,value])=>fsMod.where(field,op,value))];if(orderBy)parts.push(fsMod.orderBy(orderBy,'desc'));parts.push(fsMod.limit(limit));const q=fsMod.query(...parts);const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>{console.error(`subscription ${name}`,e);setBackendStatus('Live network needs attention',`Firestore could not read ${name}. Deploy the v0.6 rules.`, 'error');});state.publicUnsubs.push(unsub);}
+function publicSubscribe(name,apply,{orderBy='',limit=500,filters=[]}={}){const {db,fsMod}=state.firebase;let parts=[fsMod.collection(db,name),...filters.map(([field,op,value])=>fsMod.where(field,op,value))];if(orderBy)parts.push(fsMod.orderBy(orderBy,'desc'));parts.push(fsMod.limit(limit));const q=fsMod.query(...parts);const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>{console.error(`subscription ${name}`,e);setBackendStatus('Live network needs attention',`Firestore could not read ${name}. Deploy the v0.7 rules.`, 'error');});state.publicUnsubs.push(unsub);}
 function privateQuerySubscribe(name,field,value,apply){const {db,fsMod}=state.firebase;const q=fsMod.query(fsMod.collection(db,name),fsMod.where(field,'==',value),fsMod.limit(250));const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>console.error(`private subscription ${name}`,e));state.privateUnsubs.push(unsub);}
 function setupPrivateSubscriptions(){stopPrivateSubscriptions();if(!state.profileId)return;let friendIn=[],friendOut=[],lfgIn=[],lfgOut=[];const merge=(a,b)=>[...new Map([...a,...b].map(x=>[x.id,x])).values()];privateQuerySubscribe('privateFriendRequests','toProfileId',state.profileId,rows=>{friendIn=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);});privateQuerySubscribe('privateFriendRequests','fromProfileId',state.profileId,rows=>{friendOut=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();});privateQuerySubscribe('privateLfgRequests','toProfileId',state.profileId,rows=>{lfgIn=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();});privateQuerySubscribe('privateLfgRequests','fromProfileId',state.profileId,rows=>{lfgOut=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();});privateQuerySubscribe('statusAssignments','profileId',state.profileId,rows=>{state.statusOwn=rows;mergeStatusRows();renderAuth();renderAccount();renderDetailThread();});const {db,fsMod}=state.firebase;const q=fsMod.query(fsMod.collection(db,'privateFriendships'),fsMod.where('members','array-contains',state.profileId),fsMod.limit(250));state.privateUnsubs.push(fsMod.onSnapshot(q,s=>{state.friendships=s.docs.map(d=>({id:d.id,...d.data()}));renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('friendships',e)));const bq=fsMod.query(fsMod.collection(db,'privateBlocks'),fsMod.where('blockerProfileId','==',state.profileId),fsMod.limit(500));state.privateUnsubs.push(fsMod.onSnapshot(bq,s=>{state.blocks=s.docs.map(d=>({id:d.id,...d.data()}));renderFeed();renderCatalogs();renderSearchPanel();renderLfg();renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('blocks',e)));}
 
@@ -388,8 +490,8 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;renderLfg();renderConnections();renderSearchPanel();},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentity();
-    setBackendStatus('LCS v0.6 Status + moderation network connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
-  }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.6 firestore.rules.','error');renderAuth();renderAccount();}
+    setBackendStatus('LCS v0.7 avatar + Status network connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+  }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7 firestore.rules.','error');renderAuth();renderAccount();}
 }
 
 function bindUI(){
@@ -403,7 +505,7 @@ function bindUI(){
   });
   $$('.nav-item').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view))); $$('.thought-chip').forEach(b=>b.addEventListener('click',()=>{$$('.thought-chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.activeType=b.dataset.type;})); $$('.segment[data-filter]').forEach(b=>b.addEventListener('click',()=>{$$('.segment[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.activeFilter=b.dataset.filter;renderFeed();})); $$('.segment[data-lfg-filter]').forEach(b=>b.addEventListener('click',()=>{$$('.segment[data-lfg-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.activeLfgFilter=b.dataset.lfgFilter;renderLfg();}));
   $('#composerText').addEventListener('input',e=>$('#charCounter').textContent=`${e.target.value.length} / ${LCS_CONFIG.maxPostLength}`); $('#publishButton').addEventListener('click',()=>publishPost().catch(console.error)); $('#googleSignInButton').addEventListener('click',()=>signInGoogle()); $('#accountSignInButton').addEventListener('click',()=>showDialog('#authDialog')); $('#connectionsSignInButton').addEventListener('click',()=>showDialog('#authDialog')); $('#accountSignOutButton').addEventListener('click',()=>signOutUser());
-  $('#accountProfileForm').addEventListener('submit',e=>savePublicProfile(e)); $('#accountDisplayName').addEventListener('input',markAccountDirty); $('#accountBio').addEventListener('input',markAccountDirty); $('#accountViewPublicProfile').addEventListener('click',()=>state.profileId&&openProfileDetail(state.profileId)); $('#copyPublicIdButton').addEventListener('click',async()=>{if(!state.profileId)return;try{await navigator.clipboard.writeText(state.profileId);toast('Public profile ID copied.');}catch{const r=document.createRange();r.selectNodeContents($('#accountFullPublicId'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast('Public profile ID selected. Copy it with your browser.');}});
+  $('#accountProfileForm').addEventListener('submit',e=>savePublicProfile(e)); $('#accountDisplayName').addEventListener('input',markAccountDirty); $('#accountBio').addEventListener('input',markAccountDirty); $('#accountViewPublicProfile').addEventListener('click',()=>state.profileId&&openProfileDetail(state.profileId)); $('#copyPublicIdButton').addEventListener('click',async()=>{if(!state.profileId)return;try{await navigator.clipboard.writeText(state.profileId);toast('Public profile ID copied.');}catch{const r=document.createRange();r.selectNodeContents($('#accountFullPublicId'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast('Public profile ID selected. Copy it with your browser.');}}); $('#accountPublicAvatar').addEventListener('click',openAvatarEditor); $('#avatarJsonEditor').addEventListener('input',avatarEditorRead); $('#avatarResetButton').addEventListener('click',()=>{$('#avatarJsonEditor').value=JSON.stringify(defaultAvatarSpec({...ownProfile(),displayName:$('#accountDisplayName').value||ownProfile().displayName}),null,2);avatarEditorRead();}); $('#avatarSaveButton').addEventListener('click',()=>saveAvatarJson());
   $('#openLogicGuide').addEventListener('click',()=>openLogicGuide()); $('#explainButton').addEventListener('click',()=>openLogicGuide()); $$('[data-guide]').forEach(b=>b.addEventListener('click',()=>openLogicGuide(b.dataset.guide)));
   $('#newSpaceButton').addEventListener('click',openSpaceDialog); $('#communityCreateButton').addEventListener('click',openSpaceDialog); $('#newChannelButton').addEventListener('click',()=>openChannelDialog(state.activeSpaceId!=='all'?state.activeSpaceId:'')); $$('.quick-create').forEach(b=>b.addEventListener('click',()=>openCreate(b.dataset.kind))); $('#newLfgButton').addEventListener('click',()=>{if(requireUser())showDialog('#lfgDialog');});
   $('#createForm').addEventListener('submit',e=>createObject(e).catch(console.error)); $('#statusGrantForm').addEventListener('submit',e=>grantStatus(e).catch(console.error)); $('#statusScopeKind').addEventListener('change',renderStatusTargetOptions); $('#spaceForm').addEventListener('submit',e=>createSpace(e).catch(console.error)); $('#channelForm').addEventListener('submit',e=>createChannel(e).catch(console.error)); $('#connectForm').addEventListener('submit',e=>submitConnection(e).catch(console.error)); $('#detailCommentForm').addEventListener('submit',e=>submitComment(e).catch(console.error)); $('#detailCommentSignIn').addEventListener('click',()=>showDialog('#authDialog')); $('#lfgForm').addEventListener('submit',e=>createLfg(e).catch(console.error));

@@ -1,6 +1,6 @@
-# Logical Communication Service — v0.6
+# Logical Communication Service — v0.7
 
-LCS v0.6 adds the unified **Status** authorization system and a retained moderation/audit architecture on top of the v0.5 private-auth/public-identity boundary.
+LCS v0.7 keeps the unified **Status** authorization system and a retained moderation/audit architecture on top of the v0.5 private-auth/public-identity boundary.
 
 ## Status, not roles
 One authorization model is used at different scopes:
@@ -44,3 +44,7 @@ v0.6 securely binds the founding account through a private Firestore bootstrap d
 6. If the Firebase Web API key uses Website restrictions, allow the GitHub Pages site and the Firebase `authDomain` used by the popup helper.
 
 No Firebase Storage, Realtime Database, Cloud Functions, Analytics, or private server credentials are required for v0.6.
+
+
+## v0.7 JSON character avatars
+Click the public profile image on Account to edit the current avatar JSON. The editor validates and previews changes live, then stores the canonical JSON string in the public profile. No image file, external URL, SVG input, HTML, or CSS input is accepted. Rendering uses only an allowlisted set of character-layer properties.
