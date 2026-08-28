@@ -1,0 +1,34 @@
+LCS GOOGLE SIGN-IN FIX — 2026-08-28
+
+Observed symptom
+----------------
+Pressing Continue with Google opens a popup for a moment and then the popup disappears.
+
+Patch changes
+-------------
+1. Keeps Google authentication on Firebase signInWithPopup for GitHub Pages.
+2. Removes the automatic redirect fallback that is unreliable on non-Firebase hosting without auth-helper proxy/self-hosting.
+3. Adds explicit Firebase auth persistence.
+4. Adds visible, targeted errors inside the sign-in dialog for:
+   - unauthorized domain
+   - Google provider disabled
+   - Firebase Authentication not initialized
+   - API key / HTTP-referrer restrictions
+   - invalid API key
+   - popup blocked/closed
+   - network errors
+5. Documents the two website origins needed if HTTP-referrer restrictions are enabled:
+   - https://j12h36h.github.io/*
+   - https://logicalcommunicationservice.firebaseapp.com/*
+6. Preserves the full DAI + LCS Connect package.
+
+Required Firebase-side checks
+-----------------------------
+A static GitHub Pages patch cannot change Firebase Console settings. Verify:
+- Firebase Authentication is initialized.
+- Google provider is enabled.
+- j12h36h.github.io is in Firebase Authentication → Authorized domains.
+- If the Firebase Web API key has Website restrictions, both origins above are allowed.
+- The key still allows the Firebase-related APIs required by Authentication/Firestore.
+
+The dialog will now identify which of these is actually failing instead of silently collapsing the popup.

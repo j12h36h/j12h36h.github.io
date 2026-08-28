@@ -64,6 +64,92 @@ function toast(message){
 
 function setBackendStatus(title,text){ $('#backendStatusTitle').textContent=title; $('#backendStatusText').textContent=text; }
 
+function clearAuthError(){
+  const box=$('#authErrorBox');
+  if(!box) return;
+  box.hidden=true;
+  $('#authErrorTitle').textContent='';
+  $('#authErrorText').textContent='';
+  $('#authErrorCode').textContent='';
+}
+
+function authErrorMessage(error){
+  const code=String(error?.code||'auth/unknown');
+  const message=String(error?.message||'');
+  const firebaseAuthDomain=LCS_CONFIG.firebase?.authDomain||'the Firebase auth domain';
+
+  if(code==='auth/unauthorized-domain'){
+    return {
+      title:'This website is not authorized yet',
+      text:`Add ${location.hostname} in Firebase Console → Authentication → Settings → Authorized domains, then try again.`
+    };
+  }
+
+  if(code==='auth/operation-not-allowed'){
+    return {
+      title:'Google sign-in is not enabled yet',
+      text:'Enable Google in Firebase Console → Authentication → Sign-in method, save it, then try again.'
+    };
+  }
+
+  if(code==='auth/configuration-not-found'){
+    return {
+      title:'Firebase Authentication needs setup',
+      text:'Open Firebase Console for this project and initialize Authentication, then enable the Google provider.'
+    };
+  }
+
+  if(code.includes('requests-from-referer') || /Requests from referer/i.test(message) || /PERMISSION_DENIED/i.test(message)){
+    return {
+      title:'The Firebase browser key is blocking the auth popup',
+      text:`In Google Cloud → APIs & Services → Credentials, edit the Firebase Web API key. If Website/HTTP-referrer restrictions are enabled, allow both https://${location.hostname}/* and https://${firebaseAuthDomain}/*. Keep the key restricted to the Firebase APIs required by this app.`
+    };
+  }
+
+  if(['auth/api-key-not-valid','auth/invalid-api-key'].includes(code)){
+    return {
+      title:'The Firebase Web API key is invalid',
+      text:'Re-copy the Firebase Web App configuration from Firebase Console → Project settings → Your apps → SDK setup and configuration.'
+    };
+  }
+
+  if(code==='auth/popup-blocked'){
+    return {
+      title:'The browser blocked the Google window',
+      text:'Allow popups for this site and press Continue with Google again.'
+    };
+  }
+
+  if(code==='auth/popup-closed-by-user'){
+    return {
+      title:'Google sign-in closed before completion',
+      text:`If you did not close it yourself, verify Google is enabled, ${location.hostname} is an Authorized domain, and any Website restrictions on the Firebase key also allow https://${firebaseAuthDomain}/*.`
+    };
+  }
+
+  if(code==='auth/network-request-failed'){
+    return {
+      title:'Google sign-in could not reach Firebase',
+      text:'Check the connection, browser privacy/ad-blocking settings, and then try again.'
+    };
+  }
+
+  return {
+    title:'Google sign-in did not complete',
+    text:'The exact Firebase error is shown below so the configuration can be corrected instead of silently closing the popup.'
+  };
+}
+
+function showAuthError(error){
+  const box=$('#authErrorBox');
+  if(!box) return;
+  const details=authErrorMessage(error);
+  $('#authErrorTitle').textContent=details.title;
+  $('#authErrorText').textContent=details.text;
+  $('#authErrorCode').textContent=String(error?.code||error?.message||'auth/unknown');
+  box.hidden=false;
+}
+
 function renderSpaces(){
   $('#spaceList').innerHTML = state.spaces.map(s=>`<div class="space-item"><i></i><span>${escapeHtml(s)}</span></div>`).join('');
   $('#postSpace').innerHTML = state.spaces.map(s=>`<option>${escapeHtml(s)}</option>`).join('');
@@ -129,7 +215,7 @@ function renderAuth(){
     $('#composerAvatar').innerHTML=state.user.photoURL?`<img src="${escapeHtml(state.user.photoURL)}" alt="" referrerpolicy="no-referrer">`:(state.user.displayName||'You').slice(0,2);
   }else{
     area.innerHTML='<button class="ghost-button signin-button" id="openAuthButton" type="button"><span>G</span> Sign in</button>';
-    $('#openAuthButton').addEventListener('click',()=>$('#authDialog').showModal());
+    $('#openAuthButton').addEventListener('click',()=>{ clearAuthError(); $('#authDialog').showModal(); });
     $('#composerName').textContent='Share a thought'; $('#composerHint').textContent='Sign in to publish to the shared network.'; $('#composerAvatar').textContent='You';
   }
 }
@@ -164,9 +250,10 @@ async function initFirebase(){
       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
     ]);
     const app=appMod.initializeApp(LCS_CONFIG.firebase); const auth=authMod.getAuth(app); const db=fsMod.getFirestore(app);
-    authMod.useDeviceLanguage(auth); state.firebase={app,auth,db,authMod,fsMod}; state.firebaseReady=true;
-    try{ await authMod.getRedirectResult(auth); }catch(e){ console.warn(e); }
-    authMod.onAuthStateChanged(auth,user=>{state.user=user;renderAuth();});
+    authMod.useDeviceLanguage(auth);
+    try{ await authMod.setPersistence(auth,authMod.browserLocalPersistence); }catch(e){ console.warn('Auth persistence setup failed:',e); }
+    state.firebase={app,auth,db,authMod,fsMod}; state.firebaseReady=true;
+    authMod.onAuthStateChanged(auth,user=>{state.user=user;renderAuth(); if(user) clearAuthError();});
     state.unsubPosts=fsMod.onSnapshot(fsMod.query(fsMod.collection(db,'posts'),fsMod.orderBy('createdAt','desc'),fsMod.limit(80)),snap=>{
       state.posts=snap.docs.map(d=>({id:d.id,...d.data()})); if(!state.posts.length) state.posts=[...seedPosts]; renderFeed();
     },err=>{console.warn(err); state.posts=[...seedPosts];renderFeed();toast('Shared feed could not be loaded. Showing examples.');});
@@ -180,15 +267,40 @@ async function initFirebase(){
 }
 
 async function signInGoogle(){
-  if(!state.firebaseReady){ $('#authSetupWarning').hidden=false; return; }
-  const {auth,authMod}=state.firebase; const provider=new authMod.GoogleAuthProvider(); provider.setCustomParameters({prompt:'select_account'});
-  try{ await authMod.signInWithPopup(auth,provider); $('#authDialog').close(); toast('Signed in with Google.'); }
-  catch(error){
-    console.warn(error);
-    if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(error.code)){
-      toast('Opening Google sign-in…'); await authMod.signInWithRedirect(auth,provider); return;
-    }
-    toast(error.code==='auth/unauthorized-domain'?'This domain must be added to Firebase Authorized domains.':'Google sign-in did not complete.');
+  clearAuthError();
+  if(!state.firebaseReady){
+    $('#authSetupWarning').hidden=false;
+    showAuthError({code:'auth/configuration-not-found'});
+    return;
+  }
+
+  const {auth,authMod}=state.firebase;
+  const provider=new authMod.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:'select_account'});
+
+  const button=$('#googleSignInButton');
+  const previous=button.innerHTML;
+  button.disabled=true;
+  button.innerHTML='<span class="google-g">G</span>Opening Google…';
+
+  try{
+    const result=await authMod.signInWithPopup(auth,provider);
+    state.user=result.user;
+    renderAuth();
+    $('#authDialog').close();
+    toast('Signed in with Google.');
+  }catch(error){
+    console.error('LCS Google sign-in failed:',error);
+    showAuthError(error);
+
+    // LCS is served from GitHub Pages. Firebase recommends popup auth for apps
+    // hosted outside Firebase when redirect auth has not been proxied/self-hosted,
+    // because modern browsers can block the cross-origin redirect helper storage.
+    // Do not silently replace a failed popup with a redirect that may fail again.
+    toast('Google sign-in needs attention. See the message in the sign-in window.');
+  }finally{
+    button.disabled=false;
+    button.innerHTML=previous;
   }
 }
 

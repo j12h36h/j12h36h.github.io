@@ -232,11 +232,16 @@
     <h2>Continue with Google</h2>
     <p>One account gives you a stable identity for posts, projects, and contributions. We never receive your Google password.</p>
     <button class="google-button" id="googleSignInButton" type="button"><span class="google-g">G</span>Continue with Google</button>
+    <div class="setup-warning auth-error" id="authErrorBox" hidden role="alert">
+      <b id="authErrorTitle">Google sign-in needs attention</b>
+      <p id="authErrorText"></p>
+      <code id="authErrorCode"></code>
+    </div>
     <button class="ghost-button" id="localGuestButton" type="button" hidden style="width:100%;margin-top:4px">Try the interface as a local guest</button>
     <p class="tiny muted">By continuing, you agree to the <a href="terms.html">Terms</a> and acknowledge the <a href="privacy.html">Privacy Policy</a>.</p>
     <div class="setup-warning" id="authSetupWarning" hidden>
       <b>Owner setup needed</b>
-      <p>Firebase is not configured yet. Add the public Firebase web config in <code>assets/js/config.js</code>, enable Google sign-in, and add <code>j12h36h.github.io</code> as an authorized domain.</p>
+      <p>Firebase is not configured yet. Add the public Firebase web config in <code>assets/js/config.js</code>, enable Google sign-in, and add <code>j12h36h.github.io</code> as an authorized domain. If the Firebase Web API key has Website restrictions, also allow <code>logicalcommunicationservice.firebaseapp.com</code> because Firebase hosts the Google popup helper there.</p>
       <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer">Open Firebase Console ↗</a>
     </div>
   </dialog>

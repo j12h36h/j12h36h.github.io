@@ -72,7 +72,20 @@ In Firebase Console:
 
 For local development, also authorize the localhost host you actually use.
 
-Firebase's Google provider automatically uses the Google OAuth configuration associated with the Firebase project. The UI uses `signInWithPopup()` and falls back to redirect mode when a popup is unavailable.
+### If the Google popup flashes and immediately closes
+
+Check **Google Cloud Console → APIs & Services → Credentials → the Firebase Web API key**. If you enabled **Website / HTTP referrer application restrictions**, the popup helper is served from the Firebase `authDomain`, not from GitHub Pages. For this project, allow both:
+
+```text
+https://j12h36h.github.io/*
+https://logicalcommunicationservice.firebaseapp.com/*
+```
+
+Also keep the key's **API restrictions** compatible with Firebase Authentication/Firestore. Firebase-provisioned Web API keys are public client identifiers; security for Firestore is enforced by Security Rules (and optionally App Check), not by hiding this browser configuration.
+
+The LCS sign-in dialog now displays the exact Firebase error code and targeted setup guidance rather than letting an auth popup fail silently.
+
+Firebase's Google provider automatically uses the Google OAuth configuration associated with the Firebase project. The UI uses `signInWithPopup()`. Because this app is hosted on GitHub Pages rather than Firebase Hosting, it intentionally does not silently fall back to `signInWithRedirect()`; modern browser third-party-storage rules require extra proxy/self-hosting work for reliable redirect authentication on non-Firebase hosting.
 
 ### Create Firestore
 

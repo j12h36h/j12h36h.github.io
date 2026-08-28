@@ -1,6 +1,8 @@
 // Logical Communication Service configuration.
 // Firebase web configuration values are PUBLIC client configuration, not server secrets.
-// Restrict the browser API key in Google Cloud; do not obfuscate it to evade secret scanning.
+// Restrict the browser API key to Firebase-related APIs. If Website/HTTP-referrer restrictions are used,
+// allow BOTH the GitHub Pages host and this Firebase authDomain because the Google popup helper runs there.
+// Do not obfuscate the key to evade secret scanning.
 // Never place service-account keys, OAuth client secrets, or private keys in this file.
 
 export const LCS_CONFIG = {
