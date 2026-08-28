@@ -52,6 +52,9 @@ function generatedPublicName(profileId = '') { return `Member-${String(profileId
 const AVATAR_FONTS = Object.freeze(['Arial','Verdana','Georgia','Courier New','Trebuchet MS','Times New Roman','monospace','sans-serif','serif']);
 const AVATAR_WEIGHTS = Object.freeze([400,700,900]);
 const AVATAR_ALIGNS = Object.freeze(['start','middle','end']);
+const AVATAR_MAX_LAYERS = 96;
+const AVATAR_JSON_MAX_CHARS = 32000;
+const AVATAR_RENDER_CACHE = new Map();
 function defaultAvatarSpec(profile = null) {
   return {
     version: 1,
@@ -71,7 +74,7 @@ function validateAvatarSpec(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('The root JSON value must be an object.');
   if (input.version !== 1) throw new Error('version must be 1.');
   const background = normalizeHexColor(input.background, 'background');
-  if (!Array.isArray(input.layers) || input.layers.length < 1 || input.layers.length > 24) throw new Error('layers must contain between 1 and 24 character layers.');
+  if (!Array.isArray(input.layers) || input.layers.length < 1 || input.layers.length > AVATAR_MAX_LAYERS) throw new Error(`layers must contain between 1 and ${AVATAR_MAX_LAYERS} character layers.`);
   const layers = input.layers.map((raw, index) => {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error(`Layer ${index + 1} must be an object.`);
     const chars = Array.from(String(raw.char ?? ''));
@@ -103,8 +106,14 @@ function avatarSpecFor(profile) {
 }
 function avatarSvgInner(spec) {
   const safe = validateAvatarSpec(spec);
+  const cacheKey = JSON.stringify(safe);
+  const cached = AVATAR_RENDER_CACHE.get(cacheKey);
+  if (cached) return cached;
   const layers = safe.layers.map(layer => `<text x="${layer.x}" y="${layer.y}" fill="${layer.color}" font-family="${escapeHtml(layer.fontFamily)}" font-size="${layer.fontSize}" font-weight="${layer.fontWeight}" opacity="${layer.opacity}" text-anchor="${layer.align}" dominant-baseline="middle" transform="rotate(${layer.rotation} ${layer.x} ${layer.y})">${escapeHtml(layer.char)}</text>`).join('');
-  return `<svg viewBox="0 0 128 128" focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="128" height="128" fill="${safe.background}"/>${layers}</svg>`;
+  const svg = `<svg viewBox="0 0 128 128" focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="128" height="128" fill="${safe.background}"/>${layers}</svg>`;
+  AVATAR_RENDER_CACHE.set(cacheKey, svg);
+  if (AVATAR_RENDER_CACHE.size > 128) AVATAR_RENDER_CACHE.delete(AVATAR_RENDER_CACHE.keys().next().value);
+  return svg;
 }
 function avatarMarkup(profile, cls = 'fallback-avatar') { return `<span class="${cls} avatar-composite" aria-hidden="true">${avatarSvgInner(avatarSpecFor(profile))}</span>`; }
 function prettyAvatarJson(profile = null) { return JSON.stringify(avatarSpecFor(profile), null, 2); }
@@ -225,7 +234,7 @@ async function saveAvatarJson() {
   if (!requireUser() || !state.profileId) return;
   const parsed = avatarEditorRead(); if (!parsed) return;
   const canonical = JSON.stringify(parsed, null, 2);
-  if (canonical.length > 6000) { $('#avatarEditorError').hidden = false; $('#avatarEditorErrorText').textContent = 'The canonical avatar JSON is larger than the 6000-character profile limit.'; return; }
+  if (canonical.length > AVATAR_JSON_MAX_CHARS) { $('#avatarEditorError').hidden = false; $('#avatarEditorErrorText').textContent = `The canonical avatar JSON is larger than the ${AVATAR_JSON_MAX_CHARS.toLocaleString()}-character profile limit.`; return; }
   const button = $('#avatarSaveButton'); button.disabled = true; button.textContent = 'Saving…'; $('#avatarEditorStatus').textContent = 'Saving public avatar…';
   try {
     const {db,fsMod}=state.firebase;
@@ -435,7 +444,7 @@ async function signOutUser(){if(!state.firebase?.auth)return;stopPrivateSubscrip
 
 function stopOwnProfileListener(){if(state.ownProfileUnsub){state.ownProfileUnsub();state.ownProfileUnsub=null;}}
 function stopPrivateSubscriptions(){state.privateUnsubs.splice(0).forEach(fn=>{try{fn();}catch{}});state.friendRequests=[];state.friendships=[];state.lfgRequests=[];state.blocks=[];state.statusOwn=[];stopModerationSubscriptions();}
-function publicSubscribe(name,apply,{orderBy='',limit=500,filters=[]}={}){const {db,fsMod}=state.firebase;let parts=[fsMod.collection(db,name),...filters.map(([field,op,value])=>fsMod.where(field,op,value))];if(orderBy)parts.push(fsMod.orderBy(orderBy,'desc'));parts.push(fsMod.limit(limit));const q=fsMod.query(...parts);const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>{console.error(`subscription ${name}`,e);setBackendStatus('Live network needs attention',`Firestore could not read ${name}. Deploy the v0.7 rules.`, 'error');});state.publicUnsubs.push(unsub);}
+function publicSubscribe(name,apply,{orderBy='',limit=500,filters=[]}={}){const {db,fsMod}=state.firebase;let parts=[fsMod.collection(db,name),...filters.map(([field,op,value])=>fsMod.where(field,op,value))];if(orderBy)parts.push(fsMod.orderBy(orderBy,'desc'));parts.push(fsMod.limit(limit));const q=fsMod.query(...parts);const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>{console.error(`subscription ${name}`,e);setBackendStatus('Live network needs attention',`Firestore could not read ${name}. Deploy the v0.7.1 rules.`, 'error');});state.publicUnsubs.push(unsub);}
 function privateQuerySubscribe(name,field,value,apply){const {db,fsMod}=state.firebase;const q=fsMod.query(fsMod.collection(db,name),fsMod.where(field,'==',value),fsMod.limit(250));const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>console.error(`private subscription ${name}`,e));state.privateUnsubs.push(unsub);}
 function setupPrivateSubscriptions(){stopPrivateSubscriptions();if(!state.profileId)return;let friendIn=[],friendOut=[],lfgIn=[],lfgOut=[];const merge=(a,b)=>[...new Map([...a,...b].map(x=>[x.id,x])).values()];privateQuerySubscribe('privateFriendRequests','toProfileId',state.profileId,rows=>{friendIn=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);});privateQuerySubscribe('privateFriendRequests','fromProfileId',state.profileId,rows=>{friendOut=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();});privateQuerySubscribe('privateLfgRequests','toProfileId',state.profileId,rows=>{lfgIn=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();});privateQuerySubscribe('privateLfgRequests','fromProfileId',state.profileId,rows=>{lfgOut=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();});privateQuerySubscribe('statusAssignments','profileId',state.profileId,rows=>{state.statusOwn=rows;mergeStatusRows();renderAuth();renderAccount();renderDetailThread();});const {db,fsMod}=state.firebase;const q=fsMod.query(fsMod.collection(db,'privateFriendships'),fsMod.where('members','array-contains',state.profileId),fsMod.limit(250));state.privateUnsubs.push(fsMod.onSnapshot(q,s=>{state.friendships=s.docs.map(d=>({id:d.id,...d.data()}));renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('friendships',e)));const bq=fsMod.query(fsMod.collection(db,'privateBlocks'),fsMod.where('blockerProfileId','==',state.profileId),fsMod.limit(500));state.privateUnsubs.push(fsMod.onSnapshot(bq,s=>{state.blocks=s.docs.map(d=>({id:d.id,...d.data()}));renderFeed();renderCatalogs();renderSearchPanel();renderLfg();renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('blocks',e)));}
 
@@ -490,8 +499,8 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;renderLfg();renderConnections();renderSearchPanel();},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentity();
-    setBackendStatus('LCS v0.7 avatar + Status network connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
-  }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7 firestore.rules.','error');renderAuth();renderAccount();}
+    setBackendStatus('LCS v0.7.1 avatar + Status network connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+  }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7.1 firestore.rules.','error');renderAuth();renderAccount();}
 }
 
 function bindUI(){

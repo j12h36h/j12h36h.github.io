@@ -1,6 +1,6 @@
-# Logical Communication Service — v0.7
+# Logical Communication Service — v0.7.1
 
-LCS v0.7 keeps the unified **Status** authorization system and a retained moderation/audit architecture on top of the v0.5 private-auth/public-identity boundary.
+LCS v0.7.1 keeps the unified **Status** authorization system and a retained moderation/audit architecture on top of the v0.5 private-auth/public-identity boundary.
 
 ## Status, not roles
 One authorization model is used at different scopes:
@@ -46,5 +46,11 @@ v0.6 securely binds the founding account through a private Firestore bootstrap d
 No Firebase Storage, Realtime Database, Cloud Functions, Analytics, or private server credentials are required for v0.6.
 
 
-## v0.7 JSON character avatars
+## v0.7.1 JSON character avatars
 Click the public profile image on Account to edit the current avatar JSON. The editor validates and previews changes live, then stores the canonical JSON string in the public profile. No image file, external URL, SVG input, HTML, or CSS input is accepted. Rendering uses only an allowlisted set of character-layer properties.
+
+
+### v0.7.1 avatar capacity
+- Up to 96 character layers per avatar.
+- Up to 32,000 canonical JSON characters.
+- Bounded in-browser SVG render cache for repeated complex avatars.

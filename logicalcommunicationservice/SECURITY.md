@@ -1,4 +1,4 @@
-# LCS v0.7 Security Architecture
+# LCS v0.7.1 Security Architecture
 
 ## Core boundary
 Sensitive provider identity stays in Firebase Authentication. LCS uses only the Firebase Auth UID as a private authorization key to locate the owner-only `privateAccounts/{uid}` mapping. Public LCS data uses a random public profile ID instead.
@@ -49,7 +49,7 @@ Author self-deletion is marked as `self`; the content itself remains the histori
 - snapshot of the already-public content or Status metadata,
 - timestamp.
 
-They cannot contain provider identity fields or Firebase Auth UID fields under the v0.7 schema.
+They cannot contain provider identity fields or Firebase Auth UID fields under the v0.7.1 schema.
 
 ## Repository boundary
 Safe to commit: HTML/CSS/JS, public Firebase Web App configuration, Firestore rules, documentation.
@@ -64,4 +64,4 @@ Firebase App Check and a trusted server/Cloud Function layer can later add anti-
 
 
 ## JSON character avatar safety
-Public profiles may contain an `avatarJson` string capped at 6000 characters. The browser never inserts raw avatar JSON as HTML. It parses the JSON, validates an allowlisted schema, clamps numeric ranges, restricts fonts/weights/alignment, validates six-digit hex colors, escapes character content, and emits its own SVG text elements. External URLs, uploaded images, raw SVG, raw HTML, raw CSS, and scripts are not part of the avatar schema. Invalid saved definitions fall back to initials.
+Public profiles may contain an `avatarJson` string capped at 32,000 characters. The browser never inserts raw avatar JSON as HTML. Avatar definitions are limited to 96 character layers. It parses the JSON, validates an allowlisted schema, clamps numeric ranges, restricts fonts/weights/alignment, validates six-digit hex colors, escapes character content, and emits its own SVG text elements. External URLs, uploaded images, raw SVG, raw HTML, raw CSS, and scripts are not part of the avatar schema. Invalid saved definitions fall back to initials.

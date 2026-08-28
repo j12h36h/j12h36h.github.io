@@ -1,4 +1,4 @@
-# LCS v0.7 Character Avatar JSON
+# LCS v0.7.1 Character Avatar JSON
 
 Click the circular profile image on **Account** to open the live JSON editor.
 
@@ -41,7 +41,7 @@ Limits:
 
 - `version`: exactly `1`
 - `background` / `color`: six-digit `#RRGGBB`
-- `layers`: 1–24
+- `layers`: 1–96 character layers
 - `char`: 1–4 visible Unicode characters
 - `x`, `y`: -64 through 192
 - `fontSize`: 4 through 192
@@ -52,3 +52,10 @@ Limits:
 - `align`: start, middle, or end
 
 The JSON is public profile data. It cannot load image URLs, fonts, scripts, raw SVG, HTML, or CSS. The site validates it and creates its own SVG text elements.
+
+
+## Performance
+
+LCS caches validated rendered SVG output in the browser so repeated appearances of a complex avatar do not rebuild all 96 character layers every time it appears in the feed.
+
+The canonical saved JSON is capped at 32,000 characters.
