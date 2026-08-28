@@ -1,0 +1,9 @@
+{
+  "indexes": [
+    {"collectionGroup":"publicPosts","queryScope":"COLLECTION","fields":[{"fieldPath":"deleted","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
+    {"collectionGroup":"publicObjects","queryScope":"COLLECTION","fields":[{"fieldPath":"deleted","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
+    {"collectionGroup":"publicComments","queryScope":"COLLECTION","fields":[{"fieldPath":"deleted","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
+    {"collectionGroup":"publicLfg","queryScope":"COLLECTION","fields":[{"fieldPath":"deleted","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]}
+  ],
+  "fieldOverrides": []
+}

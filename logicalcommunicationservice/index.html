@@ -13,7 +13,7 @@
   <link rel="dns-prefetch" href="https://www.gstatic.com" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-avatar-v073" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-live-v075" />
 </head>
 <body>
   <div class="ambient ambient-a"></div>
@@ -113,6 +113,8 @@
           </div>
 
           <textarea id="composerText" maxlength="1200" placeholder="Example: I keep seeing project discussions lose the reason a decision was made..."></textarea>
+          <label class="composer-tags"><span>Tags</span><input id="postTags" maxlength="120" placeholder="minecraft, dai, collaboration" /></label>
+          <div class="tag-row tag-preview" id="postTagPreview"><span class="muted tiny">Comma-separate tags.</span></div>
 
           <div class="thought-picker" aria-label="Choose what kind of thought this is">
             <button class="thought-chip selected" data-type="unclassified" type="button"><span>💬</span><b>Just say it</b><small>No label</small></button>
@@ -451,7 +453,9 @@
       <label class="field"><span>Explain it normally</span><textarea id="createDescription" maxlength="700" required placeholder="What is it, why does it matter, or what are you trying to figure out?"></textarea></label>
       <label class="field"><span>Channel</span><select id="createChannelSelect"></select><small>Communities organize channels; channels hold the actual conversation and work.</small></label>
       <label class="field"><span>Optional tags</span><input id="createTags" maxlength="120" placeholder="games, research, accessibility" /></label>
+      <div class="tag-row tag-preview" id="createTagPreview"><span class="muted tiny">Comma-separate tags.</span></div>
       <label class="field"><span>Optional starting connection</span><select id="createRelatedObject"><option value="">No initial relationship</option></select><small>Link this new item to existing work immediately.</small></label>
+      <div class="setup-warning auth-error" id="createError" hidden role="alert"><b>Could not create this item</b><p id="createErrorText"></p></div>
       <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Create</button></div>
     </form>
   </dialog>
@@ -564,6 +568,7 @@
       <label class="field"><span>Public description</span><textarea id="lfgDescription" maxlength="700" required placeholder="What are you looking to do, and what kind of people would be useful?"></textarea></label>
       <label class="field"><span>Availability note (public)</span><input id="lfgAvailability" maxlength="120" placeholder="Example: Weekends / flexible / next 2 hours" /></label>
       <label class="field"><span>Tags</span><input id="lfgTags" maxlength="120" placeholder="minecraft, testing, java" /></label>
+      <div class="tag-row tag-preview" id="lfgTagPreview"><span class="muted tiny">Comma-separate tags.</span></div>
       <div class="profile-privacy-note"><b>No private contact fields exist here.</b><p>Use the LCS request button after publishing. Do not place email, phone, precise location, legal name, passwords, or external credentials in this public listing.</p></div>
       <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Publish LFG</button></div>
     </form>
@@ -597,6 +602,6 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
-  <script type="module" src="assets/js/app.js?v=20260828-avatar-v073"></script>
+  <script type="module" src="assets/js/app.js?v=20260828-live-v075"></script>
 </body>
 </html>
