@@ -1,4 +1,4 @@
-# Logical Communication Service — v0.7.3
+# Logical Communication Service — v0.7.6
 
 LCS v0.7.3 keeps the unified **Status** authorization system and a retained moderation/audit architecture on top of the v0.5 private-auth/public-identity boundary.
 
@@ -67,3 +67,7 @@ Avatar layers accept visible Unicode grapheme characters from non-English writin
 - `skewX` / `skewY` shear glyphs by up to 75 degrees for cleaner custom geometry.
 - Transform values are numeric, bounded, and validated; arbitrary SVG/CSS transform strings remain forbidden.
 - Existing avatar JSON definitions remain compatible because all new transform fields are optional.
+
+
+## v0.7.6 Google sign-in compatibility
+The main app now uses `strict-origin-when-cross-origin` rather than `no-referrer`. This allows Firebase/Google browser API key HTTP-referrer restrictions to validate the GitHub Pages origin without exposing the app path or query string cross-origin.
