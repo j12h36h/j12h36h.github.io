@@ -4,14 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0c0a15" />
-  <meta name="description" content="Logical Communication Service — a browser-based network for ideas, projects, problems, and clear reasoning." />
+  <meta name="description" content="Logical Communication Service — a browser-based network for ideas, projects, problems, collaboration, and clear reasoning." />
+  <meta name="referrer" content="no-referrer" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://*.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
   <title>Logical Communication Service</title>
   <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link rel="dns-prefetch" href="https://www.gstatic.com" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-communities-v06" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-security-v05" />
 </head>
 <body>
   <div class="ambient ambient-a"></div>
@@ -33,7 +35,7 @@
 
     <div class="top-search">
       <span aria-hidden="true">⌕</span>
-      <input id="globalSearch" type="search" placeholder="Find ideas, problems, projects, or people" aria-label="Search" autocomplete="off" />
+      <input id="globalSearch" type="search" placeholder="Find people, LFG, ideas, problems, projects, or communities" aria-label="Search" autocomplete="off" />
       <kbd>/</kbd>
       <div class="search-panel" id="searchResultsPanel" hidden></div>
     </div>
@@ -54,6 +56,8 @@
         <button class="nav-item" data-view="problems"><span>?</span><b>Problems</b></button>
         <button class="nav-item" data-view="projects"><span>◆</span><b>Projects</b></button>
         <button class="nav-item" data-view="communities"><span>▦</span><b>Communities</b></button>
+        <button class="nav-item" data-view="connections"><span>↔</span><b>Connections</b></button>
+        <button class="nav-item" data-view="lfg"><span>⚑</span><b>LFG</b></button>
         <button class="nav-item" data-view="account"><span>◉</span><b>Account</b></button>
       </nav>
 
@@ -76,7 +80,7 @@
       <footer class="rail-footer">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
-        <span>v0.4</span>
+        <span>v0.5</span>
       </footer>
     </aside>
 
@@ -200,12 +204,46 @@
         <div class="community-directory" id="communityCatalog"></div>
       </section>
 
+
+      <section id="view-connections" class="view connections-view">
+        <div class="page-heading">
+          <div><p class="eyebrow">Connections</p><h1>Find people without exposing private contact data.</h1><p>Follow public work, send private friend requests, and manage LFG match requests entirely through LCS public profile IDs.</p></div>
+        </div>
+        <section class="security-banner"><b>Private-by-design connection layer</b><span>Friend and LFG requests are readable only by the participating signed-in accounts. Public follower relationships use public profile IDs, never Firebase authentication IDs.</span></section>
+        <div id="connectionsSignedOut" class="account-card" hidden><div><p class="eyebrow">Sign in required</p><h2>Your private connection inbox is account-only.</h2><p>Public profiles and follower counts remain browseable without signing in.</p></div><button class="primary-button" id="connectionsSignInButton" type="button">Sign in with Google</button></div>
+        <div id="connectionsSignedIn" hidden>
+          <div class="connections-grid">
+            <section class="network-card"><div class="card-heading-row"><div><p class="eyebrow">Friends</p><h2>Accepted connections</h2></div><span class="status-pill" id="friendCountBadge">0</span></div><div id="friendList" class="people-list"></div></section>
+            <section class="network-card"><div class="card-heading-row"><div><p class="eyebrow">Requests</p><h2>Friend requests</h2></div></div><div id="friendRequestList" class="request-list"></div></section>
+            <section class="network-card"><div class="card-heading-row"><div><p class="eyebrow">Followers</p><h2>People following you</h2></div></div><div id="followerList" class="people-list"></div></section>
+            <section class="network-card"><div class="card-heading-row"><div><p class="eyebrow">Following</p><h2>People you follow</h2></div></div><div id="followingList" class="people-list"></div></section>
+            <section class="network-card wide-network-card"><div class="card-heading-row"><div><p class="eyebrow">LFG inbox</p><h2>Requests to work or play together</h2></div></div><div id="lfgRequestList" class="request-list"></div></section>
+            <section class="network-card wide-network-card"><div class="card-heading-row"><div><p class="eyebrow">Safety</p><h2>Blocked profiles</h2></div></div><p class="muted">Blocking removes the profile from your normal LCS views and prevents new friend/LFG requests between the two profiles.</p><div id="blockedList" class="people-list"></div></section>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-lfg" class="view lfg-view">
+        <div class="page-heading">
+          <div><p class="eyebrow">Looking for group</p><h1>Play together. Create together. Share information.</h1><p>LFG listings are public. Contact details are intentionally not part of the system; use private in-app match requests instead.</p></div>
+          <button class="primary-button" id="newLfgButton" type="button">＋ New LFG</button>
+        </div>
+        <section class="security-banner"><b>Keep the listing public, keep identity private.</b><span>Do not post email addresses, phone numbers, home/work locations, legal names, passwords, or external account credentials. LCS provides an in-app request path instead.</span></section>
+        <div class="segmented lfg-filter" role="group" aria-label="LFG filter">
+          <button class="segment active" data-lfg-filter="all" type="button">All</button>
+          <button class="segment" data-lfg-filter="play" type="button">Play together</button>
+          <button class="segment" data-lfg-filter="create" type="button">Create together</button>
+          <button class="segment" data-lfg-filter="share" type="button">Share information</button>
+        </div>
+        <div id="lfgCatalog" class="lfg-grid"></div>
+      </section>
+
       <section id="view-account" class="view account-view">
         <div class="page-heading account-heading">
           <div>
             <p class="eyebrow">Your identity</p>
             <h1>Account &amp; public profile</h1>
-            <p>Your Google account gets you through the door. You decide what name and profile information everyone else sees.</p>
+            <p>Firebase Authentication verifies access. LCS itself stores only a private account-to-public-profile mapping; provider name, email, and photo are never copied into LCS data.</p>
           </div>
         </div>
 
@@ -223,7 +261,7 @@
           <div>
             <p class="eyebrow">Not signed in</p>
             <h2>Sign in to create your public identity.</h2>
-            <p>Your Google name and email are not required to become your public LCS identity.</p>
+            <p>Your public LCS identity is independent from provider identity. LCS application code uses only the Firebase authentication UID as a private access key and never publishes it.</p>
           </div>
           <button class="primary-button" id="accountSignInButton" type="button">Sign in with Google</button>
         </section>
@@ -252,17 +290,9 @@
                   <textarea id="accountBio" maxlength="240" placeholder="What do you build, study, create, or care about?"></textarea>
                 </label>
 
-                <label class="profile-photo-toggle">
-                  <input id="accountUseGooglePhoto" type="checkbox" />
-                  <span>
-                    <b>Use my Google profile picture publicly</b>
-                    <small>Off by default. If disabled, LCS uses an initials avatar instead.</small>
-                  </span>
-                </label>
-
                 <div class="profile-privacy-note">
                   <b>Your public name is separate from Google.</b>
-                  <p>Saving this profile does not rename your Google account. LCS does not publish your Google email or automatically publish your Google account name.</p>
+                  <p>Only the display name and bio below are public profile fields. Provider email, provider name, provider photo, OAuth tokens, and Firebase Auth UID are excluded from every public LCS document.</p>
                 </div>
 
                 <div class="account-actions">
@@ -277,13 +307,13 @@
 
             <div class="account-side-stack">
               <section class="account-card privacy-account-card">
-                <p class="eyebrow">Private sign-in identity</p>
-                <h2>Google account</h2>
-                <p class="muted">These details are shown here only so you know which Google account is signed in. They are not copied into your public LCS profile.</p>
+                <p class="eyebrow">Private authentication boundary</p>
+                <h2>Provider data stays with Firebase</h2>
+                <p class="muted">LCS does not read or display your Google account name, email address, profile photo, OAuth token, or provider credentials. The application receives only the Firebase authentication UID needed to authorize your private account mapping.</p>
                 <dl class="private-account-list">
-                  <div><dt>Connection</dt><dd id="accountConnectionStatus">Connected to LCS</dd></div>
-                  <div><dt>Google account name</dt><dd id="accountProviderName">—</dd></div>
-                  <div><dt>Email</dt><dd id="accountProviderEmail">—</dd></div>
+                  <div><dt>Connection</dt><dd id="accountConnectionStatus">Connecting to LCS</dd></div>
+                  <div><dt>Public identity key</dt><dd id="accountPublicId">Created privately after sign-in</dd></div>
+                  <div><dt>Security model</dt><dd>Private Auth UID → private mapping → random public profile ID</dd></div>
                 </dl>
               </section>
 
@@ -293,9 +323,11 @@
                 <ul class="visibility-list">
                   <li><span>✓</span> Your chosen display name</li>
                   <li><span>✓</span> Your public bio</li>
-                  <li><span>✓</span> Your profile picture only if you opt in</li>
+                  <li><span>✓</span> An initials avatar generated from your public display name</li>
                   <li class="not-public"><span>×</span> Your Google email</li>
-                  <li class="not-public"><span>×</span> Your Google account name unless you choose the same name yourself</li>
+                  <li class="not-public"><span>×</span> Your Google account name</li>
+                  <li class="not-public"><span>×</span> Your Firebase authentication UID</li>
+                  <li class="not-public"><span>×</span> Your provider profile photo or OAuth credentials</li>
                 </ul>
               </section>
 
@@ -367,7 +399,7 @@
     <div class="auth-mark">G</div>
     <p class="eyebrow">Identity</p>
     <h2>Continue with Google</h2>
-    <p>One account gives you a stable identity for posts, projects, and contributions. We never receive your Google password.</p>
+    <p>Firebase verifies that you control an account. LCS application code uses only the private Firebase Auth UID to link a separate random public profile ID; it does not read your Google name, email, photo, password, or OAuth credentials.</p>
     <button class="google-button" id="googleSignInButton" type="button"><span class="google-g">G</span>Continue with Google</button>
     <div class="setup-warning auth-error" id="authErrorBox" hidden role="alert">
       <b id="authErrorTitle">Google sign-in needs attention</b>
@@ -435,6 +467,23 @@
     </form>
   </dialog>
 
+
+  <dialog id="lfgDialog" class="modal create-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Looking for group</p>
+    <h2>Find people through public context, not private contact details.</h2>
+    <form id="lfgForm">
+      <label class="field"><span>What do you want to do?</span><select id="lfgPurpose" required><option value="play">Play together</option><option value="create">Create together</option><option value="share">Share information</option></select></label>
+      <label class="field"><span>Title</span><input id="lfgTitle" maxlength="100" required placeholder="Example: Test a DAI survival pack together" /></label>
+      <label class="field"><span>Game / project / topic</span><input id="lfgTopic" maxlength="80" required placeholder="Minecraft, web development, DAI, research topic…" /></label>
+      <label class="field"><span>Public description</span><textarea id="lfgDescription" maxlength="700" required placeholder="What are you looking to do, and what kind of people would be useful?"></textarea></label>
+      <label class="field"><span>Availability note (public)</span><input id="lfgAvailability" maxlength="120" placeholder="Example: Weekends / flexible / next 2 hours" /></label>
+      <label class="field"><span>Tags</span><input id="lfgTags" maxlength="120" placeholder="minecraft, testing, java" /></label>
+      <div class="profile-privacy-note"><b>No private contact fields exist here.</b><p>Use the LCS request button after publishing. Do not place email, phone, precise location, legal name, passwords, or external credentials in this public listing.</p></div>
+      <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Publish LFG</button></div>
+    </form>
+  </dialog>
+
   <dialog id="detailDialog" class="modal detail-modal">
     <button class="modal-close" id="detailCloseButton" data-close-dialog type="button" aria-label="Close">×</button>
     <p class="eyebrow" id="detailEyebrow">Details</p>
@@ -462,6 +511,6 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
-  <script type="module" src="assets/js/app.js?v=20260828-communities-v06"></script>
+  <script type="module" src="assets/js/app.js?v=20260828-security-v05"></script>
 </body>
 </html>
