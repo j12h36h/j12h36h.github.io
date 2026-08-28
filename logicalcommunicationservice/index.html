@@ -13,7 +13,7 @@
   <link rel="dns-prefetch" href="https://www.gstatic.com" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-security-v05" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-status-v060" />
 </head>
 <body>
   <div class="ambient ambient-a"></div>
@@ -58,6 +58,7 @@
         <button class="nav-item" data-view="communities"><span>▦</span><b>Communities</b></button>
         <button class="nav-item" data-view="connections"><span>↔</span><b>Connections</b></button>
         <button class="nav-item" data-view="lfg"><span>⚑</span><b>LFG</b></button>
+        <button class="nav-item" id="moderationNav" data-view="moderation" hidden><span>⚖</span><b>Moderation</b></button>
         <button class="nav-item" data-view="account"><span>◉</span><b>Account</b></button>
       </nav>
 
@@ -80,7 +81,7 @@
       <footer class="rail-footer">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
-        <span>v0.5</span>
+        <span>v0.6</span>
       </footer>
     </aside>
 
@@ -99,6 +100,8 @@
             <div class="hero-center">L</div>
           </div>
         </div>
+
+        <div class="timeout-banner" id="timeoutBanner" hidden><strong>⏳ Timeout Status</strong><span>This account is currently read-only. You can browse public content and use account safety tools, but cannot add or change network content.</span></div>
 
         <section class="composer" id="composer">
           <div class="composer-topline">
@@ -238,6 +241,57 @@
         <div id="lfgCatalog" class="lfg-grid"></div>
       </section>
 
+      <section id="view-moderation" class="view moderation-view">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Status &amp; moderation</p>
+            <h1>Authority with an audit trail.</h1>
+            <p>Status is one authorization system with Global, Discussion, and Project scopes. Removed content is retained for review instead of being hard-deleted.</p>
+          </div>
+        </div>
+
+        <section class="moderation-denied" id="moderationDenied">
+          <p class="eyebrow">Restricted workspace</p>
+          <h2>No Moderator Status is active for this account.</h2>
+          <p>You can still browse LCS normally. This workspace becomes available when Founder or Moderator Status is assigned.</p>
+        </section>
+
+        <div id="moderationWorkspace" class="moderation-workspace" hidden>
+          <section class="moderation-card status-admin-card">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">Grant Status</p><h2>Global, Discussion, or Project</h2></div></div>
+            <form id="statusGrantForm" class="moderation-form">
+              <label class="field"><span>Public profile</span><select id="statusTargetProfile" required></select></label>
+              <div class="moderation-form-grid">
+                <label class="field"><span>Status</span><select id="statusValue"><option value="moderator">Moderator</option><option value="timeout">Timeout</option><option value="founder">Founder</option></select></label>
+                <label class="field"><span>Scope</span><select id="statusScopeKind"><option value="global">Global</option><option value="discussion">Discussion</option><option value="project">Project</option></select></label>
+                <label class="field"><span>Target</span><select id="statusScopeTarget"><option value="_">Whole LCS network</option></select></label>
+                <label class="field"><span>Duration</span><select id="statusDuration"><option value="none">No expiration</option><option value="hour">1 hour</option><option value="day">24 hours</option><option value="week">7 days</option></select></label>
+              </div>
+              <label class="field"><span>Reason / note</span><input id="statusReason" maxlength="240" placeholder="Why is this Status being granted?" /></label>
+              <div class="moderation-callout"><b>Timeout is read-only, not a ban.</b><span>A timed-out account can still browse public LCS content and use safety controls such as blocking.</span></div>
+              <div class="modal-actions"><button class="primary-button" type="submit">Grant Status</button></div>
+            </form>
+          </section>
+
+          <section class="moderation-card">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">Active Status</p><h2>Current authorization values</h2></div></div>
+            <div id="activeStatusList" class="moderation-list"></div>
+          </section>
+
+          <section class="moderation-card moderation-wide-card">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">Content review</p><h2>Visible + retained removed content</h2></div></div>
+            <p class="muted">Deletion is a soft-delete. The original public content remains stored for authorized review, while normal public views hide it.</p>
+            <div id="moderationContentList" class="moderation-list"></div>
+          </section>
+
+          <section class="moderation-card moderation-wide-card">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">Immutable audit log</p><h2>Moderation history</h2></div></div>
+            <p class="muted">Moderator removals/restores and Status grants/revocations create append-only log entries containing only public profile IDs and public-content snapshots—never Google identity data or Firebase Auth UIDs.</p>
+            <div id="moderationAuditList" class="audit-list"></div>
+          </section>
+        </div>
+      </section>
+
       <section id="view-account" class="view account-view">
         <div class="page-heading account-heading">
           <div>
@@ -313,8 +367,16 @@
                 <dl class="private-account-list">
                   <div><dt>Connection</dt><dd id="accountConnectionStatus">Connecting to LCS</dd></div>
                   <div><dt>Public identity key</dt><dd id="accountPublicId">Created privately after sign-in</dd></div>
+                  <div class="full-public-id-row"><dt>Full public profile ID</dt><dd><code id="accountFullPublicId">Creating…</code><button class="mini-copy-button" id="copyPublicIdButton" type="button">Copy</button></dd></div>
                   <div><dt>Security model</dt><dd>Private Auth UID → private mapping → random public profile ID</dd></div>
                 </dl>
+              </section>
+
+              <section class="account-card privacy-account-card">
+                <p class="eyebrow">Your Status</p>
+                <h2>Authorization attached to your public identity</h2>
+                <p class="muted">Founder and Moderator badges may be public. Timeout is private and shown only to the affected account and authorized moderation.</p>
+                <div id="accountStatusList" class="status-badge-row account-status-list"><span class="muted">Checking Status…</span></div>
               </section>
 
               <section class="account-card privacy-account-card">
@@ -492,6 +554,7 @@
     <section class="detail-thread" id="detailThreadSection">
       <div class="thread-heading"><div><p class="eyebrow">Discussion</p><h3>Keep the reasoning attached.</h3></div></div>
       <div id="detailCommentList" class="comment-list"></div>
+      <p class="moderation-notice" id="detailTimeoutNote" hidden></p>
       <form id="detailCommentForm" class="comment-composer">
         <label class="field"><span>How are you responding?</span><select id="detailCommentReasoning">
           <option value="unclassified">Just say it</option>
@@ -511,6 +574,6 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
-  <script type="module" src="assets/js/app.js?v=20260828-security-v05"></script>
+  <script type="module" src="assets/js/app.js?v=20260828-status-v060"></script>
 </body>
 </html>
