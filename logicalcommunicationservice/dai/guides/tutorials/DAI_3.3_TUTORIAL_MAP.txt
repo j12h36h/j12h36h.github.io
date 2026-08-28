@@ -1,0 +1,19 @@
+DAI 3.3 tutorial map
+
+CREATE ANYTHING
+34 step-by-step guides under /guides/tutorials/create-anything/.
+
+COMPLETE GAME TRACKS
+- /guides/tutorials/autocraft-mineshaft/ — data-only procedural dungeon campaign
+- /guides/tutorials/space-between-blocks/ — personal ships + shared planets reference experience
+- /guides/tutorials/minetrigger/ — class/Trion combat game
+- /guides/tutorials/hollow-spiral/ — persistent six-direction survival dungeon
+
+PRODUCTION RULE
+Keep the game playable after every milestone. Physical state and authoritative server state must agree. Add recovery, multiplayer ownership and versioned migration before content explosion; add presentation after mechanics are correct.
+
+
+PUBLIC PROJECT WORKSHOPS
+- /guides/tutorials/tower-of-dlc/ — GitHub-backed data/resource source-reading workshop
+- /guides/tutorials/kittys-dagger/ — compact combat/input/cooldown architecture workshop
+- /guides/tutorials/public-pack-base/ — clone public DAI source packs directly from the Creator

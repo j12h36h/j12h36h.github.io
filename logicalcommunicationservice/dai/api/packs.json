@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "packs": [
+    {
+      "id": "decisions_and_impulses:fundamentals_survival",
+      "name": "DAI Fun Survival",
+      "summary": "Official DAI Engine Survival addon demonstrating menus, perception, objectives, harvesting, navigation, autonomous behavior and reusable automation.",
+      "version": "0a",
+      "type": "datapack",
+      "featured": true,
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-fun-survival",
+      "icon_item": "minecraft:wooden_pickaxe",
+      "components": [
+        {
+          "id": "survival_data",
+          "type": "datapack",
+          "curseforge_file_id": 8641276,
+          "file_name": "DAI_Fun_0a.zip",
+          "sha256": ""
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:comic_effects",
+      "name": "DAI Comic Effects",
+      "summary": "Official combo pack: installs its reaction datapack into DAI's global datapack library and its companion visual resource pack client-wide.",
+      "version": "1.0",
+      "type": "combo",
+      "featured": true,
+      "info_url": "https://j12h36h.github.io/dai/packs/#comic-effects",
+      "icon_item": "minecraft:firework_star",
+      "components": [
+        {
+          "id": "comic_effects_data",
+          "type": "datapack",
+          "curseforge_file_id": 8642384,
+          "file_name": "DAI_ComicEffects_Data.zip",
+          "sha256": ""
+        },
+        {
+          "id": "comic_effects_resource",
+          "type": "resource_pack",
+          "curseforge_file_id": 8642408,
+          "file_name": "DAI_ComicEffects_Resource.zip",
+          "sha256": ""
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:damage_indicators",
+      "name": "DAI Damage Indicators",
+      "summary": "Standalone DAI combat-feedback addon that displays large floating outgoing damage numbers above damaged living entities. No resource pack required.",
+      "version": "1.4",
+      "type": "datapack",
+      "featured": true,
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-damage-indicators",
+      "icon_item": "minecraft:iron_sword",
+      "components": [
+        {
+          "id": "damage_indicators_data",
+          "type": "datapack",
+          "curseforge_file_id": 8687095,
+          "file_name": "DAI_Damage_Indicators_v1.4.zip",
+          "sha256": ""
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:survival_interface",
+      "name": "DAI Survival Interface",
+      "summary": "Standalone DAI RPG target HUD showing target name, current/max health, health progress, and approximate range while aiming at a living entity. No resource pack required.",
+      "version": "0.2",
+      "type": "datapack",
+      "featured": true,
+      "info_url": "https://www.curseforge.com/minecraft/data-packs/dai-survival-interface",
+      "icon_item": "minecraft:spyglass",
+      "components": [
+        {
+          "id": "survival_interface_data",
+          "type": "datapack",
+          "curseforge_file_id": 8687100,
+          "file_name": "DAI_Survival_Interface_v0.2.zip",
+          "sha256": ""
+        }
+      ]
+    }
+  ]
+}

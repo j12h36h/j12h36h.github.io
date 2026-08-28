@@ -1,0 +1,17 @@
+LCS PROFILE SAVE COMPLETION FIX — 2026-08-28
+
+Issue fixed
+- The Account page could remain on “Saving…” indefinitely.
+- The previous save path performed setDoc() and then synchronously waited for an additional getDocFromServer() verification round trip. If that second request stayed pending, the function never reached its finally block, so the button stayed disabled.
+
+Changes
+- Removed blocking getDocFromServer() from the Save button path.
+- Firestore setDoc() acknowledgement is now treated as the completed save.
+- The existing realtime users/{uid} listener independently verifies the public document afterward.
+- Added an 8-second safety timeout so the Save button always returns to an actionable state even if Firestore cannot acknowledge the write.
+- Added specific permission-denied messaging for undeployed Firestore rules.
+- Added explicit profileSavePending state so button text/disabled state is rendered from application state instead of depending on a stale DOM reference.
+- If a delayed write later reaches the server, the realtime listener recognizes that the remote profile matches the form and reports “Saved · verified public”.
+- Cache version bumped to profile-save-v05.
+
+No Firestore rule changes are required compared with the full functional rebuild rules.

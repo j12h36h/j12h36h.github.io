@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Menus · DAI Creator Guide</title>
+<meta content="DAI creator guide" name="description"/>
+<link href="../../assets/css/site.css" rel="stylesheet"/>
+<link href="../assets/guides.css" rel="stylesheet"/>
+</head>
+<body>
+<header class="site-header">
+<nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav>
+</header>
+<main>
+<div class="guide-shell">
+<aside class="guide-sidebar"><strong>DAI 3.3 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client &amp; Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences &amp; Flow</a><a href="../conditions/">5. Conditions</a><a class="current" href="../menus/">6. Menus &amp; UI</a><a href="../recognition-perception/">7. Recognition &amp; Perception</a><a href="../overlays-reactions/">8. Overlays &amp; Reactions</a><a href="../experiences-worldgen/">9. Experiences &amp; Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../game-customization/">11. Game Customization</a><a href="../creator-workflow/">12. Creator &amp; Publishing</a><a href="../global-datapacks-distribution/">13. Global Datapacks &amp; Distribution</a><a href="../gameplay-tester/">14. Gameplay Tester</a><a href="../native-minecraft-bridge/">15. Native Minecraft Bridge</a><a href="../branding-loading/">16. Branding &amp; Loading</a><a href="../directional-combat/">17. Directional Combat</a><a href="../native-runtime-exposure/">18. Native Runtime Exposure</a><a href="../runtime-dispatch-3-0/">19. Runtime Dispatch &amp; Entity AI</a></aside>
+<article class="guide-content">
+<section class="guide-hero">
+<div class="eyebrow">Page 6 · Menus</div>
+<h1>Menus as Gameplay Interfaces</h1>
+<p>Datapacks can contribute normal action menus, add entries to the shared Automation menu, and create named Available menus whose buttons appear and disappear according to live conditions.</p>
+<div class="guide-stats">
+<div class="guide-stat"><strong>Normal Menus</strong>Static action choices defined by datapacks.</div>
+<div class="guide-stat"><strong>Automation Contributions</strong>Multiple packs merge into one shared menu.</div>
+<div class="guide-stat"><strong>Available Menus</strong>Live condition-filtered action choices.</div>
+</div>
+</section><section class="guide-section guide-v18-note"><div class="guide-callout"><strong>DAI 1.8:</strong> This system now participates in the client/server architecture. Client-facing definitions can load locally; actions that mutate authoritative server state should use the server action layer.</div></section>
+<section class="guide-section">
+<h2>Menu Definition Shape</h2>
+<div class="guide-code"><div class="label">Menu definition</div><pre>{
+  "priority": 100,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "my_button",
+      "text": "My Button",
+      "action": "my_pack:my_action",
+      "conditions": [],
+      "style": {
+        "background": "#263545",
+        "hover": "#334A60",
+        "selected": "#75D5FF",
+        "text": "#FFFFFF",
+        "border": "#8EE3A1"
+      }
+    }
+  ]
+}</pre></div>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Field</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>priority</code></td><td>Non-negative ordering priority used when menu contributions are merged.</td></tr>
+<tr><td><code>slot</code></td><td>Non-negative button position. A single definition cannot contain duplicate slots.</td></tr>
+<tr><td><code>id</code></td><td>Unique logical ID for the button.</td></tr>
+<tr><td><code>text</code></td><td>Text displayed to the player.</td></tr>
+<tr><td><code>action</code></td><td>Namespaced DAI action/objective executed when selected.</td></tr>
+<tr><td><code>conditions</code></td><td>Optional condition list used by dynamic Available menus.</td></tr>
+<tr><td><code>style</code></td><td>Optional custom background, hover, selected, text, and border colors. Omit it for vanilla rendering.</td></tr>
+</tbody></table></div>
+</section>
+<section class="guide-section">
+<h2>Custom Button Colors</h2>
+<p>Every menu button may optionally define its own visual style. Each field is independent; omitted fields fall back to DAI's normal rendering.</p>
+<div class="guide-code"><div class="label">Styled button</div><pre>{
+  "slot": 0,
+  "id": "harvest",
+  "text": "Harvest",
+  "action": "my_pack:harvest",
+  "style": {
+    "background": "#263545",
+    "hover": "#334A60",
+    "selected": "#75D5FF",
+    "text": "#FFFFFF",
+    "border": "#8EE3A1"
+  }
+}</pre></div>
+<p>Colors accept <code>#RRGGBB</code> or <code>#AARRGGBB</code>. Custom styling does not change menu slots, conditions, dynamic Available-menu repacking, or action dispatch.</p>
+</section>
+<section class="guide-section">
+<h2>Normal Action Menus</h2>
+<p>Normal datapack action menus live under <code>menus/actions/</code>. Their resource path becomes the menu ID.</p>
+<div class="guide-code"><div class="label">Example path</div><pre>data/my_pack/menus/actions/tools.json</pre></div>
+<div class="guide-code"><div class="label">tools.json</div><pre>{
+  "priority": 100,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "gather_wood",
+      "text": "Gather Wood",
+      "action": "my_pack:harvest_wood"
+    },
+    {
+      "slot": 1,
+      "id": "mine_stone",
+      "text": "Mine Stone",
+      "action": "my_pack:mine_stone"
+    }
+  ]
+}</pre></div>
+</section>
+<section class="guide-section">
+<h2>Opening a Menu</h2>
+<p>All named action menus—including Available menus—open through the same <code>update_menu</code> action.</p>
+<div class="guide-code"><div class="label">Open tools</div><pre>{
+  "type": "update_menu",
+  "menu": "action",
+  "open": "tools"
+}</pre></div>
+<div class="guide-callout"><strong>Menu actions are control-plane input.</strong> Selecting a menu action interrupts stale autonomous runtime work and dispatches the chosen menu command immediately.</div>
+</section>
+<section class="guide-section">
+<h2>Contributing to the Automation Menu</h2>
+<p>Files at <code>menus/actions/automation.json</code> or beneath <code>menus/actions/automation/</code> are merged into the shared Automation menu.</p>
+<div class="guide-code"><div class="label">data/my_pack/menus/actions/automation/my_pack.json</div><pre>{
+  "priority": 100,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "my_pack_start",
+      "text": "[My Pack] Start",
+      "action": "my_pack:open_main_menu"
+    }
+  ]
+}</pre></div>
+<p>DAI orders contributions, reindexes the merged buttons, and structurally pins Stop Automation last.</p>
+</section>
+<section class="guide-section">
+<h2>Named Available Menus</h2>
+<p>Place a definition under <code>menus/actions/available/</code> to make it a dynamic condition-filtered action menu.</p>
+<div class="guide-flow"><pre>data/my_pack/menus/actions/available/hunt.json
+                         ↓
+                  menu id = hunt</pre></div>
+<p>The special <code>available.json</code> form remains compatible as menu ID <code>available</code>.</p>
+<div class="guide-code"><div class="label">hunt.json</div><pre>{
+  "priority": 100,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "hunt_cow",
+      "text": "Hunt Cow",
+      "action": "my_pack:hunt_cow",
+      "conditions": [
+        {
+          "type": "nearby_entity_count",
+          "parameter": "minecraft:cow",
+          "operator": "greater_than",
+          "number_value": 0.0,
+          "parameter_number": 24.0
+        }
+      ]
+    }
+  ]
+}</pre></div>
+<div class="guide-code"><div class="label">Open the named Available menu</div><pre>{
+  "type": "update_menu",
+  "menu": "action",
+  "open": "hunt"
+}</pre></div>
+</section>
+<section class="guide-section">
+<h2>How Available Menus Behave</h2>
+<ul>
+<li>The open definition is reevaluated from the menu's normal client tick.</li>
+<li>Every button's condition list is evaluated.</li>
+<li>Ineligible buttons disappear.</li>
+<li>Eligible entries are sorted by <code>slot</code> and presented without holes.</li>
+<li>If the previously selected button is still eligible, DAI attempts to preserve that selection.</li>
+<li>If world state changes, buttons can appear or disappear without reopening the menu.</li>
+</ul>
+<div class="guide-flow"><pre>World State
+   ↓
+Button Conditions
+   ↓
+Eligible Actions Only
+   ↓
+Live Available Menu</pre></div>
+</section>
+<section class="guide-section">
+<h2>Example Menu Tree</h2>
+<div class="guide-flow"><pre>Automation
+   ↓
+[My Pack] Survival
+   ↓
+Main Available Menu
+   ├── Explore
+   ├── Attack  (only when enemies exist)
+   ├── Hunt    (only when animals exist)
+   └── Harvest
+          ↓
+       Harvest Menu
+          ├── Wood   (only when a tree is recognized)
+          └── Grass  (only when harvestable vegetation is recognized)</pre></div>
+<p>Menus can therefore act as both a user interface and a live representation of what the datapack believes is currently possible.</p>
+</section>
+<section class="guide-section"><h2>Experience-Owned UI in 3.3</h2><p>Complete experiences do not need to expose DAI's generic grave-key menu. Configure the experience profile with <code>grave_open_action</code>, <code>grave_close_action</code> and <code>grave_anchor_overlay</code> to toggle the game's own overlays and cursor state instead.</p></section>
+<div class="guide-pager"><a href="../conditions/">← Previous</a><a href="../recognition-perception/">Next →</a></div>
+<section class="guide-section"><h2>3.3 data screens and cursor capture</h2><p><code>open_data_screen</code>/<code>screen_open</code> open complete <code>dai_screens</code> definitions, while <code>set_cursor_released</code> lets gameplay explicitly release or recapture mouse control. <code>open_dai_menu</code> opens the standard menu shell directly.</p></section></article>
+</div>
+</main>
+<footer class="footer">DAI Engine · DAI 3.3 creator documentation</footer>
+</body>
+</html>

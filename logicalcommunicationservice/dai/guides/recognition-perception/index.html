@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Recognition &amp; Perception · DAI Creator Guide</title>
+<meta content="DAI creator guide" name="description"/>
+<link href="../../assets/css/site.css" rel="stylesheet"/>
+<link href="../assets/guides.css" rel="stylesheet"/>
+</head>
+<body>
+<header class="site-header">
+<nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav>
+</header>
+<main>
+<div class="guide-shell">
+<aside class="guide-sidebar"><strong>DAI 3.3 Creator Guide</strong><a href="../overview/">1. Overview</a><a href="../architecture-client-server/">2. Client &amp; Server Architecture</a><a href="../actions/">3. Actions</a><a href="../objectives-sequences-flow/">4. Objectives, Sequences &amp; Flow</a><a href="../conditions/">5. Conditions</a><a href="../menus/">6. Menus &amp; UI</a><a class="current" href="../recognition-perception/">7. Recognition &amp; Perception</a><a href="../overlays-reactions/">8. Overlays &amp; Reactions</a><a href="../experiences-worldgen/">9. Experiences &amp; Worldgen</a><a href="../custom-content/">10. Custom Content</a><a href="../game-customization/">11. Game Customization</a><a href="../creator-workflow/">12. Creator &amp; Publishing</a><a href="../global-datapacks-distribution/">13. Global Datapacks &amp; Distribution</a><a href="../gameplay-tester/">14. Gameplay Tester</a><a href="../native-minecraft-bridge/">15. Native Minecraft Bridge</a><a href="../branding-loading/">16. Branding &amp; Loading</a><a href="../directional-combat/">17. Directional Combat</a><a href="../native-runtime-exposure/">18. Native Runtime Exposure</a><a href="../runtime-dispatch-3-0/">19. Runtime Dispatch &amp; Entity AI</a></aside>
+<article class="guide-content">
+<section class="guide-hero">
+<div class="eyebrow">Page 7 · Perception</div>
+<h1>Teach DAI What It Is Looking At</h1>
+<p>Targeting answers “which block/entity is selected?” Recognition answers a deeper question: “does this collection of blocks satisfy the structure or material pattern my datapack cares about?”</p>
+<div class="guide-stats">
+<div class="guide-stat"><strong>Groups</strong>Reusable sets of block identifiers.</div>
+<div class="guide-stat"><strong>Recognition Definitions</strong>Scan rules, group counts, structural requirements, and result IDs.</div>
+<div class="guide-stat"><strong>Perception</strong>Recognition results can feed actions, conditions, and Available menus.</div>
+</div>
+</section><section class="guide-section guide-v18-note"><div class="guide-callout"><strong>DAI 1.8:</strong> This system now participates in the client/server architecture. Client-facing definitions can load locally; actions that mutate authoritative server state should use the server action layer.</div></section>
+<section class="guide-section">
+<h2>Recognition Files</h2>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Content</th><th>Directory</th><th>Resulting ID</th></tr></thead>
+<tbody>
+<tr><td>Recognition groups</td><td><code>objectives/groups/</code></td><td>Namespace + relative filename</td></tr>
+<tr><td>Recognition definitions</td><td><code>objectives/recognition/</code></td><td>Namespace + relative filename</td></tr>
+</tbody></table></div>
+</section>
+<section class="guide-section">
+<h2>Recognition Groups</h2>
+<p>A recognition group is a reusable list of block IDs. Multiple datapacks can contribute to a group unless a definition uses <code>replace: true</code>.</p>
+<div class="guide-code"><div class="label">dai_fun_survival:harvest_grass group</div><pre>{
+  "replace": false,
+  "entries": [
+    "minecraft:short_grass",
+    "minecraft:tall_grass"
+  ]
+}</pre></div>
+<p>This example deliberately contains vegetation blocks, not grass blocks such as the dirt-like <code>minecraft:grass_block</code>.</p>
+</section>
+<section class="guide-section">
+<h2>Recognition Definition Shape</h2>
+<div class="guide-param-grid">
+<div class="guide-param"><code>type</code><small>Defaults to <code>structure</code>.</small></div>
+<div class="guide-param"><code>scan</code><small>Defines how and how far DAI captures candidate blocks.</small></div>
+<div class="guide-param"><code>groups</code><small>Names local groups and connects them to registered recognition groups.</small></div>
+<div class="guide-param"><code>requirements</code><small>Structural rules that the captured groups must satisfy.</small></div>
+<div class="guide-param"><code>result.id</code><small>The semantic recognition result returned when everything matches.</small></div>
+</div>
+</section>
+<section class="guide-section">
+<h2>Scan Parameters</h2>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>mode</code></td><td><code>connected</code></td><td>Recognition scan mode.</td></tr>
+<tr><td><code>origin</code></td><td><code>targeted_block</code></td><td>Where the structural scan begins.</td></tr>
+<tr><td><code>max_blocks</code></td><td>512</td><td>Maximum captured blocks.</td></tr>
+<tr><td><code>max_radius</code></td><td>12</td><td>General scan radius.</td></tr>
+<tr><td><code>horizontal_radius</code></td><td>12</td><td>Horizontal bound for scan modes that use it.</td></tr>
+<tr><td><code>upward_range</code></td><td>12</td><td>Vertical range above the origin.</td></tr>
+<tr><td><code>downward_range</code></td><td>4</td><td>Vertical range below the origin.</td></tr>
+</tbody></table></div>
+</section>
+<section class="guide-section">
+<h2>Group Rules</h2>
+<div class="guide-code"><div class="label">Local group rule</div><pre>"trunk": {
+  "registry": "decisions_and_impulses:logs",
+  "minimum": 3,
+  "maximum": 512
+}</pre></div>
+<p><code>registry</code> points to a recognition group ID. <code>minimum</code> defaults to 0; <code>maximum</code> defaults to no practical upper bound.</p>
+</section>
+<section class="guide-section">
+<h2>Registered Structural Requirements</h2>
+<div class="guide-table-wrap"><table class="guide-table">
+<thead><tr><th>Requirement</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>connected</code></td><td>Requires the selected groups to form one face-connected structure.</td></tr>
+<tr><td><code>vertical_column</code></td><td>Requires a contiguous vertical column of at least <code>minimum_height</code>.</td></tr>
+<tr><td><code>touches_ground</code></td><td>Requires at least one block in the group to have a full collision block beneath it.</td></tr>
+<tr><td><code>near_upper_region</code></td><td>Requires a minimum ratio of one group to lie near the upper half of another group.</td></tr>
+<tr><td><code>contains_group</code></td><td>Checks the group's captured count against generic minimum/maximum parameters.</td></tr>
+<tr><td><code>dimensions</code></td><td>Evaluates configured structure dimension constraints.</td></tr>
+<tr><td><code>group_ratio</code></td><td>Evaluates a configured ratio between group counts.</td></tr>
+</tbody></table></div>
+</section>
+<section class="guide-section">
+<h2>Example: Tree Recognition</h2>
+<p>The built-in tree definition illustrates how block groups become semantic structure recognition.</p>
+<div class="guide-code"><div class="label">decisions_and_impulses:tree</div><pre>{
+  "type": "structure",
+  "scan": {
+    "mode": "connected",
+    "origin": "targeted_block",
+    "max_blocks": 512,
+    "max_radius": 12
+  },
+  "groups": {
+    "trunk": {
+      "registry": "decisions_and_impulses:logs",
+      "minimum": 3
+    },
+    "foliage": {
+      "registry": "decisions_and_impulses:leaves",
+      "minimum": 4
+    }
+  },
+  "requirements": [
+    {
+      "type": "connected",
+      "groups": ["trunk", "foliage"]
+    },
+    {
+      "type": "vertical_column",
+      "group": "trunk",
+      "minimum_height": 3
+    },
+    {
+      "type": "touches_ground",
+      "group": "trunk"
+    },
+    {
+      "type": "near_upper_region",
+      "group": "foliage",
+      "relative_to": "trunk",
+      "minimum_ratio": 0.5
+    }
+  ],
+  "result": {
+    "id": "decisions_and_impulses:tree"
+  }
+}</pre></div>
+<div class="guide-flow"><pre>Targeted block
+   ↓
+Connected structural scan
+   ↓
+logs → trunk group
+leaves → foliage group
+   ↓
+connected?
+vertical trunk?
+touches ground?
+foliage near upper region?
+   ↓
+YES
+   ↓
+decisions_and_impulses:tree</pre></div>
+</section>
+<section class="guide-section">
+<h2>Example: A Third-Party Recognition</h2>
+<p>DAI Fundamentals — Survival demonstrates that third-party datapacks can define their own recognition groups and results.</p>
+<div class="guide-code"><div class="label">dai_fun_survival:harvest_grass</div><pre>{
+  "type": "structure",
+  "scan": {
+    "mode": "connected",
+    "origin": "targeted_block",
+    "max_blocks": 512,
+    "max_radius": 12
+  },
+  "groups": {
+    "primary": {
+      "registry": "dai_fun_survival:harvest_grass",
+      "minimum": 1,
+      "maximum": 512
+    }
+  },
+  "requirements": [
+    {
+      "type": "connected",
+      "groups": ["primary"]
+    }
+  ],
+  "result": {
+    "id": "dai_fun_survival:harvest_grass"
+  }
+}</pre></div>
+</section>
+<section class="guide-section">
+<h2>Using Recognition From Actions</h2>
+<p><code>recognize_target</code> evaluates recognition against the selected target. <code>recognize_block</code> is different: it searches for a matching block/block tag and selects a block target.</p>
+<div class="guide-callout"><strong>Targeting and recognition solve different problems.</strong> Use simple block targeting when a block ID/tag is enough. Use recognition when the relationship between multiple blocks matters.</div>
+</section>
+<section class="guide-section">
+<h2>Nearby Recognition as Perception</h2>
+<div class="guide-code"><div class="label">Condition</div><pre>{
+  "type": "nearby_recognition",
+  "parameter": "decisions_and_impulses:tree",
+  "number_value": 24.0
+}</pre></div>
+<p><code>nearby_recognition</code> is non-mutating: it asks whether a recognition definition/result exists nearby without stealing the active DAI target.</p>
+<p>The current perception layer allows menus to query this condition every client tick while expensive structural scans are cached and refreshed every 10 game ticks (normally twice per second). Requested nearby radii are bounded by the runtime.</p>
+<div class="guide-flow"><pre>Available Menu tick
+   ↓
+nearby_recognition
+   ↓
+fresh cache? ── YES → return cached result
+   │
+   NO
+   ↓
+candidate block/group filtering
+   ↓
+structural scan + evaluation
+   ↓
+cache result
+   ↓
+menu condition</pre></div>
+</section>
+<section class="guide-section">
+<h2>Recognition → Conditions → Menus</h2>
+<div class="guide-flow"><pre>Recognition Definition
+   ↓
+"tree exists nearby"
+   ↓
+nearby_recognition condition
+   ↓
+Harvest button becomes eligible
+   ↓
+Available menu exposes Harvest Wood
+   ↓
+Objective executes targeting/mining behavior</pre></div>
+<p>This is one of DAI's most powerful third-party patterns: semantic world perception can directly determine which gameplay choices are currently exposed.</p>
+</section>
+<div class="guide-pager"><a href="../menus/">← Previous</a><a href="../overlays-reactions/">Next →</a></div>
+</article>
+</div>
+</main>
+<footer class="footer">DAI Engine · DAI 3.3 creator documentation</footer>
+</body>
+</html>
