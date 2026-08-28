@@ -1,8 +1,0 @@
-DAI + Logical Communication Service website package
-Full functional LCS rebuild — 2026-08-28
-
-The /logicalcommunicationservice/ application was rebuilt from the live Firebase package rather than extended with additional mock/demo state.
-
-IMPORTANT: deploy /logicalcommunicationservice/firestore.rules to the logicalcommunicationservice Firebase project after publishing this website package.
-
-See /logicalcommunicationservice/LCS_FULL_FUNCTIONAL_REBUILD_2026-08-28.txt for the detailed feature list.

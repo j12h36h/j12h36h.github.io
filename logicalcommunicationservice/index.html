@@ -7,7 +7,11 @@
   <meta name="description" content="Logical Communication Service — a browser-based network for ideas, projects, problems, and clear reasoning." />
   <title>Logical Communication Service</title>
   <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-full-functional-v03" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://www.gstatic.com" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-profile-sync-v04" />
 </head>
 <body>
   <div class="ambient ambient-a"></div>
@@ -214,7 +218,7 @@
               <div class="profile-preview-row">
                 <div class="public-profile-avatar" id="accountPublicAvatar">ME</div>
                 <div>
-                  <p class="eyebrow">Shown publicly</p>
+                  <div class="profile-public-heading"><p class="eyebrow">Shown publicly</p><span class="profile-sync-badge" id="accountPublicSyncStatus" data-tone="loading">Connecting</span></div>
                   <h2 id="accountPreviewName">Member</h2>
                   <p class="muted" id="accountPreviewBio">No public bio yet.</p>
                 </div>
@@ -247,7 +251,10 @@
 
                 <div class="account-actions">
                   <span class="muted" id="accountSaveStatus" aria-live="polite"></span>
-                  <button class="primary-button" id="accountSaveButton" type="submit">Save public profile</button>
+                  <div class="account-action-buttons">
+                    <button class="ghost-button" id="accountViewPublicProfile" type="button">View public profile</button>
+                    <button class="primary-button" id="accountSaveButton" type="submit">Save public profile</button>
+                  </div>
                 </div>
               </form>
             </section>
@@ -417,6 +424,6 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
-  <script type="module" src="assets/js/app.js?v=20260828-full-functional-v03"></script>
+  <script type="module" src="assets/js/app.js?v=20260828-profile-sync-v04"></script>
 </body>
 </html>

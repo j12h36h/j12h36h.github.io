@@ -43,6 +43,14 @@ const state = {
   detailUnsub: null,
   connectContext: null,
   profilePrompted: false,
+  profileSaveStatus: '',
+  profileServerVerified: false,
+  profileVerifiedAt: 0,
+  ownProfileUnsub: null,
+  accountFormDirty: false,
+  accountHydratedUid: null,
+  accountHydratedRevision: 0,
+  authBackendReady: false,
   mapLayoutSeed: 0,
   unsubs: []
 };
@@ -115,6 +123,28 @@ function fallbackPublicProfile(user = state.user) {
 function ownPublicProfile() {
   if (!state.user) return null;
   return state.publicProfile || state.profiles[state.user.uid] || fallbackPublicProfile(state.user);
+}
+
+function profileRevision(profile) {
+  return timeValue(profile?.updatedAt) || 0;
+}
+
+function profileStatusText() {
+  if (!state.user) return '';
+  if (!state.firebaseReady) return 'Google connected · loading public profile…';
+  if (state.profileSaveStatus) return state.profileSaveStatus;
+  if (state.profileServerVerified) return 'Public profile synced';
+  return 'Public profile connected';
+}
+
+function markAccountDirty() {
+  state.accountFormDirty = true;
+  state.profileSaveStatus = 'Unsaved changes';
+  const status = $('#accountSaveStatus');
+  if (status) status.textContent = state.profileSaveStatus;
+  const sync = $('#accountPublicSyncStatus');
+  if (sync) { sync.textContent = 'Editing'; sync.dataset.tone = 'editing'; }
+  updateAccountPreview();
 }
 
 function publicIdentity(uid, fallbackName = 'Member', fallbackPhoto = '') {
@@ -301,16 +331,41 @@ function renderAccount() {
 
   signedOut.hidden = Boolean(state.user);
   signedIn.hidden = !state.user;
-  if (!state.user) return;
+  if (!state.user) {
+    state.accountFormDirty = false;
+    state.accountHydratedUid = null;
+    state.accountHydratedRevision = 0;
+    return;
+  }
 
   const profile = ownPublicProfile();
-  $('#accountDisplayName').value = profile.displayName || generatedPublicName(state.user);
-  $('#accountBio').value = profile.bio || '';
-  $('#accountUseGooglePhoto').checked = Boolean(profile.useGooglePhoto && state.user.photoURL);
-  $('#accountConnectionStatus').textContent = state.firebaseReady ? 'Signed in · Firebase session saved on this device' : 'Backend unavailable';
+  const revision = profileRevision(profile);
+  const shouldHydrate = state.accountHydratedUid !== state.user.uid
+    || (!state.accountFormDirty && revision !== state.accountHydratedRevision);
+
+  if (shouldHydrate) {
+    $('#accountDisplayName').value = profile.displayName || generatedPublicName(state.user);
+    $('#accountBio').value = profile.bio || '';
+    $('#accountUseGooglePhoto').checked = Boolean(profile.useGooglePhoto && state.user.photoURL);
+    state.accountHydratedUid = state.user.uid;
+    state.accountHydratedRevision = revision;
+  }
+
+  if (state.firebaseReady) {
+    $('#accountConnectionStatus').textContent = state.profileServerVerified
+      ? 'Connected · Firebase session saved · public profile synced'
+      : 'Connected · Firebase session saved · syncing public profile';
+  } else {
+    $('#accountConnectionStatus').textContent = 'Google connected · loading LCS profile service';
+  }
   $('#accountProviderName').textContent = state.user.displayName || 'Not provided by Google';
   $('#accountProviderEmail').textContent = state.user.email || 'Not provided by Google';
-  $('#accountSaveStatus').textContent = '';
+  $('#accountSaveStatus').textContent = profileStatusText();
+  const sync = $('#accountPublicSyncStatus');
+  if (sync) {
+    sync.textContent = state.accountFormDirty ? 'Editing' : (state.profileServerVerified ? 'Synced' : 'Connecting');
+    sync.dataset.tone = state.accountFormDirty ? 'editing' : (state.profileServerVerified ? 'ok' : 'loading');
+  }
   updateAccountPreview();
 }
 
@@ -762,29 +817,56 @@ async function savePublicProfile(event) {
   const oldText = button.textContent;
   button.disabled = true;
   button.textContent = 'Saving…';
+  state.profileSaveStatus = 'Saving public profile…';
+  state.profileServerVerified = false;
+  renderAccount();
   try {
+    const { db, fsMod } = state.firebase;
+    const ref = fsMod.doc(db, 'users', state.user.uid);
     const payload = {
       displayName,
       bio,
       useGooglePhoto,
       photoURL: useGooglePhoto ? (state.user.photoURL || '') : '',
-      updatedAt: state.firebase.fsMod.serverTimestamp()
+      updatedAt: fsMod.serverTimestamp()
     };
     const existing = state.publicProfile || state.profiles[state.user.uid];
-    if (!existing?.createdAt) payload.createdAt = state.firebase.fsMod.serverTimestamp();
-    await state.firebase.fsMod.setDoc(state.firebase.fsMod.doc(state.firebase.db, 'users', state.user.uid), payload, { merge: true });
-    state.publicProfile = { ...(existing || {}), ...payload, updatedAt: Date.now() };
-    state.profiles[state.user.uid] = state.publicProfile;
-    $('#accountSaveStatus').textContent = 'Saved';
+    if (!existing?.createdAt) payload.createdAt = fsMod.serverTimestamp();
+
+    await fsMod.setDoc(ref, payload, { merge: true });
+
+    // Read the document back from the server so the account page can prove that
+    // the public profile, not just the local form state, contains the saved data.
+    const snap = typeof fsMod.getDocFromServer === 'function'
+      ? await fsMod.getDocFromServer(ref)
+      : await fsMod.getDoc(ref);
+    if (!snap.exists()) throw new Error('Public profile document was not found after saving.');
+    const stored = { id: snap.id, ...snap.data() };
+    const verified = stored.displayName === displayName
+      && stored.bio === bio
+      && Boolean(stored.useGooglePhoto) === useGooglePhoto
+      && String(stored.photoURL || '') === String(payload.photoURL || '');
+    if (!verified) throw new Error('Public profile verification did not match the values just saved.');
+
+    state.publicProfile = stored;
+    state.profiles[state.user.uid] = stored;
+    state.accountFormDirty = false;
+    state.accountHydratedUid = state.user.uid;
+    state.accountHydratedRevision = profileRevision(stored);
+    state.profileServerVerified = true;
+    state.profileVerifiedAt = Date.now();
+    state.profileSaveStatus = 'Saved · verified public';
     renderAuth();
     renderFeed();
     renderCatalogs();
     if (state.detail?.type === 'profile' && state.detail.id === state.user.uid) openProfileDetail(state.user.uid);
-    toast('Public profile saved.');
+    toast('Public profile saved and verified.');
   } catch (error) {
     console.error(error);
-    $('#accountSaveStatus').textContent = 'Could not save';
-    toast('Profile could not be saved.');
+    state.profileSaveStatus = 'Could not verify save';
+    state.profileServerVerified = false;
+    renderAccount();
+    toast('Profile could not be saved and verified.');
   } finally {
     button.disabled = false;
     button.textContent = oldText;
@@ -794,10 +876,14 @@ async function savePublicProfile(event) {
 async function ensurePublicProfile(user) {
   const { db, fsMod } = state.firebase;
   const ref = fsMod.doc(db, 'users', user.uid);
-  const snap = await fsMod.getDoc(ref);
+  const snap = typeof fsMod.getDocFromServer === 'function'
+    ? await fsMod.getDocFromServer(ref).catch(() => fsMod.getDoc(ref))
+    : await fsMod.getDoc(ref);
   if (snap.exists()) {
     state.publicProfile = { id: snap.id, ...snap.data() };
     state.profiles[user.uid] = state.publicProfile;
+    state.profileServerVerified = !snap.metadata?.fromCache;
+    state.profileSaveStatus = state.profileServerVerified ? 'Public profile synced' : 'Public profile loaded';
     return;
   }
   const profile = {
@@ -809,8 +895,13 @@ async function ensurePublicProfile(user) {
     updatedAt: fsMod.serverTimestamp()
   };
   await fsMod.setDoc(ref, profile);
-  state.publicProfile = { ...profile, createdAt: Date.now(), updatedAt: Date.now() };
+  const created = typeof fsMod.getDocFromServer === 'function'
+    ? await fsMod.getDocFromServer(ref).catch(() => fsMod.getDoc(ref))
+    : await fsMod.getDoc(ref);
+  state.publicProfile = created.exists() ? { id: created.id, ...created.data() } : { ...profile, createdAt: Date.now(), updatedAt: Date.now() };
   state.profiles[user.uid] = state.publicProfile;
+  state.profileServerVerified = created.exists() && !created.metadata?.fromCache;
+  state.profileSaveStatus = state.profileServerVerified ? 'Public profile created · synced' : 'Public profile created';
   if (!state.profilePrompted) {
     state.profilePrompted = true;
     setView('account');
@@ -818,9 +909,59 @@ async function ensurePublicProfile(user) {
   }
 }
 
+function stopOwnProfileListener() {
+  if (state.ownProfileUnsub) {
+    state.ownProfileUnsub();
+    state.ownProfileUnsub = null;
+  }
+}
+
+function watchOwnPublicProfile(user) {
+  stopOwnProfileListener();
+  if (!user || !state.firebaseReady) return;
+  const { db, fsMod } = state.firebase;
+  const ref = fsMod.doc(db, 'users', user.uid);
+  state.ownProfileUnsub = fsMod.onSnapshot(ref, { includeMetadataChanges: true }, snap => {
+    if (!snap.exists()) return;
+    const profile = { id: snap.id, ...snap.data() };
+    state.publicProfile = profile;
+    state.profiles[user.uid] = profile;
+    if (!snap.metadata.hasPendingWrites && !snap.metadata.fromCache) {
+      state.profileServerVerified = true;
+      state.profileVerifiedAt = Date.now();
+      if (!state.accountFormDirty) state.profileSaveStatus = 'Public profile synced';
+    }
+    renderAuth();
+    renderFeed();
+    renderCatalogs();
+    renderSearchPanel();
+    if (state.detail?.type === 'profile' && state.detail.id === user.uid) openProfileDetail(user.uid);
+  }, error => {
+    console.error('Could not watch own public profile:', error);
+    state.profileServerVerified = false;
+    if (!state.accountFormDirty) state.profileSaveStatus = 'Profile sync needs attention';
+    renderAccount();
+  });
+}
+
+async function syncAuthenticatedUserProfile(user) {
+  if (!user || !state.firebaseReady) return;
+  try {
+    await ensurePublicProfile(user);
+    watchOwnPublicProfile(user);
+  } catch (error) {
+    console.error('Could not load public profile:', error);
+    state.publicProfile = fallbackPublicProfile(user);
+    state.profileServerVerified = false;
+    state.profileSaveStatus = 'Public profile could not be verified';
+  }
+  renderAuth();
+  renderAccount();
+}
+
 async function signInGoogle() {
   clearAuthError();
-  if (!state.firebaseReady) { showAuthError({ code: 'auth/configuration-not-found' }); return; }
+  if (!state.authBackendReady || !state.firebase?.auth) { showAuthError({ code: 'auth/configuration-not-found' }); return; }
   const { auth, authMod } = state.firebase;
   const provider = new authMod.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
@@ -843,8 +984,14 @@ async function signInGoogle() {
 }
 
 async function signOutUser() {
-  if (!state.firebaseReady) return;
+  if (!state.authBackendReady || !state.user) return;
+  stopOwnProfileListener();
   await state.firebase.authMod.signOut(state.firebase.auth);
+  state.profileSaveStatus = '';
+  state.profileServerVerified = false;
+  state.accountFormDirty = false;
+  state.accountHydratedUid = null;
+  state.accountHydratedRevision = 0;
   if (state.activeView === 'account') setView('home');
   toast('Signed out.');
 }
@@ -886,22 +1033,65 @@ async function initFirebase() {
   }
 
   try {
-    const [appMod, authMod, fsMod] = await Promise.all([
+    // Start Firestore downloading immediately, but do not make account verification
+    // wait for the much larger database module. Authentication gets first paint.
+    const firestoreModulePromise = import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
+    const [appMod, authMod] = await Promise.all([
       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
-      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
-      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+      import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')
     ]);
+
     const app = appMod.initializeApp(LCS_CONFIG.firebase);
     const auth = authMod.getAuth(app);
     authMod.useDeviceLanguage(auth);
-    await authMod.setPersistence(auth, authMod.browserLocalPersistence);
+    state.firebase = { app, auth, db: null, authMod, fsMod: null };
+    state.authBackendReady = true;
+
+    // Attach the auth observer before Firestore initializes. This lets a saved
+    // Google session resolve as soon as Firebase Auth can read browser storage.
+    authMod.onAuthStateChanged(auth, user => {
+      const previousUid = state.user?.uid || null;
+      state.user = user || null;
+      state.authReady = true;
+      if ((user?.uid || null) !== previousUid) {
+        state.publicProfile = null;
+        state.profileServerVerified = false;
+        state.profileSaveStatus = user ? 'Google verified · loading public profile…' : '';
+        state.accountFormDirty = false;
+        state.accountHydratedUid = null;
+        state.accountHydratedRevision = 0;
+        stopOwnProfileListener();
+      }
+      renderAuth();
+      renderAccount();
+      renderFeed();
+      renderCatalogs();
+      renderDetailThread();
+      if (user && state.firebaseReady) syncAuthenticatedUserProfile(user).catch(console.error);
+      if (!user) setBackendStatus('Live network connected', 'Public content is live. Sign in with Google to publish, follow, react, connect, and create.', 'ok');
+    });
+
+    if (typeof auth.authStateReady === 'function') {
+      await auth.authStateReady();
+      if (!state.authReady) {
+        state.user = auth.currentUser || null;
+        state.authReady = true;
+        renderAuth();
+      }
+    }
+
+    const fsMod = await firestoreModulePromise;
     const db = fsMod.getFirestore(app);
     state.firebase = { app, auth, db, authMod, fsMod };
     state.firebaseReady = true;
 
     subscribeCollection('users', rows => {
-      state.profiles = Object.fromEntries(rows.map(profile => [profile.id, profile]));
-      if (state.user && state.profiles[state.user.uid]) state.publicProfile = state.profiles[state.user.uid];
+      const profiles = Object.fromEntries(rows.map(profile => [profile.id, profile]));
+      // Keep the signed-in user's directly watched profile in the public identity
+      // map even if a future network grows beyond this discovery query's limit.
+      if (state.user && state.publicProfile) profiles[state.user.uid] = state.publicProfile;
+      state.profiles = profiles;
+      if (state.user && !state.publicProfile && state.profiles[state.user.uid]) state.publicProfile = state.profiles[state.user.uid];
       renderAuth();
       renderFeed();
       renderCatalogs();
@@ -915,31 +1105,10 @@ async function initFirebase() {
     subscribeCollection('connections', rows => { state.connections = rows; renderTrends(); if (state.activeView === 'universe') renderUniverse(); if (state.detail?.type === 'object') openObjectDetail(state.detail.id); }, { limit: 1200 });
     subscribeCollection('postLinks', rows => { state.postLinks = rows; renderFeed(); if (state.detail?.type === 'post') openPostDetail(state.detail.id); if (state.detail?.type === 'object') openObjectDetail(state.detail.id); }, { limit: 1200 });
 
-    authMod.onAuthStateChanged(auth, async user => {
-      state.user = user || null;
-      state.authReady = true;
-      state.publicProfile = null;
-      if (user) {
-        try { await ensurePublicProfile(user); }
-        catch (error) { console.error('Could not load public profile:', error); state.publicProfile = fallbackPublicProfile(user); }
-        setBackendStatus('Live network connected', 'Google identity, persistent authentication, and Firestore realtime data are active.', 'ok');
-      } else {
-        setBackendStatus('Live network connected', 'Public content is live. Sign in with Google to publish, follow, react, connect, and create.', 'ok');
-      }
-      renderAuth();
-      renderAccount();
-      renderFeed();
-      renderCatalogs();
-      renderDetailThread();
-    });
-
-    if (typeof auth.authStateReady === 'function') await auth.authStateReady();
-    if (!state.authReady) {
-      state.user = auth.currentUser || null;
-      state.authReady = true;
-      if (state.user) await ensurePublicProfile(state.user);
-      renderAuth();
-    }
+    if (state.user) await syncAuthenticatedUserProfile(state.user);
+    setBackendStatus('Live network connected', state.user
+      ? 'Google identity is verified. Public profile and Firestore realtime data are connected.'
+      : 'Public content is live. Sign in with Google to publish, follow, react, connect, and create.', 'ok');
   } catch (error) {
     console.error('Firebase initialization failed:', error);
     state.authReady = true;
@@ -1000,9 +1169,10 @@ function bindUI() {
   $('#accountSignInButton').addEventListener('click', () => { clearAuthError(); $('#authDialog').showModal(); });
   $('#accountSignOutButton').addEventListener('click', () => signOutUser().catch(console.error));
   $('#accountProfileForm').addEventListener('submit', event => savePublicProfile(event).catch(console.error));
-  $('#accountDisplayName').addEventListener('input', updateAccountPreview);
-  $('#accountBio').addEventListener('input', updateAccountPreview);
-  $('#accountUseGooglePhoto').addEventListener('change', updateAccountPreview);
+  $('#accountDisplayName').addEventListener('input', markAccountDirty);
+  $('#accountBio').addEventListener('input', markAccountDirty);
+  $('#accountUseGooglePhoto').addEventListener('change', markAccountDirty);
+  $('#accountViewPublicProfile').addEventListener('click', () => { if (state.user) openProfileDetail(state.user.uid); });
 
   $('#openLogicGuide').addEventListener('click', () => openLogicGuide());
   $('#explainButton').addEventListener('click', () => openLogicGuide());
