@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0c0a15" />
+  <meta name="description" content="Logical Communication Service — a browser-based network for ideas, projects, problems, collaboration, and clear reasoning." />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://*.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+  <title>Logical Communication Service · Mobile</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://www.gstatic.com" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260828-mobile-v0710" />
+</head>
+<body class="mobile-build">
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+  <div class="grid-haze"></div>
+
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Logical Communication Service home">
+      <span class="brand-mark" aria-hidden="true">
+        <span class="orbit orbit-a"></span>
+        <span class="orbit orbit-b"></span>
+        <span class="core-dot"></span>
+      </span>
+      <span class="brand-copy">
+        <strong>Logical</strong>
+        <small>Communication Service · Mobile</small>
+      </span>
+    </a>
+
+    <div class="top-search">
+      <span aria-hidden="true">⌕</span>
+      <input id="globalSearch" type="search" placeholder="Find people, LFG, ideas, problems, projects, or communities" aria-label="Search" autocomplete="off" />
+      <kbd>/</kbd>
+      <div class="search-panel" id="searchResultsPanel" hidden></div>
+    </div>
+
+    <div class="top-actions">
+      <a class="ghost-button dai-return-link" href="/logicalcommunicationservice/">Desktop LCS</a>
+      <button class="ghost-button" id="explainButton" type="button">How this works</button>
+      <button class="ghost-button mobile-account-shortcut" data-open-account type="button" aria-label="Open Account">Account</button>
+      <div id="authArea"></div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <aside class="left-rail" aria-label="Main navigation">
+      <nav class="primary-nav">
+        <button class="nav-item active" data-view="home"><span>✦</span><b>Live feed</b></button>
+        <button class="nav-item" data-view="universe"><span>◎</span><b>Idea map</b></button>
+        <button class="nav-item" data-view="ideas"><span>◈</span><b>Ideas</b></button>
+        <button class="nav-item" data-view="problems"><span>?</span><b>Problems</b></button>
+        <button class="nav-item" data-view="projects"><span>◆</span><b>Projects</b></button>
+        <button class="nav-item" data-view="communities"><span>▦</span><b>Communities</b></button>
+        <button class="nav-item" data-view="connections"><span>↔</span><b>Connections</b></button>
+        <button class="nav-item" data-view="lfg"><span>⚑</span><b>LFG</b></button>
+        <button class="nav-item" id="moderationNav" data-view="moderation" hidden><span>⚖</span><b>Moderation</b></button>
+        <button class="nav-item" data-view="account"><span>◉</span><b>Account</b></button>
+      </nav>
+
+      <section class="rail-card plain-language-card">
+        <p class="eyebrow">No jargon required</p>
+        <h2>Say it normally.</h2>
+        <p>You do not need to know formal logic. The system can show the clearer label beside the plain-English one.</p>
+        <button class="text-button" id="openLogicGuide" type="button">See the six thought types →</button>
+      </section>
+
+      <section class="rail-card compact-card">
+        <p class="eyebrow">Communities &amp; channels</p>
+        <div class="space-list" id="spaceList"></div>
+        <div class="rail-community-actions">
+          <button class="add-space" id="newSpaceButton" type="button">＋ Community</button>
+          <button class="add-space" id="newChannelButton" type="button">＋ Channel</button>
+        </div>
+      </section>
+
+      <footer class="rail-footer">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <span>Mobile v0.7.9</span>
+      </footer>
+    </aside>
+
+    <section class="content-column">
+      <section id="view-home" class="view active-view">
+        <div class="hero-card">
+          <div class="hero-copy">
+            <p class="eyebrow">Build from thought to reality</p>
+            <h1>What are you thinking about?</h1>
+            <p class="hero-subtitle">Post an idea, a problem, something you noticed, or something you are unsure about. You can organize it later.</p>
+          </div>
+          <div class="hero-orbit" aria-hidden="true">
+            <div class="hero-node node-one">IDEA</div>
+            <div class="hero-node node-two">WHY?</div>
+            <div class="hero-node node-three">BUILD</div>
+            <div class="hero-center">L</div>
+          </div>
+        </div>
+
+        <div class="timeout-banner" id="timeoutBanner" hidden><strong>⏳ Timeout Status</strong><span>This account is currently read-only. You can browse public content and use account safety tools, but cannot add or change network content.</span></div>
+
+        <section class="composer" id="composer">
+          <div class="composer-topline">
+            <div class="avatar avatar-me" id="composerAvatar">You</div>
+            <div>
+              <strong id="composerName">Share a thought</strong>
+              <small id="composerHint">You can post normally. Structure is optional.</small>
+            </div>
+          </div>
+
+          <textarea id="composerText" maxlength="1200" placeholder="Example: I keep seeing project discussions lose the reason a decision was made..."></textarea>
+          <label class="composer-tags"><span>Tags</span><input id="postTags" maxlength="120" placeholder="minecraft, dai, collaboration" /></label>
+          <div class="tag-row tag-preview" id="postTagPreview"><span class="muted tiny">Comma-separate tags.</span></div>
+
+          <div class="thought-picker" aria-label="Choose what kind of thought this is">
+            <button class="thought-chip selected" data-type="unclassified" type="button"><span>💬</span><b>Just say it</b><small>No label</small></button>
+            <button class="thought-chip" data-type="observation" type="button"><span>👀</span><b>I noticed</b><small>Observation</small></button>
+            <button class="thought-chip" data-type="premise" type="button"><span>📌</span><b>We know</b><small>Premise</small></button>
+            <button class="thought-chip" data-type="deduction" type="button"><span>→</span><b>This follows</b><small>Deduction</small></button>
+            <button class="thought-chip" data-type="assumption" type="button"><span>☁</span><b>I'm assuming</b><small>Assumption</small></button>
+            <button class="thought-chip" data-type="hypothesis" type="button"><span>🧪</span><b>Maybe</b><small>Hypothesis</small></button>
+            <button class="thought-chip" data-type="question" type="button"><span>?</span><b>I need to know</b><small>Question</small></button>
+          </div>
+
+          <div class="composer-footer">
+            <div class="composer-context composer-context-group">
+              <label>About
+                <select id="postKind" aria-label="Post kind">
+                  <option value="idea">Idea</option>
+                  <option value="problem">Problem</option>
+                  <option value="project">Project</option>
+                </select>
+              </label>
+              <label>Post in channel
+                <select id="postChannel" aria-label="Post channel"></select>
+              </label>
+            </div>
+            <div class="composer-actions">
+              <span id="charCounter">0 / 1200</span>
+              <button class="primary-button" id="publishButton" type="button">Publish thought</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Live context</p>
+            <h2>Things people are building and figuring out</h2>
+          </div>
+          <div class="segmented" role="group" aria-label="Feed filter">
+            <button class="segment active" data-filter="all" type="button">All</button>
+            <button class="segment" data-filter="idea" type="button">Ideas</button>
+            <button class="segment" data-filter="problem" type="button">Problems</button>
+            <button class="segment" data-filter="project" type="button">Projects</button>
+          </div>
+        </div>
+
+        <div class="feed" id="feed"></div>
+      </section>
+
+      <section id="view-universe" class="view">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Idea map</p>
+            <h1>See how things connect.</h1>
+            <p>Instead of forcing everything into folders, this view shows ideas, problems, and projects as relationships.</p>
+          </div>
+          <button class="primary-button" id="focusMapButton" type="button">Re-center map</button>
+        </div>
+        <section class="universe-panel">
+          <svg id="universeLines" class="universe-lines" aria-hidden="true"></svg>
+          <div class="universe-canvas" id="universeCanvas"></div>
+          <div class="map-legend">
+            <span><i class="legend-dot idea-dot"></i>Idea</span>
+            <span><i class="legend-dot problem-dot"></i>Problem</span>
+            <span><i class="legend-dot project-dot"></i>Project</span>
+          </div>
+        </section>
+      </section>
+
+      <section id="view-ideas" class="view catalog-view" data-kind="idea">
+        <div class="page-heading"><div><p class="eyebrow">Ideas</p><h1>Things that might exist.</h1><p>Follow an idea before it becomes a project, or help it become one.</p></div><button class="primary-button quick-create" data-kind="idea" type="button">＋ New idea</button></div>
+        <div class="catalog-grid" id="ideaCatalog"></div>
+      </section>
+
+      <section id="view-problems" class="view catalog-view" data-kind="problem">
+        <div class="page-heading"><div><p class="eyebrow">Problems</p><h1>Things worth solving.</h1><p>Describe what is wrong before deciding what the answer has to be.</p></div><button class="primary-button quick-create" data-kind="problem" type="button">＋ New problem</button></div>
+        <div class="catalog-grid" id="problemCatalog"></div>
+      </section>
+
+      <section id="view-projects" class="view catalog-view" data-kind="project">
+        <div class="page-heading"><div><p class="eyebrow">Projects</p><h1>Things becoming real.</h1><p>Work can stay connected to the original problem, decisions, evidence, and people.</p></div><button class="primary-button quick-create" data-kind="project" type="button">＋ New project</button></div>
+        <div class="catalog-grid" id="projectCatalog"></div>
+      </section>
+
+      <section id="view-communities" class="view communities-view">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Communities &amp; channels</p>
+            <h1>Organize people around context.</h1>
+            <p>A community is the shared home for a topic or project. Channels divide that context into useful conversations without disconnecting it from the wider LCS network.</p>
+          </div>
+          <button class="primary-button" id="communityCreateButton" type="button">＋ New community</button>
+        </div>
+        <div class="community-directory" id="communityCatalog"></div>
+      </section>
+
+
+      <section id="view-connections" class="view connections-view">
+        <div class="page-heading">
+          <div><p class="eyebrow">Connections</p><h1>Find people without exposing private contact data.</h1><p>Follow public work, send private friend requests, and manage LFG match requests entirely through LCS public profile IDs.</p></div>
+        </div>
+        <section class="security-banner"><b>Private-by-design connection layer</b><span>Friend and LFG requests are readable only by the participating signed-in accounts. Public follower relationships use public profile IDs, never Firebase authentication IDs.</span></section>
+        <div id="connectionsSignedOut" class="account-card" hidden><div><p class="eyebrow">Sign in required</p><h2>Your private connection inbox is account-only.</h2><p>Public profiles and follower counts remain browseable without signing in.</p></div><button class="primary-button" id="connectionsSignInButton" type="button">Sign in with Google</button></div>
+        <div id="connectionsSignedIn" hidden>
+          <div class="connections-grid">
+            <section class="network-card"><div class="card-heading-row"><div><p class="eyebrow">Friends</p><h2>Accepted connections</h2></div><span class="status-pill" id="friendCountBadge">0</span></div><div id="friendList" class="people-list"></div></section>
+            <section class="network-card"><div class="card-heading-row"><div><p class="eyebrow">Requests</p><h2>Friend requests</h2></div></div><div id="friendRequestList" class="request-list"></div></section>
+            <section class="network-card"><div class="card-heading-row"><div><p class="eyebrow">Followers</p><h2>People following you</h2></div></div><div id="followerList" class="people-list"></div></section>
+            <section class="network-card"><div class="card-heading-row"><div><p class="eyebrow">Following</p><h2>People you follow</h2></div></div><div id="followingList" class="people-list"></div></section>
+            <section class="network-card wide-network-card"><div class="card-heading-row"><div><p class="eyebrow">LFG inbox</p><h2>Requests to work or play together</h2></div></div><div id="lfgRequestList" class="request-list"></div></section>
+            <section class="network-card wide-network-card"><div class="card-heading-row"><div><p class="eyebrow">Safety</p><h2>Blocked profiles</h2></div></div><p class="muted">Blocking removes the profile from your normal LCS views and prevents new friend/LFG requests between the two profiles.</p><div id="blockedList" class="people-list"></div></section>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-lfg" class="view lfg-view">
+        <div class="page-heading">
+          <div><p class="eyebrow">Looking for group</p><h1>Play together. Create together. Share information.</h1><p>LFG listings are public. Contact details are intentionally not part of the system; use private in-app match requests instead.</p></div>
+          <button class="primary-button" id="newLfgButton" type="button">＋ New LFG</button>
+        </div>
+        <section class="security-banner"><b>Keep the listing public, keep identity private.</b><span>Do not post email addresses, phone numbers, home/work locations, legal names, passwords, or external account credentials. LCS provides an in-app request path instead.</span></section>
+        <div class="segmented lfg-filter" role="group" aria-label="LFG filter">
+          <button class="segment active" data-lfg-filter="all" type="button">All</button>
+          <button class="segment" data-lfg-filter="play" type="button">Play together</button>
+          <button class="segment" data-lfg-filter="create" type="button">Create together</button>
+          <button class="segment" data-lfg-filter="share" type="button">Share information</button>
+        </div>
+        <div id="lfgCatalog" class="lfg-grid"></div>
+      </section>
+
+      <section id="view-moderation" class="view moderation-view">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Status &amp; moderation</p>
+            <h1>Authority with an audit trail.</h1>
+            <p>Status is one authorization system with Global, Discussion, and Project scopes. Removed content is retained for review instead of being hard-deleted.</p>
+          </div>
+        </div>
+
+        <section class="moderation-denied" id="moderationDenied">
+          <p class="eyebrow">Restricted workspace</p>
+          <h2>No Moderator Status is active for this account.</h2>
+          <p>You can still browse LCS normally. This workspace becomes available when Founder or Moderator Status is assigned.</p>
+        </section>
+
+        <div id="moderationWorkspace" class="moderation-workspace" hidden>
+          <section class="moderation-card status-admin-card">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">Grant Status</p><h2>Global, Discussion, or Project</h2></div></div>
+            <form id="statusGrantForm" class="moderation-form">
+              <label class="field"><span>Public profile</span><select id="statusTargetProfile" required></select></label>
+              <div class="moderation-form-grid">
+                <label class="field"><span>Status</span><select id="statusValue"><option value="moderator">Moderator</option><option value="timeout">Timeout</option><option value="founder">Founder</option></select></label>
+                <label class="field"><span>Scope</span><select id="statusScopeKind"><option value="global">Global</option><option value="discussion">Discussion</option><option value="project">Project</option></select></label>
+                <label class="field"><span>Target</span><select id="statusScopeTarget"><option value="_">Whole LCS network</option></select></label>
+                <label class="field"><span>Duration</span><select id="statusDuration"><option value="none">No expiration</option><option value="hour">1 hour</option><option value="day">24 hours</option><option value="week">7 days</option></select></label>
+              </div>
+              <label class="field"><span>Reason / note</span><input id="statusReason" maxlength="240" placeholder="Why is this Status being granted?" /></label>
+              <div class="moderation-callout"><b>Timeout is read-only, not a ban.</b><span>A timed-out account can still browse public LCS content and use safety controls such as blocking.</span></div>
+              <div class="modal-actions"><button class="primary-button" type="submit">Grant Status</button></div>
+            </form>
+          </section>
+
+          <section class="moderation-card">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">Active Status</p><h2>Current authorization values</h2></div></div>
+            <div id="activeStatusList" class="moderation-list"></div>
+          </section>
+
+          <section class="moderation-card moderation-wide-card">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">Content review</p><h2>Visible + retained removed content</h2></div></div>
+            <p class="muted">Deletion is a soft-delete. The original public content remains stored for authorized review, while normal public views hide it.</p>
+            <div id="moderationContentList" class="moderation-list"></div>
+          </section>
+
+          <section class="moderation-card moderation-wide-card">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">Immutable audit log</p><h2>Moderation history</h2></div></div>
+            <p class="muted">Moderator removals/restores and Status grants/revocations create append-only log entries containing only public profile IDs and public-content snapshots—never Google identity data or Firebase Auth UIDs.</p>
+            <div id="moderationAuditList" class="audit-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="view-account" class="view account-view">
+        <div class="page-heading account-heading">
+          <div>
+            <p class="eyebrow">Your identity</p>
+            <h1>Account &amp; public profile</h1>
+            <p>Firebase Authentication verifies access. LCS itself stores only a private account-to-public-profile mapping; provider name, email, and photo are never copied into LCS data.</p>
+          </div>
+        </div>
+
+        <section class="account-card account-auth-loading" id="accountAuthLoading">
+          <div class="account-card-icon" aria-hidden="true">◉</div>
+          <div>
+            <p class="eyebrow">Checking sign-in</p>
+            <h2>Connecting your LCS identity…</h2>
+            <p>Checking the saved Firebase session before showing account controls.</p>
+          </div>
+        </section>
+
+        <section class="account-card account-signed-out" id="accountSignedOut" hidden>
+          <div class="account-card-icon" aria-hidden="true">◉</div>
+          <div>
+            <p class="eyebrow">Not signed in</p>
+            <h2>Sign in to create your public identity.</h2>
+            <p>Your public LCS identity is independent from provider identity. LCS application code uses only the Firebase authentication UID as a private access key and never publishes it.</p>
+          </div>
+          <button class="primary-button" id="accountSignInButton" type="button">Sign in with Google</button>
+        </section>
+
+        <div id="accountSignedIn" hidden>
+          <div class="account-layout">
+            <section class="account-card public-profile-card">
+              <div class="profile-preview-row">
+                <button class="public-profile-avatar avatar-editor-trigger" id="accountPublicAvatar" type="button" aria-label="Edit profile image JSON" title="Click to edit profile image JSON">ME</button>
+                <div>
+                  <div class="profile-public-heading"><p class="eyebrow">Shown publicly</p><span class="profile-sync-badge" id="accountPublicSyncStatus" data-tone="loading">Connecting</span></div>
+                  <h2 id="accountPreviewName">Member</h2>
+                  <p class="muted" id="accountPreviewBio">No public bio yet.</p>
+                </div>
+              </div>
+
+              <form id="accountProfileForm" class="account-form">
+                <label class="field">
+                  <span>Display name</span>
+                  <input id="accountDisplayName" maxlength="40" minlength="2" autocomplete="nickname" required placeholder="Nickname, creator name, or alias" />
+                  <small>Use any name you want people to know you by. It does not need to match your Google account.</small>
+                </label>
+
+                <label class="field">
+                  <span>Public bio <small id="accountBioCounter">0 / 240</small></span>
+                  <textarea id="accountBio" maxlength="240" placeholder="What do you build, study, create, or care about?"></textarea>
+                </label>
+
+                <div class="profile-privacy-note">
+                  <b>Your public name is separate from Google.</b>
+                  <p>Only the display name and bio below are public profile fields. Provider email, provider name, provider photo, OAuth tokens, and Firebase Auth UID are excluded from every public LCS document.</p>
+                </div>
+
+                <div class="account-actions">
+                  <span class="muted" id="accountSaveStatus" aria-live="polite"></span>
+                  <div class="account-action-buttons">
+                    <button class="ghost-button" id="accountViewPublicProfile" type="button">View public profile</button>
+                    <button class="primary-button" id="accountSaveButton" type="submit">Save public profile</button>
+                  </div>
+                </div>
+              </form>
+            </section>
+
+            <div class="account-side-stack">
+              <section class="account-card privacy-account-card">
+                <p class="eyebrow">Private authentication boundary</p>
+                <h2>Provider data stays with Firebase</h2>
+                <p class="muted">LCS does not read or display your Google account name, email address, profile photo, OAuth token, or provider credentials. The application receives only the Firebase authentication UID needed to authorize your private account mapping.</p>
+                <dl class="private-account-list">
+                  <div><dt>Connection</dt><dd id="accountConnectionStatus">Connecting to LCS</dd></div>
+                  <div><dt>Public identity key</dt><dd id="accountPublicId">Created privately after sign-in</dd></div>
+                  <div class="full-public-id-row"><dt>Full public profile ID</dt><dd><code id="accountFullPublicId">Creating…</code><button class="mini-copy-button" id="copyPublicIdButton" type="button">Copy</button></dd></div>
+                  <div><dt>Security model</dt><dd>Private Auth UID → private mapping → random public profile ID</dd></div>
+                </dl>
+              </section>
+
+              <section class="account-card privacy-account-card">
+                <p class="eyebrow">Your Status</p>
+                <h2>Authorization attached to your public identity</h2>
+                <p class="muted">Founder and Moderator badges may be public. Timeout is private and shown only to the affected account and authorized moderation.</p>
+                <div id="accountStatusList" class="status-badge-row account-status-list"><span class="muted">Checking Status…</span></div>
+              </section>
+
+              <section class="account-card privacy-account-card">
+                <p class="eyebrow">Public visibility</p>
+                <h2>What other people can see</h2>
+                <ul class="visibility-list">
+                  <li><span>✓</span> Your chosen display name</li>
+                  <li><span>✓</span> Your public bio</li>
+                  <li><span>✓</span> Your public JSON-defined character avatar (initials fallback if none is saved)</li>
+                  <li class="not-public"><span>×</span> Your Google email</li>
+                  <li class="not-public"><span>×</span> Your Google account name</li>
+                  <li class="not-public"><span>×</span> Your Firebase authentication UID</li>
+                  <li class="not-public"><span>×</span> Your provider profile photo or OAuth credentials</li>
+                </ul>
+              </section>
+
+              <button class="ghost-button account-signout" id="accountSignOutButton" type="button">Sign out of LCS</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <aside class="right-rail">
+      <section class="reasoning-card">
+        <div class="card-heading-row">
+          <div><p class="eyebrow">Reasoning lens</p><h2>Keep guesses visible.</h2></div>
+          <span class="status-pill">Simple mode</span>
+        </div>
+        <p class="muted">The goal is not to sound smart. It is to keep “I know” separate from “I think.”</p>
+        <div class="logic-list">
+          <button data-guide="observation"><span class="logic-symbol">👀</span><span><b>I noticed</b><small>Something observed</small></span></button>
+          <button data-guide="premise"><span class="logic-symbol">📌</span><span><b>We know</b><small>A starting fact or agreed point</small></span></button>
+          <button data-guide="deduction"><span class="logic-symbol">→</span><span><b>This follows</b><small>Connected by reasoning</small></span></button>
+          <button data-guide="assumption"><span class="logic-symbol">☁</span><span><b>I'm assuming</b><small>Not proven yet</small></span></button>
+          <button data-guide="hypothesis"><span class="logic-symbol">🧪</span><span><b>Maybe</b><small>An explanation to test</small></span></button>
+          <button data-guide="question"><span class="logic-symbol">?</span><span><b>I need to know</b><small>Missing information</small></span></button>
+        </div>
+      </section>
+
+      <section class="reasoning-card">
+        <p class="eyebrow">Trending connections</p>
+        <div class="trend-list" id="trendList"></div>
+      </section>
+
+      <section class="reasoning-card auth-note" id="backendStatusCard">
+        <p class="eyebrow">Connection</p>
+        <h2 id="backendStatusTitle">Checking service…</h2>
+        <p id="backendStatusText" class="muted">Loading configuration.</p>
+      </section>
+    </aside>
+  </main>
+
+  <dialog id="logicDialog" class="modal logic-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Plain-English reasoning</p>
+    <h2 id="logicDialogTitle">Six useful thought types</h2>
+    <div id="logicDialogBody"></div>
+  </dialog>
+
+  <dialog id="createDialog" class="modal create-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Start something</p>
+    <h2 id="createDialogTitle">What are you starting?</h2>
+    <form id="createForm">
+      <div class="kind-selector">
+        <label><input type="radio" name="kind" value="idea" checked /><span>💡 <b>Idea</b><small>Something that might exist</small></span></label>
+        <label><input type="radio" name="kind" value="problem" /><span>❓ <b>Problem</b><small>Something that needs solving</small></span></label>
+        <label><input type="radio" name="kind" value="project" /><span>🛠 <b>Project</b><small>Something being built</small></span></label>
+      </div>
+      <label class="field"><span>Name it</span><input id="createTitle" maxlength="100" required placeholder="A short, clear name" /></label>
+      <label class="field"><span>Explain it normally</span><textarea id="createDescription" maxlength="700" required placeholder="What is it, why does it matter, or what are you trying to figure out?"></textarea></label>
+      <label class="field"><span>Channel</span><select id="createChannelSelect"></select><small>Communities organize channels; channels hold the actual conversation and work.</small></label>
+      <label class="field"><span>Optional tags</span><input id="createTags" maxlength="120" placeholder="games, research, accessibility" /></label>
+      <div class="tag-row tag-preview" id="createTagPreview"><span class="muted tiny">Comma-separate tags.</span></div>
+      <label class="field"><span>Optional starting connection</span><select id="createRelatedObject"><option value="">No initial relationship</option></select><small>Link this new item to existing work immediately.</small></label>
+      <div class="setup-warning auth-error" id="createError" hidden role="alert"><b>Could not create this item</b><p id="createErrorText"></p></div>
+      <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Create</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="avatarEditorDialog" class="modal avatar-editor-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Public profile image</p>
+    <h2>Character Avatar JSON</h2>
+    <p class="muted">The avatar is rendered only from validated keyboard characters, positions, colors, font settings, and a background color. No image file or external URL is used.</p>
+    <div class="avatar-editor-layout">
+      <div class="avatar-editor-preview-panel">
+        <div class="avatar-editor-preview" id="avatarEditorPreview" aria-label="Live avatar preview"></div>
+        <p class="tiny muted">Live preview updates whenever the JSON is valid.</p>
+      </div>
+      <div class="avatar-editor-code-panel">
+        <label class="field"><span>Current JSON definition</span><textarea id="avatarJsonEditor" class="avatar-json-editor" spellcheck="false" autocomplete="off" aria-describedby="avatarEditorHelp avatarEditorError"></textarea></label>
+        <p class="tiny muted" id="avatarEditorHelp">Up to 96 character layers. Each layer supports <code>char</code>, <code>x</code>, <code>y</code>, <code>fontSize</code>, <code>color</code>, <code>fontFamily</code>, <code>fontWeight</code>, <code>rotation</code>, <code>scaleX</code>, <code>scaleY</code>, <code>skewX</code>, <code>skewY</code>, <code>opacity</code>, and <code>align</code>. Negative scale values mirror a glyph.</p>
+        <div class="setup-warning auth-error" id="avatarEditorError" hidden role="alert"><b>JSON needs attention</b><p id="avatarEditorErrorText"></p></div>
+      </div>
+    </div>
+    <div class="modal-actions avatar-editor-actions">
+      <button class="ghost-button" id="avatarResetButton" type="button">Reset to initials JSON</button>
+      <span class="muted" id="avatarEditorStatus" aria-live="polite"></span>
+      <button class="primary-button" id="avatarSaveButton" type="button">Save profile image</button>
+    </div>
+  </dialog>
+
+  <dialog id="authDialog" class="modal auth-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <div class="auth-mark">G</div>
+    <p class="eyebrow">Identity</p>
+    <h2>Continue with Google</h2>
+    <p>Firebase verifies that you control an account. LCS application code uses only the private Firebase Auth UID to link a separate random public profile ID; it does not read your Google name, email, photo, password, or OAuth credentials.</p>
+    <button class="google-button" id="googleSignInButton" type="button"><span class="google-g">G</span>Continue with Google</button>
+    <div class="setup-warning auth-error" id="authErrorBox" hidden role="alert">
+      <b id="authErrorTitle">Google sign-in needs attention</b>
+      <p id="authErrorText"></p>
+      <code id="authErrorCode"></code>
+    </div>
+    <p class="tiny muted">By continuing, you agree to the <a href="terms.html">Terms</a> and acknowledge the <a href="privacy.html">Privacy Policy</a>.</p>
+    <div class="setup-warning" id="authSetupWarning" hidden>
+      <b>Owner setup needed</b>
+      <p>Firebase is not configured yet. Add the public Firebase web config in <code>assets/js/config.js</code>, enable Google sign-in, and add <code>j12h36h.github.io</code> as an authorized domain. If the Firebase Web API key has Website restrictions, also allow <code>logicalcommunicationservice.firebaseapp.com</code> because Firebase hosts the Google popup helper there.</p>
+      <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer">Open Firebase Console ↗</a>
+    </div>
+  </dialog>
+
+  <dialog id="spaceDialog" class="modal create-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Create a community</p>
+    <h2>Create a public community</h2>
+    <p class="muted">Communities group related channels, posts, and work while keeping public context connected to the wider network.</p>
+    <form id="spaceForm">
+      <label class="field"><span>Community name</span><input id="spaceName" maxlength="50" minlength="2" required placeholder="DAI Development, Game Design, Research…" /></label>
+      <label class="field"><span>Description</span><textarea id="spaceDescription" maxlength="240" placeholder="What is this community for?"></textarea></label>
+      <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Create community</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="channelDialog" class="modal create-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Create a channel</p>
+    <h2>Add a channel to a community</h2>
+    <p class="muted">Channels are real persisted conversation contexts. Posts and work created inside one remain connected to their community.</p>
+    <form id="channelForm">
+      <label class="field"><span>Community</span><select id="channelCommunity" required></select><small>You can add channels to communities you own.</small></label>
+      <label class="field"><span>Channel name</span><input id="channelName" maxlength="40" minlength="2" required placeholder="general, development, releases…" /></label>
+      <label class="field"><span>Channel type</span><select id="channelType">
+        <option value="discussion">Discussion</option>
+        <option value="ideas">Ideas</option>
+        <option value="problems">Problems</option>
+        <option value="projects">Projects</option>
+        <option value="research">Research</option>
+        <option value="releases">Releases</option>
+        <option value="announcements">Announcements</option>
+      </select><small>The type helps people understand what belongs here and can preselect the matching content kind.</small></label>
+      <label class="field"><span>Description</span><textarea id="channelDescription" maxlength="240" placeholder="What should people use this channel for?"></textarea></label>
+      <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Create channel</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="connectDialog" class="modal create-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Preserve relationships</p>
+    <h2 id="connectDialogTitle">Connect work</h2>
+    <form id="connectForm">
+      <label class="field"><span>Connect to</span><select id="connectTargetObject" required></select></label>
+      <label class="field"><span id="connectRelationLabel">How are they connected?</span><select id="connectRelation">
+        <option value="related to">Related to</option>
+        <option value="context for">Context for</option>
+        <option value="supports">Supports</option>
+        <option value="challenges">Challenges</option>
+        <option value="solves">Solves</option>
+        <option value="depends on">Depends on</option>
+        <option value="inspired by">Inspired by</option>
+      </select></label>
+      <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Save connection</button></div>
+    </form>
+  </dialog>
+
+
+  <dialog id="lfgDialog" class="modal create-modal">
+    <button class="modal-close" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow">Looking for group</p>
+    <h2>Find people through public context, not private contact details.</h2>
+    <form id="lfgForm">
+      <label class="field"><span>What do you want to do?</span><select id="lfgPurpose" required><option value="play">Play together</option><option value="create">Create together</option><option value="share">Share information</option></select></label>
+      <label class="field"><span>Title</span><input id="lfgTitle" maxlength="100" required placeholder="Example: Test a DAI survival pack together" /></label>
+      <label class="field"><span>Game / project / topic</span><input id="lfgTopic" maxlength="80" required placeholder="Minecraft, web development, DAI, research topic…" /></label>
+      <label class="field"><span>Public description</span><textarea id="lfgDescription" maxlength="700" required placeholder="What are you looking to do, and what kind of people would be useful?"></textarea></label>
+      <label class="field"><span>Availability note (public)</span><input id="lfgAvailability" maxlength="120" placeholder="Example: Weekends / flexible / next 2 hours" /></label>
+      <label class="field"><span>Tags</span><input id="lfgTags" maxlength="120" placeholder="minecraft, testing, java" /></label>
+      <div class="tag-row tag-preview" id="lfgTagPreview"><span class="muted tiny">Comma-separate tags.</span></div>
+      <div class="profile-privacy-note"><b>No private contact fields exist here.</b><p>Use the LCS request button after publishing. Do not place email, phone, precise location, legal name, passwords, or external credentials in this public listing.</p></div>
+      <div class="modal-actions"><button class="ghost-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Publish LFG</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog" class="modal detail-modal">
+    <button class="modal-close" id="detailCloseButton" data-close-dialog type="button" aria-label="Close">×</button>
+    <p class="eyebrow" id="detailEyebrow">Details</p>
+    <h2 id="detailTitle">Details</h2>
+    <div id="detailBody"></div>
+    <section class="detail-thread" id="detailThreadSection">
+      <div class="thread-heading"><div><p class="eyebrow">Discussion</p><h3>Keep the reasoning attached.</h3></div></div>
+      <div id="detailCommentList" class="comment-list"></div>
+      <p class="moderation-notice" id="detailTimeoutNote" hidden></p>
+      <form id="detailCommentForm" class="comment-composer">
+        <label class="field"><span>How are you responding?</span><select id="detailCommentReasoning">
+          <option value="unclassified">Just say it</option>
+          <option value="observation">I noticed · Observation</option>
+          <option value="premise">We know · Premise</option>
+          <option value="deduction">This follows · Deduction</option>
+          <option value="assumption">I'm assuming · Assumption</option>
+          <option value="hypothesis">Maybe · Hypothesis</option>
+          <option value="question">I need to know · Question</option>
+        </select></label>
+        <label class="field"><span>Your response</span><textarea id="detailCommentText" maxlength="800" required placeholder="Add context, evidence, a question, or a next step…"></textarea></label>
+        <div class="modal-actions"><button class="primary-button" type="submit">Add response</button></div>
+      </form>
+      <button class="ghost-button" id="detailCommentSignIn" type="button">Sign in to join this discussion</button>
+    </section>
+  </dialog>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+
+  <script type="module" src="assets/js/app.js?v=20260828-mobile-v0710"></script>
+</body>
+</html>

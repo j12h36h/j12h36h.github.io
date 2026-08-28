@@ -1,0 +1,22 @@
+LCS v0.6 STATIC SECURITY REVIEW
+Date: 2026-08-28
+
+Checked application source for direct access/storage of provider PII and credentials.
+- No Google email read/write in LCS application code.
+- No Google account-name read/write in LCS application code.
+- No providerData/photoURL use in LCS application code.
+- No OAuth access/refresh token handling in LCS application code.
+- No service-account/private-key/client-secret material is required by LCS.
+- Firebase Auth UID is held only in client memory as the private authentication key and used only for owner-only privateAccounts/{uid} access and legacy owner cleanup. It is not written to v0.6 public collections.
+- Public records use random publicProfileId values.
+- Founder bootstrap uses systemPrivate/founder.profileId and is not readable/writable by website clients.
+- Timeout assignments are private except to their target and authorized moderation.
+- Moderator action logs are append-only by Firestore rule and contain public IDs/public-content snapshots only.
+- Public content deletion is soft-delete/retention so authorized review remains possible after removal from normal public views.
+
+Firebase Web App browser configuration in assets/js/config.js is intentionally public client configuration. It must be protected using Firebase/Google API restrictions and Firestore rules; it is not a server secret.
+
+Important deployment requirement:
+Publish the included v0.6 firestore.rules. Client UI restrictions are not treated as the security boundary.
+
+Static review cannot replace live Firebase Rules Emulator/integration testing. Firebase CLI/emulator was not available in the build environment for this package.

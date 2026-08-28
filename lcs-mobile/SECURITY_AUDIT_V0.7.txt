@@ -1,0 +1,24 @@
+LCS v0.7 JSON AVATAR STATIC SECURITY REVIEW
+Date: 2026-08-28
+
+Avatar storage
+- Public profile allows one optional avatarJson string, capped by Firestore at 6000 characters.
+- No binary image upload or Firebase Storage integration was added.
+- No external avatar/image/font URL field exists.
+
+Avatar rendering
+- JSON.parse occurs before rendering.
+- Root schema and all layer values are allowlisted and range-validated.
+- Character content and font-family strings are HTML-escaped before generated SVG markup is inserted.
+- Colors must be six-digit hexadecimal values.
+- Font family, weight, and text alignment are allowlisted.
+- Invalid saved definitions fall back to a generated initials definition.
+- Raw user SVG, HTML, CSS, event attributes, URLs, and scripts are never accepted as avatar input.
+
+Identity boundary
+- avatarJson is stored only on the intentionally-public publicProfiles document.
+- Firebase Auth UID mapping remains in privateAccounts and is not added to avatar JSON.
+- No Google name/email/photo/provider data is required by this feature.
+
+Deployment
+- Publish firestore.v07.rules (or firestore.rules) when deploying v0.7.

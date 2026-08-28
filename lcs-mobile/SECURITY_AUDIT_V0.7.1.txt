@@ -1,0 +1,12 @@
+LCS v0.7.1 96-LAYER AVATAR STATIC SECURITY REVIEW
+
+- Avatar JSON remains intentionally public profile data only.
+- Maximum avatar layers: 96.
+- Maximum canonical avatarJson length: 32,000 characters.
+- Each layer is still limited to 1–4 visible characters.
+- No image uploads, external URLs, raw HTML, raw CSS, raw SVG, scripts, external fonts, Firebase Auth UID, Google provider identity, OAuth token, or credential fields were added.
+- Renderer emits its own SVG from validated allowlisted values and HTML-escapes text content.
+- Render cache is bounded to 128 distinct validated avatar SVG definitions.
+
+DEPLOYMENT
+- Publish firestore.v071.rules (or firestore.rules) with v0.7.1.
