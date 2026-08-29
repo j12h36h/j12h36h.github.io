@@ -1,7 +1,7 @@
 // Logical Communication Service configuration.
 // Firebase web configuration values are PUBLIC client configuration, not server secrets.
 // Restrict the browser API key to Firebase-related APIs. If Website/HTTP-referrer restrictions are used,
-// allow BOTH the GitHub Pages host and this Firebase authDomain because the Google popup helper runs there.
+// v0.7.12 mobile auth uses same-origin Firebase auth helpers at j12h36h.github.io/__/auth/.
 // Do not obfuscate the key to evade secret scanning.
 // Never place service-account keys, OAuth client secrets, or private keys in this file.
 
@@ -14,7 +14,7 @@ export const LCS_CONFIG = {
   // This production build requires Firebase for shared authentication and realtime network data.
   firebase: {
     apiKey: "AIzaSyAyoCH-n3rgJ1TgLRa_qxoef9sibggFYOE",
-    authDomain: "logicalcommunicationservice.firebaseapp.com",
+    authDomain: "j12h36h.github.io",
     projectId: "logicalcommunicationservice",
     appId: "1:752872197816:web:d13177e2b26f757438ee4d",
   },

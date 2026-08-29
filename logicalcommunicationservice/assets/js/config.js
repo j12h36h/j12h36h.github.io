@@ -1,7 +1,9 @@
 // Logical Communication Service configuration.
 // Firebase web configuration values are PUBLIC client configuration, not server secrets.
 // Restrict the browser API key to Firebase-related APIs. If Website/HTTP-referrer restrictions are used,
-// allow BOTH the GitHub Pages host and this Firebase authDomain because the Google popup helper runs there.
+// allow BOTH the GitHub Pages host and this Firebase authDomain because the Google popup/redirect helper runs there.
+// Recommended Website referrer patterns: https://j12h36h.github.io/* and https://logicalcommunicationservice.firebaseapp.com/*.
+// If API restrictions are enabled, Firebase Authentication needs Identity Toolkit and Secure Token Service access.
 // Do not obfuscate the key to evade secret scanning.
 // Never place service-account keys, OAuth client secrets, or private keys in this file.
 

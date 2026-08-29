@@ -1,0 +1,23 @@
+Logical Communication Service v0.8.1 — Mobile Google Auth Hardening
+
+Updated: 2026-08-29
+
+CHANGES
+- Preserved the desktop popup authentication behavior.
+- Added mobile popup failure detection and Firebase redirect fallback.
+- Added startup getRedirectResult handling and redirect-loop protection.
+- Added Firebase Auth project-config preflight diagnostics.
+- Added exact HTTP/status diagnostics for browser API-key restrictions when available.
+- Removed misleading wording that claimed LCS manually rewrites Firebase request Referer headers.
+- Added a visible manual "Retry with mobile redirect" path after mobile auth failures.
+- Added mobile-friendly auth modal/error layout.
+- Updated cache-busting asset versions to v0.8.1.
+
+IMPORTANT EXTERNAL SETTINGS
+- Firebase Authorized Domains must include j12h36h.github.io.
+- Browser API-key Website restrictions should allow:
+  https://j12h36h.github.io/*
+  https://logicalcommunicationservice.firebaseapp.com/*
+- API restrictions must allow the Firebase Authentication services used by the web SDK.
+
+No Google email, name, photo, password, OAuth token, provider credential, or Firebase Auth UID is added to public LCS data by this patch.

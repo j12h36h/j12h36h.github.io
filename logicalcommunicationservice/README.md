@@ -1,4 +1,4 @@
-# Logical Communication Service — v0.7.6
+# Logical Communication Service — v0.8.1
 
 LCS v0.7.3 keeps the unified **Status** authorization system and a retained moderation/audit architecture on top of the v0.5 private-auth/public-identity boundary.
 
@@ -71,3 +71,22 @@ Avatar layers accept visible Unicode grapheme characters from non-English writin
 
 ## v0.7.6 Google sign-in compatibility
 The main app now uses `strict-origin-when-cross-origin` rather than `no-referrer`. This allows Firebase/Google browser API key HTTP-referrer restrictions to validate the GitHub Pages origin without exposing the app path or query string cross-origin.
+
+
+## v0.8.1 mobile Google authentication hardening
+- Desktop keeps the existing Google popup sign-in path.
+- Mobile also starts with popup sign-in, but automatically falls back to Firebase redirect sign-in for popup/internal browser failures.
+- Redirect results are processed on startup and cannot loop indefinitely; a missing redirect credential is surfaced as a visible diagnostic.
+- On mobile, before opening Google sign-in, LCS probes the public Firebase Auth project-config endpoint. This exposes browser-key HTTP-referrer/API restriction failures that Firebase can otherwise collapse into `auth/internal-error`.
+- The old error text claiming LCS rewrites Firebase request referrers was removed. The browser remains responsible for the HTTP Referer header under the page's `strict-origin-when-cross-origin` policy.
+- The auth error panel now reports the attempted path, page origin, configured auth domain/project, project-config probe result, HTTP status, and Firebase error message without displaying Google profile data, OAuth credentials, tokens, or the Firebase Auth UID.
+
+### Required Firebase / Google Cloud settings
+1. Firebase Authentication → Settings → Authorized domains: `j12h36h.github.io`.
+2. Keep `authDomain` as `logicalcommunicationservice.firebaseapp.com` in `assets/js/config.js`.
+3. If the browser API key uses Website restrictions, allow:
+   - `https://j12h36h.github.io/*`
+   - `https://logicalcommunicationservice.firebaseapp.com/*`
+4. If API restrictions are enabled on that key, do not block the Firebase Authentication APIs (Identity Toolkit / Secure Token Service).
+
+The website cannot change Google Cloud API-key restrictions from client code. When those external settings are wrong, v0.8.1 now reports the underlying project-config HTTP/status response instead of only `auth/internal-error`.
