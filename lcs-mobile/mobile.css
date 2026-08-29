@@ -1,0 +1,19 @@
+/* LCS v0.8.3 mobile-only presentation layer. Core behavior and styling are shared with desktop. */
+html,body{max-width:100%;overflow-x:hidden}
+body{padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.topbar{padding-top:max(10px,env(safe-area-inset-top));position:sticky;top:0}
+.shell{max-width:100%;padding-left:10px!important;padding-right:10px!important}
+.left-rail{scrollbar-width:none;-webkit-overflow-scrolling:touch;position:sticky!important;top:0!important;z-index:15;background:rgba(9,7,17,.94);backdrop-filter:blur(18px);padding:7px 0;margin:0 -10px 12px;padding-left:10px;padding-right:10px;border-bottom:1px solid var(--line)}
+.left-rail::-webkit-scrollbar{display:none}.primary-nav{gap:5px}.nav-item{padding:10px 12px;min-height:44px}.nav-item span{font-size:15px}.nav-item b{font-size:11px}
+.top-actions{gap:6px}.auth-user{max-width:50vw}.auth-account-main{min-height:40px}.auth-user>#signOutButton{width:38px;height:38px}
+.top-search{min-height:46px}.top-search input{font-size:16px}
+button,.ghost-button,.primary-button,.google-button,.segment,.thought-chip{touch-action:manipulation}.ghost-button,.primary-button{min-height:42px}.google-button{min-height:58px!important}
+.hero-card,.composer,.momentum-console,.catalog-card,.community-card,.account-card,.reasoning-card,.rail-card{border-radius:18px}
+.hero-card{padding:20px 17px}.hero-copy h1,.page-heading h1{font-size:clamp(30px,10vw,40px)}
+.composer textarea,.field input,.field textarea,.field select{font-size:16px}.composer-footer{gap:10px}.composer-actions{width:100%;justify-content:space-between}.composer-actions .primary-button{flex:1}
+.thought-chip{min-height:74px}.momentum-mode{min-height:64px}.momentum-card-actions button,.catalog-actions button{min-height:38px}
+.modal{max-width:calc(100vw - 14px)!important}.auth-modal,.detail-modal,.create-modal{width:calc(100vw - 14px)!important;max-height:calc(100dvh - 20px)!important}
+dialog[open]{margin-top:max(10px,env(safe-area-inset-top));margin-bottom:max(10px,env(safe-area-inset-bottom))}.modal-close{width:42px;height:42px}
+.auth-diagnostics{font-size:11px;max-height:220px}.auth-redirect-retry{min-height:48px}
+.universe-panel{height:min(62vh,560px)!important}.universe-node{min-width:58px;min-height:42px}
+@media(max-width:430px){.brand-copy small{display:none}.brand-mark{width:36px;height:36px}.topbar{padding-left:10px;padding-right:10px}.top-search{grid-column:1/-1}.shell{padding-top:8px!important}.thought-picker,.momentum-mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.session-impact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.post-card{border-radius:16px}.post-actions{overflow-x:auto;flex-wrap:nowrap}.post-actions button{white-space:nowrap}.account-actions,.account-action-buttons{width:100%}.account-action-buttons button{flex:1 1 140px}.category-momentum-actions{padding-bottom:4px}}

@@ -7,21 +7,22 @@
 <meta content="#0c0a15" name="theme-color"/>
 <meta content="Logical Communication Service — a browser-based network for ideas, projects, problems, collaboration, and clear reasoning." name="description"/>
 <meta content="strict-origin-when-cross-origin" name="referrer"/>
-<meta content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google.com; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" http-equiv="Content-Security-Policy"/>
-<title>Logical Communication Service · Mobile</title>
-<link href="assets/icons/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://*.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" http-equiv="Content-Security-Policy"/>
+<title>Logical Communication Service</title>
+<link href="../logicalcommunicationservice/assets/icons/favicon.svg" rel="icon" type="image/svg+xml"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link href="https://www.gstatic.com" rel="dns-prefetch"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" rel="modulepreload"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" rel="modulepreload"/>
-<link href="assets/css/styles.css?v=20260828-momentum-v080" rel="stylesheet"/>
+<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v083" rel="stylesheet"/>
+<link href="mobile.css?v=20260829-v083" rel="stylesheet"/>
 </head>
-<body class="mobile-build">
+<body>
 <div class="ambient ambient-a"></div>
 <div class="ambient ambient-b"></div>
 <div class="grid-haze"></div>
 <header class="topbar">
-<a aria-label="Logical Communication Service home" class="brand" href="./">
+<a aria-label="Logical Communication Service home" class="brand" href="/lcs-mobile/">
 <span aria-hidden="true" class="brand-mark">
 <span class="orbit orbit-a"></span>
 <span class="orbit orbit-b"></span>
@@ -29,7 +30,7 @@
 </span>
 <span class="brand-copy">
 <strong>Logical</strong>
-<small>Communication Service · Mobile</small>
+<small>Communication Service</small>
 </span>
 </a>
 <div class="top-search">
@@ -39,7 +40,7 @@
 <div class="search-panel" hidden="" id="searchResultsPanel"></div>
 </div>
 <div class="top-actions">
-<a class="ghost-button dai-return-link" href="/logicalcommunicationservice/">Desktop LCS</a>
+<a class="ghost-button dai-return-link" href="/dai/">DAI Universe</a>
 <button class="ghost-button" id="explainButton" type="button">How this works</button>
 <div id="authArea"></div>
 </div>
@@ -75,7 +76,7 @@
 <footer class="rail-footer">
 <a href="privacy.html">Privacy</a>
 <a href="terms.html">Terms</a>
-<span>LCS v0.8 · Momentum</span>
+<span>LCS v0.8.2 · Momentum</span>
 </footer>
 </aside>
 <section class="content-column">
@@ -494,11 +495,13 @@
 <b id="authErrorTitle">Google sign-in needs attention</b>
 <p id="authErrorText"></p>
 <code id="authErrorCode"></code>
+<pre class="auth-diagnostics" hidden="" id="authDiagnosticDetails"></pre>
+<button class="ghost-button auth-redirect-retry" hidden="" id="authRedirectRetryButton" type="button">Retry Google sign-in</button>
 </div>
 <p class="tiny muted">By continuing, you agree to the <a href="terms.html">Terms</a> and acknowledge the <a href="privacy.html">Privacy Policy</a>.</p>
 <div class="setup-warning" hidden="" id="authSetupWarning">
 <b>Owner setup needed</b>
-<p>Firebase is not configured yet. Add the public Firebase web config in <code>assets/js/config.js</code>, enable Google sign-in, add <code>j12h36h.github.io</code> as an authorized domain, and deploy the v0.7.12 same-origin helper files at <code>/__/auth/</code>.</p>
+<p>Firebase is not configured yet. Add the public Firebase web config in <code>assets/js/config.js</code>, enable Google sign-in, and add <code>j12h36h.github.io</code> as an authorized domain. If the Firebase Web API key has Website restrictions, also allow <code>logicalcommunicationservice.firebaseapp.com</code> because Firebase hosts the Google popup/redirect helper there.</p>
 <a href="https://console.firebase.google.com/" rel="noreferrer" target="_blank">Open Firebase Console ↗</a>
 </div>
 </dialog>
@@ -601,6 +604,6 @@
 <div class="impact-recap" id="impactRecap"></div>
 <div class="modal-actions"><button class="ghost-button" id="resetSessionImpact" type="button">Clear session recap</button><button class="primary-button" data-close-dialog="" type="button">Keep building</button></div>
 </dialog><div aria-live="polite" class="toast-region" id="toastRegion"></div>
-<script src="assets/js/app.js?v=20260828-momentum-v080" type="module"></script>
+<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v083" type="module"></script>
 </body>
 </html>

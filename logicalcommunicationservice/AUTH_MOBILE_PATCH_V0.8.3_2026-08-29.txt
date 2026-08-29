@@ -1,0 +1,11 @@
+LCS v0.8.3 — synchronized mobile client + mobile route handoff
+
+- /logicalcommunicationservice/ now automatically moves mobile browsers to /lcs-mobile/.
+- Desktop behavior remains unchanged for non-mobile browsers.
+- ?desktop=1 bypasses the automatic mobile handoff for diagnostics.
+- The /lcs-mobile/ client uses the same v0.8.3 application JavaScript and base stylesheet as desktop, preventing the mobile logic layer from falling behind.
+- Mobile keeps a small local CSS override only for touch/layout behavior.
+- Removed automatic popup -> redirect fallback on mobile GitHub Pages. Firebase redirect can lose state on externally hosted sites when cross-origin storage is restricted.
+- A mobile auth/internal-error now waits briefly for a delayed Firebase Auth state before reporting failure.
+- Retry button now retries the primary Google popup flow rather than redirect.
+- Durable browserLocalPersistence remains enabled before sign-in and during Firebase initialization.
