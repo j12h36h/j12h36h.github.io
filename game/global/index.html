@@ -8,7 +8,7 @@
   <title>Global Tactical Table — E.R.A.S.</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=1.6.0">
+  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=1.6.1">
 </head>
 <body class="global-page tactical-global-page">
   <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
@@ -28,7 +28,8 @@
       <div class="global-hud-box"><b>MOVEMENT</b><span>WASD / ARROWS // CLICK BOARD TO AUTO-MOVE</span></div>
     </div>
 
-    <section class="global-map tactical-board" id="globalMap" aria-label="Top-down E.R.A.S. tactical battlefield">
+    <div class="global-map-viewport" id="globalViewport" aria-label="Player-follow tactical camera viewport">
+      <section class="global-map tactical-board" id="globalMap" aria-label="Top-down E.R.A.S. tactical battlefield">
       <div class="battle-zone battle-zone-north" aria-hidden="true"></div>
       <div class="battle-zone battle-zone-south" aria-hidden="true"></div>
       <div class="battle-wall wall-a" aria-hidden="true"></div>
@@ -40,7 +41,8 @@
       <button class="battle-object objective-terminal" type="button" data-tactical-target="north-terminal" data-target-label="NORTH TERMINAL"><i></i><span>NORTH TERMINAL</span></button>
       <span class="world-landmark landmark-a">NORTH PLATFORM</span>
       <span class="world-landmark landmark-b">SLIME YARD</span>
-    </section>
+      </section>
+    </div>
 
 
     <details class="game-log-panel" open>
@@ -70,6 +72,6 @@
   </main>
 
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./global.js?v=1.6.0"></script>
+  <script type="module" src="./global.js?v=1.6.1"></script>
 </body>
 </html>

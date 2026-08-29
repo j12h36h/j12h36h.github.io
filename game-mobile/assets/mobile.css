@@ -14,3 +14,31 @@
 /* E.R.A.S. v1.6.0 — credits + cache slimes */
 .mobile-credit-header{flex:0 0 auto;min-height:28px;padding:0 7px;display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(255,225,133,.16);background:rgba(34,27,8,.38);color:#d9c778;font:800 7px/1 var(--m-mono);letter-spacing:.05em;white-space:nowrap}.mobile-credit-header b{color:#fff0a7;font-size:9px}.enemy-token{position:absolute;z-index:11;width:62px;height:78px;padding:0;border:0;background:transparent;color:inherit;transform:translate3d(-50%,-50%,0);touch-action:manipulation;font-family:var(--m-mono)}.enemy-base{position:relative;width:55px;height:55px;margin:0 auto;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(129,226,141,.34);background:radial-gradient(circle,rgba(82,196,103,.16),rgba(5,18,10,.92) 67%);box-shadow:0 7px 0 #020506,0 9px 11px rgba(0,0,0,.48),0 0 14px rgba(81,211,104,.12)}.enemy-sprite{position:relative;z-index:2;width:42px;height:42px;display:grid;place-items:center;overflow:hidden;border-radius:50%}.enemy-sprite img{width:39px;height:39px;object-fit:contain;filter:sepia(1) saturate(4) hue-rotate(68deg) brightness(1.05)}.enemy-health{--enemy-hp:100%;position:absolute;z-index:4;left:9px;right:9px;bottom:6px;height:3px;background:rgba(255,255,255,.07)}.enemy-health::after{content:"";display:block;width:var(--enemy-hp);height:100%;background:#77dc83}.enemy-token>strong{position:absolute;left:50%;top:59px;transform:translateX(-50%);min-width:96px;padding:3px 4px;border:1px solid rgba(117,217,132,.1);background:rgba(0,8,4,.86);color:#bdeac2;font:900 6px/1 var(--m-mono);letter-spacing:.04em;white-space:nowrap;text-align:center}.enemy-token>small{position:absolute;left:50%;top:70px;transform:translateX(-50%);color:#6f9b74;font:800 4.5px/1 var(--m-mono);white-space:nowrap}.enemy-token.is-selected .enemy-base{border-color:#fff1a7;box-shadow:0 7px 0 #020506,0 9px 11px rgba(0,0,0,.48),0 0 0 2px rgba(255,241,167,.9),0 0 20px rgba(255,226,105,.23)}.enemy-token.is-dead{opacity:.47;filter:grayscale(.75)}.enemy-token.is-dead .enemy-base{transform:scaleY(.55);transform-origin:center bottom}.enemy-token.action-resolved .enemy-base{animation:mActionResolve 1.05s ease-out}.player-token.player-death-pulse .player-base{animation:mPlayerDeath 1.05s ease-out}@keyframes mPlayerDeath{0%{box-shadow:0 0 0 0 rgba(255,90,109,.9)}100%{box-shadow:0 0 0 28px rgba(255,90,109,0)}}
 @media(max-width:390px){.mobile-credit-header{padding:0 5px;font-size:6px}.enemy-token{width:56px}.enemy-base{width:50px;height:50px}.enemy-sprite{width:38px;height:38px}.enemy-sprite img{width:35px;height:35px}.enemy-token>strong{top:54px;min-width:84px;font-size:5px}.enemy-token>small{top:64px;font-size:4px}}
+
+/* ============================================================
+   E.R.A.S. v1.6.1 — mobile player-follow camera + soft zone
+   ============================================================ */
+.mobile-global-viewport{
+  position:absolute;
+  left:8px;
+  right:8px;
+  top:72px;
+  bottom:8px;
+  overflow:hidden;
+  border:1px solid rgba(151,239,241,.15);
+  background:#02090b;
+  box-shadow:inset 0 0 48px rgba(0,0,0,.48);
+}
+.tactical-mobile-global .mobile-global-viewport .mobile-global-map{
+  position:absolute;
+  left:0;
+  right:auto;
+  top:0;
+  bottom:auto;
+  width:175%;
+  height:175%;
+  border:0;
+  will-change:transform;
+  transform:translate3d(0,0,0);
+  transform-origin:0 0;
+}

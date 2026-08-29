@@ -22,6 +22,13 @@ const SLIME_DEFS = Object.freeze([
   { key: 'cache-slime-b', label: 'CACHE SLIME B', x: 85.0, y: 77.0, tint: '#8ee767' }
 ]);
 
+// Camera follows the local token through a small central soft zone instead
+// of pinning every movement pixel directly to screen center. This keeps
+// movement readable while preventing the player from drifting off-screen.
+const CAMERA_SOFT_ZONE_X = 0.12;
+const CAMERA_SOFT_ZONE_Y = 0.14;
+const CAMERA_FOLLOW_STRENGTH = 11;
+
 const state = {
   identity: null,
   x: 50,
@@ -61,7 +68,12 @@ const state = {
   pruningActions: new Set(),
   resolvingActions: new Set(),
   combatMarkerInFlight: new Set(),
-  lastPruneAt: 0
+  lastPruneAt: 0,
+  cameraX: 0,
+  cameraY: 0,
+  cameraTargetX: 0,
+  cameraTargetY: 0,
+  cameraInitialized: false
 };
 
 const message = text => {
@@ -208,6 +220,69 @@ function ensureToken(id, profile, isLocal = false) {
 function updateToken(el, x, y) {
   el.style.left = `${Math.max(2, Math.min(98, x))}%`;
   el.style.top = `${Math.max(3, Math.min(96, y))}%`;
+}
+
+function cameraElements() {
+  const viewport = $('#globalViewport');
+  const map = $('#globalMap');
+  return viewport && map ? { viewport, map } : null;
+}
+
+function clampCamera(value, viewportSize, worldSize) {
+  const minimum = Math.min(0, viewportSize - worldSize);
+  return Math.max(minimum, Math.min(0, value));
+}
+
+function resetCamera(snap = true) {
+  state.cameraInitialized = false;
+  if (snap) updateCamera(1 / 60, true);
+}
+
+function updateCamera(dt, snap = false) {
+  const els = cameraElements();
+  if (!els) return;
+  const { viewport, map } = els;
+  const vw = viewport.clientWidth;
+  const vh = viewport.clientHeight;
+  const mw = map.offsetWidth;
+  const mh = map.offsetHeight;
+  if (!vw || !vh || !mw || !mh) return;
+
+  const playerWorldX = Math.max(0, Math.min(1, state.x / 100)) * mw;
+  const playerWorldY = Math.max(0, Math.min(1, state.y / 100)) * mh;
+
+  if (!state.cameraInitialized) {
+    state.cameraX = clampCamera(vw * .5 - playerWorldX, vw, mw);
+    state.cameraY = clampCamera(vh * .5 - playerWorldY, vh, mh);
+    state.cameraTargetX = state.cameraX;
+    state.cameraTargetY = state.cameraY;
+    state.cameraInitialized = true;
+  } else {
+    const screenX = playerWorldX + state.cameraTargetX;
+    const screenY = playerWorldY + state.cameraTargetY;
+    const zoneLeft = vw * (.5 - CAMERA_SOFT_ZONE_X);
+    const zoneRight = vw * (.5 + CAMERA_SOFT_ZONE_X);
+    const zoneTop = vh * (.5 - CAMERA_SOFT_ZONE_Y);
+    const zoneBottom = vh * (.5 + CAMERA_SOFT_ZONE_Y);
+
+    if (screenX < zoneLeft) state.cameraTargetX += zoneLeft - screenX;
+    else if (screenX > zoneRight) state.cameraTargetX -= screenX - zoneRight;
+    if (screenY < zoneTop) state.cameraTargetY += zoneTop - screenY;
+    else if (screenY > zoneBottom) state.cameraTargetY -= screenY - zoneBottom;
+
+    state.cameraTargetX = clampCamera(state.cameraTargetX, vw, mw);
+    state.cameraTargetY = clampCamera(state.cameraTargetY, vh, mh);
+  }
+
+  if (snap) {
+    state.cameraX = state.cameraTargetX;
+    state.cameraY = state.cameraTargetY;
+  } else {
+    const blend = 1 - Math.exp(-CAMERA_FOLLOW_STRENGTH * Math.max(0, dt));
+    state.cameraX += (state.cameraTargetX - state.cameraX) * blend;
+    state.cameraY += (state.cameraTargetY - state.cameraY) * blend;
+  }
+  map.style.transform = `translate3d(${state.cameraX.toFixed(2)}px, ${state.cameraY.toFixed(2)}px, 0)`;
 }
 
 function renderLocalBase() {
@@ -474,6 +549,7 @@ async function restorePosition() {
       state.lastCombatTurn = Math.max(0, Number(snap.data().lastCombatTurn || 0));
     }
     updateToken(ensureToken(state.identity.profileId, state.identity.profile, true), state.x, state.y);
+    resetCamera(true);
     renderLocalBase();
   } catch (error) {
     console.error(error);
@@ -1013,6 +1089,7 @@ async function applySlimeRetaliation(currentTurn) {
     state.x = 50; state.y = 50; state.vx = 0; state.vy = 0; state.moveUsed = 0; state.autoTarget = null;
     const token = state.tokenMap.get(state.identity.profileId);
     if (token) { updateToken(token, state.x, state.y); token.classList.add('player-death-pulse'); setTimeout(() => token.classList.remove('player-death-pulse'), 1200); }
+    resetCamera(true);
     message(`YOU WERE DOWNED BY THE CACHE SLIMES // -${result.lost || 0} CREDITS // RESPAWNED.`);
   } else {
     state.hp = Math.max(0, Number(result?.hp ?? state.hp));
@@ -1127,6 +1204,7 @@ function frame(t) {
     flushPresence(false);
     renderRemote(dt);
   }
+  updateCamera(dt);
   requestAnimationFrame(frame);
 }
 
@@ -1195,6 +1273,9 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', () => {
   if (state.identity?.profileId) fs.deleteDoc(fs.doc(db, 'gamePresence', presenceId(state.identity.profileId))).catch(() => {});
 });
+
+window.addEventListener('resize', () => resetCamera(true));
+window.addEventListener('orientationchange', () => setTimeout(() => resetCamera(true), 80));
 
 setupBattlefieldTargets();
 renderMovementHud();
