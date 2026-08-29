@@ -14,7 +14,11 @@ const state = {
   profileCache: new Map(),
   catalog: { assets: [] },
   filter: 'active',
-  recipientTimers: new Map()
+  recipientTimers: new Map(),
+  connections: [],
+  connectionsUnsub: null,
+  connectionFilter: '',
+  selectedConnectionId: ''
 };
 
 const TRADE_ACTIVE = new Set(['pending','locked']);
@@ -57,6 +61,52 @@ function scheduleRecipientLookup(inputId, previewId) {
     },220);
     state.recipientTimers.set(inputId,timer);
   });
+}
+
+function connectionRows() {
+  const needle=state.connectionFilter.trim().toLowerCase();
+  return state.connections
+    .map(id=>({id,profile:state.profileCache.get(id)||null}))
+    .filter(row=>!needle || row.id.toLowerCase().includes(needle) || String(row.profile?.displayName||'').toLowerCase().includes(needle))
+    .sort((a,b)=>String(a.profile?.displayName||a.id).localeCompare(String(b.profile?.displayName||b.id)));
+}
+
+function renderConnections() {
+  const root=$('#tradeConnections'), count=$('#connectionCount'); if(!root)return;
+  if(!state.identity?.profileId){if(count)count.textContent='0';root.innerHTML='<p class="trade-empty">SIGN IN TO LOAD YOUR LCS CONNECTIONS.</p>';return;}
+  if(count)count.textContent=String(state.connections.length);
+  if(!state.connections.length){root.innerHTML='<p class="trade-empty">NO ACCEPTED LCS CONNECTIONS YET.</p>';return;}
+  const rows=connectionRows();
+  if(!rows.length){root.innerHTML='<p class="trade-empty">NO CONNECTIONS MATCH THAT SEARCH.</p>';return;}
+  root.innerHTML=rows.map(({id,profile})=>`<button class="connection-card ${state.selectedConnectionId===id?'is-selected':''}" type="button" data-select-connection="${escapeHtml(id)}" aria-label="Use ${escapeHtml(profile?.displayName||profileName(id))} as trade recipient"><span class="connection-avatar">${profile?avatarSvg(profile):'<span class="connection-avatar-loading">…</span>'}</span><span class="connection-copy"><b>${escapeHtml(profile?.displayName||profileName(id))}</b><small>${escapeHtml(shortId(id))}</small></span><span class="connection-use">USE</span></button>`).join('');
+}
+
+async function hydrateConnections(ids) {
+  await Promise.all(ids.map(id=>hydrateProfile(id)));
+  renderConnections();
+}
+
+function watchConnections() {
+  state.connectionsUnsub?.(); state.connections=[]; state.selectedConnectionId=''; renderConnections();
+  const pid=state.identity?.profileId; if(!pid)return;
+  const q=fs.query(fs.collection(db,'privateFriendships'),fs.where('members','array-contains',pid),fs.limit(250));
+  state.connectionsUnsub=fs.onSnapshot(q,s=>{
+    state.connections=[...new Set(s.docs.flatMap(d=>(d.data().members||[]).filter(id=>id&&id!==pid)))];
+    if(state.selectedConnectionId&&!state.connections.includes(state.selectedConnectionId))state.selectedConnectionId='';
+    renderConnections(); hydrateConnections(state.connections).catch(e=>console.debug('Trade connection profiles',e?.code||e));
+  },e=>{console.error('Trade connections',e);const root=$('#tradeConnections');if(root)root.innerHTML='<p class="trade-empty">COULD NOT LOAD LCS CONNECTIONS.</p>';});
+}
+
+async function selectConnection(profileId) {
+  if(!profileId||profileId===state.identity?.profileId)return;
+  const profile=await hydrateProfile(profileId); if(!profile)return toast('Connection profile is unavailable');
+  state.selectedConnectionId=profileId; renderConnections();
+  [['#transferRecipient','#transferRecipientPreview'],['#tradeRecipient','#tradeRecipientPreview']].forEach(([inputId,previewId])=>{
+    clearTimeout(state.recipientTimers.get(inputId));
+    const input=$(inputId); if(input)input.value=profileId;
+    recipientPreview(previewId,profile);
+  });
+  toast(`${profile.displayName||'Connection'} selected`);
 }
 
 async function migrateLegacyInventory() {
@@ -247,7 +297,9 @@ async function completeTrade(tradeId) {
 function bind() {
   scheduleRecipientLookup('#transferRecipient','#transferRecipientPreview');scheduleRecipientLookup('#tradeRecipient','#tradeRecipientPreview');
   $('#creditTransferForm')?.addEventListener('submit',sendCredits);$('#createTradeForm')?.addEventListener('submit',createTrade);
-  document.addEventListener('click',e=>{const t=e.target.closest('[data-trade-filter],[data-lock-trade],[data-decline-trade],[data-cancel-trade],[data-complete-trade]');if(!t)return;
+  $('#connectionSearch')?.addEventListener('input',e=>{state.connectionFilter=e.target.value||'';renderConnections();});
+  document.addEventListener('click',e=>{const t=e.target.closest('[data-select-connection],[data-trade-filter],[data-lock-trade],[data-decline-trade],[data-cancel-trade],[data-complete-trade]');if(!t)return;
+    if(t.dataset.selectConnection){selectConnection(t.dataset.selectConnection);return;}
     if(t.dataset.tradeFilter){state.filter=t.dataset.tradeFilter;document.querySelectorAll('[data-trade-filter]').forEach(b=>b.classList.toggle('is-active',b===t));renderTradeBook();return;}
     if(t.dataset.lockTrade)lockRecipientSide(t.dataset.lockTrade);if(t.dataset.declineTrade)closeTrade(t.dataset.declineTrade,'declined');if(t.dataset.cancelTrade)closeTrade(t.dataset.cancelTrade,'cancelled');if(t.dataset.completeTrade)completeTrade(t.dataset.completeTrade);
   });
@@ -267,7 +319,7 @@ async function init() {
   const params=new URLSearchParams(location.search),prefill=params.get('with')||'';if(PROFILE_RE.test(prefill)){['#transferRecipient','#tradeRecipient'].forEach(s=>{const el=$(s);if(el){el.value=prefill;el.dispatchEvent(new Event('input'));}});focusPrefilledMode(params);}
   watchIdentity(identity=>{
     state.identity=identity; if(identity?.profileId&&identity.profile)state.profileCache.set(identity.profileId,identity.profile);
-    watchCredits();watchHoldings();watchTrades();
+    watchCredits();watchHoldings();watchTrades();watchConnections();
     if(!identity?.profileId){feedback('#transferFeedback','Sign in to send Credits.');feedback('#tradeFeedback','Sign in to create trades.');}
   });
 }

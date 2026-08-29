@@ -8,7 +8,7 @@
   <title>Trade Center — E.R.A.S.</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="./assets/trade.css?v=1.8.1">
+  <link rel="stylesheet" href="./assets/trade.css?v=1.8.2">
 </head>
 <body class="trade-page">
   <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
@@ -23,8 +23,20 @@
       <div class="trade-wallet"><small>YOUR BALANCE</small><strong>◈ <span id="tradeCreditBalance">0</span></strong><em>CREDITS</em></div>
     </section>
 
-    <section class="trade-grid">
-      <section class="trade-panel transfer-panel">
+    <section class="trade-workspace">
+      <aside class="trade-panel connections-panel" aria-labelledby="connectionsTitle">
+        <header><span>00</span><div><p>LCS SOCIAL GRAPH</p><h2 id="connectionsTitle">YOUR CONNECTIONS</h2></div><b class="connection-count" id="connectionCount">0</b></header>
+        <div class="connection-tools">
+          <label for="connectionSearch">FIND CONNECTION</label>
+          <input id="connectionSearch" type="search" autocomplete="off" placeholder="Name or profile ID">
+          <small>CLICK A PROFILE TO FILL BOTH RECIPIENT FIELDS.</small>
+        </div>
+        <div id="tradeConnections" class="connection-list"><p class="trade-empty">SIGN IN TO LOAD YOUR LCS CONNECTIONS.</p></div>
+      </aside>
+
+      <div class="trade-main">
+        <section class="trade-grid">
+          <section class="trade-panel transfer-panel">
         <header><span>01</span><div><p>DIRECT EXCHANGE</p><h2>SEND CREDITS</h2></div></header>
         <form id="creditTransferForm" class="trade-form">
           <label><span>RECIPIENT PUBLIC PROFILE ID</span><input id="transferRecipient" maxlength="36" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required></label>
@@ -51,21 +63,23 @@
         </form>
       </section>
 
-      <section class="trade-panel inventory-panel">
-        <header><span>03</span><div><p>OWNERSHIP</p><h2>TRADEABLE ASSETS</h2></div></header>
-        <div id="tradeInventory" class="trade-inventory"><p class="trade-empty">SIGN IN TO LOAD YOUR INVENTORY.</p></div>
-      </section>
-    </section>
+          <section class="trade-panel inventory-panel">
+            <header><span>03</span><div><p>OWNERSHIP</p><h2>TRADEABLE ASSETS</h2></div></header>
+            <div id="tradeInventory" class="trade-inventory"><p class="trade-empty">SIGN IN TO LOAD YOUR INVENTORY.</p></div>
+          </section>
+        </section>
 
-    <section class="trade-panel trade-book-panel">
-      <header><span>04</span><div><p>LIVE EXCHANGES</p><h2>YOUR TRADE BOOK</h2></div><div class="trade-book-tabs"><button class="is-active" data-trade-filter="active" type="button">ACTIVE</button><button data-trade-filter="history" type="button">HISTORY</button></div></header>
-      <div id="tradeBook" class="trade-book"><p class="trade-empty">SIGN IN TO LOAD PLAYER TRADES.</p></div>
+        <section class="trade-panel trade-book-panel">
+          <header><span>04</span><div><p>LIVE EXCHANGES</p><h2>YOUR TRADE BOOK</h2></div><div class="trade-book-tabs"><button class="is-active" data-trade-filter="active" type="button">ACTIVE</button><button data-trade-filter="history" type="button">HISTORY</button></div></header>
+          <div id="tradeBook" class="trade-book"><p class="trade-empty">SIGN IN TO LOAD PLAYER TRADES.</p></div>
+        </section>
+      </div>
     </section>
   </main>
 
   <div class="trade-toast-region" id="tradeToastRegion" aria-live="polite"></div>
   <script src="/game/assets/js/site.js"></script>
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./assets/trade.js?v=1.8.1"></script>
+  <script type="module" src="./assets/trade.js?v=1.8.2"></script>
 </body>
 </html>
