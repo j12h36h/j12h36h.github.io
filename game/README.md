@@ -1,3 +1,8 @@
+
+## v1.7.1 Death-clears-scoreboard patch
+
+Global leaderboard kills now represent the player's current life/run rather than an all-time total. Any Global death—PvE or PvP—atomically resets that player's PvE and PvP kill counters to zero. Zero-score profiles are hidden from both top-five lists and reappear only after earning another kill. PvP deaths still cost no Credits; PvE deaths retain the existing Credit-loss rule. The reset is tied to the authoritative death event id so the same death cannot be replayed to erase later kills.
+
 # Project E.R.A.S. : Universe
 
 Static GitHub Pages package for **Project E.R.A.S. : Universe** — the **External Reality Access System**.

@@ -44,7 +44,7 @@
 }
 
 /* ============================================================
-   E.R.A.S. Mobile v1.7.0 — roaming slimes, rest, PvP + records
+   E.R.A.S. Mobile v1.7.1 — roaming slimes, rest, PvP + records
    ============================================================ */
 .enemy-token.is-wandering{transition:left 12s linear,top 12s linear}.enemy-token.is-combat{transition:none}.enemy-token.is-combat .enemy-base{border-color:rgba(255,120,120,.48);box-shadow:0 8px 0 #020506,0 10px 13px rgba(0,0,0,.5),0 0 19px rgba(255,82,82,.18)}
 .tactical-buttons .is-rest{color:#a9e7b8;border-color:rgba(126,225,155,.25);background:rgba(75,158,97,.08)}.tactical-buttons .tactical-button-wide{grid-column:1/-1}

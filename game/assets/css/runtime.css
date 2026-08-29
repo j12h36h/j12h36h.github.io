@@ -208,7 +208,7 @@ body.global-page{overflow:hidden}.global-shell{position:relative;width:100%;heig
 }
 
 /* ============================================================
-   E.R.A.S. v1.7.0 — roaming slimes, rest, PvP + Global records
+   E.R.A.S. v1.7.1 — roaming slimes, rest, PvP + Global records
    ============================================================ */
 .enemy-token.is-wandering{transition:left 12s linear,top 12s linear}.enemy-token.is-combat{transition:none}.enemy-token.is-combat .enemy-base{border-color:rgba(255,120,120,.48);box-shadow:0 8px 0 #020506,0 11px 15px rgba(0,0,0,.55),0 0 24px rgba(255,82,82,.2)}
 .tactical-buttons .is-rest{border-color:rgba(126,225,155,.28);color:#a9e7b8;background:rgba(75,158,97,.09)}.tactical-buttons .is-rest:hover:not(:disabled){border-color:rgba(150,244,177,.55);background:rgba(75,158,97,.16)}.tactical-buttons .tactical-button-wide{grid-column:1/-1}

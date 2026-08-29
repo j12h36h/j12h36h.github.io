@@ -1,5 +1,5 @@
-import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.0';
-import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.0';
+import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.1';
+import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.1';
 import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 const $ = selector => document.querySelector(selector);
@@ -233,6 +233,7 @@ async function ensureGlobalStats(profileId = state.identity?.profileId) {
       pvpKills: 0,
       lastPveKillActionId: '',
       lastPvpKillActionId: '',
+      lastResetDeathEventId: '',
       createdAt: fs.serverTimestamp(),
       updatedAt: fs.serverTimestamp()
     });
@@ -1034,8 +1035,11 @@ function renderScoreboard() {
   const host = $('#globalScoreboard');
   if (!host) return;
   const entries = [...state.globalStats.values()];
-  const pve = [...entries].sort((a, b) => Number(b.pveKills || 0) - Number(a.pveKills || 0) || String(a.profileId).localeCompare(String(b.profileId))).slice(0, 5);
-  const pvp = [...entries].sort((a, b) => Number(b.pvpKills || 0) - Number(a.pvpKills || 0) || String(a.profileId).localeCompare(String(b.profileId))).slice(0, 5);
+  // A death clears that player's current Global scoreboard run. Keep zeroed
+  // records out of the visible top-five lists so a respawn actually removes
+  // the player until they earn another kill.
+  const pve = [...entries].filter(entry => Number(entry.pveKills || 0) > 0).sort((a, b) => Number(b.pveKills || 0) - Number(a.pveKills || 0) || String(a.profileId).localeCompare(String(b.profileId))).slice(0, 5);
+  const pvp = [...entries].filter(entry => Number(entry.pvpKills || 0) > 0).sort((a, b) => Number(b.pvpKills || 0) - Number(a.pvpKills || 0) || String(a.profileId).localeCompare(String(b.profileId))).slice(0, 5);
   const rows = (list, key) => list.length ? list.map((entry, index) => {
     const name = state.profiles.get(entry.profileId)?.displayName || (entry.profileId === state.identity?.profileId ? state.identity?.profile?.displayName || 'YOU' : 'PLAYER');
     return `<li><i>${index + 1}</i><b>${escapeLog(name)}</b><strong>${Math.max(0, Number(entry[key] || 0))}</strong></li>`;
@@ -1307,6 +1311,7 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
             pvpKills: Math.max(0, Number(stats.pvpKills || 0)),
             lastPveKillActionId: id,
             lastPvpKillActionId: String(stats.lastPvpKillActionId || ''),
+            lastResetDeathEventId: String(stats.lastResetDeathEventId || ''),
             updatedAt: fs.serverTimestamp()
           });
         }
@@ -1333,9 +1338,10 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
     const attackerRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
     const targetRef = fs.doc(db, 'gamePresence', presenceId(action.targetId));
     const statsRef = statsDocRef(state.identity.profileId);
+    const targetStatsRef = statsDocRef(action.targetId);
     const result = await firestoreRunTransaction(db, async tx => {
-      const [actionSnap, attackerSnap, targetSnap, statsSnap] = await Promise.all([
-        tx.get(actionRef), tx.get(attackerRef), tx.get(targetRef), tx.get(statsRef)
+      const [actionSnap, attackerSnap, targetSnap, statsSnap, targetStatsSnap] = await Promise.all([
+        tx.get(actionRef), tx.get(attackerRef), tx.get(targetRef), tx.get(statsRef), tx.get(targetStatsRef)
       ]);
       if (!actionSnap.exists() || !attackerSnap.exists() || !targetSnap.exists()) return { skipped: true };
       const liveAction = actionSnap.data();
@@ -1360,12 +1366,13 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
         actionTurn: Math.max(0, Number(target.actionTurn || 0)),
         updatedAt: fs.serverTimestamp()
       };
+      const deathEventId = killed ? `pvp_${id}`.slice(0, 180) : '';
       if (killed) {
         Object.assign(targetPatch, {
           x: 50, y: 50, vx: 0, vy: 0,
           moveUsed: 0,
           deaths: Math.max(0, Number(target.deaths || 0)) + 1,
-          lastDeathEventId: `pvp_${id}`.slice(0, 180)
+          lastDeathEventId: deathEventId
         });
       }
       tx.update(targetRef, targetPatch);
@@ -1377,6 +1384,18 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
           pvpKills: Math.max(0, Number(stats.pvpKills || 0)) + 1,
           lastPveKillActionId: String(stats.lastPveKillActionId || ''),
           lastPvpKillActionId: id,
+          lastResetDeathEventId: String(stats.lastResetDeathEventId || ''),
+          updatedAt: fs.serverTimestamp()
+        });
+      }
+      if (killed && worldId === 'global' && targetStatsSnap.exists()) {
+        const targetStats = targetStatsSnap.data();
+        tx.update(targetStatsRef, {
+          pveKills: 0,
+          pvpKills: 0,
+          lastPveKillActionId: String(targetStats.lastPveKillActionId || ''),
+          lastPvpKillActionId: String(targetStats.lastPvpKillActionId || ''),
+          lastResetDeathEventId: deathEventId,
           updatedAt: fs.serverTimestamp()
         });
       }
@@ -1496,6 +1515,7 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
   await ensureCreditWallet(db, fs, state.identity.profileId);
   const presenceRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
   const walletRef = fs.doc(db, 'creditWallets', state.identity.profileId);
+  const statsRef = statsDocRef(state.identity.profileId);
   // Retaliation is captured at the exact global marker before player attacks
   // resolve. That makes the marker simultaneous: a one-HP slime that was alive
   // and in range when the marker fired still gets its strike even if the queued
@@ -1503,9 +1523,10 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
   const attackerIds = [...new Set(markerAttackers.map(enemy => String(enemy?.id || '')).filter(Boolean))];
 
   const result = await firestoreRunTransaction(db, async tx => {
-    const presenceSnap = await tx.get(presenceRef);
+    const [presenceSnap, walletSnap, statsSnap] = await Promise.all([
+      tx.get(presenceRef), tx.get(walletRef), tx.get(statsRef)
+    ]);
     if (!presenceSnap.exists()) return { skipped: true };
-    const walletSnap = await tx.get(walletRef);
     const presence = presenceSnap.data();
     if (Number(presence.lastCombatTurn || 0) >= currentTurn) return { skipped: true };
 
@@ -1543,6 +1564,17 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
         totalLost: Math.max(0, Number(wallet.totalLost || 0)) + lost,
         lastEventId: eventId,
         lastEventType: 'death',
+        updatedAt: fs.serverTimestamp()
+      });
+    }
+    if (worldId === 'global' && statsSnap.exists()) {
+      const stats = statsSnap.data();
+      tx.update(statsRef, {
+        pveKills: 0,
+        pvpKills: 0,
+        lastPveKillActionId: String(stats.lastPveKillActionId || ''),
+        lastPvpKillActionId: String(stats.lastPvpKillActionId || ''),
+        lastResetDeathEventId: eventId,
         updatedAt: fs.serverTimestamp()
       });
     }
