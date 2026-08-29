@@ -78,7 +78,7 @@ function toast(text) {
 function renderHeader() {
   const area=$('#portalAuthArea'); if(!area)return;
   if(!state.ready){area.innerHTML='<div class="portal-auth-loading">CHECKING ACCOUNT…</div>';return;}
-  if(!state.user){area.innerHTML='<button class="portal-signin" data-account-signin type="button">SIGN IN</button>';return;}
+  if(!state.user){area.innerHTML='<button class="portal-signin portal-google-signin" data-account-signin type="button"><span class="portal-google-mark" aria-hidden="true">G</span><span>SIGN IN WITH GOOGLE</span></button>';return;}
   if(!state.profileId || !state.profile){area.innerHTML='<div class="portal-auth-loading">LINKING PROFILE…</div>';return;}
   const name=state.profile.displayName||generatedName(state.profileId);
   area.innerHTML=`<div class="portal-auth-user"><a class="portal-account-main" href="/account/">${avatarMarkup(state.profile,'portal-auth-avatar')}<span class="portal-account-copy"><b>${escapeHtml(name)}</b><small>${publicGlobalBadges()||'ACCOUNT'}</small></span></a><button class="portal-signout" data-account-signout type="button" aria-label="Sign out">↪</button></div>`;
@@ -121,16 +121,59 @@ async function ensureIdentity(){
   renderAll();
 }
 
+async function waitForFirebaseAuthUser(timeoutMs=7000){
+  if(state.auth?.currentUser)return state.auth.currentUser;
+  return await new Promise(resolve=>{
+    let settled=false;
+    let unsubscribe=()=>{};
+    const finish=user=>{
+      if(settled)return;
+      settled=true;
+      clearTimeout(timer);
+      try{unsubscribe();}catch{}
+      resolve(user||state.auth?.currentUser||null);
+    };
+    const timer=setTimeout(()=>finish(state.auth?.currentUser||null),timeoutMs);
+    unsubscribe=state.authMod.onAuthStateChanged(state.auth,user=>{if(user)finish(user);},()=>finish(null));
+  });
+}
+
 async function signIn(){
-  if(!state.auth)return;
+  if(!state.auth||!state.authMod){
+    setMessage('Google sign-in is still loading. Try again in a moment.','error');
+    return;
+  }
   try{
-    setMessage('Opening Google sign-in…');
-    const p=new state.authMod.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'});
+    setMessage('Opening Google account selection…');
+
+    // Keep this deliberately identical to the working LCS authentication path:
+    // GoogleAuthProvider -> browserLocalPersistence -> signInWithPopup.
+    const provider=new state.authMod.GoogleAuthProvider();
+    provider.setCustomParameters({prompt:'select_account'});
     await state.authMod.setPersistence(state.auth,state.authMod.browserLocalPersistence);
-    await state.authMod.signInWithPopup(state.auth,p);
+    const result=await state.authMod.signInWithPopup(state.auth,provider);
     if(typeof state.auth.authStateReady==='function')await state.auth.authStateReady();
-    if(state.auth.currentUser){state.user=state.auth.currentUser;await ensureIdentity();setMessage('Signed in.','ok');toast('Signed in.');}
-  }catch(e){console.error('Account sign-in',e);setMessage(`Sign-in failed: ${e?.code||e?.message||'unknown error'}`,'error');}
+
+    const user=state.auth.currentUser||result?.user||await waitForFirebaseAuthUser(7000);
+    if(!user){
+      const error=new Error('Google returned successfully, but Firebase did not retain the authenticated browser session.');
+      error.code='auth/session-not-retained';
+      throw error;
+    }
+
+    state.user=user;
+    await ensureIdentity();
+    setMessage('Signed in with Google.','ok');
+    toast('Signed in with Google.');
+  }catch(e){
+    console.error('Account Google sign-in',e);
+    const code=String(e?.code||'');
+    let detail=code||e?.message||'unknown error';
+    if(code.includes('popup-blocked'))detail='The browser blocked the Google sign-in popup. Allow popups for j12h36h.github.io and try again.';
+    else if(code.includes('unauthorized-domain'))detail='j12h36h.github.io is not authorized in Firebase Authentication.';
+    else if(code.includes('internal-error'))detail='Firebase returned an internal Google sign-in error.';
+    setMessage(`Google sign-in failed: ${detail}`,'error');
+  }
 }
 async function signOut(){if(!state.auth)return;await state.authMod.signOut(state.auth);toast('Signed out.');}
 

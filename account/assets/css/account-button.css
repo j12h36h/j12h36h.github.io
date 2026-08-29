@@ -10,3 +10,6 @@
 .portal-status{margin-right:4px}.portal-status-founder{color:#ffd36b}.portal-status-moderator{color:#99e6e8}.portal-status-member{color:#b8c6c7}
 .portal-signout{width:40px;border:0;border-left:1px solid rgba(131,224,227,.2);background:transparent;color:#93b7b9;cursor:pointer;font-size:17px}.portal-signout:hover,.portal-signout:focus-visible{color:#fff;background:rgba(131,224,227,.08);outline:none}
 @media(max-width:620px){.portal-account-copy{display:none}.portal-auth-user{height:42px}.portal-auth-avatar{width:32px;height:32px}.portal-signout{width:34px}.portal-auth-area{min-height:42px}}
+.portal-google-signin{display:inline-flex;align-items:center;gap:9px;white-space:nowrap}
+.portal-google-mark{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:#4285f4;font:800 13px/1 Arial,sans-serif;letter-spacing:0;text-transform:none;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
+@media(max-width:620px){.portal-google-signin span:last-child{display:none}.portal-google-signin{padding:0 10px}.portal-google-mark{width:22px;height:22px}}
