@@ -1,4 +1,4 @@
-/* LCS v0.8.4 mobile-only presentation layer. Core behavior and styling are shared with desktop. */
+/* LCS v0.9.3 mobile-only presentation layer. Core behavior and styling are shared with desktop. */
 html,body{max-width:100%;overflow-x:hidden}
 body{padding-bottom:max(12px,env(safe-area-inset-bottom))}
 .topbar{padding-top:max(10px,env(safe-area-inset-top));position:sticky;top:0}

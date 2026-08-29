@@ -14,8 +14,8 @@
 <link href="https://www.gstatic.com" rel="dns-prefetch"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" rel="modulepreload"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" rel="modulepreload"/>
-<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v092" rel="stylesheet"/>
-<link href="mobile.css?v=20260829-v092" rel="stylesheet"/>
+<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v093" rel="stylesheet"/>
+<link href="mobile.css?v=20260829-v093" rel="stylesheet"/>
 </head>
 <body>
 <div class="ambient ambient-a"></div>
@@ -55,6 +55,7 @@
 <button class="nav-item" data-view="projects"><span>◆</span><b>Projects</b></button>
 <button class="nav-item" data-view="communities"><span>▦</span><b>Communities</b></button>
 <button class="nav-item" data-view="connections"><span>↔</span><b>Connections</b></button>
+<button class="nav-item" data-view="activity"><span>🔔</span><b>Activity</b><em class="nav-notification-badge" id="activityUnreadBadge" hidden>0</em></button>
 <button class="nav-item" data-view="lfg"><span>⚑</span><b>LFG</b></button>
 <button class="nav-item" data-view="moderation" hidden="" id="moderationNav"><span>⚖</span><b>Moderation</b></button>
 <button class="nav-item" data-view="account"><span>◉</span><b>Account</b></button>
@@ -76,7 +77,7 @@
 <footer class="rail-footer">
 <a href="privacy.html">Privacy</a>
 <a href="terms.html">Terms</a>
-<span>LCS v0.8.2 · Momentum</span>
+<span>LCS v0.9.3 · Activity + Authority</span>
 </footer>
 </aside>
 <section class="content-column">
@@ -238,6 +239,14 @@
 </div>
 </div>
 </section>
+<section class="view activity-view" id="view-activity">
+<div class="page-heading">
+<div><p class="eyebrow">Activity / Notifications</p><h1>See what changed around your work.</h1><p>Responses, helpful reactions, follows, collaboration requests, and Status changes appear here without turning LCS into an attention trap.</p></div>
+<span class="status-pill" id="activityUnreadCount">Caught up</span>
+</div>
+<section class="activity-signed-out" id="activitySignedOut"><div><p class="eyebrow">Private activity</p><h2>Sign in to see notifications.</h2><p>Activity is calculated around your random public LCS profile ID. Google identity data is not shown in notifications.</p></div><button class="primary-button" id="activitySignInButton" type="button">Sign in with Google</button></section>
+<div id="activitySignedIn" hidden><div class="activity-list" id="activityList"></div></div>
+</section>
 <section class="view lfg-view" id="view-lfg">
 <div class="page-heading">
 <div><p class="eyebrow">Looking for group</p><h1>Play together. Create together. Share information.</h1><p>LFG listings are public. Contact details are intentionally not part of the system; use private in-app match requests instead.</p></div>
@@ -271,13 +280,13 @@
 <form class="moderation-form" id="statusGrantForm">
 <label class="field"><span>Public profile</span><select id="statusTargetProfile" required=""></select></label>
 <div class="moderation-form-grid">
-<label class="field"><span>Status</span><select id="statusValue"><option value="moderator">Moderator</option><option value="timeout">Timeout</option><option value="founder">Founder</option></select></label>
+<label class="field"><span>Status</span><select id="statusValue"><option value="moderator">Moderator</option><option value="timeout">Timeout</option></select></label>
 <label class="field"><span>Scope</span><select id="statusScopeKind"><option value="global">Global</option><option value="discussion">Discussion</option><option value="project">Project</option></select></label>
 <label class="field"><span>Target</span><select id="statusScopeTarget"><option value="_">Whole LCS network</option></select></label>
 <label class="field"><span>Duration</span><select id="statusDuration"><option value="none">No expiration</option><option value="hour">1 hour</option><option value="day">24 hours</option><option value="week">7 days</option></select></label>
 </div>
 <label class="field"><span>Reason / note</span><input id="statusReason" maxlength="240" placeholder="Why is this Status being granted?"/></label>
-<div class="moderation-callout"><b>Timeout is read-only, not a ban.</b><span>A timed-out account can still browse public LCS content and use safety controls such as blocking.</span></div>
+<div class="moderation-callout"><b>Founder is not grantable.</b><span>The single root Founder is configured through systemPrivate/founder. Grant Moderator for global or scoped moderation; Timeout remains read-only, not a ban.</span></div>
 <div class="modal-actions"><button class="primary-button" type="submit">Grant Status</button></div>
 </form>
 </section>
@@ -612,6 +621,6 @@
 <div class="impact-recap" id="impactRecap"></div>
 <div class="modal-actions"><button class="ghost-button" id="resetSessionImpact" type="button">Clear session recap</button><button class="primary-button" data-close-dialog="" type="button">Keep building</button></div>
 </dialog><div aria-live="polite" class="toast-region" id="toastRegion"></div>
-<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v092" type="module"></script>
+<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v093" type="module"></script>
 </body>
 </html>
