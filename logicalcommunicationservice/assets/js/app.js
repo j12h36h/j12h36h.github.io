@@ -638,6 +638,7 @@ async function openProfileDetail(id) {
       `<button class="ghost-button" data-friend-profile="${escapeHtml(id)}" type="button">＋ Friend request</button>`;
   }
   const followButton=!self&&!blocked&&signed?`<button class="ghost-button ${isFollowing('profile',id)?'active-action':''}" data-follow-type="profile" data-follow-id="${escapeHtml(id)}" type="button">${isFollowing('profile',id)?'★ Following':'☆ Follow'} · ${followCount('profile',id)}</button>`:'';
+  const tradeButton=!self&&!blocked&&signed?`<a class="ghost-button" href="/trade/?with=${encodeURIComponent(id)}">⇄ Trade / send Credits</a>`:'';
   const blockButton=!self&&signed?(blocked?`<button class="ghost-button active-action" data-unblock-profile="${escapeHtml(id)}" type="button">Unblock</button>`:`<button class="ghost-button" data-block-profile="${escapeHtml(id)}" type="button">Block</button>`):'';
   const manage=(isFounder()||isGlobalModerator())&&signed?`<button class="ghost-button" data-manage-status="${escapeHtml(id)}" type="button">Status / moderation</button>`:'';
   const selfButton=self?'<button class="ghost-button" data-open-account type="button">Edit my public profile</button>':'';
@@ -660,7 +661,7 @@ async function openProfileDetail(id) {
         <small class="muted">${escapeHtml(publicIdShort(id))}</small>
       </div>
     </div>
-    <div class="detail-actions">${followButton}${friendButton}${blockButton}${manage}${selfButton}${signInButton}</div>
+    <div class="detail-actions">${followButton}${friendButton}${tradeButton}${blockButton}${manage}${selfButton}${signInButton}</div>
     <div class="profile-stats">
       <div><b>${authored.length}</b><span>Ideas / problems / projects</span></div>
       <div><b>${posts.length}</b><span>Posts</span></div>

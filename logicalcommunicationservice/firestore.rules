@@ -604,7 +604,7 @@ service cloud.firestore {
     // One wallet per public profile, shared by root Account, LCS,
     // Content, and E.R.A.S. gameplay.
     // ============================================================
-    function validCreditEventType(value) { return value in ['init','slime_kill','death','market_purchase']; }
+    function validCreditEventType(value) { return value in ['init','slime_kill','death','market_purchase','player_transfer_out','player_transfer_in','trade']; }
     function validCreditWallet(data, profileId) {
       return data.keys().hasOnly(['profileId','balance','totalEarned','totalLost','lastEventId','lastEventType','createdAt','updatedAt'])
         && data.profileId == profileId
@@ -645,37 +645,124 @@ service cloud.firestore {
         && data.totalEarned == resource.data.totalEarned
         && data.totalLost == resource.data.totalLost + lost;
     }
+    function validDirectCreditTransferWallet(data, profileId) {
+      let transferPath = /databases/$(database)/documents/creditTransfers/$(data.lastEventId);
+      return data.lastEventId.size() > 0
+        && !exists(transferPath)
+        && existsAfter(transferPath)
+        && getAfter(transferPath).data.fromProfileId == callerProfileId()
+        && getAfter(transferPath).data.amount is int
+        && getAfter(transferPath).data.amount > 0
+        && ((profileId == getAfter(transferPath).data.fromProfileId
+            && data.lastEventType == 'player_transfer_out'
+            && data.balance == resource.data.balance - getAfter(transferPath).data.amount)
+          || (profileId == getAfter(transferPath).data.toProfileId
+            && data.lastEventType == 'player_transfer_in'
+            && data.balance == resource.data.balance + getAfter(transferPath).data.amount))
+        && data.totalEarned == resource.data.totalEarned
+        && data.totalLost == resource.data.totalLost;
+    }
+    function validPlayerTradeWallet(data, profileId) {
+      let settlementPath = /databases/$(database)/documents/tradeSettlements/$(data.lastEventId);
+      return data.lastEventType == 'trade'
+        && data.lastEventId.size() > 0
+        && !exists(settlementPath) && existsAfter(settlementPath)
+        && getAfter(settlementPath).data.initiatorProfileId == callerProfileId()
+        && data.totalEarned == resource.data.totalEarned
+        && data.totalLost == resource.data.totalLost
+        && ((profileId == getAfter(settlementPath).data.initiatorProfileId
+            && data.balance == resource.data.balance - getAfter(settlementPath).data.initiatorCredits + getAfter(settlementPath).data.recipientCredits)
+          || (profileId == getAfter(settlementPath).data.recipientProfileId
+            && data.balance == resource.data.balance - getAfter(settlementPath).data.recipientCredits + getAfter(settlementPath).data.initiatorCredits));
+    }
+    function validNewTransferRecipientWallet(data, profileId) {
+      let transferPath = /databases/$(database)/documents/creditTransfers/$(data.lastEventId);
+      return data.lastEventType == 'player_transfer_in'
+        && data.lastEventId.size() > 0
+        && !exists(transferPath) && existsAfter(transferPath)
+        && getAfter(transferPath).data.fromProfileId == callerProfileId()
+        && getAfter(transferPath).data.toProfileId == profileId
+        && data.balance == getAfter(transferPath).data.amount
+        && data.totalEarned == 0 && data.totalLost == 0;
+    }
     match /creditWallets/{profileId} {
       allow read: if isCallerProfile(profileId);
-      allow create: if isCallerProfile(profileId)
-        && validCreditWallet(request.resource.data, profileId)
-        && request.resource.data.balance == 0
-        && request.resource.data.totalEarned == 0
-        && request.resource.data.totalLost == 0
-        && request.resource.data.lastEventId == ''
-        && request.resource.data.lastEventType == 'init';
-      allow update: if isCallerProfile(profileId)
-        && validCreditWallet(request.resource.data, profileId)
+      allow create: if validCreditWallet(request.resource.data, profileId)
+        && ((isCallerProfile(profileId)
+            && request.resource.data.balance == 0
+            && request.resource.data.totalEarned == 0
+            && request.resource.data.totalLost == 0
+            && request.resource.data.lastEventId == ''
+            && request.resource.data.lastEventType == 'init')
+          || validNewTransferRecipientWallet(request.resource.data, profileId));
+      allow update: if validCreditWallet(request.resource.data, profileId)
         && request.resource.data.profileId == resource.data.profileId
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt is timestamp
-        && (validSlimeKillCredit(request.resource.data) || validDeathCreditLoss(request.resource.data));
+        && ((isCallerProfile(profileId)
+              && (validSlimeKillCredit(request.resource.data) || validDeathCreditLoss(request.resource.data)))
+          || validDirectCreditTransferWallet(request.resource.data, profileId)
+          || validPlayerTradeWallet(request.resource.data, profileId));
       allow delete: if false;
     }
 
     // ============================================================
+    // PLAYER CREDIT TRANSFERS
+    // Immutable anti-replay receipts. The receipt and both wallet mutations
+    // must be created in the same atomic batch.
+    // ============================================================
+    function validCreditTransfer(data) {
+      return data.keys().hasOnly(['fromProfileId','toProfileId','amount','note','createdAt'])
+        && validPublicId(data.fromProfileId) && profileExists(data.fromProfileId)
+        && validPublicId(data.toProfileId) && profileExists(data.toProfileId)
+        && data.fromProfileId != data.toProfileId
+        && data.amount is int && data.amount >= 1 && data.amount <= 1000000
+        && data.note is string && data.note.size() <= 120
+        && data.createdAt is timestamp;
+    }
+    function validCreditTransferSettlement(transferId, data) {
+      let fromPath = /databases/$(database)/documents/creditWallets/$(data.fromProfileId);
+      let toPath = /databases/$(database)/documents/creditWallets/$(data.toProfileId);
+      return exists(fromPath)
+        && existsAfter(fromPath) && existsAfter(toPath)
+        && get(fromPath).data.balance >= data.amount
+        && getAfter(fromPath).data.balance == get(fromPath).data.balance - data.amount
+        && ((exists(toPath) && getAfter(toPath).data.balance == get(toPath).data.balance + data.amount)
+          || (!exists(toPath)
+            && getAfter(toPath).data.balance == data.amount
+            && getAfter(toPath).data.totalEarned == 0
+            && getAfter(toPath).data.totalLost == 0))
+        && getAfter(fromPath).data.lastEventId == transferId
+        && getAfter(fromPath).data.lastEventType == 'player_transfer_out'
+        && getAfter(toPath).data.lastEventId == transferId
+        && getAfter(toPath).data.lastEventType == 'player_transfer_in';
+    }
+    match /creditTransfers/{transferId} {
+      allow read: if hasPrivateAccount()
+        && (resource.data.fromProfileId == callerProfileId() || resource.data.toProfileId == callerProfileId());
+      allow create: if hasPrivateAccount()
+        && request.resource.data.fromProfileId == callerProfileId()
+        && validCreditTransfer(request.resource.data)
+        && validCreditTransferSettlement(transferId, request.resource.data);
+      allow update, delete: if false;
+    }
+
+    // ============================================================
     // E.R.A.S. GLOBAL SCOREBOARD
-    // Persistent all-time PvE/PvP kill counters. The rolling PvP record
-    // itself remains sourced from the ten-marker gameActions window.
+    // PvE/PvP kill counters describe the player's current life/run. A Global
+    // death resets both counters atomically with the authoritative presence
+    // death transition. The rolling PvP record still comes from gameActions.
     // ============================================================
     function validGlobalStats(data, profileId) {
-      return data.keys().hasOnly(['profileId','pveKills','pvpKills','lastPveKillActionId','lastPvpKillActionId','createdAt','updatedAt'])
+      let resetEventId = data.get('lastResetDeathEventId','');
+      return data.keys().hasOnly(['profileId','pveKills','pvpKills','lastPveKillActionId','lastPvpKillActionId','lastResetDeathEventId','createdAt','updatedAt'])
         && data.profileId == profileId
         && validPublicId(data.profileId) && profileExists(data.profileId)
         && data.pveKills is int && data.pveKills >= 0
         && data.pvpKills is int && data.pvpKills >= 0
         && data.lastPveKillActionId is string && data.lastPveKillActionId.size() <= 180
         && data.lastPvpKillActionId is string && data.lastPvpKillActionId.size() <= 180
+        && resetEventId is string && resetEventId.size() <= 180
         && data.createdAt is timestamp && data.updatedAt is timestamp;
     }
     function validScoreKillAction(actionId, targetType) {
@@ -694,6 +781,7 @@ service cloud.firestore {
         && data.pvpKills == resource.data.pvpKills
         && data.lastPveKillActionId != resource.data.lastPveKillActionId
         && data.lastPvpKillActionId == resource.data.lastPvpKillActionId
+        && data.get('lastResetDeathEventId','') == resource.data.get('lastResetDeathEventId','')
         && validScoreKillAction(data.lastPveKillActionId, 'enemy');
     }
     function validPvpScoreIncrement(data) {
@@ -701,7 +789,26 @@ service cloud.firestore {
         && data.pvpKills == resource.data.pvpKills + 1
         && data.lastPveKillActionId == resource.data.lastPveKillActionId
         && data.lastPvpKillActionId != resource.data.lastPvpKillActionId
+        && data.get('lastResetDeathEventId','') == resource.data.get('lastResetDeathEventId','')
         && validScoreKillAction(data.lastPvpKillActionId, 'profile');
+    }
+    function validScoreDeathReset(data, profileId) {
+      let presenceId = profileId + '__global';
+      let presencePath = /databases/$(database)/documents/gamePresence/$(presenceId);
+      let deathEventId = data.get('lastResetDeathEventId','');
+      return deathEventId.size() > 0
+        && data.pveKills == 0
+        && data.pvpKills == 0
+        && data.lastPveKillActionId == resource.data.lastPveKillActionId
+        && data.lastPvpKillActionId == resource.data.lastPvpKillActionId
+        && deathEventId != resource.data.get('lastResetDeathEventId','')
+        && exists(presencePath)
+        && existsAfter(presencePath)
+        && getAfter(presencePath).data.profileId == profileId
+        && getAfter(presencePath).data.worldId == 'global'
+        && getAfter(presencePath).data.deaths == get(presencePath).data.deaths + 1
+        && getAfter(presencePath).data.lastDeathEventId == deathEventId
+        && getAfter(presencePath).data.lastDeathEventId != get(presencePath).data.lastDeathEventId;
     }
     match /globalGameStats/{profileId} {
       allow read: if signedIn();
@@ -710,12 +817,15 @@ service cloud.firestore {
         && request.resource.data.pveKills == 0
         && request.resource.data.pvpKills == 0
         && request.resource.data.lastPveKillActionId == ''
-        && request.resource.data.lastPvpKillActionId == '';
-      allow update: if isCallerProfile(profileId)
+        && request.resource.data.lastPvpKillActionId == ''
+        && request.resource.data.get('lastResetDeathEventId','') == '';
+      allow update: if signedIn()
         && validGlobalStats(request.resource.data, profileId)
         && request.resource.data.profileId == resource.data.profileId
         && request.resource.data.createdAt == resource.data.createdAt
-        && (validPveScoreIncrement(request.resource.data) || validPvpScoreIncrement(request.resource.data));
+        && ((isCallerProfile(profileId)
+            && (validPveScoreIncrement(request.resource.data) || validPvpScoreIncrement(request.resource.data)))
+          || validScoreDeathReset(request.resource.data, profileId));
       allow delete: if false;
     }
 
@@ -749,6 +859,201 @@ service cloud.firestore {
         && validAssetTint(request.resource.data.tint)
         && request.resource.data.updatedAt is timestamp;
       allow delete: if isCallerProfile(profileId);
+    }
+
+    // ============================================================
+    // UNIVERSAL ASSET HOLDINGS
+    // Tradable ownership lives in a root collection so an atomic trade can
+    // change owner without copying/deleting per-user inventory documents.
+    // ============================================================
+    function validAssetHoldingEventType(value) { return value in ['market_acquire','migration','trade']; }
+    function validAssetHolding(data) {
+      return data.keys().hasOnly(['ownerProfileId','assetId','tint','acquiredAt','updatedAt','lastEventId','lastEventType'])
+        && validPublicId(data.ownerProfileId) && profileExists(data.ownerProfileId)
+        && validErasAssetId(data.assetId)
+        && validAssetTint(data.tint)
+        && data.acquiredAt is timestamp && data.updatedAt is timestamp
+        && data.lastEventId is string && data.lastEventId.size() <= 180
+        && validAssetHoldingEventType(data.lastEventType);
+    }
+    function validHoldingTradeUpdate(holdingId, data) {
+      let settlementPath = /databases/$(database)/documents/tradeSettlements/$(data.lastEventId);
+      return data.lastEventType == 'trade'
+        && !exists(settlementPath) && existsAfter(settlementPath)
+        && getAfter(settlementPath).data.initiatorProfileId == callerProfileId()
+        && data.assetId == resource.data.assetId
+        && data.tint == resource.data.tint
+        && data.acquiredAt == resource.data.acquiredAt
+        && ((holdingId == getAfter(settlementPath).data.initiatorHoldingId
+            && resource.data.ownerProfileId == getAfter(settlementPath).data.initiatorProfileId
+            && data.ownerProfileId == getAfter(settlementPath).data.recipientProfileId
+            && data.assetId == getAfter(settlementPath).data.initiatorAssetId
+            && data.tint == getAfter(settlementPath).data.initiatorAssetTint)
+          || (holdingId == getAfter(settlementPath).data.recipientHoldingId
+            && resource.data.ownerProfileId == getAfter(settlementPath).data.recipientProfileId
+            && data.ownerProfileId == getAfter(settlementPath).data.initiatorProfileId
+            && data.assetId == getAfter(settlementPath).data.recipientAssetId
+            && data.tint == getAfter(settlementPath).data.recipientAssetTint));
+    }
+    match /assetHoldings/{holdingId} {
+      allow read: if hasPrivateAccount() && resource.data.ownerProfileId == callerProfileId();
+      allow create: if callerCanContribute()
+        && request.resource.data.ownerProfileId == callerProfileId()
+        && validAssetHolding(request.resource.data)
+        && ((request.resource.data.lastEventType == 'market_acquire' && request.resource.data.lastEventId == '')
+          || (request.resource.data.lastEventType == 'migration' && request.resource.data.lastEventId == 'legacy-migration'));
+      allow update: if validAssetHolding(request.resource.data)
+        && request.resource.data.updatedAt is timestamp
+        && ((resource.data.ownerProfileId == callerProfileId()
+            && request.resource.data.ownerProfileId == resource.data.ownerProfileId
+            && request.resource.data.assetId == resource.data.assetId
+            && request.resource.data.acquiredAt == resource.data.acquiredAt
+            && request.resource.data.lastEventId == resource.data.lastEventId
+            && request.resource.data.lastEventType == resource.data.lastEventType)
+          || validHoldingTradeUpdate(holdingId, request.resource.data));
+      allow delete: if false;
+    }
+
+    // ============================================================
+    // PLAYER TRADES
+    // Initiator fixes side A, recipient explicitly locks side B, then only the
+    // initiator can atomically finalize. Wallets + holdings settle together.
+    // ============================================================
+    function validPlayerTradeStatus(value) { return value in ['pending','locked','completed','declined','cancelled']; }
+    function validTradeAssetTuple(holdingId, assetId, tint) {
+      return (holdingId == '' && assetId == '' && tint == '')
+        || (holdingId is string && holdingId.size() >= 8 && holdingId.size() <= 180
+          && validErasAssetId(assetId) && validAssetTint(tint));
+    }
+    function validPlayerTrade(data) {
+      return data.keys().hasOnly(['initiatorProfileId','recipientProfileId','initiatorCredits','recipientCredits','initiatorHoldingId','initiatorAssetId','initiatorAssetTint','recipientHoldingId','recipientAssetId','recipientAssetTint','status','createdAt','updatedAt','completedAt'])
+        && validPublicId(data.initiatorProfileId) && profileExists(data.initiatorProfileId)
+        && validPublicId(data.recipientProfileId) && profileExists(data.recipientProfileId)
+        && data.initiatorProfileId != data.recipientProfileId
+        && data.initiatorCredits is int && data.initiatorCredits >= 0 && data.initiatorCredits <= 1000000
+        && data.recipientCredits is int && data.recipientCredits >= 0 && data.recipientCredits <= 1000000
+        && validTradeAssetTuple(data.initiatorHoldingId,data.initiatorAssetId,data.initiatorAssetTint)
+        && validTradeAssetTuple(data.recipientHoldingId,data.recipientAssetId,data.recipientAssetTint)
+        && (data.initiatorHoldingId == '' || data.initiatorHoldingId != data.recipientHoldingId)
+        && validPlayerTradeStatus(data.status)
+        && data.createdAt is timestamp && data.updatedAt is timestamp
+        && validOptionalTimestamp(data.completedAt);
+    }
+    function tradeHoldingOwnedAndMatches(profileId, holdingId, assetId, tint) {
+      let safeHoldingId = holdingId == '' ? '__none__' : holdingId;
+      let holdingPath = /databases/$(database)/documents/assetHoldings/$(safeHoldingId);
+      return holdingId == ''
+        || (exists(holdingPath)
+          && get(holdingPath).data.ownerProfileId == profileId
+          && get(holdingPath).data.assetId == assetId
+          && get(holdingPath).data.tint == tint);
+    }
+    function playerTradeFixedTerms(before, after) {
+      return after.initiatorProfileId == before.initiatorProfileId
+        && after.recipientProfileId == before.recipientProfileId
+        && after.initiatorCredits == before.initiatorCredits
+        && after.initiatorHoldingId == before.initiatorHoldingId
+        && after.initiatorAssetId == before.initiatorAssetId
+        && after.initiatorAssetTint == before.initiatorAssetTint
+        && after.createdAt == before.createdAt;
+    }
+    function playerTradeAllTermsFixed(before, after) {
+      return playerTradeFixedTerms(before,after)
+        && after.recipientCredits == before.recipientCredits
+        && after.recipientHoldingId == before.recipientHoldingId
+        && after.recipientAssetId == before.recipientAssetId
+        && after.recipientAssetTint == before.recipientAssetTint;
+    }
+    function tradeSettlementHoldingValid(holdingId, ownerBefore, ownerAfter, assetId, tint, tradeId) {
+      let safeId = holdingId == '' ? '__none_settlement__' : holdingId;
+      let path = /databases/$(database)/documents/assetHoldings/$(safeId);
+      return holdingId == '' || (exists(path) && existsAfter(path)
+        && get(path).data.ownerProfileId == ownerBefore
+        && get(path).data.assetId == assetId && get(path).data.tint == tint
+        && getAfter(path).data.ownerProfileId == ownerAfter
+        && getAfter(path).data.assetId == assetId && getAfter(path).data.tint == tint
+        && getAfter(path).data.lastEventId == tradeId && getAfter(path).data.lastEventType == 'trade');
+    }
+    function validTradeSettlementReceipt(tradeId, data) {
+      let tradePath = /databases/$(database)/documents/playerTrades/$(tradeId);
+      let iWallet = /databases/$(database)/documents/creditWallets/$(data.initiatorProfileId);
+      let rWallet = /databases/$(database)/documents/creditWallets/$(data.recipientProfileId);
+      return data.keys().hasOnly(['initiatorProfileId','recipientProfileId','initiatorCredits','recipientCredits','initiatorHoldingId','initiatorAssetId','initiatorAssetTint','recipientHoldingId','recipientAssetId','recipientAssetTint','createdAt'])
+        && data.createdAt is timestamp
+        && existsAfter(tradePath)
+        && getAfter(tradePath).data.status == 'completed'
+        && getAfter(tradePath).data.initiatorProfileId == callerProfileId()
+        && data.initiatorProfileId == getAfter(tradePath).data.initiatorProfileId
+        && data.recipientProfileId == getAfter(tradePath).data.recipientProfileId
+        && data.initiatorCredits == getAfter(tradePath).data.initiatorCredits
+        && data.recipientCredits == getAfter(tradePath).data.recipientCredits
+        && data.initiatorHoldingId == getAfter(tradePath).data.initiatorHoldingId
+        && data.initiatorAssetId == getAfter(tradePath).data.initiatorAssetId
+        && data.initiatorAssetTint == getAfter(tradePath).data.initiatorAssetTint
+        && data.recipientHoldingId == getAfter(tradePath).data.recipientHoldingId
+        && data.recipientAssetId == getAfter(tradePath).data.recipientAssetId
+        && data.recipientAssetTint == getAfter(tradePath).data.recipientAssetTint
+        && exists(iWallet) && exists(rWallet) && existsAfter(iWallet) && existsAfter(rWallet)
+        && get(iWallet).data.balance >= data.initiatorCredits
+        && get(rWallet).data.balance >= data.recipientCredits
+        && getAfter(iWallet).data.balance == get(iWallet).data.balance - data.initiatorCredits + data.recipientCredits
+        && getAfter(rWallet).data.balance == get(rWallet).data.balance - data.recipientCredits + data.initiatorCredits
+        && getAfter(iWallet).data.lastEventId == tradeId && getAfter(iWallet).data.lastEventType == 'trade'
+        && getAfter(rWallet).data.lastEventId == tradeId && getAfter(rWallet).data.lastEventType == 'trade'
+        && tradeSettlementHoldingValid(data.initiatorHoldingId,data.initiatorProfileId,data.recipientProfileId,data.initiatorAssetId,data.initiatorAssetTint,tradeId)
+        && tradeSettlementHoldingValid(data.recipientHoldingId,data.recipientProfileId,data.initiatorProfileId,data.recipientAssetId,data.recipientAssetTint,tradeId);
+    }
+    match /tradeSettlements/{tradeId} {
+      allow read: if hasPrivateAccount()
+        && (resource.data.initiatorProfileId == callerProfileId() || resource.data.recipientProfileId == callerProfileId());
+      allow create: if hasPrivateAccount()
+        && request.resource.data.initiatorProfileId == callerProfileId()
+        && !exists(/databases/$(database)/documents/tradeSettlements/$(tradeId))
+        && validTradeSettlementReceipt(tradeId,request.resource.data);
+      allow update, delete: if false;
+    }
+
+    match /playerTrades/{tradeId} {
+      allow read: if hasPrivateAccount()
+        && (resource.data.initiatorProfileId == callerProfileId() || resource.data.recipientProfileId == callerProfileId());
+      allow create: if hasPrivateAccount()
+        && request.resource.data.initiatorProfileId == callerProfileId()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.recipientCredits == 0
+        && request.resource.data.recipientHoldingId == ''
+        && request.resource.data.recipientAssetId == ''
+        && request.resource.data.recipientAssetTint == ''
+        && request.resource.data.completedAt == null
+        && validPlayerTrade(request.resource.data)
+        && get(/databases/$(database)/documents/creditWallets/$(callerProfileId())).data.balance >= request.resource.data.initiatorCredits
+        && tradeHoldingOwnedAndMatches(request.resource.data.initiatorProfileId,request.resource.data.initiatorHoldingId,request.resource.data.initiatorAssetId,request.resource.data.initiatorAssetTint);
+      allow update: if hasPrivateAccount()
+        && validPlayerTrade(request.resource.data)
+        && request.resource.data.updatedAt is timestamp
+        && (
+          (callerProfileId() == resource.data.recipientProfileId
+            && resource.data.status == 'pending' && request.resource.data.status == 'locked'
+            && playerTradeFixedTerms(resource.data,request.resource.data)
+            && request.resource.data.completedAt == null
+            && (request.resource.data.initiatorCredits > 0 || request.resource.data.recipientCredits > 0 || request.resource.data.initiatorHoldingId != '' || request.resource.data.recipientHoldingId != '')
+            && get(/databases/$(database)/documents/creditWallets/$(callerProfileId())).data.balance >= request.resource.data.recipientCredits
+            && tradeHoldingOwnedAndMatches(request.resource.data.recipientProfileId,request.resource.data.recipientHoldingId,request.resource.data.recipientAssetId,request.resource.data.recipientAssetTint))
+          || (callerProfileId() == resource.data.initiatorProfileId
+            && resource.data.status in ['pending','locked'] && request.resource.data.status == 'cancelled'
+            && playerTradeAllTermsFixed(resource.data,request.resource.data)
+            && request.resource.data.completedAt == null)
+          || (callerProfileId() == resource.data.recipientProfileId
+            && resource.data.status in ['pending','locked'] && request.resource.data.status == 'declined'
+            && playerTradeAllTermsFixed(resource.data,request.resource.data)
+            && request.resource.data.completedAt == null)
+          || (callerProfileId() == resource.data.initiatorProfileId
+            && resource.data.status == 'locked' && request.resource.data.status == 'completed'
+            && playerTradeAllTermsFixed(resource.data,request.resource.data)
+            && request.resource.data.completedAt is timestamp
+            && !exists(/databases/$(database)/documents/tradeSettlements/$(tradeId))
+            && existsAfter(/databases/$(database)/documents/tradeSettlements/$(tradeId)))
+        );
+      allow delete: if false;
     }
 
     // ============================================================
@@ -814,6 +1119,9 @@ service cloud.firestore {
     // ============================================================
     function validWorldId(value) {
       return value is string && value.size() > 0 && value.size() <= 160;
+    }
+    function playerAtNorthPlatformSpawn(data) {
+      return data.x >= 11 && data.x <= 32 && data.y >= 11 && data.y <= 28;
     }
     function validPresence(data) {
       return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','hp','maxHp','deaths','lastDeathEventId','lastCombatTurn','restedTurn','movedTurn','actionTurn','lastPvpEventId','updatedAt'])
@@ -891,8 +1199,7 @@ service cloud.firestore {
           && request.resource.data.hp == 3
           && request.resource.data.deaths == resource.data.deaths + 1
           && request.resource.data.lastDeathEventId == 'pvp_' + actionId
-          && request.resource.data.x == 50
-          && request.resource.data.y == 50
+          && playerAtNorthPlatformSpawn(request.resource.data)
           && request.resource.data.vx == 0
           && request.resource.data.vy == 0
           && request.resource.data.moveUsed == 0));
@@ -910,8 +1217,32 @@ service cloud.firestore {
     }
 
     // ============================================================
+    // E.R.A.S. EPHEMERAL GLOBAL CLOCK PROBES
+    // Each browser tab creates a uniquely keyed serverTimestamp probe, reads it
+    // back from the server to calibrate the shared 60-second marker, then deletes
+    // it immediately. This prevents desktop/mobile device-clock drift and avoids
+    // relying on the shared presence document when the same account is open twice.
+    // ============================================================
+    function validClockProbe(data) {
+      return data.keys().hasOnly(['profileId','clientId','worldId','requestedAt'])
+        && validPublicId(data.profileId)
+        && data.clientId is string && data.clientId.size() > 0 && data.clientId.size() <= 80
+        && validWorldId(data.worldId)
+        && data.requestedAt is timestamp;
+    }
+    match /gameClockProbes/{probeId} {
+      allow read: if signedIn() && isCallerProfile(resource.data.profileId);
+      allow create: if callerCanContribute()
+        && isCallerProfile(request.resource.data.profileId)
+        && validClockProbe(request.resource.data)
+        && probeId == request.resource.data.profileId + '__' + request.resource.data.clientId;
+      allow update: if false;
+      allow delete: if signedIn() && isCallerProfile(resource.data.profileId);
+    }
+
+    // ============================================================
     // E.R.A.S. SHARED ENEMIES
-    // Two one-HP Cache Slimes roam bounded areas while out of combat. A single
+    // Two one-HP Cache Slimes spawn randomly in the shared Cache/Yard zone and roam it while out of combat. A single
     // elected client advances their shared position at a low write frequency.
     // ============================================================
     function validEnemyKey(value) { return value in ['cache-slime-a','cache-slime-b']; }
@@ -920,12 +1251,13 @@ service cloud.firestore {
         || (data.enemyKey == 'cache-slime-b' && data.label == 'CACHE SLIME B');
     }
     function validEnemyBounds(data) {
-      return (data.enemyKey == 'cache-slime-a' && data.x >= 76 && data.x <= 86 && data.y >= 68 && data.y <= 79)
-        || (data.enemyKey == 'cache-slime-b' && data.x >= 80 && data.x <= 91 && data.y >= 71 && data.y <= 84);
+      return data.x >= 76 && data.x <= 91 && data.y >= 68 && data.y <= 84;
     }
     function enemyAtSpawn(data) {
-      return (data.enemyKey == 'cache-slime-a' && data.x == 80.5 && data.y == 72)
-        || (data.enemyKey == 'cache-slime-b' && data.x == 85 && data.y == 77);
+      // Initial spawns and marker respawns may land anywhere inside the shared
+      // Slime Cache/Yard zone. Randomness is selected client-side; rules enforce
+      // the authoritative geographic boundary.
+      return validEnemyBounds(data);
     }
     function validGameEnemy(data) {
       return data.keys().hasOnly(['worldId','enemyKey','type','label','x','y','hp','maxHp','alive','respawnTurn','lastHitActionId','lastHitByProfileId','lastKillActionId','killerProfileId','wanderStep','lastWanderAt','updatedAt'])

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#02090b">
+  <meta name="description" content="E.R.A.S. universal player-to-player Credits and asset trading.">
+  <title>Trade Center — E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="./assets/trade.css?v=1.8.0">
+</head>
+<body class="trade-page">
+  <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
+  <header class="site-header">
+    <a class="brand" href="/"><span class="brand-mark"></span><span>PROJECT E.R.A.S. <b>: TRADE</b></span></a>
+    <div class="trade-header-actions"><a href="/content/">CONTENT</a><a href="/logicalcommunicationservice/">LCS</a><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div></div>
+  </header>
+
+  <main class="trade-shell">
+    <section class="trade-hero">
+      <div><p class="trade-kicker">UNIVERSAL ECONOMY // PLAYER EXCHANGE</p><h1>TRADE CENTER</h1><p>Send Credits directly or build a two-sided exchange of Credits and owned assets. Trades remain pending until both sides are defined and the initiator finalizes the exchange.</p></div>
+      <div class="trade-wallet"><small>YOUR BALANCE</small><strong>◈ <span id="tradeCreditBalance">0</span></strong><em>CREDITS</em></div>
+    </section>
+
+    <section class="trade-grid">
+      <section class="trade-panel transfer-panel">
+        <header><span>01</span><div><p>DIRECT EXCHANGE</p><h2>SEND CREDITS</h2></div></header>
+        <form id="creditTransferForm" class="trade-form">
+          <label><span>RECIPIENT PUBLIC PROFILE ID</span><input id="transferRecipient" maxlength="36" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required></label>
+          <div class="recipient-preview" id="transferRecipientPreview">ENTER AN LCS PUBLIC PROFILE ID.</div>
+          <label><span>CREDITS</span><input id="transferAmount" type="number" min="1" max="1000000" step="1" value="1" required></label>
+          <label><span>NOTE <small>OPTIONAL</small></span><input id="transferNote" maxlength="120" placeholder="For the build asset / thanks / prize"></label>
+          <button class="trade-primary" type="submit">SEND CREDITS NOW</button>
+          <p class="trade-feedback" id="transferFeedback" aria-live="polite">DIRECT TRANSFERS ARE FINAL.</p>
+        </form>
+      </section>
+
+      <section class="trade-panel create-panel">
+        <header><span>02</span><div><p>NEGOTIATED EXCHANGE</p><h2>CREATE TRADE</h2></div></header>
+        <form id="createTradeForm" class="trade-form">
+          <label><span>TRADE WITH</span><input id="tradeRecipient" maxlength="36" placeholder="LCS public profile ID" required></label>
+          <div class="recipient-preview" id="tradeRecipientPreview">ENTER AN LCS PUBLIC PROFILE ID.</div>
+          <div class="trade-side-editor">
+            <label><span>YOUR CREDITS</span><input id="offerCredits" type="number" min="0" max="1000000" step="1" value="0"></label>
+            <label><span>YOUR ASSET</span><select id="offerAsset"><option value="">NO ASSET</option></select></label>
+          </div>
+          <p class="trade-helper">The other player chooses their own Credit/asset contribution before locking their side. You see the exact result before finalizing.</p>
+          <button class="trade-primary" type="submit">CREATE TRADE OFFER</button>
+          <p class="trade-feedback" id="tradeFeedback" aria-live="polite">AT LEAST ONE SIDE OF THE EXCHANGE MUST CONTAIN CREDITS OR AN ASSET.</p>
+        </form>
+      </section>
+
+      <section class="trade-panel inventory-panel">
+        <header><span>03</span><div><p>OWNERSHIP</p><h2>TRADEABLE ASSETS</h2></div></header>
+        <div id="tradeInventory" class="trade-inventory"><p class="trade-empty">SIGN IN TO LOAD YOUR INVENTORY.</p></div>
+      </section>
+    </section>
+
+    <section class="trade-panel trade-book-panel">
+      <header><span>04</span><div><p>LIVE EXCHANGES</p><h2>YOUR TRADE BOOK</h2></div><div class="trade-book-tabs"><button class="is-active" data-trade-filter="active" type="button">ACTIVE</button><button data-trade-filter="history" type="button">HISTORY</button></div></header>
+      <div id="tradeBook" class="trade-book"><p class="trade-empty">SIGN IN TO LOAD PLAYER TRADES.</p></div>
+    </section>
+  </main>
+
+  <div class="trade-toast-region" id="tradeToastRegion" aria-live="polite"></div>
+  <script src="/game/assets/js/site.js"></script>
+  <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="./assets/trade.js?v=1.8.0"></script>
+</body>
+</html>

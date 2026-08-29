@@ -16,3 +16,4 @@ body.account-page{overflow:auto;min-height:100svh;background:radial-gradient(cir
 
 /* Universal Credits */
 .credit-account-card h2{font-size:30px;letter-spacing:.03em}.credit-account-card h2 span{color:#9de9e9;font-family:var(--mono);font-weight:900}.credit-account-card{background:linear-gradient(135deg,rgba(131,224,227,.07),rgba(3,12,14,.82))}
+.trade-center-link{display:inline-flex!important;align-items:center;justify-content:center;margin-top:12px;text-decoration:none}.credit-account-card .trade-center-link{width:100%}
