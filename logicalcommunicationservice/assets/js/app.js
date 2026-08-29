@@ -754,9 +754,16 @@ function setupModerationSubscriptions(){if(!state.firebaseReady||!state.profileI
 function mergeStatusRowsNoResub(){const rows=[...state.statusPublic,...state.statusOwn,...state.statusPrivileged];state.statuses=[...new Map(rows.map(x=>[x.id,x])).values()];renderStatusSurfacesNoResub();}
 function renderStatusSurfacesNoResub(){const account=$('#accountStatusList');if(account){const rows=activeStatusesFor();account.innerHTML=rows.length?rows.map(x=>`<span class="status-badge status-${escapeHtml(x.status)}">${STATUS_META[x.status]?.symbol||'•'} ${escapeHtml(STATUS_META[x.status]?.label||x.status)}${x.scopeType==='global'?'':` · ${escapeHtml(STATUS_SCOPE_LABELS[x.scopeType]||x.scopeType)}`}</span>`).join(''):'<span class="muted">No assigned Status values.</span>';}const timed=isGlobalTimedOut(),banner=$('#timeoutBanner');if(banner)banner.hidden=!timed;const nav=$('#moderationNav');if(nav)nav.hidden=!(isFounder()||activeStatusesFor().some(x=>x.status==='moderator'));renderModeration();}
 
-const MOBILE_AUTH_BRIDGE_URL='https://logicalcommunicationservice.firebaseapp.com/lcs-auth-bridge.html';
-const MOBILE_AUTH_RETURN_HASH_KEY='lcs-auth';
-const MOBILE_AUTH_NONCE_KEY='lcs_mobile_auth_nonce';
+const lastAuthCspViolation={blockedURI:'',directive:'',sourceFile:'',at:0};
+window.addEventListener('securitypolicyviolation',event=>{
+  const blocked=String(event?.blockedURI||'');
+  if(!/(?:google|firebase|gstatic)/i.test(blocked))return;
+  lastAuthCspViolation.blockedURI=blocked;
+  lastAuthCspViolation.directive=String(event?.effectiveDirective||event?.violatedDirective||'');
+  lastAuthCspViolation.sourceFile=String(event?.sourceFile||'');
+  lastAuthCspViolation.at=Date.now();
+  console.warn('LCS auth-related CSP block',lastAuthCspViolation);
+});
 
 function isMobileAuthBrowser(){return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'')||Boolean(window.matchMedia?.('(pointer: coarse)').matches&&window.innerWidth<=900);}
 function compactAuthMessage(value){return String(value||'').replace(/\s+/g,' ').trim().slice(0,900);}
@@ -771,37 +778,30 @@ async function probeFirebaseAuthProject(){
   }catch(e){return {ok:false,httpStatus:0,errorStatus:'NETWORK_ERROR',errorMessage:compactAuthMessage(e?.message||e),authorizedDomains:[],currentDomainAuthorized:null};}
 }
 function authDiagnosticText(err,attempt,probe){
-  const lines=[`attempt: ${attempt||'unknown'}`,`origin: ${location.origin}`,`authDomain: ${LCS_CONFIG.firebase?.authDomain||''}`,`projectId: ${LCS_CONFIG.firebase?.projectId||''}`,`mobileBrowser: ${isMobileAuthBrowser()?'yes':'no'}`,`online: ${navigator.onLine?'yes':'no'}`];
-  if(probe){lines.push(`projectConfigProbe: ${probe.ok?'ok':'failed'}`,`probeHttpStatus: ${probe.httpStatus||0}`);if(probe.errorStatus)lines.push(`probeErrorStatus: ${probe.errorStatus}`);if(probe.currentDomainAuthorized!==null)lines.push(`authorizedDomain: ${probe.currentDomainAuthorized?'yes':'no'}`);if(probe.errorMessage)lines.push(`probeMessage: ${probe.errorMessage}`);}
-  if(err?.message)lines.push(`firebaseMessage: ${compactAuthMessage(err.message)}`);
+  const lines=[`attempt: ${attempt||'unknown'}`,`origin: ${location.origin}`,`path: ${location.pathname}`,`authDomain: ${LCS_CONFIG.firebase?.authDomain||''}`,`projectId: ${LCS_CONFIG.firebase?.projectId||''}`,`mobileBrowser: ${isMobileAuthBrowser()?'yes':'no'}`,`online: ${navigator.onLine?'yes':'no'}`];
+  if(probe){lines.push(`projectConfigProbe: ${probe.ok?'ok':'failed'}`,`probeHttpStatus: ${probe.httpStatus||0}`);if(probe.errorStatus)lines.push(`probeErrorStatus: ${probe.errorStatus}`);if(probe.currentDomainAuthorized!==null)lines.push(`authorizedDomain: ${probe.currentDomainAuthorized?'yes':'no'}`);}
+  const message=compactAuthMessage(err?.message);if(message)lines.push(`firebaseMessage: ${message}`);
+  if(lastAuthCspViolation.at&&Date.now()-lastAuthCspViolation.at<120000){lines.push(`lastCspBlockedUri: ${lastAuthCspViolation.blockedURI}`,`lastCspDirective: ${lastAuthCspViolation.directive}`);}
   return lines.join('\n');
 }
 function clearAuthError(){const b=$('#authErrorBox');b.hidden=true;$('#authErrorText').textContent='';$('#authErrorCode').textContent='';const d=$('#authDiagnosticDetails');if(d){d.textContent='';d.hidden=true;}const r=$('#authRedirectRetryButton');if(r)r.hidden=true;}
-function showAuthError(err,attempt='unknown',probe=null){
+function showAuthError(err,attempt='popup',probe=null){
   const code=String(err?.code||'auth/unknown');
-  let text='Firebase could not complete Google sign-in. Check Firebase Authentication and the diagnostic below.';
+  let text='Firebase could not complete Google sign-in.';
   if(code.includes('unauthorized-domain'))text='This GitHub Pages domain is not authorized in Firebase Authentication. Add j12h36h.github.io under Authentication → Settings → Authorized domains.';
-  else if(code.includes('popup-closed'))text='The Google window was closed before sign-in finished.';
-  else if(code.includes('popup-blocked'))text='The browser blocked the Google sign-in window. Allow popups for this site and retry Google sign-in.';
-  else if(code.includes('project-config-request-failed'))text='Firebase project configuration could not be read with this browser API key.';
-  else if(code.includes('mobile-bridge-nonce'))text='The mobile sign-in return could not be verified. Retry Google sign-in from LCS.';
-  else if(code.includes('mobile-bridge-credential'))text='Firebase Hosting returned from Google without a usable Google credential. Retry Google sign-in.';
-  else if(code.includes('mobile-bridge'))text='The Firebase-hosted mobile authentication bridge could not finish sign-in. Retry Google sign-in.';
-  else if(code.includes('session-not-retained'))text='Google returned a valid credential, but Firebase did not retain the signed-in browser session.';
-  else if(code.includes('internal-error'))text='Firebase popup authentication failed. Mobile no longer uses the popup path; retry to use the Firebase-hosted first-party authentication bridge.';
+  else if(code.includes('popup-closed'))text='The Google sign-in window was closed before Firebase finished signing in.';
+  else if(code.includes('popup-blocked'))text='The browser blocked the Google sign-in window. Allow popups for j12h36h.github.io and retry.';
+  else if(code.includes('network-request-failed'))text='Firebase could not reach a required Google authentication endpoint. Check the connection and retry.';
+  else if(code.includes('session-not-retained'))text='Google completed sign-in, but Firebase did not retain the authenticated session in this browser.';
+  else if(code.includes('internal-error'))text='Firebase returned an internal Google sign-in error. Mobile now runs the exact same Firebase popup path as desktop; the diagnostic below will also report any Google/Firebase resource blocked by the page security policy.';
   $('#authErrorTitle').textContent='Google sign-in needs attention';$('#authErrorText').textContent=text;$('#authErrorCode').textContent=code;
   const details=$('#authDiagnosticDetails');if(details){details.textContent=authDiagnosticText(err,attempt,probe);details.hidden=false;}
-  const retry=$('#authRedirectRetryButton');if(retry)retry.hidden=!(isMobileAuthBrowser()&&state.firebase?.auth);
+  const retry=$('#authRedirectRetryButton');if(retry)retry.hidden=false;
   $('#authErrorBox').hidden=false;
 }
-function openAuthDialog(){
-  clearAuthError();
-  const mount=$('#googleIdentityButtonMount');if(mount)mount.hidden=true;
-  const fallback=$('#googleSignInButton');if(fallback)fallback.hidden=false;
-  showDialog('#authDialog');
-}
+function openAuthDialog(){clearAuthError();const mount=$('#googleIdentityButtonMount');if(mount)mount.hidden=true;const fallback=$('#googleSignInButton');if(fallback)fallback.hidden=false;showDialog('#authDialog');}
 
-async function waitForFirebaseAuthUser(auth,authMod,timeoutMs=4500){
+async function waitForFirebaseAuthUser(auth,authMod,timeoutMs=5000){
   if(auth.currentUser)return auth.currentUser;
   return await new Promise(resolve=>{
     let settled=false;
@@ -811,90 +811,33 @@ async function waitForFirebaseAuthUser(auth,authMod,timeoutMs=4500){
     unsubscribe=authMod.onAuthStateChanged(auth,user=>{if(user)finish(user);},()=>finish(null));
   });
 }
-function decodeBase64UrlJson(value){
-  const normalized=String(value||'').replace(/-/g,'+').replace(/_/g,'/');
-  const padded=normalized+'='.repeat((4-normalized.length%4)%4);
-  const bytes=Uint8Array.from(atob(padded),c=>c.charCodeAt(0));
-  return JSON.parse(new TextDecoder().decode(bytes));
-}
-function takeMobileBridgePayload(){
-  const raw=location.hash.startsWith('#')?location.hash.slice(1):location.hash;
-  if(!raw)return null;
-  const params=new URLSearchParams(raw);
-  const packed=params.get(MOBILE_AUTH_RETURN_HASH_KEY);
-  if(!packed)return null;
-  // Strip the credential fragment before doing any network work or rendering app content.
-  history.replaceState(null,'',location.pathname+location.search);
-  try{return decodeBase64UrlJson(packed);}catch(e){console.error('Invalid mobile auth bridge payload',e);return {error:'decode'};}
-}
-async function completeMobileBridgeReturn(auth,authMod){
-  if(!isMobileAuthBrowser())return false;
-  const payload=takeMobileBridgePayload();
-  if(!payload)return false;
-  const expectedNonce=sessionStorage.getItem(MOBILE_AUTH_NONCE_KEY)||'';
-  sessionStorage.removeItem(MOBILE_AUTH_NONCE_KEY);
-  try{
-    if(payload.error){const e=new Error(String(payload.errorMessage||payload.error));e.code='auth/mobile-bridge-error';throw e;}
-    if(!expectedNonce||payload.nonce!==expectedNonce){const e=new Error('Mobile authentication return nonce did not match this browser session.');e.code='auth/mobile-bridge-nonce-mismatch';throw e;}
-    const idToken=String(payload.idToken||'');
-    const accessToken=String(payload.accessToken||'');
-    if(!idToken&&!accessToken){const e=new Error('Firebase Hosting returned no Google credential.');e.code='auth/mobile-bridge-credential-missing';throw e;}
-    try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);}catch(e){console.warn('Firebase local persistence unavailable before bridge credential',e?.code||e);}
-    const credential=authMod.GoogleAuthProvider.credential(idToken||null,accessToken||null);
-    const result=await authMod.signInWithCredential(auth,credential);
-    if(result?.user){try{await result.user.getIdToken(true);}catch{}}
-    const user=auth.currentUser||result?.user||await waitForFirebaseAuthUser(auth,authMod,5000);
-    if(!user){const e=new Error('Firebase accepted the Google credential but did not retain the authenticated browser session.');e.code='auth/session-not-retained';throw e;}
-    syncFirebaseAuthUser(user);
-    clearAuthError();
-    closeDialog('#authDialog');
-    toast('Signed in. This mobile browser will keep the LCS session until you sign out.');
-    return true;
-  }catch(e){
-    console.error('LCS mobile bridge completion',e);
-    showAuthError(e,'mobile-firebase-hosting-bridge-return');
-    return false;
-  }
-}
-async function startMobileFirebaseHostingAuth(probe=null){
-  if(probe?.ok===false){showAuthError({code:'auth/project-config-request-failed',message:`Firebase project configuration request failed with HTTP ${probe.httpStatus}${probe.errorStatus?` (${probe.errorStatus})`:''}.`},'mobile-bridge-preflight',probe);return;}
-  if(probe?.currentDomainAuthorized===false){showAuthError({code:'auth/unauthorized-domain',message:`${location.hostname} is not present in the Firebase authorizedDomains response.`},'mobile-bridge-preflight',probe);return;}
-  const nonce=crypto.randomUUID();
-  sessionStorage.setItem(MOBILE_AUTH_NONCE_KEY,nonce);
-  const url=new URL(MOBILE_AUTH_BRIDGE_URL);
-  url.searchParams.set('nonce',nonce);
-  // Same-tab navigation avoids Android popup/opener behavior entirely. The bridge itself
-  // lives on the Firebase auth origin, so Firebase redirect state is first-party there.
-  location.assign(url.toString());
-}
+
 async function signInGoogle(){
   clearAuthError();
   if(!state.firebase?.auth)return showAuthError({code:'auth/configuration-not-found'});
   const {auth,authMod}=state.firebase;
   const mobile=isMobileAuthBrowser();
   const probe=mobile?await probeFirebaseAuthProject():null;
-  try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);}catch(e){console.warn('Firebase local persistence unavailable before sign-in',e?.code||e);}
+  if(mobile&&probe?.ok===false){showAuthError({code:'auth/project-config-request-failed',message:`Firebase project configuration request failed with HTTP ${probe.httpStatus}${probe.errorStatus?` (${probe.errorStatus})`:''}.`},'mobile-desktop-parity-preflight',probe);return;}
+  if(mobile&&probe?.currentDomainAuthorized===false){showAuthError({code:'auth/unauthorized-domain',message:`${location.hostname} is not present in Firebase authorizedDomains.`},'mobile-desktop-parity-preflight',probe);return;}
 
-  if(mobile){
-    await startMobileFirebaseHostingAuth(probe);
-    return;
-  }
-
+  // Deliberately identical on desktop and mobile. No GIS, no custom OAuth redirect,
+  // no Firebase-hosting bridge. The only mobile-specific work is diagnostics.
   const provider=new authMod.GoogleAuthProvider();
   provider.setCustomParameters({prompt:'select_account'});
   try{
+    await authMod.setPersistence(auth,authMod.browserLocalPersistence);
     const result=await authMod.signInWithPopup(auth,provider);
-    if(result?.user){try{await result.user.getIdToken(true);}catch(tokenError){console.debug('Firebase token refresh after popup',tokenError?.code||tokenError);}}
     if(typeof auth.authStateReady==='function')await auth.authStateReady();
-    const user=auth.currentUser||result?.user||await waitForFirebaseAuthUser(auth,authMod,4500);
-    if(!user){const retentionError=new Error('Google returned to LCS, but Firebase did not retain the authenticated browser session.');retentionError.code='auth/session-not-retained';throw retentionError;}
+    const user=auth.currentUser||result?.user||await waitForFirebaseAuthUser(auth,authMod,mobile?7000:5000);
+    if(!user){const e=new Error('Google returned to LCS, but Firebase did not retain the authenticated browser session.');e.code='auth/session-not-retained';throw e;}
     syncFirebaseAuthUser(user);
     if(state.firebaseReady)await ensurePrivateIdentityOnce();
     closeDialog('#authDialog');
     toast('Signed in. This browser will keep the LCS session until you sign out.');
   }catch(e){
     console.error('LCS Google popup sign-in',e);
-    showAuthError(e,'desktop-popup',probe);
+    showAuthError(e,mobile?'mobile-desktop-parity-popup':'desktop-popup',probe);
   }
 }
 
@@ -1018,7 +961,6 @@ async function initFirebase(){
     // Google sign-in uses Firebase popup auth on both desktop and mobile.
     // This avoids GIS origin_mismatch and redirect third-party-storage handoff on GitHub Pages.
     authMod.onAuthStateChanged(auth,syncFirebaseAuthUser);
-    if(isMobileAuthBrowser())await completeMobileBridgeReturn(auth,authMod);
     if(typeof auth.authStateReady==='function')await auth.authStateReady();
     const fsMod=await firestorePromise,db=fsMod.getFirestore(app);state.firebase={app,auth,authMod,db,fsMod};state.firebaseReady=true;
     // Firebase Auth can restore the user before Firestore finishes importing. Re-apply that
@@ -1038,7 +980,7 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;synthesizeReferencedProfiles();renderLfg();renderConnections();renderSearchPanel();hydrateReferencedProfiles().catch(console.debug);},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;synthesizeReferencedProfiles();mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();hydrateReferencedProfiles().catch(console.debug);},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentityOnce();
-    setBackendStatus('LCS v0.9.1 Firebase-hosted mobile auth bridge + profile directory connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    setBackendStatus('LCS v0.9.2 desktop-parity Firebase auth + profile directory connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7.1 firestore.rules.','error');renderAuth();renderAccount();}
 }
 

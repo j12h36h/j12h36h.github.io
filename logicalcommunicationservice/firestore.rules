@@ -359,7 +359,8 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId)).data.ownerProfileId == request.resource.data.ownerProfileId
         && (isCallerProfile(request.resource.data.ownerProfileId) || callerIsFounder())
         && validChannel(request.resource.data);
-      allow update: if callerCanContribute() && isCallerProfile(resource.data.ownerProfileId)
+      allow update: if callerCanContribute()
+        && (isCallerProfile(resource.data.ownerProfileId) || callerIsFounder())
         && request.resource.data.ownerProfileId == resource.data.ownerProfileId
         && request.resource.data.spaceId == resource.data.spaceId
         && request.resource.data.createdAt == resource.data.createdAt && validChannel(request.resource.data);
