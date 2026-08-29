@@ -1,1 +1,29 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#02090b"><title>Global — E.R.A.S. Mobile</title><link rel="stylesheet" href="/account/assets/css/account-button.css"><link rel="stylesheet" href="/game-mobile/assets/mobile.css?v=1.4.4"></head><body class="mobile-global"><header class="mobile-game-header"><a class="mobile-game-brand" href="/game-mobile/"><span>PROJECT E.R.A.S. : GLOBAL</span><small>MOBILE WORLD CLIENT</small></a><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">ACCOUNT…</div></div></header><main class="mobile-global-shell"><section class="mobile-global-map" id="globalMap"><span class="world-landmark landmark-a">NORTH PLATFORM</span><span class="world-landmark landmark-b">SLIME YARD</span></section><div class="mobile-world-hud"><div><b id="worldName">GLOBAL PLAZA</b><span id="worldState">CONNECTING…</span></div></div><div class="mobile-touch-pad"><button class="touch-up" data-move="up" type="button">▲</button><button class="touch-left" data-move="left" type="button">◀</button><button class="touch-right" data-move="right" type="button">▶</button><button class="touch-down" data-move="down" type="button">▼</button></div><div class="mobile-world-message" id="globalMessage">SIGN IN TO MATERIALIZE YOUR LCS PROFILE ICON.</div></main><script type="module" src="/account/assets/js/account.js"></script><script type="module" src="./global.js?v=1.4.4"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#02090b">
+  <title>Global Tactical Table — E.R.A.S. Mobile</title>
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="/game-mobile/assets/mobile.css?v=1.5.0">
+</head>
+<body class="mobile-global tactical-mobile-global">
+  <header class="mobile-game-header"><a class="mobile-game-brand" href="/game-mobile/"><span>PROJECT E.R.A.S. : GLOBAL</span><small>MOBILE TACTICAL CLIENT</small></a><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">ACCOUNT…</div></div></header>
+  <main class="mobile-global-shell">
+    <div class="turn-clock mobile-turn-clock" aria-live="polite"><div class="turn-progress" id="turnProgress"><span></span></div><div class="turn-copy"><small>GLOBAL TURN</small><b id="turnNumber">TURN 0001</b><strong id="turnCountdown">01:00</strong><em id="turnState">LIVE DECLARATION WINDOW</em></div></div>
+    <section class="mobile-global-map tactical-board" id="globalMap" aria-label="Top-down E.R.A.S. tactical battlefield">
+      <div class="battle-zone battle-zone-north" aria-hidden="true"></div><div class="battle-zone battle-zone-south" aria-hidden="true"></div><div class="battle-wall wall-a" aria-hidden="true"></div><div class="battle-wall wall-b" aria-hidden="true"></div><div class="battle-cover cover-a" aria-hidden="true"></div><div class="battle-cover cover-b" aria-hidden="true"></div>
+      <button class="battle-object objective-core" type="button" data-tactical-target="central-relay" data-target-label="CENTRAL RELAY"><i></i><span>RELAY</span></button>
+      <button class="battle-object objective-cache" type="button" data-tactical-target="slime-cache" data-target-label="SLIME CACHE"><i></i><span>CACHE</span></button>
+      <button class="battle-object objective-terminal" type="button" data-tactical-target="north-terminal" data-target-label="NORTH TERMINAL"><i></i><span>TERMINAL</span></button>
+      <span class="world-landmark landmark-a">NORTH PLATFORM</span><span class="world-landmark landmark-b">SLIME YARD</span>
+    </section>
+    <div class="mobile-world-hud"><div><b id="worldName">GLOBAL TABLE</b><span id="worldState">CONNECTING…</span></div></div>
+    <aside class="tactical-action-panel mobile-tactical-actions"><div class="tactical-stat"><span>MOVE</span><b id="moveRemaining">40.0 / 40</b><i id="moveBudgetBar"></i><small id="autoMoveState">TAP BOARD TO AUTO-MOVE</small></div><div class="tactical-stat compact"><span>TARGET</span><b id="selectedTarget">NONE</b></div><div class="tactical-stat compact"><span>QUEUE</span><b id="queuedAction">NONE</b></div><div class="tactical-buttons"><button id="queueAttack" type="button" disabled>ATTACK</button><button id="queueInteract" type="button" disabled>INTERACT</button><button id="cancelAction" class="is-cancel" type="button" disabled>CANCEL</button><button id="cancelAutoMove" class="is-secondary" type="button">STOP AUTO</button></div></aside>
+    <div class="mobile-touch-pad"><button class="touch-up" data-move="up" type="button">▲</button><button class="touch-left" data-move="left" type="button">◀</button><button class="touch-right" data-move="right" type="button">▶</button><button class="touch-down" data-move="down" type="button">▼</button></div>
+    <div class="mobile-world-message" id="globalMessage">SIGN IN TO MATERIALIZE YOUR LCS PROFILE TOKEN.</div>
+  </main>
+  <script type="module" src="/account/assets/js/account.js"></script><script type="module" src="./global.js?v=1.5.0"></script>
+</body>
+</html>

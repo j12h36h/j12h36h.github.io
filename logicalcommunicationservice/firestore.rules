@@ -695,13 +695,15 @@ service cloud.firestore {
       return value is string && value.size() > 0 && value.size() <= 160;
     }
     function validPresence(data) {
-      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','updatedAt'])
+      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','updatedAt'])
         && validWorldId(data.worldId)
         && validPublicId(data.profileId) && profileExists(data.profileId)
         && data.x is number && data.x >= 0 && data.x <= 100
         && data.y is number && data.y >= 0 && data.y <= 100
         && data.vx is number && data.vx >= -50 && data.vx <= 50
         && data.vy is number && data.vy >= -50 && data.vy <= 50
+        && data.turnNumber is int && data.turnNumber >= 1
+        && data.moveUsed is number && data.moveUsed >= 0 && data.moveUsed <= 40.25
         && data.updatedAt is timestamp;
     }
     match /gamePresence/{presenceId} {
@@ -711,6 +713,55 @@ service cloud.firestore {
         && presenceId == request.resource.data.profileId + '__' + request.resource.data.worldId
         && validPresence(request.resource.data);
       allow delete: if isCallerProfile(resource.data.profileId);
+    }
+
+    // ============================================================
+    // E.R.A.S. GLOBAL-TURN DECLARATIONS
+    // Attacks/interactions are declarations during the live minute.
+    // The client treats resolveTurn as the shared marker and lets the
+    // declaring player cancel until that marker is reached.
+    // ============================================================
+    function validGameActionType(value) { return value in ['attack','interact']; }
+    function validGameActionTargetType(value) { return value in ['profile','object']; }
+    function validGameActionStatus(value) { return value in ['queued','cancelled','resolved']; }
+    function validGameAction(data) {
+      return data.keys().hasOnly(['worldId','actorProfileId','actionType','targetType','targetId','targetLabel','declaredTurn','resolveTurn','status','createdAt','updatedAt','resolvedAt'])
+        && validWorldId(data.worldId)
+        && validPublicId(data.actorProfileId) && profileExists(data.actorProfileId)
+        && validGameActionType(data.actionType)
+        && validGameActionTargetType(data.targetType)
+        && data.targetId is string && data.targetId.size() > 0 && data.targetId.size() <= 180
+        && (data.targetType != 'profile' || (validPublicId(data.targetId) && profileExists(data.targetId)))
+        && data.targetLabel is string && data.targetLabel.size() > 0 && data.targetLabel.size() <= 80
+        && data.declaredTurn is int && data.declaredTurn >= 1
+        && data.resolveTurn is int && data.resolveTurn == data.declaredTurn + 1
+        && validGameActionStatus(data.status)
+        && data.createdAt is timestamp && data.updatedAt is timestamp
+        && validOptionalTimestamp(data.resolvedAt)
+        && ((data.status == 'resolved' && data.resolvedAt != null) || (data.status != 'resolved' && data.resolvedAt == null));
+    }
+    match /gameActions/{actionId} {
+      allow read: if signedIn();
+      allow create: if callerCanContribute()
+        && isCallerProfile(request.resource.data.actorProfileId)
+        && request.resource.data.status == 'queued'
+        && request.resource.data.resolvedAt == null
+        && validGameAction(request.resource.data);
+      allow update: if callerCanContribute()
+        && isCallerProfile(resource.data.actorProfileId)
+        && request.resource.data.worldId == resource.data.worldId
+        && request.resource.data.actorProfileId == resource.data.actorProfileId
+        && request.resource.data.actionType == resource.data.actionType
+        && request.resource.data.targetType == resource.data.targetType
+        && request.resource.data.targetId == resource.data.targetId
+        && request.resource.data.targetLabel == resource.data.targetLabel
+        && request.resource.data.declaredTurn == resource.data.declaredTurn
+        && request.resource.data.resolveTurn == resource.data.resolveTurn
+        && request.resource.data.createdAt == resource.data.createdAt
+        && resource.data.status == 'queued'
+        && request.resource.data.status in ['cancelled','resolved']
+        && validGameAction(request.resource.data);
+      allow delete: if isCallerProfile(resource.data.actorProfileId);
     }
 
     // LEGACY v0.4 DATA QUARANTINE. Old UID-bearing documents are never public.
