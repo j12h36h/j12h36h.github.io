@@ -1,4 +1,5 @@
 import { LCS_CONFIG } from './config.js';
+import { watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -39,7 +40,7 @@ const state = {
   friendRequests: [], friendships: [], lfgRequests: [], blocks: [],
   statusPublic: [], statusOwn: [], statusPrivileged: [], statuses: [], moderationLogs: [], moderationPosts: [], moderationObjects: [], moderationComments: [], moderationLfg: [], moderationUnsubs: [], moderationSignature: '',
   activeType: 'unclassified', activeFilter: 'all', activeView: 'home', activeSpaceId: 'all', activeChannelId: 'all', activeLfgFilter: 'all', mapLayoutSeed: 0, activitySeenAt: 0,
-  momentumMode: 'explore', networkContext: null, sessionImpact: {},
+  momentumMode: 'explore', networkContext: null, sessionImpact: {}, creditBalance: 0,
   detail: null, connectContext: null, profileSavePending: false, profileSaveStatus: '', accountDirty: false, profileVerified: false,
   createInFlight: false, publishInFlight: false, commentInFlight: false, lfgInFlight: false, spaceInFlight: false, channelInFlight: false, detailCommentUnsub: null,
   publicUnsubs: [], privateUnsubs: [], ownProfileUnsub: null, legacyMigrationStarted: false, identityLinkPromise: null, profileHydrationPending: new Set()
@@ -419,7 +420,7 @@ function renderAuth() {
   if (!state.authUid) { area.innerHTML = '<button class="primary-button" data-open-auth type="button">Sign in</button>'; $('#composerName').textContent = 'Share a thought'; $('#composerAvatar').textContent = 'You'; return; }
   if (!state.profileId) { area.innerHTML = '<div class="auth-checking"><span class="auth-checking-dot"></span><span>Linking public identity…</span></div>'; return; }
   const p = ownProfile();
-  area.innerHTML = `<div class="auth-user"><button class="auth-account-main" data-open-account type="button">${avatarMarkup(p,'auth-fallback-avatar')}<span>${escapeHtml(p.displayName || 'Account')}</span><span class="status-badge-row">${statusBadgeMarkup(state.profileId)}</span></button><button id="signOutButton" type="button" aria-label="Sign out">↪</button></div>`;
+  area.innerHTML = `<div class="auth-user"><span class="lcs-credit-pill" title="Universal Credits">◈ ${formatCredits(state.creditBalance)}</span><button class="auth-account-main" data-open-account type="button">${avatarMarkup(p,'auth-fallback-avatar')}<span>${escapeHtml(p.displayName || 'Account')}</span><span class="status-badge-row">${statusBadgeMarkup(state.profileId)}</span></button><button id="signOutButton" type="button" aria-label="Sign out">↪</button></div>`;
   $('#composerName').textContent = p.displayName || 'Share a thought'; $('#composerAvatar').innerHTML = avatarMarkup(p,'composer-avatar-composite');
 }
 
@@ -442,6 +443,7 @@ function renderAccount() {
   $('#accountSaveButton').textContent = state.profileSavePending ? 'Saving…' : 'Save public profile';
   $('#accountPublicSyncStatus').textContent = state.accountDirty ? 'Editing' : (state.profileVerified ? 'Synced' : 'Connecting');
   $('#accountPublicSyncStatus').dataset.tone = state.accountDirty ? 'editing' : (state.profileVerified ? 'ok' : 'loading');
+  const credit=$('#accountCreditBalance'); if(credit) credit.textContent=formatCredits(state.creditBalance);
 }
 
 function markAccountDirty() { state.accountDirty = true; state.profileSaveStatus = 'Unsaved changes'; renderAccount(); }
@@ -1098,7 +1100,7 @@ function publicSubscribe(name,apply,{orderBy='',limit=500,filters=[]}={}){
   start(true);
 }
 function privateQuerySubscribe(name,field,value,apply){const {db,fsMod}=state.firebase;const q=fsMod.query(fsMod.collection(db,name),fsMod.where(field,'==',value),fsMod.limit(250));const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>console.error(`private subscription ${name}`,e));state.privateUnsubs.push(unsub);}
-function setupPrivateSubscriptions(){stopPrivateSubscriptions();if(!state.profileId)return;let friendIn=[],friendOut=[],lfgIn=[],lfgOut=[];const merge=(a,b)=>[...new Map([...a,...b].map(x=>[x.id,x])).values()];privateQuerySubscribe('privateFriendRequests','toProfileId',state.profileId,rows=>{friendIn=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();renderActivity();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);});privateQuerySubscribe('privateFriendRequests','fromProfileId',state.profileId,rows=>{friendOut=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();renderActivity();});privateQuerySubscribe('privateLfgRequests','toProfileId',state.profileId,rows=>{lfgIn=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();renderActivity();});privateQuerySubscribe('privateLfgRequests','fromProfileId',state.profileId,rows=>{lfgOut=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();renderActivity();});privateQuerySubscribe('statusAssignments','profileId',state.profileId,rows=>{state.statusOwn=rows;mergeStatusRows();renderAuth();renderAccount();renderDetailThread();renderActivity();});const {db,fsMod}=state.firebase;const q=fsMod.query(fsMod.collection(db,'privateFriendships'),fsMod.where('members','array-contains',state.profileId),fsMod.limit(250));state.privateUnsubs.push(fsMod.onSnapshot(q,s=>{state.friendships=s.docs.map(d=>({id:d.id,...d.data()}));renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('friendships',e)));const bq=fsMod.query(fsMod.collection(db,'privateBlocks'),fsMod.where('blockerProfileId','==',state.profileId),fsMod.limit(500));state.privateUnsubs.push(fsMod.onSnapshot(bq,s=>{state.blocks=s.docs.map(d=>({id:d.id,...d.data()}));renderFeed();renderCatalogs();renderSearchPanel();renderLfg();renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('blocks',e)));}
+function setupPrivateSubscriptions(){stopPrivateSubscriptions();if(!state.profileId)return;let friendIn=[],friendOut=[],lfgIn=[],lfgOut=[];const merge=(a,b)=>[...new Map([...a,...b].map(x=>[x.id,x])).values()];privateQuerySubscribe('privateFriendRequests','toProfileId',state.profileId,rows=>{friendIn=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();renderActivity();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);});privateQuerySubscribe('privateFriendRequests','fromProfileId',state.profileId,rows=>{friendOut=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();renderActivity();});privateQuerySubscribe('privateLfgRequests','toProfileId',state.profileId,rows=>{lfgIn=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();renderActivity();});privateQuerySubscribe('privateLfgRequests','fromProfileId',state.profileId,rows=>{lfgOut=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();renderActivity();});privateQuerySubscribe('statusAssignments','profileId',state.profileId,rows=>{state.statusOwn=rows;mergeStatusRows();renderAuth();renderAccount();renderDetailThread();renderActivity();});const {db,fsMod}=state.firebase;state.privateUnsubs.push(watchCreditWallet(db,fsMod,state.profileId,balance=>{state.creditBalance=balance;renderAuth();renderAccount();},e=>console.debug('LCS credit wallet',e?.code||e)));const q=fsMod.query(fsMod.collection(db,'privateFriendships'),fsMod.where('members','array-contains',state.profileId),fsMod.limit(250));state.privateUnsubs.push(fsMod.onSnapshot(q,s=>{state.friendships=s.docs.map(d=>({id:d.id,...d.data()}));renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('friendships',e)));const bq=fsMod.query(fsMod.collection(db,'privateBlocks'),fsMod.where('blockerProfileId','==',state.profileId),fsMod.limit(500));state.privateUnsubs.push(fsMod.onSnapshot(bq,s=>{state.blocks=s.docs.map(d=>({id:d.id,...d.data()}));renderFeed();renderCatalogs();renderSearchPanel();renderLfg();renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('blocks',e)));}
 
 async function ensurePrivateIdentityOnce(){
   if(!state.authUid||!state.firebaseReady||!state.firebase?.db)return;
@@ -1146,7 +1148,7 @@ function syncFirebaseAuthUser(user){
   state.authUid=next;
   state.authReady=true;
   if(changed){
-    state.profileId=null;state.publicProfile=null;state.profileVerified=false;state.accountDirty=false;
+    state.profileId=null;state.publicProfile=null;state.creditBalance=0;state.profileVerified=false;state.accountDirty=false;
     state.profileSaveStatus=next?'Authentication verified · restoring private identity link…':'';
     state.legacyMigrationStarted=false;state.identityLinkPromise=null;state.activitySeenAt=0;state.founderAuthorityVerified=false;state.founderAuthorityCheckPromise=null;
     state.statusPublic=[];state.statusOwn=[];state.statusPrivileged=[];state.statuses=[];

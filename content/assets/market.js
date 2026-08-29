@@ -1,7 +1,8 @@
 import { auth, db, fs, watchIdentity } from '/game/assets/js/eras-data.js';
+import { watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
 
 const $ = s => document.querySelector(s);
-const state = { identity: null, catalog: null, asset: null, inventoryUnsub: null, image: null };
+const state = { identity: null, catalog: null, asset: null, inventoryUnsub: null, creditUnsub: null, creditBalance: 0, image: null };
 
 function say(message, tone='') {
   const el = $('#assetFeedback');
@@ -45,6 +46,21 @@ function inventoryCanvas(tint) {
   canvas.width = 96; canvas.height = 96;
   requestAnimationFrame(() => renderTint(tint, canvas));
   return canvas;
+}
+
+
+function watchCredits() {
+  state.creditUnsub?.();
+  state.creditBalance = 0;
+  const el = $('#marketCreditBalance');
+  if (!state.identity?.profileId) {
+    if (el) el.textContent = '00';
+    return;
+  }
+  state.creditUnsub = watchCreditWallet(db, fs, state.identity.profileId, balance => {
+    state.creditBalance = balance;
+    if (el) el.textContent = formatCredits(balance);
+  }, error => console.debug('Marketplace credit wallet', error?.code || error));
 }
 
 function watchInventory() {
@@ -133,5 +149,5 @@ document.querySelectorAll('[data-tint]').forEach(button => button.addEventListen
 }));
 $('#obtainAsset').addEventListener('click', obtainAsset);
 
-watchIdentity(identity => { state.identity = identity; watchInventory(); });
+watchIdentity(identity => { state.identity = identity; watchInventory(); watchCredits(); });
 loadCatalog().catch(error => { console.error(error); say(`Marketplace failed to load: ${error.message}`, 'error'); });

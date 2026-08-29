@@ -600,70 +600,6 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // UNIVERSAL CREDITS
-    // One wallet per public profile, shared by root Account, LCS,
-    // Content, and E.R.A.S. gameplay.
-    // ============================================================
-    function validCreditEventType(value) { return value in ['init','slime_kill','death','market_purchase']; }
-    function validCreditWallet(data, profileId) {
-      return data.keys().hasOnly(['profileId','balance','totalEarned','totalLost','lastEventId','lastEventType','createdAt','updatedAt'])
-        && data.profileId == profileId
-        && data.balance is int && data.balance >= 0
-        && data.totalEarned is int && data.totalEarned >= 0
-        && data.totalLost is int && data.totalLost >= 0
-        && data.lastEventId is string && data.lastEventId.size() <= 180
-        && validCreditEventType(data.lastEventType)
-        && data.createdAt is timestamp && data.updatedAt is timestamp;
-    }
-    function validSlimeKillCreditAction(data, action) {
-      let enemyPath = /databases/$(database)/documents/gameEnemies/$(action.targetId);
-      return action.actorProfileId == callerProfileId()
-        && action.actionType == 'attack'
-        && action.targetType == 'enemy'
-        && action.status == 'resolved'
-        && action.outcome == 'kill'
-        && existsAfter(enemyPath)
-        && getAfter(enemyPath).data.alive == false
-        && getAfter(enemyPath).data.lastKillActionId == data.lastEventId
-        && getAfter(enemyPath).data.killerProfileId == callerProfileId();
-    }
-    function validSlimeKillCredit(data) {
-      let actionPath = /databases/$(database)/documents/gameActions/$(data.lastEventId);
-      return data.lastEventType == 'slime_kill'
-        && data.lastEventId.size() > 0
-        && data.balance == resource.data.balance + 1
-        && data.totalEarned == resource.data.totalEarned + 1
-        && data.totalLost == resource.data.totalLost
-        && existsAfter(actionPath)
-        && validSlimeKillCreditAction(data, getAfter(actionPath).data);
-    }
-    function validDeathCreditLoss(data) {
-      let lost = resource.data.balance - data.balance;
-      return data.lastEventType == 'death'
-        && data.lastEventId.size() > 0
-        && lost >= 0 && lost <= 10
-        && data.totalEarned == resource.data.totalEarned
-        && data.totalLost == resource.data.totalLost + lost;
-    }
-    match /creditWallets/{profileId} {
-      allow read: if isCallerProfile(profileId);
-      allow create: if isCallerProfile(profileId)
-        && validCreditWallet(request.resource.data, profileId)
-        && request.resource.data.balance == 0
-        && request.resource.data.totalEarned == 0
-        && request.resource.data.totalLost == 0
-        && request.resource.data.lastEventId == ''
-        && request.resource.data.lastEventType == 'init';
-      allow update: if isCallerProfile(profileId)
-        && validCreditWallet(request.resource.data, profileId)
-        && request.resource.data.profileId == resource.data.profileId
-        && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt is timestamp
-        && (validSlimeKillCredit(request.resource.data) || validDeathCreditLoss(request.resource.data));
-      allow delete: if false;
-    }
-
-    // ============================================================
     // E.R.A.S. ASSET INVENTORY
     // Public asset files live under /public-assets/ on GitHub Pages.
     // Firestore stores only per-profile ownership/configuration.
@@ -759,7 +695,7 @@ service cloud.firestore {
       return value is string && value.size() > 0 && value.size() <= 160;
     }
     function validPresence(data) {
-      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','hp','maxHp','deaths','lastDeathEventId','lastCombatTurn','updatedAt'])
+      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','updatedAt'])
         && validWorldId(data.worldId)
         && validPublicId(data.profileId) && profileExists(data.profileId)
         && data.x is number && data.x >= 0 && data.x <= 100
@@ -768,11 +704,6 @@ service cloud.firestore {
         && data.vy is number && data.vy >= -50 && data.vy <= 50
         && data.turnNumber is int && data.turnNumber >= 1
         && data.moveUsed is number && data.moveUsed >= 0 && data.moveUsed <= 40.25
-        && data.hp is int && data.hp >= 0 && data.hp <= 3
-        && data.maxHp == 3
-        && data.deaths is int && data.deaths >= 0
-        && data.lastDeathEventId is string && data.lastDeathEventId.size() <= 180
-        && data.lastCombatTurn is int && data.lastCombatTurn >= 0
         && data.updatedAt is timestamp;
     }
     match /gamePresence/{presenceId} {
@@ -785,121 +716,26 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // E.R.A.S. SHARED ENEMIES
-    // Two one-HP cache slimes exist per world. Their death/respawn
-    // state is shared by every client in that world.
-    // ============================================================
-    function validEnemyKey(value) { return value in ['cache-slime-a','cache-slime-b']; }
-    function validEnemyTemplate(data) {
-      return (data.enemyKey == 'cache-slime-a' && data.label == 'CACHE SLIME A' && data.x == 80.5 && data.y == 72)
-        || (data.enemyKey == 'cache-slime-b' && data.label == 'CACHE SLIME B' && data.x == 85 && data.y == 77);
-    }
-    function validGameEnemy(data) {
-      return data.keys().hasOnly(['worldId','enemyKey','type','label','x','y','hp','maxHp','alive','respawnTurn','lastHitActionId','lastHitByProfileId','lastKillActionId','killerProfileId','updatedAt'])
-        && validWorldId(data.worldId)
-        && validEnemyKey(data.enemyKey)
-        && validEnemyTemplate(data)
-        && data.type == 'slime'
-        && data.label is string && data.label.size() > 0 && data.label.size() <= 40
-        && data.x is number && data.x >= 0 && data.x <= 100
-        && data.y is number && data.y >= 0 && data.y <= 100
-        && data.maxHp == 1
-        && data.hp is int && data.hp >= 0 && data.hp <= 1
-        && data.alive is bool
-        && ((data.alive && data.hp == 1) || (!data.alive && data.hp == 0))
-        && data.respawnTurn is int && data.respawnTurn >= 0
-        && data.lastHitActionId is string && data.lastHitActionId.size() <= 180
-        && data.lastHitByProfileId is string && (data.lastHitByProfileId == '' || validPublicId(data.lastHitByProfileId))
-        && data.lastKillActionId is string && data.lastKillActionId.size() <= 180
-        && data.killerProfileId is string && (data.killerProfileId == '' || validPublicId(data.killerProfileId))
-        && data.updatedAt is timestamp;
-    }
-    function validEnemyAttackAction(enemyId, actionId, killed) {
-      let actionPath = /databases/$(database)/documents/gameActions/$(actionId);
-      return existsAfter(actionPath)
-        && getAfter(actionPath).data.actorProfileId == callerProfileId()
-        && getAfter(actionPath).data.actionType == 'attack'
-        && getAfter(actionPath).data.targetType == 'enemy'
-        && getAfter(actionPath).data.targetId == enemyId
-        && getAfter(actionPath).data.status == 'resolved'
-        && getAfter(actionPath).data.outcome == (killed ? 'kill' : 'hit')
-        && request.resource.data.respawnTurn == (killed ? getAfter(actionPath).data.resolveTurn + 1 : resource.data.respawnTurn);
-    }
-    function validEnemyAttackTransition(enemyId) {
-      let actionId = request.resource.data.lastHitActionId;
-      let killed = request.resource.data.hp == 0;
-      return resource.data.alive == true
-        && request.resource.data.hp == resource.data.hp - 1
-        && request.resource.data.lastHitByProfileId == callerProfileId()
-        && actionId.size() > 0
-        && validEnemyAttackAction(enemyId, actionId, killed)
-        && request.resource.data.alive == !killed
-        && request.resource.data.lastKillActionId == (killed ? actionId : resource.data.lastKillActionId)
-        && request.resource.data.killerProfileId == (killed ? callerProfileId() : resource.data.killerProfileId);
-    }
-    function validEnemyRespawnTransition() {
-      return callerCanContribute()
-        && resource.data.alive == false
-        && request.resource.data.alive == true
-        && request.resource.data.hp == request.resource.data.maxHp
-        && request.resource.data.respawnTurn == 0
-        && request.resource.data.lastHitActionId == ''
-        && request.resource.data.lastHitByProfileId == ''
-        && request.resource.data.killerProfileId == ''
-        && request.resource.data.lastKillActionId == resource.data.lastKillActionId;
-    }
-    match /gameEnemies/{enemyId} {
-      allow read: if signedIn();
-      allow create: if callerCanContribute()
-        && validGameEnemy(request.resource.data)
-        && enemyId == request.resource.data.worldId + '__' + request.resource.data.enemyKey
-        && request.resource.data.hp == 1
-        && request.resource.data.alive == true
-        && request.resource.data.respawnTurn == 0
-        && request.resource.data.lastHitActionId == ''
-        && request.resource.data.lastHitByProfileId == ''
-        && request.resource.data.lastKillActionId == ''
-        && request.resource.data.killerProfileId == '';
-      allow update: if callerCanContribute()
-        && validGameEnemy(request.resource.data)
-        && request.resource.data.worldId == resource.data.worldId
-        && request.resource.data.enemyKey == resource.data.enemyKey
-        && request.resource.data.type == resource.data.type
-        && request.resource.data.label == resource.data.label
-        && request.resource.data.x == resource.data.x
-        && request.resource.data.y == resource.data.y
-        && request.resource.data.maxHp == resource.data.maxHp
-        && (validEnemyAttackTransition(enemyId) || validEnemyRespawnTransition());
-      allow delete: if false;
-    }
-
-    // ============================================================
     // E.R.A.S. GLOBAL-TURN DECLARATIONS
     // Attacks/interactions are declarations during the live minute.
     // The client treats resolveTurn as the shared marker and lets the
     // declaring player cancel until that marker is reached.
     // ============================================================
     function validGameActionType(value) { return value in ['attack','interact']; }
-    function validGameActionTargetType(value) { return value in ['profile','object','enemy']; }
-    function validGameActionOutcome(value) { return value in ['','cancelled','resolved','interact','hit','kill','miss']; }
+    function validGameActionTargetType(value) { return value in ['profile','object']; }
     function validGameActionStatus(value) { return value in ['queued','cancelled','resolved']; }
     function validGameAction(data) {
-      return data.keys().hasOnly(['worldId','actorProfileId','actionType','targetType','targetId','targetLabel','declaredTurn','resolveTurn','status','outcome','createdAt','updatedAt','resolvedAt'])
+      return data.keys().hasOnly(['worldId','actorProfileId','actionType','targetType','targetId','targetLabel','declaredTurn','resolveTurn','status','createdAt','updatedAt','resolvedAt'])
         && validWorldId(data.worldId)
         && validPublicId(data.actorProfileId) && profileExists(data.actorProfileId)
         && validGameActionType(data.actionType)
         && validGameActionTargetType(data.targetType)
         && data.targetId is string && data.targetId.size() > 0 && data.targetId.size() <= 180
         && (data.targetType != 'profile' || (validPublicId(data.targetId) && profileExists(data.targetId)))
-        && (data.targetType != 'enemy' || (exists(/databases/$(database)/documents/gameEnemies/$(data.targetId)) && get(/databases/$(database)/documents/gameEnemies/$(data.targetId)).data.worldId == data.worldId))
         && data.targetLabel is string && data.targetLabel.size() > 0 && data.targetLabel.size() <= 80
         && data.declaredTurn is int && data.declaredTurn >= 1
         && data.resolveTurn is int && data.resolveTurn == data.declaredTurn + 1
         && validGameActionStatus(data.status)
-        && validGameActionOutcome(data.get('outcome',''))
-        && ((data.status == 'queued' && data.get('outcome','') == '')
-          || (data.status == 'cancelled' && data.get('outcome','') == 'cancelled')
-          || (data.status == 'resolved' && data.get('outcome','') in ['resolved','interact','hit','kill','miss']))
         && data.createdAt is timestamp && data.updatedAt is timestamp
         && validOptionalTimestamp(data.resolvedAt)
         && ((data.status == 'resolved' && data.resolvedAt != null) || (data.status != 'resolved' && data.resolvedAt == null));
@@ -909,7 +745,6 @@ service cloud.firestore {
       allow create: if callerCanContribute()
         && isCallerProfile(request.resource.data.actorProfileId)
         && request.resource.data.status == 'queued'
-        && request.resource.data.get('outcome','') == ''
         && request.resource.data.resolvedAt == null
         && validGameAction(request.resource.data);
       allow update: if callerCanContribute()

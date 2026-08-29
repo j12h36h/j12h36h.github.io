@@ -1,4 +1,5 @@
 import { ACCOUNT_CONFIG } from './config.js';
+import { watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
 
 const $ = (s, root=document) => root.querySelector(s);
 const state = {
@@ -12,6 +13,8 @@ const state = {
   statuses: [],
   profileUnsub: null,
   statusUnsub: null,
+  creditUnsub: null,
+  creditBalance: 0,
   ready: false
 };
 
@@ -81,7 +84,7 @@ function renderHeader() {
   if(!state.user){area.innerHTML='<button class="portal-signin portal-google-signin" data-account-signin type="button"><span class="portal-google-mark" aria-hidden="true">G</span><span>SIGN IN WITH GOOGLE</span></button>';return;}
   if(!state.profileId || !state.profile){area.innerHTML='<div class="portal-auth-loading">LINKING PROFILE…</div>';return;}
   const name=state.profile.displayName||generatedName(state.profileId);
-  area.innerHTML=`<div class="portal-auth-user"><a class="portal-account-main" href="/account/">${avatarMarkup(state.profile,'portal-auth-avatar')}<span class="portal-account-copy"><b>${escapeHtml(name)}</b><small>${publicGlobalBadges()||'ACCOUNT'}</small></span></a><button class="portal-signout" data-account-signout type="button" aria-label="Sign out">↪</button></div>`;
+  area.innerHTML=`<div class="portal-auth-user"><a class="portal-account-main" href="/account/">${avatarMarkup(state.profile,'portal-auth-avatar')}<span class="portal-account-copy"><b>${escapeHtml(name)}</b><small>${publicGlobalBadges()||'ACCOUNT'} · ◈ ${formatCredits(state.creditBalance)}</small></span></a><button class="portal-signout" data-account-signout type="button" aria-label="Sign out">↪</button></div>`;
 }
 function renderPage() {
   const page=$('#accountApp'); if(!page)return;
@@ -96,6 +99,7 @@ function renderPage() {
   if(document.activeElement!==$('#accountBio')) $('#accountBio').value=state.profile.bio||'';
   $('#accountBioCount').textContent=`${($('#accountBio').value||'').length} / 240`;
   $('#accountPublicId').textContent=state.profileId;
+  const creditEl=$('#accountCreditBalance'); if(creditEl) creditEl.textContent=formatCredits(state.creditBalance);
   $('#accountStatusList').innerHTML=activeStatuses().length ? activeStatuses().map(s=>{const [symbol,label]=STATUS_META[s.status]||['•',s.status];const scope=s.scopeType==='global'?'Global':`${s.scopeType}: ${s.scopeId}`;return `<span class="account-status-chip status-${escapeHtml(s.status)}">${symbol} ${escapeHtml(label)} <small>${escapeHtml(scope)}</small></span>`;}).join('') : '<span class="account-muted">No active Status assignments.</span>';
   const editor=$('#avatarJsonEditor'); if(editor && !editor.dataset.touched){editor.value=JSON.stringify(avatarSpec(state.profile),null,2);renderAvatarPreview();}
 }
@@ -114,10 +118,11 @@ async function ensureIdentity(){
     profileSnap=await getDoc(profileRef);
   }
   state.profile={id:pid,...profileSnap.data()};
-  state.profileUnsub?.(); state.statusUnsub?.();
+  state.profileUnsub?.(); state.statusUnsub?.(); state.creditUnsub?.();
   state.profileUnsub=onSnapshot(profileRef,s=>{if(s.exists()){state.profile={id:s.id,...s.data()};renderAll();}});
   const statusQ=query(collection(state.db,'statusAssignments'),where('profileId','==',pid),limit(200));
   state.statusUnsub=onSnapshot(statusQ,s=>{state.statuses=s.docs.map(d=>({id:d.id,...d.data()}));renderAll();},e=>{console.debug('Account Status subscription',e?.code||e);state.statuses=[];renderAll();});
+  state.creditUnsub=watchCreditWallet(state.db,state.fs,pid,balance=>{state.creditBalance=balance;renderAll();},e=>console.debug('Account credit wallet',e?.code||e));
   renderAll();
 }
 
@@ -214,7 +219,7 @@ async function init(){
     state.auth=authMod.getAuth(app);state.authMod=authMod;state.db=fs.getFirestore(app);state.fs=fs;
     authMod.useDeviceLanguage(state.auth);
     try{await authMod.setPersistence(state.auth,authMod.browserLocalPersistence);}catch(e){console.debug('Account persistence',e?.code||e);}
-    authMod.onAuthStateChanged(state.auth,async user=>{state.user=user||null;state.ready=true;if(!user){state.profileId='';state.profile=null;state.statuses=[];state.profileUnsub?.();state.statusUnsub?.();renderAll();return;}renderAll();try{await ensureIdentity();}catch(e){console.error('Identity restore',e);setMessage(`Could not restore LCS profile: ${e?.code||e?.message||'unknown error'}`,'error');}});
+    authMod.onAuthStateChanged(state.auth,async user=>{state.user=user||null;state.ready=true;if(!user){state.profileId='';state.profile=null;state.statuses=[];state.creditBalance=0;state.profileUnsub?.();state.statusUnsub?.();state.creditUnsub?.();renderAll();return;}renderAll();try{await ensureIdentity();}catch(e){console.error('Identity restore',e);setMessage(`Could not restore LCS profile: ${e?.code||e?.message||'unknown error'}`,'error');}});
     if(typeof state.auth.authStateReady==='function')await state.auth.authStateReady();
   }catch(e){console.error('Account Firebase init',e);state.ready=true;renderAll();setMessage('Could not connect to Firebase.','error');}
 }
