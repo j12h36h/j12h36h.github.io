@@ -41,7 +41,7 @@ const state = {
   momentumMode: 'explore', networkContext: null, sessionImpact: {},
   detail: null, connectContext: null, profileSavePending: false, profileSaveStatus: '', accountDirty: false, profileVerified: false,
   createInFlight: false, publishInFlight: false, commentInFlight: false, lfgInFlight: false, spaceInFlight: false, channelInFlight: false, detailCommentUnsub: null,
-  publicUnsubs: [], privateUnsubs: [], ownProfileUnsub: null, legacyMigrationStarted: false, founderBootstrapAttempted: false, identityLinkPromise: null
+  publicUnsubs: [], privateUnsubs: [], ownProfileUnsub: null, legacyMigrationStarted: false, founderBootstrapAttempted: false, identityLinkPromise: null, profileHydrationPending: new Set()
 };
 
 function isFirebaseConfigured() { const c = LCS_CONFIG.firebase || {}; return Boolean(c.apiKey && c.projectId && c.appId && !String(c.apiKey).includes('YOUR_')); }
@@ -160,6 +160,29 @@ function requireUser() { if (state.authUid && state.profileId) return true; show
 function ownProfile() { return state.publicProfile || (state.profileId ? state.profiles[state.profileId] : null) || { id: state.profileId, displayName: generatedPublicName(state.profileId), bio: '' }; }
 function identity(profileId, fallback = 'Member') { return state.profiles[profileId] || { id: profileId, displayName: fallback, bio: '' }; }
 function currentPublicId() { return state.profileId || ''; }
+function referencedProfileIds() {
+  const ids=new Set();
+  const add=id=>{if(typeof id==='string'&&id)ids.add(id);};
+  state.posts.forEach(x=>add(x.authorProfileId)); state.objects.forEach(x=>add(x.authorProfileId)); state.lfg.forEach(x=>add(x.authorProfileId));
+  state.statusPublic.forEach(x=>add(x.profileId)); state.statusOwn.forEach(x=>add(x.profileId)); state.follows.forEach(x=>{add(x.followerProfileId);if(x.targetType==='profile')add(x.targetId);});
+  state.friendRequests.forEach(x=>{add(x.fromProfileId);add(x.toProfileId);}); state.friendships.forEach(x=>(x.members||[]).forEach(add));
+  return [...ids];
+}
+function synthesizeReferencedProfiles() {
+  referencedProfileIds().forEach(id=>{if(!state.profiles[id])state.profiles[id]={id,displayName:generatedPublicName(id),bio:'Public profile metadata has not synced yet.',_stub:true};});
+}
+async function hydrateReferencedProfiles() {
+  if(!state.firebaseReady||!state.firebase?.db)return; synthesizeReferencedProfiles();
+  const ids=referencedProfileIds().filter(id=>state.profiles[id]?._stub&&!state.profileHydrationPending.has(id)).slice(0,120);
+  if(!ids.length)return; const {db,fsMod}=state.firebase; ids.forEach(id=>state.profileHydrationPending.add(id));
+  await Promise.allSettled(ids.map(async id=>{try{const snap=await fsMod.getDoc(fsMod.doc(db,'publicProfiles',id));if(snap.exists())state.profiles[id]={id:snap.id,...snap.data()};}finally{state.profileHydrationPending.delete(id);}}));
+  synthesizeReferencedProfiles(); renderSearchPanel(); renderConnections(); renderStatusTargetOptions(); renderFeed(); renderCatalogs();
+}
+function renderPublicProfileDirectory(){
+  const root=$('#publicProfileDirectory'); if(!root)return; synthesizeReferencedProfiles();
+  const rows=Object.values(state.profiles).filter(p=>p?.id&&p.id!==state.profileId&&!isBlocked(p.id)).sort((a,b)=>{if(Boolean(a._stub)!==Boolean(b._stub))return a._stub?1:-1;return String(a.displayName||'').localeCompare(String(b.displayName||''));}).slice(0,120);
+  root.innerHTML=rows.length?rows.map(p=>renderPersonRow(p.id,p._stub?'Profile metadata pending sync':(p.bio||'Public LCS profile'))).join(''):'<p class="muted">No other public profiles have synced yet.</p>';
+}
 function publicIdShort(id = '') { return id ? `${id.slice(0, 8)}…${id.slice(-4)}` : 'Not created'; }
 function visibleItems(items) { return items.filter(x => !x.deleted); }
 function parseTags(v = '') { return [...new Set(String(v).split(/[,;\n]+/).map(s => s.trim().replace(/^#+/, '').replace(/\s+/g, ' ').toLowerCase()).filter(Boolean))].slice(0, 8); }
@@ -282,6 +305,22 @@ function legacyGeneralChannel(spaceId) { return { id: `${spaceId}-general`, spac
 function channelsForSpace(spaceId) { if (spaceId === SYSTEM_SPACE.id) return SYSTEM_CHANNELS; const rows = state.channels.filter(c => c.spaceId === spaceId && !c.deleted); return rows.length ? rows : [legacyGeneralChannel(spaceId)]; }
 function allChannels() { return allSpaces().flatMap(s => channelsForSpace(s.id)); }
 function channelById(id, spaceId = '') { return allChannels().find(c => c.id === id) || channelsForSpace(spaceId || SYSTEM_SPACE.id)[0] || SYSTEM_CHANNELS[0]; }
+async function ensureWritableChannel(channel) {
+  if(!channel?.virtual)return channel;
+  const space=state.spaces.find(s=>s.id===channel.spaceId);
+  if(!space)throw new Error('The selected community is no longer available.');
+  if(space.ownerProfileId!==state.profileId&&!isFounder())throw new Error('This community still uses a legacy #general channel. Its owner or the Founder must repair it before new posts can be published there.');
+  const {db,fsMod}=state.firebase, ref=fsMod.doc(db,'publicChannels',channel.id);
+  let snap=await fsMod.getDoc(ref);
+  if(!snap.exists()){
+    const payload={spaceId:space.id,name:'general',description:'General public discussion.',type:'discussion',ownerProfileId:space.ownerProfileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()};
+    await fsMod.setDoc(ref,payload,{merge:false});
+    snap=await fsMod.getDoc(ref);
+  }
+  const repaired={id:channel.id,...(snap.exists()?snap.data():{spaceId:space.id,name:'general',description:'General public discussion.',type:'discussion',ownerProfileId:space.ownerProfileId}),virtual:false};
+  state.channels=[repaired,...state.channels.filter(c=>c.id!==repaired.id)]; renderSpaces();renderCommunities();renderChannelSelects();
+  toast(`#general repaired for ${space.name}.`); return repaired;
+}
 function channelMeta(type) { return CHANNEL_TYPES[type] || CHANNEL_TYPES.discussion; }
 function itemChannelId(item) { return item.channelId || `${item.spaceId || SYSTEM_SPACE.id}-general`; }
 function contentMatchesQuery(content, extra = '') { const q = ($('#globalSearch')?.value || '').trim().toLowerCase(); return !q || `${content || ''} ${extra || ''}`.toLowerCase().includes(q); }
@@ -447,6 +486,7 @@ function renderLfg() {
 function friendProfileIds() { return state.friendships.flatMap(f=>f.members||[]).filter(id=>id!==state.profileId); }
 function renderPersonRow(profileId, extra='') { const p=identity(profileId); return `<button class="person-row" data-open-profile="${escapeHtml(profileId)}" type="button">${avatarMarkup(p,'person-avatar')}<span><b>${escapeHtml(p.displayName)}</b><small>${escapeHtml(extra||p.bio||'Public profile')}</small></span></button>`; }
 function renderConnections() {
+  renderPublicProfileDirectory();
   const signed=Boolean(state.profileId); $('#connectionsSignedOut').hidden=signed; $('#connectionsSignedIn').hidden=!signed; if(!signed)return;
   const friends=[...new Set(friendProfileIds())]; $('#friendCountBadge').textContent=String(friends.length); $('#friendList').innerHTML=friends.length?friends.map(id=>renderPersonRow(id,'Friend')).join(''):'<p class="muted">No accepted friends yet.</p>';
   const incoming=state.friendRequests.filter(r=>r.toProfileId===state.profileId&&r.status==='pending'); const outgoing=state.friendRequests.filter(r=>r.fromProfileId===state.profileId&&r.status==='pending');
@@ -522,12 +562,13 @@ async function publishPost(){
   const button=$('#publishButton'), old=button?.textContent||'Publish thought'; state.publishInFlight=true;
   if(button){button.disabled=true;button.textContent='Publishing…';}
   try{
-    const c=channelById($('#postChannel').value), tags=parseTags($('#postTags')?.value||''); const {db,fsMod}=state.firebase;
+    let c=channelById($('#postChannel').value); c=await ensureWritableChannel(c); const tags=parseTags($('#postTags')?.value||''); const {db,fsMod}=state.firebase;
     const payload={text:text.slice(0,1200),tags,reasoningType:state.activeType,kind:$('#postKind').value,spaceId:c.spaceId,channelId:c.id,authorProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp(),deleted:false,deletedAt:null,deletedByProfileId:'',deleteReason:'',moderationActionId:''};
     const ref=await fsMod.addDoc(fsMod.collection(db,'publicPosts'),payload);
     if(!state.posts.some(x=>x.id===ref.id)){state.posts.unshift({...payload,id:ref.id,createdAt:Date.now(),updatedAt:Date.now()});renderFeed();}
-    $('#composerText').value=''; if($('#postTags'))$('#postTags').value=''; renderTagPreview($('#postTags'),$('#postTagPreview')); $('#charCounter').textContent='0 / 1200'; toast('Public thought published.');bumpImpact('created');
-  } finally {state.publishInFlight=false;if(button){button.disabled=false;button.textContent=old;}}
+    $('#composerText').value=''; if($('#postTags'))$('#postTags').value=''; renderTagPreview($('#postTags'),$('#postTagPreview')); $('#charCounter').textContent='0 / 1200'; toast(`Public thought published to ${spaceById(c.spaceId).name} · #${c.name}.`);bumpImpact('created');
+  } catch(error){console.error('publish thought failed',error);toast(firestoreErrorText(error,'publish this thought'));}
+  finally {state.publishInFlight=false;if(button){button.disabled=false;button.textContent=old;}}
 }
 async function createObject(e){
   e.preventDefault(); if(state.createInFlight)return; if(!requireContribution())return;
@@ -537,14 +578,14 @@ async function createObject(e){
   const title=$('#createTitle').value.trim(),description=$('#createDescription').value.trim();
   if(!title||!description){setCreateError('Add both a name and a description before creating this item.');return;}
   const selectedChannel=$('#createChannelSelect').value;
-  const c=channelById(selectedChannel);
+  let c=channelById(selectedChannel);
   if(!c?.id||!c?.spaceId){setCreateError('Choose a valid channel.');return;}
-  if(c.virtual){setCreateError('That legacy #general channel is display-only. Choose an Open Commons channel or create a real channel in this community first.');return;}
   state.createInFlight=true; formEl.setAttribute('aria-busy','true'); if(submit){submit.disabled=true;submit.textContent='Creating…';}
   const {db,fsMod}=state.firebase;
   const tags=parseTags($('#createTags').value), related=$('#createRelatedObject').value;
-  const payload={kind,title:title.slice(0,100),description:description.slice(0,700),tags,spaceId:c.spaceId,channelId:c.id,authorProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp(),deleted:false,deletedAt:null,deletedByProfileId:'',deleteReason:'',moderationActionId:''};
   try{
+    c=await ensureWritableChannel(c);
+    const payload={kind,title:title.slice(0,100),description:description.slice(0,700),tags,spaceId:c.spaceId,channelId:c.id,authorProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp(),deleted:false,deletedAt:null,deletedByProfileId:'',deleteReason:'',moderationActionId:''};
     const ref=await fsMod.addDoc(fsMod.collection(db,'publicObjects'),payload);
     if(!state.objects.some(x=>x.id===ref.id)){
       state.objects.unshift({...payload,id:ref.id,createdAt:Date.now(),updatedAt:Date.now()});
@@ -624,7 +665,30 @@ function renderModeration(){const denied=$('#moderationDenied'),workspace=$('#mo
   $('#moderationAuditList').innerHTML=state.moderationLogs.length?state.moderationLogs.slice().sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt)).slice(0,150).map(x=>`<div class="audit-row"><div><b>${escapeHtml(x.action.replaceAll('_',' '))}</b><span>${escapeHtml(identity(x.actorProfileId).displayName)} → ${escapeHtml(identity(x.targetProfileId).displayName||x.targetProfileId||'content')}</span></div><small>${escapeHtml(x.reason||'No reason')} · ${timeAgo(x.createdAt)}</small></div>`).join(''):'<p class="muted">No immutable moderation log entries visible in this scope yet.</p>';
 }
 function canModerateStatusScope(scopeType,scopeId){return !isGlobalTimedOut()&&(isGlobalModerator()||hasStatus('moderator',scopeType,scopeId));}
-async function grantStatus(e){e.preventDefault();if(!requireUser())return;const target=$('#statusTargetProfile').value,status=$('#statusValue').value,kind=$('#statusScopeKind').value,raw=$('#statusScopeTarget').value,reason=$('#statusReason').value.trim().slice(0,240),duration=$('#statusDuration').value;let scopeType='global',scopeId='_';if(kind!=='global'){const parts=raw.split('|');scopeType=parts[0]||'';scopeId=parts[1]||'';}if(!target||!scopeType||!scopeId){toast('Choose a target and scope.');return;}if(status==='founder'&&scopeType!=='global'){toast('Founder is global only.');return;}if(!isFounder()&&!canModerateStatusScope(scopeType,scopeId)){toast('Your Moderator Status does not cover that scope.');return;}const {db,fsMod}=state.firebase;const assignmentId=statusDocIdClient(scopeType,scopeId,status,target),ref=fsMod.doc(db,'statusAssignments',assignmentId),existing=await fsMod.getDoc(ref);let expiresAt=null;if(duration!=='none'){const ms={hour:3600000,day:86400000,week:604800000}[duration]||0;expiresAt=fsMod.Timestamp.fromDate(new Date(Date.now()+ms));}const actionId=crypto.randomUUID();const assignment={profileId:target,status,scopeType,scopeId,visibility:status==='timeout'?'private':'public',active:true,expiresAt,reason:status==='timeout'?reason:'',grantedByProfileId:state.profileId,createdAt:existing.exists()?existing.data().createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp(),revokedAt:null,revokedByProfileId:'',lastActionId:actionId};const log={actorProfileId:state.profileId,targetProfileId:target,targetCollection:'statusAssignments',targetId:assignmentId,action:'status_grant',scopeType,scopeId,reason,snapshot:{status,scopeType,scopeId,expiresAt:expiresAt||null},createdAt:fsMod.serverTimestamp()};const batch=fsMod.writeBatch(db);batch.set(fsMod.doc(db,'moderationLogs',actionId),log);batch.set(ref,assignment,{merge:false});await batch.commit();e.currentTarget.reset();renderStatusTargetOptions();toast(`${STATUS_META[status]?.label||status} Status granted.`);}
+async function grantStatus(e){
+  e.preventDefault();if(!requireUser())return;
+  const form=e.currentTarget,button=form.querySelector('button[type="submit"]'),oldLabel=button?.textContent||'Grant Status';
+  const target=$('#statusTargetProfile').value,status=$('#statusValue').value,kind=$('#statusScopeKind').value,raw=$('#statusScopeTarget').value,reason=$('#statusReason').value.trim().slice(0,240),duration=$('#statusDuration').value;
+  let scopeType='global',scopeId='_';if(kind!=='global'){const parts=raw.split('|');scopeType=parts[0]||'';scopeId=parts[1]||'';}
+  if(!target||!scopeType||!scopeId){toast('Choose a target and scope.');return;}
+  const targetProfile=state.profiles[target];if(targetProfile?._stub){toast('That profile is referenced by public content but its profile document has not synced yet. Status cannot be assigned until the profile finishes syncing.');return;}
+  if(status==='founder'&&scopeType!=='global'){toast('Founder is global only.');return;}
+  if(!isFounder()&&!canModerateStatusScope(scopeType,scopeId)){toast('Your Moderator Status does not cover that scope.');return;}
+  if(button){button.disabled=true;button.textContent='Granting…';}
+  try{
+    const {db,fsMod}=state.firebase;const assignmentId=statusDocIdClient(scopeType,scopeId,status,target),ref=fsMod.doc(db,'statusAssignments',assignmentId),existing=await fsMod.getDoc(ref);
+    let expiresAt=null;if(duration!=='none'){const ms={hour:3600000,day:86400000,week:604800000}[duration]||0;expiresAt=fsMod.Timestamp.fromDate(new Date(Date.now()+ms));}
+    const actionId=crypto.randomUUID();const assignment={profileId:target,status,scopeType,scopeId,visibility:status==='timeout'?'private':'public',active:true,expiresAt,reason:status==='timeout'?reason:'',grantedByProfileId:state.profileId,createdAt:existing.exists()?existing.data().createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp(),revokedAt:null,revokedByProfileId:'',lastActionId:actionId};
+    const log={actorProfileId:state.profileId,targetProfileId:target,targetCollection:'statusAssignments',targetId:assignmentId,action:'status_grant',scopeType,scopeId,reason,snapshot:{status,scopeType,scopeId,expiresAt:expiresAt||null},createdAt:fsMod.serverTimestamp()};
+    const batch=fsMod.writeBatch(db);batch.set(fsMod.doc(db,'moderationLogs',actionId),log);batch.set(ref,assignment,{merge:false});await batch.commit();
+    const verified=await fsMod.getDoc(ref);if(!verified.exists())throw new Error('Status write completed but could not be verified.');
+    const row={id:verified.id,...verified.data()};state.statusPublic=[row,...state.statusPublic.filter(x=>x.id!==row.id)];if(target===state.profileId)state.statusOwn=[row,...state.statusOwn.filter(x=>x.id!==row.id)];mergeStatusRows();
+    form.reset();renderStatusTargetOptions();
+    toast(target===state.profileId&&status==='moderator'&&scopeType==='global'&&isFounder()?'Moderator Status added alongside Founder.':`${STATUS_META[status]?.label||status} Status granted.`);
+  }catch(error){console.error('grant status failed',error);toast(firestoreErrorText(error,'grant this Status'));}
+  finally{if(button){button.disabled=false;button.textContent=oldLabel;}}
+}
+
 async function revokeStatus(id){const row=state.statuses.find(x=>x.id===id);if(!row)return;const reason=(prompt('Reason for revoking this Status?','Status revoked')||'Status revoked').slice(0,240);const {db,fsMod}=state.firebase;const actionId=crypto.randomUUID(),ref=fsMod.doc(db,'statusAssignments',id),batch=fsMod.writeBatch(db);batch.set(fsMod.doc(db,'moderationLogs',actionId),{actorProfileId:state.profileId,targetProfileId:row.profileId,targetCollection:'statusAssignments',targetId:id,action:'status_revoke',scopeType:row.scopeType,scopeId:row.scopeId,reason,snapshot:{status:row.status,scopeType:row.scopeType,scopeId:row.scopeId},createdAt:fsMod.serverTimestamp()});batch.update(ref,{active:false,updatedAt:fsMod.serverTimestamp(),revokedAt:fsMod.serverTimestamp(),revokedByProfileId:state.profileId,lastActionId:actionId});await batch.commit();toast('Status revoked.');}
 function contentForCollection(collection,id){const map={publicPosts:state.moderationPosts,publicObjects:state.moderationObjects,publicComments:state.moderationComments,publicLfg:state.moderationLfg};return (map[collection]||[]).find(x=>x.id===id)||({publicPosts:state.posts,publicObjects:state.objects,publicComments:state.comments,publicLfg:state.lfg}[collection]||[]).find(x=>x.id===id);}
 function contentScope(collection,item,id){if(collection==='publicPosts')return ['discussion_post',id];if(collection==='publicObjects')return [item?.kind==='project'?'project':'discussion_object',id];if(collection==='publicComments')return [item?.targetType==='post'?'discussion_post':'discussion_object',item?.targetId||id];return ['global','_'];}
@@ -1019,9 +1083,9 @@ async function initFirebase(){
     // persisted user here so the private identity linker always gets a ready database.
     syncFirebaseAuthUser(auth.currentUser);
     if(auth.currentUser)ensurePrivateIdentityOnce().catch(e=>{console.error(e);toast('Could not restore the private account identity.');});
-    publicSubscribe('publicProfiles',rows=>{state.profiles=Object.fromEntries(rows.map(p=>[p.id,p]));if(state.publicProfile)state.profiles[state.publicProfile.id]=state.publicProfile;renderAuth();renderFeed();renderCatalogs();renderSearchPanel();renderConnections();renderLfg();renderStatusTargetOptions();},{limit:1000});
-    publicSubscribe('publicPosts',rows=>{state.posts=rows;renderFeed();renderCommunities();renderSearchPanel();renderStatusTargetOptions();if(state.detail?.type==='post')openPostDetail(state.detail.id);},{orderBy:'createdAt',limit:250,filters:[['deleted','==',false]]});
-    publicSubscribe('publicObjects',rows=>{state.objects=rows;renderCatalogs();renderUniverse();renderTrends();renderSearchPanel();renderStatusTargetOptions();},{orderBy:'createdAt',limit:350,filters:[['deleted','==',false]]});
+    publicSubscribe('publicProfiles',rows=>{state.profiles={...state.profiles,...Object.fromEntries(rows.map(p=>[p.id,{...p,_stub:false}]))};if(state.publicProfile)state.profiles[state.publicProfile.id]={...state.publicProfile,_stub:false};synthesizeReferencedProfiles();renderAuth();renderFeed();renderCatalogs();renderSearchPanel();renderConnections();renderLfg();renderStatusTargetOptions();hydrateReferencedProfiles().catch(console.debug);},{limit:1000});
+    publicSubscribe('publicPosts',rows=>{state.posts=rows;synthesizeReferencedProfiles();renderFeed();renderCommunities();renderSearchPanel();renderConnections();renderStatusTargetOptions();hydrateReferencedProfiles().catch(console.debug);if(state.detail?.type==='post')openPostDetail(state.detail.id);},{orderBy:'createdAt',limit:250,filters:[['deleted','==',false]]});
+    publicSubscribe('publicObjects',rows=>{state.objects=rows;synthesizeReferencedProfiles();renderCatalogs();renderUniverse();renderTrends();renderSearchPanel();renderConnections();renderStatusTargetOptions();hydrateReferencedProfiles().catch(console.debug);},{orderBy:'createdAt',limit:350,filters:[['deleted','==',false]]});
     publicSubscribe('publicSpaces',rows=>{state.spaces=rows;renderSpaces();renderCommunities();renderFeed();renderCatalogs();renderSearchPanel();},{orderBy:'createdAt',limit:200});
     publicSubscribe('publicChannels',rows=>{state.channels=rows;renderSpaces();renderCommunities();renderFeed();renderCatalogs();},{orderBy:'createdAt',limit:600});
     publicSubscribe('publicComments',rows=>{state.comments=rows;renderDetailThread();renderFeed();renderCatalogs();},{orderBy:'createdAt',limit:2000,filters:[['deleted','==',false]]});
@@ -1029,10 +1093,10 @@ async function initFirebase(){
     publicSubscribe('publicFollows',rows=>{state.follows=rows;renderCatalogs();renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},{limit:3000});
     publicSubscribe('publicConnections',rows=>{state.connections=rows;renderUniverse();renderTrends();},{limit:2000});
     publicSubscribe('publicPostLinks',rows=>{state.postLinks=rows;},{limit:2000});
-    publicSubscribe('publicLfg',rows=>{state.lfg=rows;renderLfg();renderConnections();renderSearchPanel();},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
-    publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();},{limit:2000,filters:[['visibility','==','public']]});
+    publicSubscribe('publicLfg',rows=>{state.lfg=rows;synthesizeReferencedProfiles();renderLfg();renderConnections();renderSearchPanel();hydrateReferencedProfiles().catch(console.debug);},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
+    publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;synthesizeReferencedProfiles();mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();hydrateReferencedProfiles().catch(console.debug);},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentityOnce();
-    setBackendStatus('LCS v0.8.5 Momentum + direct mobile Firebase credential flow connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    setBackendStatus('LCS v0.8.6 profile directory + legacy channel repair connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7.1 firestore.rules.','error');renderAuth();renderAccount();}
 }
 

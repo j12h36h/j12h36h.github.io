@@ -149,3 +149,5 @@ form[aria-busy="true"]{pointer-events:none;opacity:.82}
 .lfg-card-open h2,.lfg-card-open p{color:inherit}
 .lfg-detail-meta,.lfg-detail-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .lfg-detail-actions{margin-top:18px}
+
+.public-profile-directory-card{margin:14px 0}.public-profile-directory-card .muted{margin:-4px 0 12px}

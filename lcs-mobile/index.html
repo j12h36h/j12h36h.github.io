@@ -14,8 +14,8 @@
 <link href="https://www.gstatic.com" rel="dns-prefetch"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" rel="modulepreload"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" rel="modulepreload"/>
-<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v085" rel="stylesheet"/>
-<link href="mobile.css?v=20260829-v085" rel="stylesheet"/>
+<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v086" rel="stylesheet"/>
+<link href="mobile.css?v=20260829-v086" rel="stylesheet"/>
 </head>
 <body>
 <div class="ambient ambient-a"></div>
@@ -226,6 +226,7 @@
 </div><div class="category-momentum-bar"><div><p class="eyebrow">Collaboration momentum</p><p class="category-momentum-copy">Connections are useful when they help something move, not when they maximize follower counts.</p></div><div class="category-momentum-actions"><button class="ghost-button" data-momentum-mode="collaborate" type="button">Find a match</button><button class="ghost-button" data-momentum-mode="create" type="button">Create together</button><button class="ghost-button" data-momentum-mode="explore" type="button">Browse public work</button></div></div>
 <section class="security-banner"><b>Private-by-design connection layer</b><span>Friend and LFG requests are readable only by the participating signed-in accounts. Public follower relationships use public profile IDs, never Firebase authentication IDs.</span></section>
 <div class="account-card" hidden="" id="connectionsSignedOut"><div><p class="eyebrow">Sign in required</p><h2>Your private connection inbox is account-only.</h2><p>Public profiles and follower counts remain browseable without signing in.</p></div><button class="primary-button" id="connectionsSignInButton" type="button">Sign in with Google</button></div>
+<section class="network-card public-profile-directory-card"><div class="card-heading-row"><div><p class="eyebrow">Public directory</p><h2>People on LCS</h2></div></div><p class="muted">All synced public profiles are discoverable here, even before you follow or friend them.</p><div class="people-list" id="publicProfileDirectory"></div></section>
 <div hidden="" id="connectionsSignedIn">
 <div class="connections-grid">
 <section class="network-card"><div class="card-heading-row"><div><p class="eyebrow">Friends</p><h2>Accepted connections</h2></div><span class="status-pill" id="friendCountBadge">0</span></div><div class="people-list" id="friendList"></div></section>
@@ -610,6 +611,6 @@
 <div class="impact-recap" id="impactRecap"></div>
 <div class="modal-actions"><button class="ghost-button" id="resetSessionImpact" type="button">Clear session recap</button><button class="primary-button" data-close-dialog="" type="button">Keep building</button></div>
 </dialog><div aria-live="polite" class="toast-region" id="toastRegion"></div>
-<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v085" type="module"></script>
+<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v086" type="module"></script>
 </body>
 </html>
