@@ -156,7 +156,7 @@ function bindTagInput(inputSelector, previewSelector) {
 }
 function toast(message) { const region = $('#toastRegion'); if (!region) return; const el = document.createElement('div'); el.className = 'toast'; el.textContent = message; region.appendChild(el); setTimeout(() => el.remove(), 3600); }
 function setBackendStatus(title, text, tone = '') { $('#backendStatusTitle').textContent = title; $('#backendStatusText').textContent = text; $('#backendStatusCard').dataset.tone = tone; }
-function requireUser() { if (state.authUid && state.profileId) return true; showDialog('#authDialog'); return false; }
+function requireUser() { if (state.authUid && state.profileId) return true; openAuthDialog(); return false; }
 function ownProfile() { return state.publicProfile || (state.profileId ? state.profiles[state.profileId] : null) || { id: state.profileId, displayName: generatedPublicName(state.profileId), bio: '' }; }
 function identity(profileId, fallback = 'Member') { return state.profiles[profileId] || { id: profileId, displayName: fallback, bio: '' }; }
 function currentPublicId() { return state.profileId || ''; }
@@ -754,33 +754,13 @@ function setupModerationSubscriptions(){if(!state.firebaseReady||!state.profileI
 function mergeStatusRowsNoResub(){const rows=[...state.statusPublic,...state.statusOwn,...state.statusPrivileged];state.statuses=[...new Map(rows.map(x=>[x.id,x])).values()];renderStatusSurfacesNoResub();}
 function renderStatusSurfacesNoResub(){const account=$('#accountStatusList');if(account){const rows=activeStatusesFor();account.innerHTML=rows.length?rows.map(x=>`<span class="status-badge status-${escapeHtml(x.status)}">${STATUS_META[x.status]?.symbol||'•'} ${escapeHtml(STATUS_META[x.status]?.label||x.status)}${x.scopeType==='global'?'':` · ${escapeHtml(STATUS_SCOPE_LABELS[x.scopeType]||x.scopeType)}`}</span>`).join(''):'<span class="muted">No assigned Status values.</span>';}const timed=isGlobalTimedOut(),banner=$('#timeoutBanner');if(banner)banner.hidden=!timed;const nav=$('#moderationNav');if(nav)nav.hidden=!(isFounder()||activeStatusesFor().some(x=>x.status==='moderator'));renderModeration();}
 
-const MOBILE_AUTH_PENDING_KEY='lcsMobileGoogleBrokerV1';
+let googleIdentityScriptPromise=null;
+let mobileGoogleClientId='';
+let mobileGoogleButtonReady=false;
+let mobileGoogleCompleting=false;
+
 function isMobileAuthBrowser(){return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'')||Boolean(window.matchMedia?.('(pointer: coarse)').matches&&window.innerWidth<=900);}
 function compactAuthMessage(value){return String(value||'').replace(/\s+/g,' ').trim().slice(0,900);}
-function readMobileAuthPending(){
-  try{
-    const raw=sessionStorage.getItem(MOBILE_AUTH_PENDING_KEY)||localStorage.getItem(MOBILE_AUTH_PENDING_KEY);
-    if(!raw)return null;
-    const value=JSON.parse(raw);
-    if(!value?.sessionId||!value?.continueUri)return null;
-    if(Date.now()-Number(value.startedAt||0)>15*60*1000){clearMobileAuthPending();return null;}
-    return value;
-  }catch{return null;}
-}
-function writeMobileAuthPending(value){
-  const raw=JSON.stringify(value);
-  try{sessionStorage.setItem(MOBILE_AUTH_PENDING_KEY,raw);}catch{}
-  try{localStorage.setItem(MOBILE_AUTH_PENDING_KEY,raw);}catch{}
-}
-function clearMobileAuthPending(){
-  try{sessionStorage.removeItem(MOBILE_AUTH_PENDING_KEY);}catch{}
-  try{localStorage.removeItem(MOBILE_AUTH_PENDING_KEY);}catch{}
-}
-function mobileAuthCallbackLooksPresent(){
-  const q=new URLSearchParams(location.search);
-  if(q.has('code')||q.has('error')||q.has('oauth_token')||q.has('state')||q.has('scope')||q.has('authuser'))return true;
-  return /(?:^|[&#])(id_token|access_token|error|code)=/i.test(location.hash||'');
-}
 async function identityToolkitRequest(endpoint,payload){
   const apiKey=String(LCS_CONFIG.firebase?.apiKey||'');
   const response=await fetch(`https://identitytoolkit.googleapis.com/v1/${endpoint}?key=${encodeURIComponent(apiKey)}`,{
@@ -794,7 +774,7 @@ async function identityToolkitRequest(endpoint,payload){
   try{body=await response.json();}catch{}
   if(!response.ok){
     const error=new Error(compactAuthMessage(body?.error?.message||`Identity Toolkit HTTP ${response.status}`));
-    error.code=`auth/mobile-broker-${String(body?.error?.message||body?.error?.status||response.status).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80)}`;
+    error.code=`auth/mobile-bootstrap-${String(body?.error?.message||body?.error?.status||response.status).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80)}`;
     error.httpStatus=response.status;
     error.identityToolkitStatus=String(body?.error?.status||'');
     throw error;
@@ -805,120 +785,109 @@ async function probeFirebaseAuthProject(){
   const apiKey=String(LCS_CONFIG.firebase?.apiKey||'');
   if(!apiKey)return {ok:false,httpStatus:0,errorStatus:'MISSING_API_KEY',errorMessage:'Firebase apiKey is missing.'};
   try{
-    const response=await fetch(`https://identitytoolkit.googleapis.com/v1/projects?key=${encodeURIComponent(apiKey)}`,{method:'GET',cache:'no-store',referrerPolicy:'strict-origin-when-cross-origin'});
-    let payload={};
-    try{payload=await response.json();}catch{}
-    const authorizedDomains=Array.isArray(payload?.authorizedDomains)?payload.authorizedDomains.map(String):[];
-    return {ok:response.ok,httpStatus:response.status,errorStatus:String(payload?.error?.status||''),errorMessage:compactAuthMessage(payload?.error?.message||''),authorizedDomains,currentDomainAuthorized:authorizedDomains.length?authorizedDomains.includes(location.hostname):null};
-  }catch(e){return {ok:null,httpStatus:0,errorStatus:'NETWORK_PROBE_FAILED',errorMessage:compactAuthMessage(e?.message||e),authorizedDomains:[],currentDomainAuthorized:null};}
+    const response=await fetch(`https://identitytoolkit.googleapis.com/v1/projects?key=${encodeURIComponent(apiKey)}`,{cache:'no-store',referrerPolicy:'strict-origin-when-cross-origin'});
+    let body={};try{body=await response.json();}catch{}
+    const domains=Array.isArray(body?.authorizedDomains)?body.authorizedDomains:[];
+    return {ok:response.ok,httpStatus:response.status,errorStatus:String(body?.error?.status||''),errorMessage:compactAuthMessage(body?.error?.message||''),authorizedDomains:domains,currentDomainAuthorized:domains.length?domains.includes(location.hostname):null};
+  }catch(e){return {ok:false,httpStatus:0,errorStatus:'NETWORK_ERROR',errorMessage:compactAuthMessage(e?.message||e),authorizedDomains:[],currentDomainAuthorized:null};}
 }
 function authDiagnosticText(err,attempt,probe){
-  const rows=[
-    `attempt: ${attempt||'unknown'}`,
-    `origin: ${location.origin}`,
-    `authDomain: ${LCS_CONFIG.firebase?.authDomain||'(missing)'}`,
-    `projectId: ${LCS_CONFIG.firebase?.projectId||'(missing)'}`,
-    `mobileBrowser: ${isMobileAuthBrowser()?'yes':'no'}`,
-    `mobileBrokerPending: ${readMobileAuthPending()?'yes':'no'}`,
-    `online: ${navigator.onLine?'yes':'no'}`
-  ];
-  if(probe){
-    rows.push(`projectConfigProbe: ${probe.ok===true?'ok':probe.ok===false?'blocked':'unavailable'}`);
-    if(probe.httpStatus)rows.push(`probeHttpStatus: ${probe.httpStatus}`);
-    if(probe.errorStatus)rows.push(`probeStatus: ${probe.errorStatus}`);
-    if(probe.errorMessage)rows.push(`probeMessage: ${probe.errorMessage}`);
-    if(probe.currentDomainAuthorized!==null)rows.push(`authorizedDomain: ${probe.currentDomainAuthorized?'yes':'no'}`);
-  }
-  if(err?.httpStatus)rows.push(`brokerHttpStatus: ${err.httpStatus}`);
-  if(err?.identityToolkitStatus)rows.push(`brokerStatus: ${err.identityToolkitStatus}`);
-  const message=compactAuthMessage(err?.message);
-  if(message)rows.push(`firebaseMessage: ${message}`);
-  return rows.join('\n');
+  const lines=[`attempt: ${attempt||'unknown'}`,`origin: ${location.origin}`,`authDomain: ${LCS_CONFIG.firebase?.authDomain||''}`,`projectId: ${LCS_CONFIG.firebase?.projectId||''}`,`mobileBrowser: ${isMobileAuthBrowser()?'yes':'no'}`,`online: ${navigator.onLine?'yes':'no'}`];
+  if(mobileGoogleClientId)lines.push(`googleClientId: ${mobileGoogleClientId}`);
+  if(probe){lines.push(`projectConfigProbe: ${probe.ok?'ok':'failed'}`,`probeHttpStatus: ${probe.httpStatus||0}`);if(probe.errorStatus)lines.push(`probeErrorStatus: ${probe.errorStatus}`);if(probe.currentDomainAuthorized!==null)lines.push(`authorizedDomain: ${probe.currentDomainAuthorized?'yes':'no'}`);if(probe.errorMessage)lines.push(`probeMessage: ${probe.errorMessage}`);}
+  if(err?.message)lines.push(`firebaseMessage: ${compactAuthMessage(err.message)}`);
+  if(err?.httpStatus)lines.push(`httpStatus: ${err.httpStatus}`);
+  if(err?.identityToolkitStatus)lines.push(`identityToolkitStatus: ${err.identityToolkitStatus}`);
+  return lines.join('\n');
 }
 function clearAuthError(){const b=$('#authErrorBox');b.hidden=true;$('#authErrorText').textContent='';$('#authErrorCode').textContent='';const d=$('#authDiagnosticDetails');if(d){d.textContent='';d.hidden=true;}const r=$('#authRedirectRetryButton');if(r)r.hidden=true;}
-function showAuthError(err,attempt='popup',probe=null){
+function showAuthError(err,attempt='unknown',probe=null){
   const code=String(err?.code||'auth/unknown');
   let text='Firebase could not complete Google sign-in. Check Authentication, authorized domains, and browser key/API restrictions.';
   if(code.includes('unauthorized-domain'))text='This GitHub Pages domain is not authorized in Firebase Authentication. Add j12h36h.github.io under Authentication → Settings → Authorized domains.';
   else if(code.includes('popup-closed'))text='The Google window was closed before sign-in finished.';
   else if(code.includes('popup-blocked'))text='The browser blocked the Google sign-in window. Allow popups for this site and retry Google sign-in.';
   else if(code.includes('project-config-request-failed'))text='Firebase project configuration could not be read with this browser API key. The diagnostic below normally exposes an HTTP-referrer or API restriction that must be corrected in Google Cloud.';
-  else if(code.includes('mobile-broker'))text='The mobile Google account flow reached Firebase Identity Toolkit but the direct credential exchange did not complete. The diagnostic below contains the exact Identity Toolkit response.';
-  else if(code.includes('mobile-credential-missing'))text='Google completed the mobile authorization flow, but Identity Toolkit did not return a Google credential that Firebase could attach to this browser session.';
-  else if(code.includes('session-not-retained'))text='Google sign-in completed, but Firebase did not retain the signed-in browser session.';
-  else if(code.includes('internal-error'))text='Firebase returned an internal Google sign-in error. On mobile, LCS now bypasses Firebase popup/redirect helper state entirely and uses Identity Toolkit to obtain the Google credential before handing it to Firebase.';
+  else if(code.includes('mobile-google-origin'))text='Google rejected the GitHub Pages JavaScript origin for the Firebase Google OAuth client. Add https://j12h36h.github.io as an Authorized JavaScript origin for that OAuth 2.0 Web client in Google Cloud, then retry.';
+  else if(code.includes('mobile-bootstrap'))text='LCS could not discover the Google OAuth client configured for Firebase. The diagnostic below contains the Identity Toolkit response.';
+  else if(code.includes('mobile-gis'))text='Google Identity Services could not initialize the mobile sign-in button. Reload the page once and retry.';
+  else if(code.includes('session-not-retained'))text='Google returned a valid credential, but Firebase did not retain the signed-in browser session.';
+  else if(code.includes('internal-error'))text='Firebase returned an internal Google sign-in error. Mobile now uses Google Identity Services directly to obtain an ID token, then gives that credential to Firebase without Firebase popup/redirect helper state.';
   $('#authErrorTitle').textContent='Google sign-in needs attention';$('#authErrorText').textContent=text;$('#authErrorCode').textContent=code;
   const details=$('#authDiagnosticDetails');if(details){details.textContent=authDiagnosticText(err,attempt,probe);details.hidden=false;}
   const retry=$('#authRedirectRetryButton');if(retry)retry.hidden=!(isMobileAuthBrowser()&&state.firebase?.auth);
   $('#authErrorBox').hidden=false;
 }
-async function startMobileGoogleBroker(probe=null){
-  if(!state.firebase?.auth)return showAuthError({code:'auth/configuration-not-found'},'mobile-broker-start',probe);
-  const continueUri=`${location.origin}${location.pathname}`;
-  const returnUrl=location.href;
-  try{
-    const response=await identityToolkitRequest('accounts:createAuthUri',{
-      providerId:'google.com',
-      continueUri,
-      authFlowType:'CODE_FLOW',
-      context:crypto.randomUUID(),
-      customParameter:{prompt:'select_account'}
-    });
-    if(!response?.authUri||!response?.sessionId){
-      const error=new Error('Identity Toolkit did not return authUri/sessionId for Google.');
-      error.code='auth/mobile-broker-invalid-start-response';
-      throw error;
-    }
-    writeMobileAuthPending({
-      sessionId:String(response.sessionId),
-      continueUri,
-      returnUrl,
-      startedAt:Date.now()
-    });
-    location.assign(String(response.authUri));
-  }catch(e){
-    clearMobileAuthPending();
-    console.error(e);
-    showAuthError(e,'mobile-broker-start',probe);
-  }
+function loadGoogleIdentityServices(){
+  if(window.google?.accounts?.id)return Promise.resolve(window.google);
+  if(googleIdentityScriptPromise)return googleIdentityScriptPromise;
+  googleIdentityScriptPromise=new Promise((resolve,reject)=>{
+    const existing=document.querySelector('script[data-lcs-google-identity]');
+    if(existing){existing.addEventListener('load',()=>window.google?.accounts?.id?resolve(window.google):reject(Object.assign(new Error('Google Identity Services loaded without accounts.id.'),{code:'auth/mobile-gis-unavailable'})),{once:true});existing.addEventListener('error',()=>reject(Object.assign(new Error('Google Identity Services failed to load.'),{code:'auth/mobile-gis-load-failed'})),{once:true});return;}
+    const script=document.createElement('script');
+    script.src='https://accounts.google.com/gsi/client';script.async=true;script.defer=true;script.dataset.lcsGoogleIdentity='1';
+    script.onload=()=>window.google?.accounts?.id?resolve(window.google):reject(Object.assign(new Error('Google Identity Services loaded without accounts.id.'),{code:'auth/mobile-gis-unavailable'}));
+    script.onerror=()=>reject(Object.assign(new Error('Google Identity Services failed to load.'),{code:'auth/mobile-gis-load-failed'}));
+    document.head.appendChild(script);
+  });
+  return googleIdentityScriptPromise;
 }
-async function completeMobileGoogleBroker(auth,authMod){
-  const pending=readMobileAuthPending();
-  if(!pending||!isMobileAuthBrowser())return false;
-  if(!mobileAuthCallbackLooksPresent())return false;
+async function discoverMobileGoogleClientId(){
+  if(mobileGoogleClientId)return mobileGoogleClientId;
+  const response=await identityToolkitRequest('accounts:createAuthUri',{
+    providerId:'google.com',
+    continueUri:`${location.origin}${location.pathname}`,
+    authFlowType:'CODE_FLOW',
+    context:crypto.randomUUID(),
+    customParameter:{prompt:'select_account'}
+  });
+  const authUri=String(response?.authUri||'');
+  let clientId='';
+  try{clientId=new URL(authUri).searchParams.get('client_id')||'';}catch{}
+  if(!clientId){const e=new Error('Firebase did not expose a Google OAuth client_id in createAuthUri.');e.code='auth/mobile-bootstrap-missing-client-id';throw e;}
+  mobileGoogleClientId=clientId;
+  return clientId;
+}
+async function finishMobileGoogleCredential(idToken){
+  if(mobileGoogleCompleting)return;
+  mobileGoogleCompleting=true;clearAuthError();
+  const {auth,authMod}=state.firebase||{};
   try{
-    const callbackUri=location.href;
-    const response=await identityToolkitRequest('accounts:signInWithIdp',{
-      requestUri:callbackUri,
-      sessionId:pending.sessionId,
-      returnSecureToken:true,
-      returnIdpCredential:true
-    });
-    const googleIdToken=String(response?.oauthIdToken||'');
-    const googleAccessToken=String(response?.oauthAccessToken||'');
-    if(!googleIdToken&&!googleAccessToken){
-      const error=new Error('Identity Toolkit completed the callback but returned no Google OAuth credential.');
-      error.code='auth/mobile-credential-missing';
-      throw error;
-    }
-    const credential=authMod.GoogleAuthProvider.credential(googleIdToken||null,googleAccessToken||null);
+    if(!auth||!authMod)throw Object.assign(new Error('Firebase Auth is not ready.'),{code:'auth/configuration-not-found'});
+    if(!idToken)throw Object.assign(new Error('Google returned no ID token.'),{code:'auth/mobile-gis-empty-credential'});
+    try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);}catch(e){console.warn('Firebase local persistence unavailable before credential sign-in',e?.code||e);}
+    const credential=authMod.GoogleAuthProvider.credential(idToken);
     const result=await authMod.signInWithCredential(auth,credential);
-    if(!result?.user&&!auth.currentUser){
-      const error=new Error('Firebase accepted the Google credential but did not create a browser user session.');
-      error.code='auth/session-not-retained';
-      throw error;
-    }
-    clearMobileAuthPending();
-    const target=new URL(pending.returnUrl||pending.continueUri,location.origin);
-    if(target.origin===location.origin)history.replaceState(null,'',`${target.pathname}${target.search}${target.hash}`);
+    if(result?.user){try{await result.user.getIdToken(true);}catch{}}
+    if(typeof auth.authStateReady==='function')await auth.authStateReady();
+    const user=auth.currentUser||result?.user||await waitForFirebaseAuthUser(auth,authMod,4500);
+    if(!user){const e=new Error('Google returned a credential, but Firebase did not retain the authenticated browser session.');e.code='auth/session-not-retained';throw e;}
+    syncFirebaseAuthUser(user);
+    if(state.firebaseReady)await ensurePrivateIdentityOnce();
+    closeDialog('#authDialog');toast('Signed in. This browser will keep the LCS session until you sign out.');
+  }catch(e){console.error('LCS mobile Google credential sign-in',e);showAuthError(e,'mobile-gis-credential');}
+  finally{mobileGoogleCompleting=false;}
+}
+async function prepareMobileGoogleButton(probe=null){
+  if(!isMobileAuthBrowser()||!state.firebase?.auth)return false;
+  const mount=$('#googleIdentityButtonMount'),fallback=$('#googleSignInButton');
+  if(!mount||!fallback)return false;
+  try{
+    const [google,clientId]=await Promise.all([loadGoogleIdentityServices(),discoverMobileGoogleClientId()]);
+    google.accounts.id.initialize({client_id:clientId,callback:response=>finishMobileGoogleCredential(response?.credential),auto_select:false,cancel_on_tap_outside:true,use_fedcm_for_prompt:true});
+    mount.innerHTML='';mount.hidden=false;fallback.hidden=true;
+    const width=Math.max(240,Math.min(400,Math.floor(mount.getBoundingClientRect().width||fallback.getBoundingClientRect().width||360)));
+    google.accounts.id.renderButton(mount,{type:'standard',theme:'outline',size:'large',text:'continue_with',shape:'rectangular',logo_alignment:'left',width});
+    mobileGoogleButtonReady=true;
     return true;
   }catch(e){
-    clearMobileAuthPending();
-    console.error('LCS mobile Google broker return',e);
-    showDialog('#authDialog');
-    showAuthError(e,'mobile-broker-return');
-    return false;
+    mobileGoogleButtonReady=false;mount.hidden=true;fallback.hidden=false;
+    console.error('LCS mobile Google button setup',e);showAuthError(e,'mobile-gis-setup',probe);return false;
   }
+}
+function openAuthDialog(){
+  clearAuthError();showDialog('#authDialog');
+  if(isMobileAuthBrowser())requestAnimationFrame(()=>prepareMobileGoogleButton().catch(console.error));
 }
 async function waitForFirebaseAuthUser(auth,authMod,timeoutMs=4500){
   if(auth.currentUser)return auth.currentUser;
@@ -940,7 +909,8 @@ async function signInGoogle(){
   if(mobile&&probe?.currentDomainAuthorized===false){showAuthError({code:'auth/unauthorized-domain',message:`${location.hostname} is not present in the Firebase authorizedDomains response.`},'preflight',probe);return;}
   try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);}catch(e){console.warn('Firebase local persistence unavailable before sign-in',e?.code||e);}
   if(mobile){
-    await startMobileGoogleBroker(probe);
+    const ready=await prepareMobileGoogleButton(probe);
+    if(ready)toast('Google sign-in is ready. Tap the Google account button.');
     return;
   }
   const provider=new authMod.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
@@ -1071,17 +1041,15 @@ async function initFirebase(){
     const app=appMod.initializeApp(LCS_CONFIG.firebase),auth=authMod.getAuth(app);authMod.useDeviceLanguage(auth);state.firebase={app,auth,authMod,db:null,fsMod:null};
     // Normalize any restored/legacy session onto durable local persistence before auth state is consumed.
     try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);}catch(e){console.warn('Firebase local persistence unavailable',e?.code||e);}
-    // Mobile bypass: complete Identity Toolkit's authorization-code flow first, then
-    // hand the returned Google credential to Firebase with signInWithCredential().
-    // This avoids the mobile popup/redirect helper state that was returning auth/internal-error.
-    const mobileBrokerCompleted=await completeMobileGoogleBroker(auth,authMod);
+    // Mobile uses Google Identity Services to obtain an ID token directly in this origin,
+    // then signs into Firebase with signInWithCredential(). No Firebase redirect helper state is used.
     authMod.onAuthStateChanged(auth,syncFirebaseAuthUser);
     if(typeof auth.authStateReady==='function')await auth.authStateReady();
-    if(mobileBrokerCompleted&&auth.currentUser){syncFirebaseAuthUser(auth.currentUser);closeDialog('#authDialog');toast('Signed in. Mobile Google authentication completed directly through Firebase.');}
     const fsMod=await firestorePromise,db=fsMod.getFirestore(app);state.firebase={app,auth,authMod,db,fsMod};state.firebaseReady=true;
     // Firebase Auth can restore the user before Firestore finishes importing. Re-apply that
     // persisted user here so the private identity linker always gets a ready database.
     syncFirebaseAuthUser(auth.currentUser);
+    if(isMobileAuthBrowser()&&$('#authDialog')?.open)prepareMobileGoogleButton().catch(console.error);
     if(auth.currentUser)ensurePrivateIdentityOnce().catch(e=>{console.error(e);toast('Could not restore the private account identity.');});
     publicSubscribe('publicProfiles',rows=>{state.profiles={...state.profiles,...Object.fromEntries(rows.map(p=>[p.id,{...p,_stub:false}]))};if(state.publicProfile)state.profiles[state.publicProfile.id]={...state.publicProfile,_stub:false};synthesizeReferencedProfiles();renderAuth();renderFeed();renderCatalogs();renderSearchPanel();renderConnections();renderLfg();renderStatusTargetOptions();hydrateReferencedProfiles().catch(console.debug);},{limit:1000});
     publicSubscribe('publicPosts',rows=>{state.posts=rows;synthesizeReferencedProfiles();renderFeed();renderCommunities();renderSearchPanel();renderConnections();renderStatusTargetOptions();hydrateReferencedProfiles().catch(console.debug);if(state.detail?.type==='post')openPostDetail(state.detail.id);},{orderBy:'createdAt',limit:250,filters:[['deleted','==',false]]});
@@ -1102,7 +1070,7 @@ async function initFirebase(){
 
 function bindUI(){
   document.addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t)return;
-    if(t.matches('[data-open-account]')){e.preventDefault();setView('account');return;} if(t.matches('[data-open-auth]')){e.preventDefault();clearAuthError();showDialog('#authDialog');return;} if(t.matches('#signOutButton')){signOutUser();return;}
+    if(t.matches('[data-open-account]')){e.preventDefault();setView('account');return;} if(t.matches('[data-open-auth]')){e.preventDefault();clearAuthError();openAuthDialog();return;} if(t.matches('#signOutButton')){signOutUser();return;}
     if(t.matches('[data-momentum-mode]')){setMomentumMode(t.dataset.momentumMode);return;} if(t.matches('[data-momentum-action]')){handleMomentumAction(t.dataset.momentumAction,t.dataset.targetType,t.dataset.targetId);return;} if(t.matches('[data-momentum-new]')){openCreate(t.dataset.momentumNew);return;}
     if(t.matches('[data-open-post]')){openPostDetail(t.dataset.openPost);return;} if(t.matches('[data-open-object]')){openObjectDetail(t.dataset.openObject);return;} if(t.matches('[data-open-profile]')){openProfileDetail(t.dataset.openProfile);return;} if(t.matches('[data-open-lfg]')){openLfg(t.dataset.openLfg);return;} if(t.matches('[data-manage-status]')){setView('moderation');setTimeout(()=>{const el=$('#statusTargetProfile');if(el)el.value=t.dataset.manageStatus;},0);return;} if(t.matches('[data-status-revoke]')){revokeStatus(t.dataset.statusRevoke).catch(console.error);return;} if(t.matches('[data-content-remove]')){moderateContent(t.dataset.contentRemove,t.dataset.contentId,false).catch(console.error);return;} if(t.matches('[data-content-restore]')){moderateContent(t.dataset.contentRestore,t.dataset.contentId,true).catch(console.error);return;} if(t.matches('[data-open-moderation-content]')){openModerationContent(t.dataset.openModerationContent,t.dataset.contentId);return;}
     if(t.matches('[data-helpful-type]')){toggleHelpful(t.dataset.helpfulType,t.dataset.helpfulId).catch(console.error);return;} if(t.matches('[data-follow-type]')){toggleFollow(t.dataset.followType,t.dataset.followId).catch(console.error);return;} if(t.matches('[data-friend-profile]')){sendFriendRequest(t.dataset.friendProfile).catch(console.error);return;}
@@ -1115,11 +1083,11 @@ function bindUI(){
   bindTagInput('#createTags','#createTagPreview'); bindTagInput('#postTags','#postTagPreview'); bindTagInput('#lfgTags','#lfgTagPreview');
   $$('.nav-item').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view))); $$('.thought-chip').forEach(b=>b.addEventListener('click',()=>{$$('.thought-chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.activeType=b.dataset.type;})); $$('.segment[data-filter]').forEach(b=>b.addEventListener('click',()=>{$$('.segment[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.activeFilter=b.dataset.filter;renderFeed();})); $$('.segment[data-lfg-filter]').forEach(b=>b.addEventListener('click',()=>{$$('.segment[data-lfg-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.activeLfgFilter=b.dataset.lfgFilter;renderLfg();}));
   $('#networkContextExplore')?.addEventListener('click',exploreNetworkContext); $('#networkContextPost')?.addEventListener('click',useNetworkContextInPost); $('#networkContextClear')?.addEventListener('click',clearNetworkContext); $('#viewSessionImpact')?.addEventListener('click',()=>{renderSessionMomentum();showDialog('#impactDialog');}); $('#resetSessionImpact')?.addEventListener('click',resetSessionImpact);
-  $('#composerText').addEventListener('input',e=>$('#charCounter').textContent=`${e.target.value.length} / ${LCS_CONFIG.maxPostLength}`); $('#publishButton').addEventListener('click',()=>publishPost().catch(console.error)); $('#googleSignInButton').addEventListener('click',()=>signInGoogle()); $('#authRedirectRetryButton')?.addEventListener('click',()=>{clearAuthError();signInGoogle();}); $('#accountSignInButton').addEventListener('click',()=>showDialog('#authDialog')); $('#connectionsSignInButton').addEventListener('click',()=>showDialog('#authDialog')); $('#accountSignOutButton').addEventListener('click',()=>signOutUser());
+  $('#composerText').addEventListener('input',e=>$('#charCounter').textContent=`${e.target.value.length} / ${LCS_CONFIG.maxPostLength}`); $('#publishButton').addEventListener('click',()=>publishPost().catch(console.error)); $('#googleSignInButton').addEventListener('click',()=>signInGoogle()); $('#authRedirectRetryButton')?.addEventListener('click',()=>{clearAuthError();isMobileAuthBrowser()?prepareMobileGoogleButton().catch(console.error):signInGoogle();}); $('#accountSignInButton').addEventListener('click',openAuthDialog); $('#connectionsSignInButton').addEventListener('click',openAuthDialog); $('#accountSignOutButton').addEventListener('click',()=>signOutUser());
   $('#accountProfileForm').addEventListener('submit',e=>savePublicProfile(e)); $('#accountDisplayName').addEventListener('input',markAccountDirty); $('#accountBio').addEventListener('input',markAccountDirty); $('#accountViewPublicProfile').addEventListener('click',()=>state.profileId&&openProfileDetail(state.profileId)); $('#copyPublicIdButton').addEventListener('click',async()=>{if(!state.profileId)return;try{await navigator.clipboard.writeText(state.profileId);toast('Public profile ID copied.');}catch{const r=document.createRange();r.selectNodeContents($('#accountFullPublicId'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast('Public profile ID selected. Copy it with your browser.');}}); $('#accountPublicAvatar').addEventListener('click',openAvatarEditor); $('#avatarJsonEditor').addEventListener('input',avatarEditorRead); $('#avatarResetButton').addEventListener('click',()=>{$('#avatarJsonEditor').value=JSON.stringify(defaultAvatarSpec({...ownProfile(),displayName:$('#accountDisplayName').value||ownProfile().displayName}),null,2);avatarEditorRead();}); $('#avatarSaveButton').addEventListener('click',()=>saveAvatarJson());
   $('#openLogicGuide').addEventListener('click',()=>openLogicGuide()); $('#explainButton').addEventListener('click',()=>openLogicGuide()); $$('[data-guide]').forEach(b=>b.addEventListener('click',()=>openLogicGuide(b.dataset.guide)));
   $('#newSpaceButton').addEventListener('click',openSpaceDialog); $('#communityCreateButton').addEventListener('click',openSpaceDialog); $('#newChannelButton').addEventListener('click',()=>openChannelDialog(state.activeSpaceId!=='all'?state.activeSpaceId:'')); $$('.quick-create').forEach(b=>b.addEventListener('click',()=>openCreate(b.dataset.kind))); $('#newLfgButton').addEventListener('click',()=>{if(requireUser())showDialog('#lfgDialog');});
-  $('#createForm').addEventListener('submit',e=>createObject(e).catch(err=>{console.error(err);setCreateError(firestoreErrorText(err,'create this item'));})); $('#statusGrantForm').addEventListener('submit',e=>grantStatus(e).catch(console.error)); $('#statusScopeKind').addEventListener('change',renderStatusTargetOptions); $('#spaceForm').addEventListener('submit',e=>createSpace(e).catch(console.error)); $('#channelForm').addEventListener('submit',e=>createChannel(e).catch(console.error)); $('#connectForm').addEventListener('submit',e=>submitConnection(e).catch(console.error)); $('#detailCommentForm').addEventListener('submit',e=>submitComment(e).catch(console.error)); $('#detailCommentSignIn').addEventListener('click',()=>showDialog('#authDialog')); $('#lfgForm').addEventListener('submit',e=>createLfg(e).catch(console.error));
+  $('#createForm').addEventListener('submit',e=>createObject(e).catch(err=>{console.error(err);setCreateError(firestoreErrorText(err,'create this item'));})); $('#statusGrantForm').addEventListener('submit',e=>grantStatus(e).catch(console.error)); $('#statusScopeKind').addEventListener('change',renderStatusTargetOptions); $('#spaceForm').addEventListener('submit',e=>createSpace(e).catch(console.error)); $('#channelForm').addEventListener('submit',e=>createChannel(e).catch(console.error)); $('#connectForm').addEventListener('submit',e=>submitConnection(e).catch(console.error)); $('#detailCommentForm').addEventListener('submit',e=>submitComment(e).catch(console.error)); $('#detailCommentSignIn').addEventListener('click',openAuthDialog); $('#lfgForm').addEventListener('submit',e=>createLfg(e).catch(console.error));
   $('#globalSearch').addEventListener('input',()=>{renderSearchPanel();renderFeed();renderCatalogs();renderLfg();}); document.addEventListener('click',e=>{if(!e.target.closest('.top-search'))$('#searchResultsPanel').hidden=true;}); document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('#globalSearch').focus();}}); $('#focusMapButton').addEventListener('click',()=>{state.mapLayoutSeed++;renderUniverse();}); window.addEventListener('resize',()=>state.activeView==='universe'&&renderUniverse()); $('#detailDialog').addEventListener('close',()=>{stopDetailCommentSubscription();state.detail=null;}); window.addEventListener('hashchange',()=>setView(location.hash.replace('#','')||'home',false));
 }
 function initialRender(){state.sessionImpact=loadSessionImpact();try{const saved=sessionStorage.getItem('lcsMomentumMode');if(MOMENTUM_MODES[saved])state.momentumMode=saved;}catch{}state.networkContext=readNetworkContext();if(state.networkContext?.mode&&MOMENTUM_MODES[state.networkContext.mode])state.momentumMode=state.networkContext.mode;renderAuth();renderAccount();renderSpaces();renderFeed();renderCatalogs();renderCommunities();renderTrends();renderLfg();renderConnections();renderStatusSurfaces();renderModeration();renderMomentumDeck();renderSessionMomentum();renderNetworkContext();setView(location.hash.replace('#','')||'home',false);}

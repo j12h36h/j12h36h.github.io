@@ -151,3 +151,5 @@ form[aria-busy="true"]{pointer-events:none;opacity:.82}
 .lfg-detail-actions{margin-top:18px}
 
 .public-profile-directory-card{margin:14px 0}.public-profile-directory-card .muted{margin:-4px 0 12px}
+
+.google-identity-button-mount{width:100%;min-height:54px;margin:14px 0 8px;display:flex;align-items:center;justify-content:center}.google-identity-button-mount[hidden]{display:none}.google-identity-button-mount>div{max-width:100%!important}
