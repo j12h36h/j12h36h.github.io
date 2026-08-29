@@ -761,7 +761,14 @@ service cloud.firestore {
         && resource.data.status == 'queued'
         && request.resource.data.status in ['cancelled','resolved']
         && validGameAction(request.resource.data);
-      allow delete: if isCallerProfile(resource.data.actorProfileId);
+      // Action documents double as the rolling game log. Actors may remove
+      // their own declarations at any time. Any contributing signed-in player
+      // may prune declarations after ten minutes so active worlds never grow
+      // an unbounded action-history collection.
+      allow delete: if isCallerProfile(resource.data.actorProfileId)
+        || (callerCanContribute()
+          && resource.data.createdAt is timestamp
+          && resource.data.createdAt < request.time - duration.value(10, 'm'));
     }
 
     // LEGACY v0.4 DATA QUARANTINE. Old UID-bearing documents are never public.

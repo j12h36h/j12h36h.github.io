@@ -11,6 +11,7 @@ const TURN_LENGTH_MS = 60_000;
 const TURN_EPOCH_MS = Date.UTC(2026, 7, 29, 0, 0, 0);
 const MOVE_BUDGET = 40;
 const MOVE_SPEED = 10;
+const GAME_LOG_TURNS = 10;
 
 const state = {
   identity: null,
@@ -38,7 +39,9 @@ const state = {
   ownQueuedActionId: '',
   resolvedSeen: new Set(),
   serverOffsetMs: 0,
-  pendingClockSentAt: 0
+  pendingClockSentAt: 0,
+  pruningActions: new Set(),
+  lastPruneAt: 0
 };
 
 const message = text => {
@@ -443,6 +446,64 @@ function renderMovementHud() {
   if (auto) auto.textContent = state.autoTarget ? `AUTO → ${state.autoTarget.x.toFixed(0)}, ${state.autoTarget.y.toFixed(0)}` : 'CLICK / TAP BOARD TO AUTO-MOVE';
 }
 
+function markerWindowLabel(turn, currentTurn) {
+  const age = Math.max(0, currentTurn - turn);
+  if (age === 0) return 'CURRENT WINDOW';
+  if (age === 1) return 'LAST MARKER';
+  return `${age} MARKERS AGO`;
+}
+
+function actionStatusLabel(action) {
+  if (action.status === 'cancelled') return 'CANCELLED';
+  if (action.status === 'resolved') return 'RESOLVED';
+  return 'QUEUED';
+}
+
+function renderGameLog() {
+  const host = $('#gameLog');
+  if (!host) return;
+  const currentTurn = turnInfo().turnNumber;
+  const groups = [];
+  for (let age = 0; age < GAME_LOG_TURNS; age += 1) {
+    const turn = currentTurn - age;
+    if (turn < 1) break;
+    const actions = [...state.actions.values()]
+      .filter(action => Number(action.declaredTurn || 0) === turn)
+      .sort((a, b) => {
+        const at = a.createdAt?.toMillis?.() || 0;
+        const bt = b.createdAt?.toMillis?.() || 0;
+        return bt - at;
+      });
+    const rows = actions.map(action => {
+      const actor = state.profiles.get(action.actorProfileId)?.displayName
+        || (action.actorProfileId === state.identity?.profileId ? 'YOU' : 'PLAYER');
+      const verb = action.actionType === 'attack' ? 'ATTACK' : 'INTERACT';
+      return `<li><b>${escapeLog(actor)}</b><span>${verb} → ${escapeLog(action.targetLabel || 'TARGET')}</span><em data-status="${action.status}">${actionStatusLabel(action)}</em></li>`;
+    }).join('');
+    groups.push(`<section class="game-log-turn${age === 0 ? ' is-current' : ''}"><h3>${markerWindowLabel(turn, currentTurn)}</h3>${rows ? `<ul>${rows}</ul>` : '<p>NO DECLARATIONS</p>'}</section>`);
+  }
+  host.innerHTML = groups.join('');
+}
+
+function escapeLog(value = '') {
+  return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function pruneOldActions(force = false) {
+  const now = Date.now();
+  if (!force && now - state.lastPruneAt < 20_000) return;
+  state.lastPruneAt = now;
+  const cutoffTurn = turnInfo().turnNumber - (GAME_LOG_TURNS - 1);
+  const stale = [...state.actions.entries()].filter(([, action]) => Number(action.declaredTurn || 0) < cutoffTurn);
+  for (const [id] of stale) {
+    if (state.pruningActions.has(id)) continue;
+    state.pruningActions.add(id);
+    fs.deleteDoc(fs.doc(db, 'gameActions', id))
+      .catch(() => {})
+      .finally(() => state.pruningActions.delete(id));
+  }
+}
+
 function applyTurnChange(nextTurn) {
   const previous = state.turnNumber;
   state.turnNumber = nextTurn;
@@ -454,7 +515,9 @@ function applyTurnChange(nextTurn) {
   state.dirty = true;
   state.velocityDirty = true;
   flushPresence(true);
-  if (previous) message(`Global turn ${nextTurn} // refreshed. Movement and actions restored.`);
+  if (previous) message('GLOBAL MARKER // refreshed. Movement and actions restored.');
+  renderGameLog();
+  pruneOldActions(true);
 }
 
 function renderTurnClock() {
@@ -464,11 +527,9 @@ function renderTurnClock() {
   const seconds = Math.max(0, Math.ceil(info.remainingMs / 1000));
   const min = Math.floor(seconds / 60);
   const sec = seconds % 60;
-  const number = $('#turnNumber');
   const countdown = $('#turnCountdown');
   const ring = $('#turnProgress');
   const stateEl = $('#turnState');
-  if (number) number.textContent = `TURN ${String(info.turnNumber).padStart(4, '0')}`;
   if (countdown) countdown.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
   if (ring) ring.style.setProperty('--turn-angle', `${info.progress * 360}deg`);
   if (stateEl) {
@@ -596,7 +657,7 @@ function renderActionPanel() {
   const ownAction = state.ownQueuedActionId ? state.actions.get(state.ownQueuedActionId) : null;
   if (queued) {
     if (ownAction?.status === 'queued') {
-      queued.textContent = `${ownAction.actionType.toUpperCase()} → ${ownAction.targetLabel} // TURN ${ownAction.resolveTurn}`;
+      queued.textContent = `${ownAction.actionType.toUpperCase()} → ${ownAction.targetLabel} // NEXT MARKER`;
     } else {
       queued.textContent = 'NONE';
     }
@@ -610,7 +671,7 @@ function renderActionPanel() {
 
 function watchActions() {
   state.actionUnsub?.();
-  const q = fs.query(fs.collection(db, 'gameActions'), fs.where('worldId', '==', worldId), fs.limit(120));
+  const q = fs.query(fs.collection(db, 'gameActions'), fs.where('worldId', '==', worldId));
   state.actionUnsub = fs.onSnapshot(q, snap => {
     const next = new Map();
     snap.forEach(docSnap => {
@@ -619,12 +680,14 @@ function watchActions() {
       if (action.actorProfileId === state.identity?.profileId && action.status === 'queued' && Number(action.resolveTurn || 0) > turnInfo().turnNumber) {
         state.ownQueuedActionId = action.id;
       }
-      if (action.actorProfileId && !state.profiles.has(action.actorProfileId)) getProfile(action.actorProfileId).catch(() => {});
+      if (action.actorProfileId && !state.profiles.has(action.actorProfileId)) getProfile(action.actorProfileId).then(renderGameLog).catch(() => {});
     });
     state.actions = next;
     if (state.ownQueuedActionId && !state.actions.has(state.ownQueuedActionId)) state.ownQueuedActionId = '';
     processResolvedActions(turnInfo().turnNumber);
     renderActionPanel();
+    renderGameLog();
+    pruneOldActions();
   }, error => {
     console.error(error);
     message(`ACTION FEED ERROR: ${error.code || error.message}`);
@@ -744,6 +807,7 @@ window.addEventListener('pagehide', () => {
 setupBattlefieldTargets();
 renderMovementHud();
 renderActionPanel();
+renderGameLog();
 renderTurnClock();
 requestAnimationFrame(frame);
 
@@ -764,3 +828,4 @@ watchIdentity(async identity => {
 });
 
 loadWorldName();
+setInterval(() => pruneOldActions(), 30_000);

@@ -8,7 +8,7 @@
   <title>Global Tactical Table — E.R.A.S.</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=1.5.0">
+  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=1.5.3">
 </head>
 <body class="global-page tactical-global-page">
   <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
@@ -20,7 +20,7 @@
   <main class="global-shell">
     <div class="turn-clock" aria-live="polite">
       <div class="turn-progress" id="turnProgress"><span></span></div>
-      <div class="turn-copy"><small>GLOBAL TURN</small><b id="turnNumber">TURN 0001</b><strong id="turnCountdown">01:00</strong><em id="turnState">LIVE DECLARATION WINDOW</em></div>
+      <div class="turn-copy"><small>GLOBAL REFRESH</small><strong id="turnCountdown">01:00</strong><em id="turnState">LIVE DECLARATION WINDOW</em></div>
     </div>
 
     <div class="global-hud">
@@ -41,6 +41,12 @@
       <span class="world-landmark landmark-a">NORTH PLATFORM</span>
       <span class="world-landmark landmark-b">SLIME YARD</span>
     </section>
+
+
+    <details class="game-log-panel" open>
+      <summary>GAME LOG <span>ROLLING 10 MARKERS</span></summary>
+      <div class="game-log" id="gameLog"><section class="game-log-turn is-current"><h3>CURRENT WINDOW</h3><p>NO DECLARATIONS</p></section></div>
+    </details>
 
     <aside class="tactical-action-panel">
       <div class="tactical-stat"><span>MOVE LEFT</span><b id="moveRemaining">40.0 / 40</b><i id="moveBudgetBar"></i><small id="autoMoveState">CLICK / TAP BOARD TO AUTO-MOVE</small></div>
@@ -64,6 +70,6 @@
   </main>
 
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./global.js?v=1.5.0"></script>
+  <script type="module" src="./global.js?v=1.5.3"></script>
 </body>
 </html>
