@@ -593,6 +593,96 @@ function renderConnections() {
   const reqs=state.lfgRequests.filter(r=>r.status==='pending'||r.status==='accepted'); $('#lfgRequestList').innerHTML=reqs.length?reqs.map(r=>{const incoming=r.toProfileId===state.profileId;const other=incoming?r.fromProfileId:r.toProfileId;const listing=state.lfg.find(x=>x.id===r.lfgId);return `<div class="request-row">${renderPersonRow(other,listing?`${LFG_PURPOSES[listing.purpose]?.label||'LFG'} · ${listing.title}`:'LFG request')}<div class="request-actions">${r.status==='accepted'?'<span class="status-pill">Accepted</span>':incoming?`<button class="primary-button" data-lfg-action="accept" data-request-id="${escapeHtml(r.id)}" type="button">Accept</button><button class="ghost-button" data-lfg-action="decline" data-request-id="${escapeHtml(r.id)}" type="button">Decline</button>`:`<span class="status-pill">Pending</span><button class="ghost-button" data-lfg-action="cancel" data-request-id="${escapeHtml(r.id)}" type="button">Cancel</button>`}</div></div>`;}).join(''):'<p class="muted">No LFG requests yet.</p>';
 }
 
+function friendshipStateWith(profileId) {
+  if(!state.profileId || profileId===state.profileId)return {kind:'self'};
+  if(state.friendships.some(f=>(f.members||[]).includes(state.profileId)&&(f.members||[]).includes(profileId)))return {kind:'friends'};
+  const incoming=state.friendRequests.find(r=>r.fromProfileId===profileId&&r.toProfileId===state.profileId&&r.status==='pending');
+  if(incoming)return {kind:'incoming',request:incoming};
+  const outgoing=state.friendRequests.find(r=>r.fromProfileId===state.profileId&&r.toProfileId===profileId&&r.status==='pending');
+  if(outgoing)return {kind:'outgoing',request:outgoing};
+  return {kind:'none'};
+}
+
+async function openProfileDetail(id) {
+  stopDetailCommentSubscription();
+  if(!id)return;
+  let p=state.profiles[id];
+  if((!p||p._stub)&&state.firebaseReady){
+    try{
+      const {db,fsMod}=state.firebase;
+      const snap=await fsMod.getDoc(fsMod.doc(db,'publicProfiles',id));
+      if(snap.exists()){
+        p={id:snap.id,...snap.data(),_stub:false};
+        state.profiles[id]=p;
+      }
+    }catch(error){console.debug('Profile hydration failed',id,error?.code||error);}
+  }
+  p=p||state.profiles[id];
+  if(!p){toast('That public profile is not available.');return;}
+
+  state.detail={type:'profile',id};
+  const authored=state.objects.filter(o=>o.authorProfileId===id&&!o.deleted).sort((a,b)=>timeValue(b.updatedAt||b.createdAt)-timeValue(a.updatedAt||a.createdAt));
+  const posts=state.posts.filter(x=>x.authorProfileId===id&&!x.deleted).sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt));
+  const lfg=state.lfg.filter(x=>x.authorProfileId===id&&!x.deleted).sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt));
+  const communities=state.spaces.filter(x=>x.ownerProfileId===id);
+  const fs=friendshipStateWith(id),blocked=isBlocked(id),signed=Boolean(state.profileId),self=id===state.profileId;
+
+  let friendButton='';
+  if(!self&&!blocked&&signed){
+    friendButton=fs.kind==='friends'?'<span class="status-pill">Friends</span>':
+      fs.kind==='incoming'?`<button class="primary-button" data-friend-action="accept" data-request-id="${escapeHtml(fs.request.id)}" type="button">Accept friend request</button>`:
+      fs.kind==='outgoing'?'<span class="status-pill">Friend request pending</span>':
+      `<button class="ghost-button" data-friend-profile="${escapeHtml(id)}" type="button">＋ Friend request</button>`;
+  }
+  const followButton=!self&&!blocked&&signed?`<button class="ghost-button ${isFollowing('profile',id)?'active-action':''}" data-follow-type="profile" data-follow-id="${escapeHtml(id)}" type="button">${isFollowing('profile',id)?'★ Following':'☆ Follow'} · ${followCount('profile',id)}</button>`:'';
+  const blockButton=!self&&signed?(blocked?`<button class="ghost-button active-action" data-unblock-profile="${escapeHtml(id)}" type="button">Unblock</button>`:`<button class="ghost-button" data-block-profile="${escapeHtml(id)}" type="button">Block</button>`):'';
+  const manage=(isFounder()||isGlobalModerator())&&signed?`<button class="ghost-button" data-manage-status="${escapeHtml(id)}" type="button">Status / moderation</button>`:'';
+  const selfButton=self?'<button class="ghost-button" data-open-account type="button">Edit my public profile</button>':'';
+  const signInButton=!signed?'<button class="primary-button" data-open-auth type="button">Sign in to interact</button>':'';
+
+  const recentWork=authored.slice(0,8).map(o=>`<button class="linked-object" data-open-object="${escapeHtml(o.id)}" type="button"><span>${escapeHtml(o.kind)}</span><b>${escapeHtml(o.title)}</b><small>${timeAgo(o.updatedAt||o.createdAt)}</small></button>`).join('');
+  const recentPosts=posts.slice(0,5).map(x=>`<button class="linked-object" data-open-post="${escapeHtml(x.id)}" type="button"><span>post</span><b>${escapeHtml(String(x.text||'').slice(0,90))}</b><small>${timeAgo(x.createdAt)}</small></button>`).join('');
+  const communityRows=communities.slice(0,5).map(x=>`<button class="linked-object" data-open-community="${escapeHtml(x.id)}" type="button"><span>community</span><b>${escapeHtml(x.name)}</b><small>Open</small></button>`).join('');
+  const lfgRows=lfg.filter(x=>x.status==='open').slice(0,4).map(x=>`<button class="linked-object" data-open-lfg="${escapeHtml(x.id)}" type="button"><span>LFG</span><b>${escapeHtml(x.title)}</b><small>${timeAgo(x.createdAt)}</small></button>`).join('');
+
+  $('#detailEyebrow').textContent='Public profile';
+  $('#detailTitle').textContent=p.displayName||generatedPublicName(id);
+  $('#detailBody').innerHTML=`
+    <div class="profile-detail-hero">
+      ${avatarMarkup(p,'profile-detail-fallback')}
+      <div>
+        <h3>${escapeHtml(p.displayName||generatedPublicName(id))}</h3>
+        <div class="status-badge-row">${statusBadgeMarkup(id)}</div>
+        <p>${escapeHtml(p.bio||'No public bio yet.')}</p>
+        <small class="muted">${escapeHtml(publicIdShort(id))}</small>
+      </div>
+    </div>
+    <div class="detail-actions">${followButton}${friendButton}${blockButton}${manage}${selfButton}${signInButton}</div>
+    <div class="profile-stats">
+      <div><b>${authored.length}</b><span>Ideas / problems / projects</span></div>
+      <div><b>${posts.length}</b><span>Posts</span></div>
+      <div><b>${followCount('profile',id)}</b><span>Followers</span></div>
+      <div><b>${communities.length}</b><span>Communities</span></div>
+    </div>
+    <section class="linked-section"><h3>Recent work</h3>${recentWork||'<p class="muted">No public work yet.</p>'}</section>
+    ${recentPosts?`<section class="linked-section"><h3>Recent posts</h3>${recentPosts}</section>`:''}
+    ${communityRows?`<section class="linked-section"><h3>Communities</h3>${communityRows}</section>`:''}
+    ${lfgRows?`<section class="linked-section"><h3>Open LFG</h3>${lfgRows}</section>`:''}`;
+  $('#detailThreadSection').hidden=true;
+  showDialog('#detailDialog');
+}
+
+function openLfg(id) {
+  const x=state.lfg.find(v=>v.id===id); if(!x)return;
+  const who=identity(x.authorProfileId), mine=x.authorProfileId===state.profileId;
+  const request=state.lfgRequests.find(r=>r.lfgId===x.id&&r.fromProfileId===state.profileId);
+  const title=$('#lfgDetailTitle'), body=$('#lfgDetailBody');
+  if(!title||!body){setView('lfg');setTimeout(()=>document.querySelector(`[data-open-lfg="${CSS.escape(id)}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}),20);return;}
+  title.textContent=x.title;
+  body.innerHTML=`<div class="lfg-detail-meta"><span class="lfg-purpose">${LFG_PURPOSES[x.purpose]?.icon||'⚑'} ${escapeHtml(LFG_PURPOSES[x.purpose]?.label||x.purpose)}</span><small>${timeAgo(x.createdAt)}</small></div><p class="lfg-topic">${escapeHtml(x.topic)}</p><p class="detail-main-copy">${escapeHtml(x.description)}</p>${x.availability?`<div class="lfg-availability"><b>Availability</b><span>${escapeHtml(x.availability)}</span></div>`:''}${(x.tags||[]).length?`<div class="tag-row detail-tags">${x.tags.map(t=>`<span>${escapeHtml(t)}</span>`).join('')}</div>`:''}<div class="lfg-detail-actions"><button class="identity-button" data-open-profile="${escapeHtml(x.authorProfileId)}" type="button">${avatarMarkup(who,'person-avatar')}<span><b>${escapeHtml(who.displayName)}</b><small>View public profile</small></span></button>${mine?'<span class="status-pill">Your listing</span>':`<button class="primary-button" data-lfg-request="${escapeHtml(x.id)}" type="button" ${request?'disabled':''}>${request?escapeHtml(request.status==='pending'?'Request sent':request.status):'Request to connect'}</button>`}</div>`;
+  showDialog('#lfgDetailDialog');
+}
+
 function openLogicGuide(key='') { const meta=reasoning[key]; $('#logicDialogTitle').textContent=meta?`${meta.plain} · ${meta.formal}`:'Six useful thought types'; $('#logicDialogBody').innerHTML=meta?`<div class="logic-explain"><span class="logic-symbol big">${meta.symbol}</span><p>${escapeHtml(meta.description)}</p></div>`:Object.values(reasoning).filter(x=>x!==reasoning.unclassified).map(x=>`<div class="logic-explain"><span class="logic-symbol">${x.symbol}</span><div><b>${escapeHtml(x.plain)}</b><small>${escapeHtml(x.formal)}</small><p>${escapeHtml(x.description)}</p></div></div>`).join(''); showDialog('#logicDialog'); }
 
 function stopDetailCommentSubscription(){
@@ -1103,7 +1193,7 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;synthesizeReferencedProfiles();renderLfg();renderConnections();renderSearchPanel();renderActivity();hydrateReferencedProfiles().catch(console.debug);},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;synthesizeReferencedProfiles();mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();renderActivity();hydrateReferencedProfiles().catch(console.debug);},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentityOnce();
-    setBackendStatus('LCS v0.9.5 community/project management + Momentum navigation connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    setBackendStatus('LCS v0.9.6 profile interaction + navigation repair connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.9.4+ firestore.rules.','error');renderAuth();renderAccount();}
 }
 
