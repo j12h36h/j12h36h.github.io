@@ -14,8 +14,8 @@
 <link href="https://www.gstatic.com" rel="dns-prefetch"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" rel="modulepreload"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" rel="modulepreload"/>
-<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v083" rel="stylesheet"/>
-<link href="mobile.css?v=20260829-v083" rel="stylesheet"/>
+<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v085" rel="stylesheet"/>
+<link href="mobile.css?v=20260829-v085" rel="stylesheet"/>
 </head>
 <body>
 <div class="ambient ambient-a"></div>
@@ -571,6 +571,12 @@
 <div class="modal-actions"><button class="ghost-button" data-close-dialog="" type="button">Cancel</button><button class="primary-button" type="submit">Publish LFG</button></div>
 </form>
 </dialog>
+<dialog class="modal detail-modal" id="lfgDetailDialog">
+<button aria-label="Close" class="modal-close" data-close-dialog="" type="button">×</button>
+<p class="eyebrow">Looking for group</p>
+<h2 id="lfgDetailTitle">LFG listing</h2>
+<div id="lfgDetailBody"></div>
+</dialog>
 <dialog class="modal detail-modal" id="detailDialog">
 <button aria-label="Close" class="modal-close" data-close-dialog="" id="detailCloseButton" type="button">×</button>
 <p class="eyebrow" id="detailEyebrow">Details</p>
@@ -604,6 +610,6 @@
 <div class="impact-recap" id="impactRecap"></div>
 <div class="modal-actions"><button class="ghost-button" id="resetSessionImpact" type="button">Clear session recap</button><button class="primary-button" data-close-dialog="" type="button">Keep building</button></div>
 </dialog><div aria-live="polite" class="toast-region" id="toastRegion"></div>
-<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v084" type="module"></script>
+<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v085" type="module"></script>
 </body>
 </html>

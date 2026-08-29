@@ -141,3 +141,11 @@ form[aria-busy="true"]{pointer-events:none;opacity:.82}
 /* v0.8.1 mobile Firebase auth diagnostics */
 .auth-diagnostics{margin:10px 0 0;padding:10px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.22);color:#d9cfe6;font:10px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;text-align:left}.auth-redirect-retry{width:100%;margin-top:10px}.auth-error code{user-select:text}
 @media(max-width:520px){.auth-modal{width:calc(100vw - 20px);padding:20px}.auth-diagnostics{max-height:180px;overflow:auto}.auth-modal .google-button{min-height:54px;font-size:16px}}
+
+
+/* v0.8.5: LFG cards are explicitly interactive while keeping profile/request controls separate. */
+.lfg-card-open{display:block;width:100%;padding:0;margin:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer;border-radius:inherit}
+.lfg-card-open:focus-visible{outline:2px solid currentColor;outline-offset:6px}
+.lfg-card-open h2,.lfg-card-open p{color:inherit}
+.lfg-detail-meta,.lfg-detail-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lfg-detail-actions{margin-top:18px}

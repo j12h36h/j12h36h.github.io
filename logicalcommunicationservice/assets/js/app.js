@@ -40,7 +40,7 @@ const state = {
   activeType: 'unclassified', activeFilter: 'all', activeView: 'home', activeSpaceId: 'all', activeChannelId: 'all', activeLfgFilter: 'all', mapLayoutSeed: 0,
   momentumMode: 'explore', networkContext: null, sessionImpact: {},
   detail: null, connectContext: null, profileSavePending: false, profileSaveStatus: '', accountDirty: false, profileVerified: false,
-  createInFlight: false, publishInFlight: false, commentInFlight: false, detailCommentUnsub: null,
+  createInFlight: false, publishInFlight: false, commentInFlight: false, lfgInFlight: false, spaceInFlight: false, channelInFlight: false, detailCommentUnsub: null,
   publicUnsubs: [], privateUnsubs: [], ownProfileUnsub: null, legacyMigrationStarted: false, founderBootstrapAttempted: false, identityLinkPromise: null
 };
 
@@ -130,7 +130,13 @@ function prettyAvatarJson(profile = null) { return JSON.stringify(avatarSpecFor(
 function showDialog(selector) { const d = typeof selector === 'string' ? $(selector) : selector; if (d && !d.open) d.showModal(); }
 function closeDialog(dialogOrSelector) {
   const d = typeof dialogOrSelector === 'string' ? $(dialogOrSelector) : dialogOrSelector;
-  if (d?.open) d.close();
+  if (!d) return;
+  try { if (d.open) d.close(); } catch (error) { console.debug('Dialog close fallback', error); }
+  // Some mobile/desktop browser combinations can leave the open attribute behind after
+  // async form work. Force the modal out of the top layer so a successful publish can
+  // never look like it is still waiting for another submit.
+  if (d.hasAttribute('open')) d.removeAttribute('open');
+  try { document.activeElement?.blur?.(); } catch {}
 }
 function closeDialogFromControl(control) { closeDialog(control?.closest?.('dialog')); }
 function formatTagEntry(value='') {
@@ -435,7 +441,7 @@ function renderSearchPanel() {
 
 function renderLfg() {
   const root=$('#lfgCatalog'); if(!root)return; const rows=state.lfg.filter(x=>x.status==='open'&&!isBlocked(x.authorProfileId)&&(state.activeLfgFilter==='all'||x.purpose===state.activeLfgFilter)&&contentMatchesQuery(`${x.title} ${x.topic} ${x.description}`,`${(x.tags||[]).join(' ')} ${identity(x.authorProfileId).displayName}`)).sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt));
-  root.innerHTML=rows.length?rows.map(x=>{const who=identity(x.authorProfileId);const mine=x.authorProfileId===state.profileId;const request=state.lfgRequests.find(r=>r.lfgId===x.id&&r.fromProfileId===state.profileId);return `<article class="lfg-card"><div class="lfg-card-top"><span class="lfg-purpose">${LFG_PURPOSES[x.purpose]?.icon||'⚑'} ${escapeHtml(LFG_PURPOSES[x.purpose]?.label||x.purpose)}</span><small>${timeAgo(x.createdAt)}</small></div><h2>${escapeHtml(x.title)}</h2><p class="lfg-topic">${escapeHtml(x.topic)}</p><p>${escapeHtml(x.description)}</p>${x.availability?`<div class="lfg-availability"><b>Availability</b><span>${escapeHtml(x.availability)}</span></div>`:''}<div class="tag-row">${(x.tags||[]).map(t=>`<span>${escapeHtml(t)}</span>`).join('')}</div><div class="lfg-footer"><button class="identity-link" data-open-profile="${escapeHtml(x.authorProfileId)}" type="button">${escapeHtml(who.displayName)}</button>${mine?'<span class="status-pill">Your listing</span>':`<button class="primary-button" data-lfg-request="${escapeHtml(x.id)}" type="button" ${request?'disabled':''}>${request?escapeHtml(request.status==='pending'?'Request sent':request.status):'Request to connect'}</button>`}</div></article>`;}).join(''):'<div class="empty-state"><b>No open LFG listings match.</b><span>Create one for playing, creating, or sharing information.</span></div>';
+  root.innerHTML=rows.length?rows.map(x=>{const who=identity(x.authorProfileId);const mine=x.authorProfileId===state.profileId;const request=state.lfgRequests.find(r=>r.lfgId===x.id&&r.fromProfileId===state.profileId);return `<article class="lfg-card"><button class="lfg-card-open" data-open-lfg="${escapeHtml(x.id)}" type="button" aria-label="Open LFG listing: ${escapeHtml(x.title)}"><div class="lfg-card-top"><span class="lfg-purpose">${LFG_PURPOSES[x.purpose]?.icon||'⚑'} ${escapeHtml(LFG_PURPOSES[x.purpose]?.label||x.purpose)}</span><small>${timeAgo(x.createdAt)}</small></div><h2>${escapeHtml(x.title)}</h2><p class="lfg-topic">${escapeHtml(x.topic)}</p><p>${escapeHtml(x.description)}</p>${x.availability?`<div class="lfg-availability"><b>Availability</b><span>${escapeHtml(x.availability)}</span></div>`:''}<div class="tag-row">${(x.tags||[]).map(t=>`<span>${escapeHtml(t)}</span>`).join('')}</div></button><div class="lfg-footer"><button class="identity-link" data-open-profile="${escapeHtml(x.authorProfileId)}" type="button">${escapeHtml(who.displayName)}</button>${mine?'<span class="status-pill">Your listing</span>':`<button class="primary-button" data-lfg-request="${escapeHtml(x.id)}" type="button" ${request?'disabled':''}>${request?escapeHtml(request.status==='pending'?'Request sent':request.status):'Request to connect'}</button>`}</div></article>`;}).join(''):'<div class="empty-state"><b>No open LFG listings match.</b><span>Create one for playing, creating, or sharing information.</span></div>';
 }
 
 function friendProfileIds() { return state.friendships.flatMap(f=>f.members||[]).filter(id=>id!==state.profileId); }
@@ -478,7 +484,17 @@ function openPostDetail(id) { const p=state.posts.find(x=>x.id===id)||state.mode
 function openObjectDetail(id) { const o=state.objects.find(x=>x.id===id)||state.moderationObjects.find(x=>x.id===id); if(!o)return; state.detail={type:'object',id}; const who=identity(o.authorProfileId); const rel=state.connections.filter(c=>c.sourceId===id||c.targetId===id); const canRemove=o.authorProfileId===state.profileId||canModerateObjectClient(o); const scope=o.kind==='project'?'project':'discussion_object'; $('#detailEyebrow').textContent=o.kind; $('#detailTitle').textContent=o.deleted?`Removed ${o.kind}`:o.title; $('#detailBody').innerHTML=`<div class="detail-author-row"><button class="identity-button" data-open-profile="${escapeHtml(o.authorProfileId)}" type="button">${avatarMarkup(who)}<span><b>${escapeHtml(who.displayName)}</b><span class="status-badge-row">${statusBadgeMarkup(o.authorProfileId,scope,id)}</span><small>${timeAgo(o.createdAt)}</small></span></button></div><p class="detail-main-copy">${escapeHtml(o.description)}</p>${o.deleted?`<div class="moderation-notice"><b>Removed from normal LCS views</b><span>${escapeHtml(o.deleteReason||'No reason recorded.')}</span></div>`:''}<div class="detail-tags tag-row">${(o.tags||[]).map(t=>`<span>${escapeHtml(t)}</span>`).join('')}</div><div class="detail-actions">${o.deleted?(canRemove?`<button class="ghost-button" data-content-restore="publicObjects" data-content-id="${escapeHtml(id)}" type="button">↺ Restore</button>`:''):`<button class="ghost-button ${isFollowing('object',id)?'active-action':''}" data-follow-type="object" data-follow-id="${escapeHtml(id)}" type="button">${isFollowing('object',id)?'★ Following':'☆ Follow'} · ${followCount('object',id)}</button><button class="ghost-button" data-connect-object="${escapeHtml(id)}" type="button">↗ Connect another item</button>${canRemove?`<button class="ghost-button danger-button" data-content-remove="publicObjects" data-content-id="${escapeHtml(id)}" type="button">${o.authorProfileId===state.profileId?'Delete my item':'Remove item'}</button>`:''}`}</div><section class="linked-section"><h3>Relationships</h3>${rel.length?rel.map(c=>{const other=state.objects.find(x=>x.id===(c.sourceId===id?c.targetId:c.sourceId));return other?`<button class="linked-object" data-open-object="${escapeHtml(other.id)}" type="button"><span>${escapeHtml(c.relation)}</span><b>${escapeHtml(other.title)}</b><small>${escapeHtml(other.kind)}</small></button>`:'';}).join(''):'<p class="muted">No relationships yet.</p>'}</section>`; renderDetailThread(); startDetailCommentSubscription(); showDialog('#detailDialog'); }
 function friendshipStateWith(profileId) { if(!state.profileId||profileId===state.profileId)return {kind:'self'}; if(state.friendships.some(f=>(f.members||[]).includes(state.profileId)&&(f.members||[]).includes(profileId)))return {kind:'friends'}; const incoming=state.friendRequests.find(r=>r.fromProfileId===profileId&&r.toProfileId===state.profileId&&r.status==='pending'); if(incoming)return {kind:'incoming',request:incoming}; const outgoing=state.friendRequests.find(r=>r.fromProfileId===state.profileId&&r.toProfileId===profileId&&r.status==='pending'); if(outgoing)return {kind:'outgoing',request:outgoing}; return {kind:'none'}; }
 function openProfileDetail(id) { stopDetailCommentSubscription(); const p=state.profiles[id]; if(!p){toast('That public profile is not available.');return;} state.detail={type:'profile',id}; const authored=state.objects.filter(o=>o.authorProfileId===id&&!o.deleted); const posts=state.posts.filter(x=>x.authorProfileId===id&&!x.deleted); const fs=friendshipStateWith(id); const blocked=isBlocked(id); const friendButton=fs.kind==='self'||blocked?'':fs.kind==='friends'?'<span class="status-pill">Friends</span>':fs.kind==='incoming'?`<button class="primary-button" data-friend-action="accept" data-request-id="${escapeHtml(fs.request.id)}" type="button">Accept friend request</button>`:fs.kind==='outgoing'?'<span class="status-pill">Friend request pending</span>':`<button class="ghost-button" data-friend-profile="${escapeHtml(id)}" type="button">＋ Friend request</button>`; const blockButton=id===state.profileId?'':blocked?`<button class="ghost-button active-action" data-unblock-profile="${escapeHtml(id)}" type="button">Unblock</button>`:`<button class="ghost-button" data-block-profile="${escapeHtml(id)}" type="button">Block</button>`; const manage=isFounder()||isGlobalModerator()?`<button class="ghost-button" data-manage-status="${escapeHtml(id)}" type="button">Status / moderation</button>`:''; $('#detailEyebrow').textContent='Public profile'; $('#detailTitle').textContent=p.displayName||'Member'; $('#detailBody').innerHTML=`<div class="profile-detail-hero">${avatarMarkup(p,'profile-detail-fallback')}<div><h3>${escapeHtml(p.displayName||'Member')}</h3><div class="status-badge-row">${statusBadgeMarkup(id)}</div><p>${escapeHtml(p.bio||'No public bio yet.')}</p></div></div><div class="detail-actions">${id===state.profileId||blocked?'':`<button class="ghost-button ${isFollowing('profile',id)?'active-action':''}" data-follow-type="profile" data-follow-id="${escapeHtml(id)}" type="button">${isFollowing('profile',id)?'★ Following':'☆ Follow'} · ${followCount('profile',id)}</button>`}${friendButton}${blockButton}${manage}</div><div class="profile-stats"><div><b>${authored.length}</b><span>Ideas / problems / projects</span></div><div><b>${posts.length}</b><span>Posts</span></div></div><section class="linked-section"><h3>Recent work</h3>${authored.slice(0,8).map(o=>`<button class="linked-object" data-open-object="${escapeHtml(o.id)}" type="button"><b>${escapeHtml(o.title)}</b><small>${escapeHtml(o.kind)}</small></button>`).join('')||'<p class="muted">No public work yet.</p>'}</section>`; $('#detailThreadSection').hidden=true; showDialog('#detailDialog'); }
-function openLfg(id) { const x=state.lfg.find(v=>v.id===id); if(!x)return; setView('lfg'); setTimeout(()=>document.querySelector(`[data-lfg-request="${CSS.escape(id)}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}),20); }
+function openLfg(id) {
+  const x=state.lfg.find(v=>v.id===id); if(!x)return;
+  const who=identity(x.authorProfileId), mine=x.authorProfileId===state.profileId;
+  const request=state.lfgRequests.find(r=>r.lfgId===x.id&&r.fromProfileId===state.profileId);
+  const title=$('#lfgDetailTitle'), body=$('#lfgDetailBody');
+  if(!title||!body){setView('lfg');setTimeout(()=>document.querySelector(`[data-open-lfg="${CSS.escape(id)}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}),20);return;}
+  title.textContent=x.title;
+  body.innerHTML=`<div class="lfg-detail-meta"><span class="lfg-purpose">${LFG_PURPOSES[x.purpose]?.icon||'⚑'} ${escapeHtml(LFG_PURPOSES[x.purpose]?.label||x.purpose)}</span><small>${timeAgo(x.createdAt)}</small></div><p class="lfg-topic">${escapeHtml(x.topic)}</p><p class="detail-main-copy">${escapeHtml(x.description)}</p>${x.availability?`<div class="lfg-availability"><b>Availability</b><span>${escapeHtml(x.availability)}</span></div>`:''}${(x.tags||[]).length?`<div class="tag-row detail-tags">${x.tags.map(t=>`<span>${escapeHtml(t)}</span>`).join('')}</div>`:''}<div class="lfg-detail-actions"><button class="identity-link" data-open-profile="${escapeHtml(x.authorProfileId)}" type="button">${escapeHtml(who.displayName)}</button>${mine?'<span class="status-pill">Your listing</span>':`<button class="primary-button" data-lfg-request="${escapeHtml(x.id)}" type="button" ${request?'disabled':''}>${request?escapeHtml(request.status==='pending'?'Request sent':request.status):'Request to connect'}</button>`}</div>`;
+  showDialog('#lfgDetailDialog');
+}
+
 function renderDetailThread() { const section=$('#detailThreadSection'); if(!state.detail||state.detail.type==='profile'){section.hidden=true;return;} section.hidden=false; const type=state.detail.type==='post'?'post':'object', key=`${type}:${state.detail.id}`; const rows=state.comments.filter(c=>c.targetKey===key&&!c.deleted&&!isBlocked(c.authorProfileId)).sort((a,b)=>timeValue(a.createdAt)-timeValue(b.createdAt)); $('#detailCommentList').innerHTML=rows.length?rows.map(c=>{const p=identity(c.authorProfileId),r=reasoning[c.reasoningType]||reasoning.unclassified; const canRemove=c.authorProfileId===state.profileId||canModerateDiscussionClient(c.targetType,c.targetId); return `<article class="comment-card"><div class="comment-head"><button class="identity-link" data-open-profile="${escapeHtml(c.authorProfileId)}" type="button">${escapeHtml(p.displayName)}</button><span>${r.symbol} ${escapeHtml(r.plain)} · ${timeAgo(c.createdAt)}</span></div><p>${escapeHtml(c.text)}</p>${canRemove?`<div class="comment-actions"><button class="ghost-button danger-button" data-content-remove="publicComments" data-content-id="${escapeHtml(c.id)}" type="button">${c.authorProfileId===state.profileId?'Delete':'Remove'}</button></div>`:''}</article>`;}).join(''):'<div class="thread-empty">No responses yet.</div>'; const timed=timedOutForDiscussionClient(type,state.detail.id); $('#detailCommentForm').hidden=!state.profileId||timed; $('#detailCommentSignIn').hidden=Boolean(state.profileId); const note=$('#detailTimeoutNote'); if(note){note.hidden=!timed; note.textContent=timed?'Timeout Status makes this discussion read-only for your account.':'';} }
 
 function setCreateError(message=''){const box=$('#createError'),text=$('#createErrorText');if(!box||!text)return;box.hidden=!message;text.textContent=message||'';}
@@ -534,7 +550,7 @@ async function createObject(e){
       state.objects.unshift({...payload,id:ref.id,createdAt:Date.now(),updatedAt:Date.now()});
       renderCatalogs();renderUniverse();renderTrends();renderSearchPanel();renderStatusTargetOptions();
     }
-    formEl.reset(); renderTagPreview($('#createTags'),$('#createTagPreview')); closeDialog('#createDialog'); toast(`${kind} created.`);bumpImpact('created');
+    formEl.reset(); renderTagPreview($('#createTags'),$('#createTagPreview')); closeDialog(formEl.closest('dialog')); toast(`${kind} created.`);bumpImpact('created');
     if(related){
       try{await fsMod.addDoc(fsMod.collection(db,'publicConnections'),{sourceId:ref.id,targetId:related,relation:'related to',authorProfileId:state.profileId,createdAt:fsMod.serverTimestamp()});}
       catch(linkError){console.error('initial object connection failed',linkError);toast(`${kind} created, but the optional starting connection could not be saved.`);}
@@ -544,8 +560,20 @@ async function createObject(e){
     const message=firestoreErrorText(error,`create this ${kind}`);setCreateError(message);toast(message);
   }finally{state.createInFlight=false;formEl.removeAttribute('aria-busy');if(submit){submit.disabled=false;submit.textContent=oldLabel;}}
 }
-async function createSpace(e){e.preventDefault();if(!requireContribution())return;const name=$('#spaceName').value.trim(),description=$('#spaceDescription').value.trim();const {db,fsMod}=state.firebase;const ref=await fsMod.addDoc(fsMod.collection(db,'publicSpaces'),{name:name.slice(0,50),description:description.slice(0,240),ownerProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});await fsMod.addDoc(fsMod.collection(db,'publicChannels'),{spaceId:ref.id,name:'general',description:'General public discussion.',type:'discussion',ownerProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});e.currentTarget.reset();closeDialog('#spaceDialog');toast('Community created with #general.');}
-async function createChannel(e){e.preventDefault();if(!requireContribution())return;const spaceId=$('#channelCommunity').value;const space=state.spaces.find(s=>s.id===spaceId);if(!space||space.ownerProfileId!==state.profileId){toast('You can only add channels to communities you own.');return;}const {db,fsMod}=state.firebase;await fsMod.addDoc(fsMod.collection(db,'publicChannels'),{spaceId,name:$('#channelName').value.trim().slice(0,40),description:$('#channelDescription').value.trim().slice(0,240),type:$('#channelType').value,ownerProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});e.currentTarget.reset();closeDialog('#channelDialog');toast('Channel created.');}
+async function createSpace(e){
+  e.preventDefault();if(state.spaceInFlight||!requireContribution())return;
+  const form=e.currentTarget,button=form.querySelector('button[type="submit"]'),old=button?.textContent||'Create community';
+  state.spaceInFlight=true;if(button){button.disabled=true;button.textContent='Creating…';}
+  try{const name=$('#spaceName').value.trim(),description=$('#spaceDescription').value.trim();const {db,fsMod}=state.firebase;const ref=await fsMod.addDoc(fsMod.collection(db,'publicSpaces'),{name:name.slice(0,50),description:description.slice(0,240),ownerProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});await fsMod.addDoc(fsMod.collection(db,'publicChannels'),{spaceId:ref.id,name:'general',description:'General public discussion.',type:'discussion',ownerProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});form.reset();closeDialog(form.closest('dialog'));toast('Community created with #general.');}
+  finally{state.spaceInFlight=false;if(button){button.disabled=false;button.textContent=old;}}
+}
+async function createChannel(e){
+  e.preventDefault();if(state.channelInFlight||!requireContribution())return;const form=e.currentTarget,button=form.querySelector('button[type="submit"]'),old=button?.textContent||'Create channel';
+  const spaceId=$('#channelCommunity').value;const space=state.spaces.find(s=>s.id===spaceId);if(!space||space.ownerProfileId!==state.profileId){toast('You can only add channels to communities you own.');return;}
+  state.channelInFlight=true;if(button){button.disabled=true;button.textContent='Creating…';}
+  try{const {db,fsMod}=state.firebase;await fsMod.addDoc(fsMod.collection(db,'publicChannels'),{spaceId,name:$('#channelName').value.trim().slice(0,40),description:$('#channelDescription').value.trim().slice(0,240),type:$('#channelType').value,ownerProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});form.reset();closeDialog(form.closest('dialog'));toast('Channel created.');}
+  finally{state.channelInFlight=false;if(button){button.disabled=false;button.textContent=old;}}
+}
 async function submitConnection(e){e.preventDefault();if(!state.connectContext||!requireContribution())return;const targetId=$('#connectTargetObject').value,relation=$('#connectRelation').value,{mode,id}=state.connectContext;const {db,fsMod}=state.firebase;if(mode==='post')await fsMod.addDoc(fsMod.collection(db,'publicPostLinks'),{postId:id,objectId:targetId,relation,authorProfileId:state.profileId,createdAt:fsMod.serverTimestamp()});else await fsMod.addDoc(fsMod.collection(db,'publicConnections'),{sourceId:id,targetId,relation,authorProfileId:state.profileId,createdAt:fsMod.serverTimestamp()});closeDialog('#connectDialog');state.connectContext=null;bumpImpact('connected');toast('Connection saved.');}
 async function submitComment(e){
   e.preventDefault(); if(state.commentInFlight||!state.detail||state.detail.type==='profile')return;
@@ -563,7 +591,15 @@ async function savePublicProfile(e){e.preventDefault();if(!requireUser()||state.
 
 async function sendFriendRequest(profileId){if(!requireContribution()||profileId===state.profileId)return;if(isBlocked(profileId)){toast('Unblock this profile before connecting.');return;}const fs=friendshipStateWith(profileId);if(fs.kind!=='none'){toast('A connection already exists or is pending.');return;}const {db,fsMod}=state.firebase;const requestId=safeDocId(...[state.profileId,profileId].sort());await fsMod.setDoc(fsMod.doc(db,'privateFriendRequests',requestId),{fromProfileId:state.profileId,toProfileId:profileId,status:'pending',createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});toast('Friend request sent privately.');}
 async function handleFriendRequest(id,action){if(!requireUser())return;const r=state.friendRequests.find(x=>x.id===id);if(!r)return;const {db,fsMod}=state.firebase;const ref=fsMod.doc(db,'privateFriendRequests',id);if(action==='cancel'||action==='decline'){await fsMod.deleteDoc(ref);toast(action==='decline'?'Friend request declined.':'Friend request cancelled.');return;}if(action==='accept'){const members=[r.fromProfileId,r.toProfileId].sort();const fref=fsMod.doc(db,'privateFriendships',safeDocId(...members));const batch=fsMod.writeBatch(db);batch.update(ref,{status:'accepted',updatedAt:fsMod.serverTimestamp()});batch.set(fref,{members,requestId:id,createdAt:fsMod.serverTimestamp()});await batch.commit();toast('Friend connection accepted.');}}
-async function createLfg(e){e.preventDefault();if(!requireContribution())return;const title=$('#lfgTitle').value.trim(),topic=$('#lfgTopic').value.trim(),description=$('#lfgDescription').value.trim(),availability=$('#lfgAvailability').value.trim();if(containsContactData(`${description} ${availability}`)){toast('For safety, remove email addresses or phone numbers and use LCS requests instead.');return;}const {db,fsMod}=state.firebase;await fsMod.addDoc(fsMod.collection(db,'publicLfg'),{purpose:$('#lfgPurpose').value,title:title.slice(0,100),topic:topic.slice(0,80),description:description.slice(0,700),availability:availability.slice(0,120),tags:parseTags($('#lfgTags').value),authorProfileId:state.profileId,status:'open',createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp(),deleted:false,deletedAt:null,deletedByProfileId:'',deleteReason:'',moderationActionId:''});e.currentTarget.reset();closeDialog('#lfgDialog');bumpImpact('collaborated');toast('LFG listing published publicly.');}
+async function createLfg(e){
+  e.preventDefault();if(state.lfgInFlight||!requireContribution())return;
+  const form=e.currentTarget,button=form.querySelector('button[type="submit"]'),old=button?.textContent||'Publish LFG';
+  const title=$('#lfgTitle').value.trim(),topic=$('#lfgTopic').value.trim(),description=$('#lfgDescription').value.trim(),availability=$('#lfgAvailability').value.trim();
+  if(containsContactData(`${description} ${availability}`)){toast('For safety, remove email addresses or phone numbers and use LCS requests instead.');return;}
+  state.lfgInFlight=true;if(button){button.disabled=true;button.textContent='Publishing…';}
+  try{const {db,fsMod}=state.firebase;await fsMod.addDoc(fsMod.collection(db,'publicLfg'),{purpose:$('#lfgPurpose').value,title:title.slice(0,100),topic:topic.slice(0,80),description:description.slice(0,700),availability:availability.slice(0,120),tags:parseTags($('#lfgTags').value),authorProfileId:state.profileId,status:'open',createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp(),deleted:false,deletedAt:null,deletedByProfileId:'',deleteReason:'',moderationActionId:''});form.reset();renderTagPreview($('#lfgTags'),$('#lfgTagPreview'));closeDialog(form.closest('dialog'));bumpImpact('collaborated');toast('LFG listing published publicly.');}
+  finally{state.lfgInFlight=false;if(button){button.disabled=false;button.textContent=old;}}
+}
 async function sendLfgRequest(lfgId){if(!requireContribution())return;const listing=state.lfg.find(x=>x.id===lfgId);if(listing&&isBlocked(listing.authorProfileId)){toast('Unblock this profile before requesting a match.');return;}if(!listing||listing.authorProfileId===state.profileId)return;const existing=state.lfgRequests.find(r=>r.lfgId===lfgId&&r.fromProfileId===state.profileId);if(existing){toast('You already sent a request for this listing.');return;}const {db,fsMod}=state.firebase;const requestId=safeDocId(lfgId,state.profileId);await fsMod.setDoc(fsMod.doc(db,'privateLfgRequests',requestId),{lfgId,fromProfileId:state.profileId,toProfileId:listing.authorProfileId,status:'pending',createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});bumpImpact('collaborated');toast('Private LFG request sent.');}
 async function handleLfgRequest(id,action){if(!requireUser())return;const r=state.lfgRequests.find(x=>x.id===id);if(!r)return;const {db,fsMod}=state.firebase,ref=fsMod.doc(db,'privateLfgRequests',id);if(action==='decline'||action==='cancel'){await fsMod.deleteDoc(ref);toast(`LFG request ${action==='decline'?'declined':'cancelled'}.`);return;}if(!requireContribution())return;await fsMod.updateDoc(ref,{status:'accepted',updatedAt:fsMod.serverTimestamp()});toast('LFG request accepted.');}
 
@@ -654,11 +690,53 @@ function setupModerationSubscriptions(){if(!state.firebaseReady||!state.profileI
 function mergeStatusRowsNoResub(){const rows=[...state.statusPublic,...state.statusOwn,...state.statusPrivileged];state.statuses=[...new Map(rows.map(x=>[x.id,x])).values()];renderStatusSurfacesNoResub();}
 function renderStatusSurfacesNoResub(){const account=$('#accountStatusList');if(account){const rows=activeStatusesFor();account.innerHTML=rows.length?rows.map(x=>`<span class="status-badge status-${escapeHtml(x.status)}">${STATUS_META[x.status]?.symbol||'•'} ${escapeHtml(STATUS_META[x.status]?.label||x.status)}${x.scopeType==='global'?'':` · ${escapeHtml(STATUS_SCOPE_LABELS[x.scopeType]||x.scopeType)}`}</span>`).join(''):'<span class="muted">No assigned Status values.</span>';}const timed=isGlobalTimedOut(),banner=$('#timeoutBanner');if(banner)banner.hidden=!timed;const nav=$('#moderationNav');if(nav)nav.hidden=!(isFounder()||activeStatusesFor().some(x=>x.status==='moderator'));renderModeration();}
 
-const AUTH_REDIRECT_PENDING_KEY='lcsGoogleAuthRedirectPendingV1';
+const MOBILE_AUTH_PENDING_KEY='lcsMobileGoogleBrokerV1';
 function isMobileAuthBrowser(){return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'')||Boolean(window.matchMedia?.('(pointer: coarse)').matches&&window.innerWidth<=900);}
-function readRedirectPending(){try{return sessionStorage.getItem(AUTH_REDIRECT_PENDING_KEY)==='1';}catch{return false;}}
-function setRedirectPending(value){try{value?sessionStorage.setItem(AUTH_REDIRECT_PENDING_KEY,'1'):sessionStorage.removeItem(AUTH_REDIRECT_PENDING_KEY);}catch{}}
 function compactAuthMessage(value){return String(value||'').replace(/\s+/g,' ').trim().slice(0,900);}
+function readMobileAuthPending(){
+  try{
+    const raw=sessionStorage.getItem(MOBILE_AUTH_PENDING_KEY)||localStorage.getItem(MOBILE_AUTH_PENDING_KEY);
+    if(!raw)return null;
+    const value=JSON.parse(raw);
+    if(!value?.sessionId||!value?.continueUri)return null;
+    if(Date.now()-Number(value.startedAt||0)>15*60*1000){clearMobileAuthPending();return null;}
+    return value;
+  }catch{return null;}
+}
+function writeMobileAuthPending(value){
+  const raw=JSON.stringify(value);
+  try{sessionStorage.setItem(MOBILE_AUTH_PENDING_KEY,raw);}catch{}
+  try{localStorage.setItem(MOBILE_AUTH_PENDING_KEY,raw);}catch{}
+}
+function clearMobileAuthPending(){
+  try{sessionStorage.removeItem(MOBILE_AUTH_PENDING_KEY);}catch{}
+  try{localStorage.removeItem(MOBILE_AUTH_PENDING_KEY);}catch{}
+}
+function mobileAuthCallbackLooksPresent(){
+  const q=new URLSearchParams(location.search);
+  if(q.has('code')||q.has('error')||q.has('oauth_token')||q.has('state')||q.has('scope')||q.has('authuser'))return true;
+  return /(?:^|[&#])(id_token|access_token|error|code)=/i.test(location.hash||'');
+}
+async function identityToolkitRequest(endpoint,payload){
+  const apiKey=String(LCS_CONFIG.firebase?.apiKey||'');
+  const response=await fetch(`https://identitytoolkit.googleapis.com/v1/${endpoint}?key=${encodeURIComponent(apiKey)}`,{
+    method:'POST',
+    headers:{'content-type':'application/json'},
+    body:JSON.stringify(payload),
+    cache:'no-store',
+    referrerPolicy:'strict-origin-when-cross-origin'
+  });
+  let body={};
+  try{body=await response.json();}catch{}
+  if(!response.ok){
+    const error=new Error(compactAuthMessage(body?.error?.message||`Identity Toolkit HTTP ${response.status}`));
+    error.code=`auth/mobile-broker-${String(body?.error?.message||body?.error?.status||response.status).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80)}`;
+    error.httpStatus=response.status;
+    error.identityToolkitStatus=String(body?.error?.status||'');
+    throw error;
+  }
+  return body;
+}
 async function probeFirebaseAuthProject(){
   const apiKey=String(LCS_CONFIG.firebase?.apiKey||'');
   if(!apiKey)return {ok:false,httpStatus:0,errorStatus:'MISSING_API_KEY',errorMessage:'Firebase apiKey is missing.'};
@@ -677,6 +755,7 @@ function authDiagnosticText(err,attempt,probe){
     `authDomain: ${LCS_CONFIG.firebase?.authDomain||'(missing)'}`,
     `projectId: ${LCS_CONFIG.firebase?.projectId||'(missing)'}`,
     `mobileBrowser: ${isMobileAuthBrowser()?'yes':'no'}`,
+    `mobileBrokerPending: ${readMobileAuthPending()?'yes':'no'}`,
     `online: ${navigator.onLine?'yes':'no'}`
   ];
   if(probe){
@@ -686,6 +765,8 @@ function authDiagnosticText(err,attempt,probe){
     if(probe.errorMessage)rows.push(`probeMessage: ${probe.errorMessage}`);
     if(probe.currentDomainAuthorized!==null)rows.push(`authorizedDomain: ${probe.currentDomainAuthorized?'yes':'no'}`);
   }
+  if(err?.httpStatus)rows.push(`brokerHttpStatus: ${err.httpStatus}`);
+  if(err?.identityToolkitStatus)rows.push(`brokerStatus: ${err.identityToolkitStatus}`);
   const message=compactAuthMessage(err?.message);
   if(message)rows.push(`firebaseMessage: ${message}`);
   return rows.join('\n');
@@ -698,29 +779,82 @@ function showAuthError(err,attempt='popup',probe=null){
   else if(code.includes('popup-closed'))text='The Google window was closed before sign-in finished.';
   else if(code.includes('popup-blocked'))text='The browser blocked the Google sign-in window. Allow popups for this site and retry Google sign-in.';
   else if(code.includes('project-config-request-failed'))text='Firebase project configuration could not be read with this browser API key. The diagnostic below normally exposes an HTTP-referrer or API restriction that must be corrected in Google Cloud.';
-  else if(code.includes('redirect-result-missing'))text='A legacy mobile redirect returned without a Firebase credential. LCS v0.8.3 no longer starts redirect sign-in on GitHub Pages because that path can lose the Firebase session on browsers that restrict cross-origin storage.';
-  else if(code.includes('session-not-retained'))text='Google account selection completed, but Firebase did not retain the signed-in browser session. LCS now explicitly verifies local persistence and restores the authenticated identity when the mobile page resumes.';
-  else if(code.includes('internal-error'))text='Firebase returned an internal Google sign-in error after the account flow. LCS now keeps mobile on the popup/credential path instead of switching to redirect, waits briefly for a delayed Firebase auth state, and preserves the popup diagnostic if the session still does not appear.';
+  else if(code.includes('mobile-broker'))text='The mobile Google account flow reached Firebase Identity Toolkit but the direct credential exchange did not complete. The diagnostic below contains the exact Identity Toolkit response.';
+  else if(code.includes('mobile-credential-missing'))text='Google completed the mobile authorization flow, but Identity Toolkit did not return a Google credential that Firebase could attach to this browser session.';
+  else if(code.includes('session-not-retained'))text='Google sign-in completed, but Firebase did not retain the signed-in browser session.';
+  else if(code.includes('internal-error'))text='Firebase returned an internal Google sign-in error. On mobile, LCS now bypasses Firebase popup/redirect helper state entirely and uses Identity Toolkit to obtain the Google credential before handing it to Firebase.';
   $('#authErrorTitle').textContent='Google sign-in needs attention';$('#authErrorText').textContent=text;$('#authErrorCode').textContent=code;
   const details=$('#authDiagnosticDetails');if(details){details.textContent=authDiagnosticText(err,attempt,probe);details.hidden=false;}
   const retry=$('#authRedirectRetryButton');if(retry)retry.hidden=!(isMobileAuthBrowser()&&state.firebase?.auth);
   $('#authErrorBox').hidden=false;
 }
-function shouldFallbackToRedirect(err){const code=String(err?.code||'');return isMobileAuthBrowser()&&['auth/internal-error','auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/web-storage-unsupported','auth/cancelled-popup-request'].some(x=>code.includes(x));}
-async function startGoogleRedirect(probe=null){
-  if(!state.firebase?.auth)return showAuthError({code:'auth/configuration-not-found'},'redirect-start',probe);
-  const {auth,authMod}=state.firebase,provider=new authMod.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
-  try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);setRedirectPending(true);await authMod.signInWithRedirect(auth,provider);}catch(e){setRedirectPending(false);console.error(e);showAuthError(e,'redirect-start',probe);}
-}
-async function completePendingGoogleRedirect(auth,authMod){
-  const wasPending=readRedirectPending();
+async function startMobileGoogleBroker(probe=null){
+  if(!state.firebase?.auth)return showAuthError({code:'auth/configuration-not-found'},'mobile-broker-start',probe);
+  const continueUri=`${location.origin}${location.pathname}`;
+  const returnUrl=location.href;
   try{
-    const result=await authMod.getRedirectResult(auth);
-    if(result?.user){setRedirectPending(false);closeDialog('#authDialog');toast('Signed in. LCS is linking a separate public identity.');return true;}
-    if(wasPending&&auth.currentUser){setRedirectPending(false);closeDialog('#authDialog');toast('Signed in. LCS is linking a separate public identity.');return true;}
-    if(wasPending&&!auth.currentUser){setRedirectPending(false);showDialog('#authDialog');showAuthError({code:'auth/redirect-result-missing',message:'No Firebase credential was returned after the Google redirect.'},'redirect-return');}
-  }catch(e){if(wasPending){setRedirectPending(false);showDialog('#authDialog');showAuthError(e,'redirect-return');}else console.debug('Firebase redirect result',e?.code||e);}
-  return false;
+    const response=await identityToolkitRequest('accounts:createAuthUri',{
+      providerId:'google.com',
+      continueUri,
+      authFlowType:'CODE_FLOW',
+      context:crypto.randomUUID(),
+      customParameter:{prompt:'select_account'}
+    });
+    if(!response?.authUri||!response?.sessionId){
+      const error=new Error('Identity Toolkit did not return authUri/sessionId for Google.');
+      error.code='auth/mobile-broker-invalid-start-response';
+      throw error;
+    }
+    writeMobileAuthPending({
+      sessionId:String(response.sessionId),
+      continueUri,
+      returnUrl,
+      startedAt:Date.now()
+    });
+    location.assign(String(response.authUri));
+  }catch(e){
+    clearMobileAuthPending();
+    console.error(e);
+    showAuthError(e,'mobile-broker-start',probe);
+  }
+}
+async function completeMobileGoogleBroker(auth,authMod){
+  const pending=readMobileAuthPending();
+  if(!pending||!isMobileAuthBrowser())return false;
+  if(!mobileAuthCallbackLooksPresent())return false;
+  try{
+    const callbackUri=location.href;
+    const response=await identityToolkitRequest('accounts:signInWithIdp',{
+      requestUri:callbackUri,
+      sessionId:pending.sessionId,
+      returnSecureToken:true,
+      returnIdpCredential:true
+    });
+    const googleIdToken=String(response?.oauthIdToken||'');
+    const googleAccessToken=String(response?.oauthAccessToken||'');
+    if(!googleIdToken&&!googleAccessToken){
+      const error=new Error('Identity Toolkit completed the callback but returned no Google OAuth credential.');
+      error.code='auth/mobile-credential-missing';
+      throw error;
+    }
+    const credential=authMod.GoogleAuthProvider.credential(googleIdToken||null,googleAccessToken||null);
+    const result=await authMod.signInWithCredential(auth,credential);
+    if(!result?.user&&!auth.currentUser){
+      const error=new Error('Firebase accepted the Google credential but did not create a browser user session.');
+      error.code='auth/session-not-retained';
+      throw error;
+    }
+    clearMobileAuthPending();
+    const target=new URL(pending.returnUrl||pending.continueUri,location.origin);
+    if(target.origin===location.origin)history.replaceState(null,'',`${target.pathname}${target.search}${target.hash}`);
+    return true;
+  }catch(e){
+    clearMobileAuthPending();
+    console.error('LCS mobile Google broker return',e);
+    showDialog('#authDialog');
+    showAuthError(e,'mobile-broker-return');
+    return false;
+  }
 }
 async function waitForFirebaseAuthUser(auth,authMod,timeoutMs=4500){
   if(auth.currentUser)return auth.currentUser;
@@ -735,42 +869,26 @@ async function waitForFirebaseAuthUser(auth,authMod,timeoutMs=4500){
 async function signInGoogle(){
   clearAuthError();
   if(!state.firebase?.auth)return showAuthError({code:'auth/configuration-not-found'});
-  const {auth,authMod}=state.firebase,provider=new authMod.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
+  const {auth,authMod}=state.firebase;
   const mobile=isMobileAuthBrowser();
   const probe=mobile?await probeFirebaseAuthProject():null;
   if(mobile&&probe?.ok===false){showAuthError({code:'auth/project-config-request-failed',message:`Firebase project configuration request failed with HTTP ${probe.httpStatus}${probe.errorStatus?` (${probe.errorStatus})`:''}.`},'preflight',probe);return;}
   if(mobile&&probe?.currentDomainAuthorized===false){showAuthError({code:'auth/unauthorized-domain',message:`${location.hostname} is not present in the Firebase authorizedDomains response.`},'preflight',probe);return;}
+  try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);}catch(e){console.warn('Firebase local persistence unavailable before sign-in',e?.code||e);}
+  if(mobile){
+    await startMobileGoogleBroker(probe);
+    return;
+  }
+  const provider=new authMod.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
   try{
-    // Force LOCAL persistence before opening Google. Android can background the LCS tab
-    // while account selection is active, so the session must already be configured to survive it.
-    await authMod.setPersistence(auth,authMod.browserLocalPersistence);
     const result=await authMod.signInWithPopup(auth,provider);
-    if(result?.user){
-      try{await result.user.getIdToken();}catch(tokenError){console.debug('Firebase token refresh after popup',tokenError?.code||tokenError);}
-    }
+    if(result?.user){try{await result.user.getIdToken();}catch(tokenError){console.debug('Firebase token refresh after popup',tokenError?.code||tokenError);}}
     if(typeof auth.authStateReady==='function')await auth.authStateReady();
-    if(!auth.currentUser){
-      const retentionError=new Error('Google returned to LCS, but Firebase did not retain the authenticated browser session.');
-      retentionError.code='auth/session-not-retained';
-      throw retentionError;
-    }
+    if(!auth.currentUser){const retentionError=new Error('Google returned to LCS, but Firebase did not retain the authenticated browser session.');retentionError.code='auth/session-not-retained';throw retentionError;}
     syncFirebaseAuthUser(auth.currentUser);
     if(state.firebaseReady)await ensurePrivateIdentityOnce();
     closeDialog('#authDialog');toast('Signed in. This browser will keep the LCS session until you sign out.');
-  }catch(e){
-    console.error(e);
-    if(mobile&&String(e?.code||'').includes('auth/internal-error')){
-      const recovered=await waitForFirebaseAuthUser(auth,authMod,4500);
-      if(recovered){
-        syncFirebaseAuthUser(recovered);
-        if(state.firebaseReady)await ensurePrivateIdentityOnce();
-        closeDialog('#authDialog');
-        toast('Signed in. Firebase completed the mobile session after the Google account window returned.');
-        return;
-      }
-    }
-    showAuthError(e,'popup',probe);
-  }
+  }catch(e){console.error(e);showAuthError(e,'popup',probe);}
 }
 async function signOutUser(){if(!state.firebase?.auth)return;stopPrivateSubscriptions();stopOwnProfileListener();await state.firebase.authMod.signOut(state.firebase.auth);toast('Signed out.');}
 
@@ -889,9 +1007,13 @@ async function initFirebase(){
     const app=appMod.initializeApp(LCS_CONFIG.firebase),auth=authMod.getAuth(app);authMod.useDeviceLanguage(auth);state.firebase={app,auth,authMod,db:null,fsMod:null};
     // Normalize any restored/legacy session onto durable local persistence before auth state is consumed.
     try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);}catch(e){console.warn('Firebase local persistence unavailable',e?.code||e);}
+    // Mobile bypass: complete Identity Toolkit's authorization-code flow first, then
+    // hand the returned Google credential to Firebase with signInWithCredential().
+    // This avoids the mobile popup/redirect helper state that was returning auth/internal-error.
+    const mobileBrokerCompleted=await completeMobileGoogleBroker(auth,authMod);
     authMod.onAuthStateChanged(auth,syncFirebaseAuthUser);
-    if(readRedirectPending())setRedirectPending(false);
     if(typeof auth.authStateReady==='function')await auth.authStateReady();
+    if(mobileBrokerCompleted&&auth.currentUser){syncFirebaseAuthUser(auth.currentUser);closeDialog('#authDialog');toast('Signed in. Mobile Google authentication completed directly through Firebase.');}
     const fsMod=await firestorePromise,db=fsMod.getFirestore(app);state.firebase={app,auth,authMod,db,fsMod};state.firebaseReady=true;
     // Firebase Auth can restore the user before Firestore finishes importing. Re-apply that
     // persisted user here so the private identity linker always gets a ready database.
@@ -910,7 +1032,7 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;renderLfg();renderConnections();renderSearchPanel();},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentityOnce();
-    setBackendStatus('LCS v0.8.4 Momentum + synchronized mobile client connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    setBackendStatus('LCS v0.8.5 Momentum + direct mobile Firebase credential flow connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7.1 firestore.rules.','error');renderAuth();renderAccount();}
 }
 
