@@ -1,5 +1,5 @@
-import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.1';
-import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.1';
+import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.2';
+import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.2';
 import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 const $ = selector => document.querySelector(selector);
@@ -22,9 +22,11 @@ const SLIME_WANDER_INTERVAL_MS = 15_000;
 const SLIME_WANDER_STEP = 3.2;
 const SLIME_WANDER_STOP_RANGE = 16;
 const GLOBAL_STATS_COLLECTION = 'globalGameStats';
+const NORTH_PLATFORM_SPAWN = Object.freeze({ minX: 11, maxX: 32, minY: 11, maxY: 28 });
+const SLIME_CACHE_SPAWN = Object.freeze({ minX: 76, maxX: 91, minY: 68, maxY: 84 });
 const SLIME_DEFS = Object.freeze([
-  { key: 'cache-slime-a', label: 'CACHE SLIME A', x: 80.5, y: 72.0, tint: '#62d776', minX: 76, maxX: 86, minY: 68, maxY: 79 },
-  { key: 'cache-slime-b', label: 'CACHE SLIME B', x: 85.0, y: 77.0, tint: '#8ee767', minX: 80, maxX: 91, minY: 71, maxY: 84 }
+  { key: 'cache-slime-a', label: 'CACHE SLIME A', tint: '#62d776', ...SLIME_CACHE_SPAWN },
+  { key: 'cache-slime-b', label: 'CACHE SLIME B', tint: '#8ee767', ...SLIME_CACHE_SPAWN }
 ]);
 
 // Camera follows the local token through a small central soft zone instead
@@ -36,8 +38,8 @@ const CAMERA_FOLLOW_STRENGTH = 11;
 
 const state = {
   identity: null,
-  x: 50,
-  y: 50,
+  x: 21.5,
+  y: 19.5,
   vx: 0,
   vy: 0,
   moveUsed: 0,
@@ -491,13 +493,14 @@ async function ensureSlimePopulation() {
       return;
     }
     try {
+      const spawn = slimeSpawnPoint(def, turnInfo().turnNumber, 'initial');
       await fs.setDoc(ref, {
         worldId,
         enemyKey: def.key,
         type: 'slime',
         label: def.label,
-        x: def.x,
-        y: def.y,
+        x: spawn.x,
+        y: spawn.y,
         hp: SLIME_MAX_HP,
         maxHp: SLIME_MAX_HP,
         alive: true,
@@ -562,9 +565,10 @@ async function respawnDeadSlimes(currentTurn) {
         const live = snap.data();
         if (live.alive || Number(live.respawnTurn || 0) > currentTurn) return;
         const def = slimeDefinitionByDocId(enemy.id);
+        const spawn = def ? slimeSpawnPoint(def, currentTurn, 'respawn') : { x: Number(live.x || 83), y: Number(live.y || 76) };
         tx.update(ref, {
-          x: def?.x ?? Number(live.x || 50),
-          y: def?.y ?? Number(live.y || 50),
+          x: spawn.x,
+          y: spawn.y,
           hp: Number(live.maxHp || SLIME_MAX_HP),
           alive: true,
           respawnTurn: 0,
@@ -602,6 +606,32 @@ function seeded01(text) {
   return (h >>> 0) / 4294967295;
 }
 
+function random01() {
+  if (globalThis.crypto?.getRandomValues) {
+    const value = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(value);
+    return value[0] / 4294967295;
+  }
+  return Math.random();
+}
+
+function pointInBounds(bounds, seed = '') {
+  const rx = seed ? seeded01(`${seed}:x`) : random01();
+  const ry = seed ? seeded01(`${seed}:y`) : random01();
+  return {
+    x: bounds.minX + (bounds.maxX - bounds.minX) * rx,
+    y: bounds.minY + (bounds.maxY - bounds.minY) * ry
+  };
+}
+
+function playerSpawnPoint(seed = '') {
+  return pointInBounds(NORTH_PLATFORM_SPAWN, seed);
+}
+
+function slimeSpawnPoint(def, turn, phase = 'spawn') {
+  return pointInBounds(def, `${worldId}:${def.key}:${phase}:${turn}`);
+}
+
 function wanderDestination(def, step) {
   const phase = Math.max(0, step);
   const rx = seeded01(`${def.key}:${phase}:x`);
@@ -634,11 +664,13 @@ async function advanceSlimeWander() {
         if (clockNow() - last < SLIME_WANDER_INTERVAL_MS) return;
         const step = Math.max(0, Number(live.wanderStep || 0));
         const target = wanderDestination(def, step);
-        const dx = target.x - Number(live.x || def.x);
-        const dy = target.y - Number(live.y || def.y);
+        const fallbackX = (def.minX + def.maxX) / 2;
+        const fallbackY = (def.minY + def.maxY) / 2;
+        const dx = target.x - Number(live.x ?? fallbackX);
+        const dy = target.y - Number(live.y ?? fallbackY);
         const distance = Math.hypot(dx, dy);
-        let nx = Number(live.x || def.x);
-        let ny = Number(live.y || def.y);
+        let nx = Number(live.x ?? fallbackX);
+        let ny = Number(live.y ?? fallbackY);
         if (distance > .08) {
           const stride = Math.min(SLIME_WANDER_STEP, distance);
           nx += dx / distance * stride;
@@ -711,8 +743,8 @@ function reconcileOwnPresence(data, hasPendingWrites) {
   state.actionTurn = Math.max(0, Number(data.actionTurn || state.actionTurn || 0));
 
   if (wasKnockout) {
-    state.x = Number(data.x ?? 50);
-    state.y = Number(data.y ?? 50);
+    state.x = Number(data.x ?? 21.5);
+    state.y = Number(data.y ?? 19.5);
     state.vx = 0;
     state.vy = 0;
     state.moveUsed = Math.max(0, Number(data.moveUsed || 0));
@@ -726,7 +758,7 @@ function reconcileOwnPresence(data, hasPendingWrites) {
       setTimeout(() => token.classList.remove('player-death-pulse'), 1200);
     }
     resetCamera(true);
-    message('PVP KO // RESPAWNED AT GLOBAL SPAWN // NO CREDITS LOST.');
+    message('PVP KO // RESPAWNED ON NORTH PLATFORM // NO CREDITS LOST.');
   } else {
     message(`PVP HIT RECEIVED // HP ${state.hp}/${PLAYER_MAX_HP}.`);
   }
@@ -771,8 +803,8 @@ async function restorePosition() {
     const ref = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
     const snap = await fs.getDoc(ref);
     if (snap.exists() && snap.data().worldId === worldId) {
-      state.x = Number(snap.data().x || 50);
-      state.y = Number(snap.data().y || 50);
+      state.x = Number(snap.data().x ?? 21.5);
+      state.y = Number(snap.data().y ?? 19.5);
       const currentTurn = turnInfo().turnNumber;
       if (Number(snap.data().turnNumber || 0) === currentTurn) {
         state.moveUsed = Math.max(0, Number(snap.data().moveUsed || 0));
@@ -785,6 +817,13 @@ async function restorePosition() {
       state.movedTurn = Math.max(0, Number(snap.data().movedTurn || 0));
       state.actionTurn = Math.max(0, Number(snap.data().actionTurn || 0));
       state.lastPvpEventId = String(snap.data().lastPvpEventId || '');
+    } else {
+      const spawn = playerSpawnPoint();
+      state.x = spawn.x;
+      state.y = spawn.y;
+      state.vx = 0;
+      state.vy = 0;
+      state.moveUsed = 0;
     }
     updateToken(ensureToken(state.identity.profileId, state.identity.profile, true), state.x, state.y);
     resetCamera(true);
@@ -1339,6 +1378,7 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
     const targetRef = fs.doc(db, 'gamePresence', presenceId(action.targetId));
     const statsRef = statsDocRef(state.identity.profileId);
     const targetStatsRef = statsDocRef(action.targetId);
+    const pvpRespawn = playerSpawnPoint(`pvp:${worldId}:${action.targetId}:${id}`);
     const result = await firestoreRunTransaction(db, async tx => {
       const [actionSnap, attackerSnap, targetSnap, statsSnap, targetStatsSnap] = await Promise.all([
         tx.get(actionRef), tx.get(attackerRef), tx.get(targetRef), tx.get(statsRef), tx.get(targetStatsRef)
@@ -1369,7 +1409,7 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
       const deathEventId = killed ? `pvp_${id}`.slice(0, 180) : '';
       if (killed) {
         Object.assign(targetPatch, {
-          x: 50, y: 50, vx: 0, vy: 0,
+          x: pvpRespawn.x, y: pvpRespawn.y, vx: 0, vy: 0,
           moveUsed: 0,
           deaths: Math.max(0, Number(target.deaths || 0)) + 1,
           lastDeathEventId: deathEventId
@@ -1521,6 +1561,8 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
   // and in range when the marker fired still gets its strike even if the queued
   // player attack defeats it during the same marker.
   const attackerIds = [...new Set(markerAttackers.map(enemy => String(enemy?.id || '')).filter(Boolean))];
+  const deathEventId = `death_${presenceId(state.identity.profileId)}_${currentTurn}`.slice(0, 180);
+  const pveRespawn = playerSpawnPoint(`pve:${worldId}:${state.identity.profileId}:${deathEventId}`);
 
   const result = await firestoreRunTransaction(db, async tx => {
     const [presenceSnap, walletSnap, statsSnap] = await Promise.all([
@@ -1543,12 +1585,12 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
       return { damage, hp: hpAfter, combatTurn: currentTurn, attackers: attackerIds };
     }
 
-    const eventId = `death_${presenceId(state.identity.profileId)}_${currentTurn}`.slice(0, 180);
+    const eventId = deathEventId;
     const wallet = walletSnap.exists() ? walletSnap.data() : { balance: 0, totalEarned: 0, totalLost: 0 };
     const before = Math.max(0, Number(wallet.balance || 0));
     const lost = Math.min(10, before);
     tx.update(presenceRef, {
-      x: 50, y: 50, vx: 0, vy: 0,
+      x: pveRespawn.x, y: pveRespawn.y, vx: 0, vy: 0,
       moveUsed: 0,
       hp: PLAYER_MAX_HP,
       maxHp: PLAYER_MAX_HP,
@@ -1578,7 +1620,7 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
         updatedAt: fs.serverTimestamp()
       });
     }
-    return { damage, died: true, hp: PLAYER_MAX_HP, deaths: Math.max(0, Number(presence.deaths || 0)) + 1, eventId, lost, balance: before - lost, combatTurn: currentTurn, attackers: attackerIds };
+    return { damage, died: true, hp: PLAYER_MAX_HP, deaths: Math.max(0, Number(presence.deaths || 0)) + 1, eventId, lost, balance: before - lost, combatTurn: currentTurn, attackers: attackerIds, spawnX: pveRespawn.x, spawnY: pveRespawn.y };
   });
 
   if (result?.skipped) return;
@@ -1586,12 +1628,12 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
   if (result?.died) {
     state.hp = PLAYER_MAX_HP;
     state.deaths = Math.max(0, Number(result.deaths || state.deaths + 1));
-    state.lastDeathEventId = String(result.eventId || `death_${presenceId(state.identity.profileId)}_${currentTurn}`.slice(0, 180));
-    state.x = 50; state.y = 50; state.vx = 0; state.vy = 0; state.moveUsed = 0; state.autoTarget = null;
+    state.lastDeathEventId = String(result.eventId || deathEventId);
+    state.x = Number(result.spawnX ?? pveRespawn.x); state.y = Number(result.spawnY ?? pveRespawn.y); state.vx = 0; state.vy = 0; state.moveUsed = 0; state.autoTarget = null;
     const token = state.tokenMap.get(state.identity.profileId);
     if (token) { updateToken(token, state.x, state.y); token.classList.add('player-death-pulse'); setTimeout(() => token.classList.remove('player-death-pulse'), 1200); }
     resetCamera(true);
-    message(`YOU WERE DOWNED BY THE CACHE SLIMES // -${result.lost || 0} CREDITS // RESPAWNED.`);
+    message(`YOU WERE DOWNED BY THE CACHE SLIMES // -${result.lost || 0} CREDITS // RESPAWNED ON NORTH PLATFORM.`);
   } else {
     state.hp = Math.max(0, Number(result?.hp ?? state.hp));
     if (result?.damage) message(`CACHE SLIME${result.damage > 1 ? 'S' : ''} STRUCK BACK // -${result.damage} HP.`);

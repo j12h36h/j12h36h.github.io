@@ -1,3 +1,12 @@
+# E.R.A.S. Game Package
+
+## v1.7.2 Randomized Spawn Zones
+- Fresh player entries now materialize at a random point inside the North Platform spawn zone instead of the center of the table.
+- PvE and PvP deaths respawn the defeated player at a deterministic random point inside North Platform.
+- Both Cache Slimes now initially spawn and respawn at randomized points across the shared Slime Cache/Yard zone, then resume their existing wandering behavior.
+- Spawn points are bounded in Firestore rules so PvP respawns and slime population writes cannot place pieces outside their intended zones.
+- Desktop and mobile share the same spawn/runtime logic.
+
 
 ## v1.7.1 Death-clears-scoreboard patch
 
