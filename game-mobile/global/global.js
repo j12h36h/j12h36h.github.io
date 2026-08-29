@@ -1,5 +1,6 @@
-import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js';
-import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
+import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.6.2';
+import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.6.2';
+import { runTransaction as firestoreRunTransaction } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
@@ -448,7 +449,7 @@ async function respawnDeadSlimes(currentTurn) {
     if (enemy.alive || Number(enemy.respawnTurn || 0) > currentTurn) return;
     const ref = fs.doc(db, 'gameEnemies', enemy.id);
     try {
-      await fs.runTransaction(db, async tx => {
+      await firestoreRunTransaction(db, async tx => {
         const snap = await tx.get(ref);
         if (!snap.exists()) return;
         const live = snap.data();
@@ -914,7 +915,7 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
     const presenceRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
     const walletRef = fs.doc(db, 'creditWallets', state.identity.profileId);
 
-    const result = await fs.runTransaction(db, async tx => {
+    const result = await firestoreRunTransaction(db, async tx => {
       const [actionSnap, enemySnap, presenceSnap, walletSnap] = await Promise.all([
         tx.get(actionRef), tx.get(enemyRef), tx.get(presenceRef), tx.get(walletRef)
       ]);
@@ -980,7 +981,7 @@ async function resolveOwnStandardAction(id, action, currentTurn) {
   state.resolvingActions.add(id);
   try {
     const ref = fs.doc(db, 'gameActions', id);
-    await fs.runTransaction(db, async tx => {
+    await firestoreRunTransaction(db, async tx => {
       const snap = await tx.get(ref);
       if (!snap.exists()) return;
       const live = snap.data();
@@ -1020,27 +1021,25 @@ async function processResolvedActions(currentTurn) {
   renderActionPanel();
 }
 
-async function applySlimeRetaliation(currentTurn) {
+async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
   if (!state.identity?.profileId) return;
   await ensureCreditWallet(db, fs, state.identity.profileId);
   const presenceRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
   const walletRef = fs.doc(db, 'creditWallets', state.identity.profileId);
-  const enemyRefs = SLIME_DEFS.map(def => fs.doc(db, 'gameEnemies', enemyDocId(def.key)));
+  // Retaliation is captured at the exact global marker before player attacks
+  // resolve. That makes the marker simultaneous: a one-HP slime that was alive
+  // and in range when the marker fired still gets its strike even if the queued
+  // player attack defeats it during the same marker.
+  const attackerIds = [...new Set(markerAttackers.map(enemy => String(enemy?.id || '')).filter(Boolean))];
 
-  const result = await fs.runTransaction(db, async tx => {
+  const result = await firestoreRunTransaction(db, async tx => {
     const presenceSnap = await tx.get(presenceRef);
     if (!presenceSnap.exists()) return { skipped: true };
-    const enemySnaps = [];
-    for (const ref of enemyRefs) enemySnaps.push(await tx.get(ref));
     const walletSnap = await tx.get(walletRef);
     const presence = presenceSnap.data();
     if (Number(presence.lastCombatTurn || 0) >= currentTurn) return { skipped: true };
 
-    const attackers = enemySnaps
-      .filter(snap => snap.exists())
-      .map(snap => ({ id: snap.id, ...snap.data() }))
-      .filter(enemy => enemy.alive && distanceBetween(presence.x, presence.y, enemy.x, enemy.y) <= SLIME_ATTACK_RANGE);
-    const damage = attackers.length;
+    const damage = attackerIds.length;
     if (!damage) {
       tx.update(presenceRef, { lastCombatTurn: currentTurn, updatedAt: fs.serverTimestamp() });
       return { damage: 0, hp: Number(presence.hp ?? PLAYER_MAX_HP), combatTurn: currentTurn };
@@ -1050,7 +1049,7 @@ async function applySlimeRetaliation(currentTurn) {
     const hpAfter = hpBefore - damage;
     if (hpAfter > 0) {
       tx.update(presenceRef, { hp: hpAfter, lastCombatTurn: currentTurn, updatedAt: fs.serverTimestamp() });
-      return { damage, hp: hpAfter, combatTurn: currentTurn, attackers: attackers.map(x => x.id) };
+      return { damage, hp: hpAfter, combatTurn: currentTurn, attackers: attackerIds };
     }
 
     const eventId = `death_${presenceId(state.identity.profileId)}_${currentTurn}`.slice(0, 180);
@@ -1077,7 +1076,7 @@ async function applySlimeRetaliation(currentTurn) {
         updatedAt: fs.serverTimestamp()
       });
     }
-    return { damage, died: true, hp: PLAYER_MAX_HP, deaths: Math.max(0, Number(presence.deaths || 0)) + 1, eventId, lost, balance: before - lost, combatTurn: currentTurn, attackers: attackers.map(x => x.id) };
+    return { damage, died: true, hp: PLAYER_MAX_HP, deaths: Math.max(0, Number(presence.deaths || 0)) + 1, eventId, lost, balance: before - lost, combatTurn: currentTurn, attackers: attackerIds };
   });
 
   if (result?.skipped) return;
@@ -1104,10 +1103,18 @@ async function runCombatMarker(currentTurn) {
   state.combatMarkerInFlight.add(currentTurn);
   try {
     await respawnDeadSlimes(currentTurn);
-    await refreshEnemyState();
+    const markerEnemies = await refreshEnemyState();
+    const markerAttackers = [...markerEnemies.values()].filter(enemy =>
+      enemy.alive && distanceBetween(state.x, state.y, enemy.x, enemy.y) <= SLIME_ATTACK_RANGE
+    );
+
+    // Player declarations and hostile retaliation belong to the same marker.
+    // We resolve player actions first for clean kill/reward transactions, while
+    // retaliation uses the pre-resolution snapshot above so defeating a slime
+    // does not erase an attack it had already committed at the marker.
     await processResolvedActions(currentTurn);
     await refreshEnemyState();
-    await applySlimeRetaliation(currentTurn);
+    await applySlimeRetaliation(currentTurn, markerAttackers);
   } finally {
     state.combatMarkerInFlight.delete(currentTurn);
   }
