@@ -30,3 +30,146 @@ body.global-page{overflow:hidden}.global-shell{position:relative;width:100%;heig
 .game-log-panel{position:absolute;z-index:31;left:24px;bottom:24px;width:350px;max-height:270px;border:1px solid rgba(151,239,241,.17);background:rgba(2,9,11,.93);box-shadow:0 15px 38px rgba(0,0,0,.44);overflow:hidden}.game-log-panel summary{min-height:34px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;list-style:none;color:#d8efef;font:800 8px/1 var(--mono);letter-spacing:.12em;user-select:none}.game-log-panel summary::-webkit-details-marker{display:none}.game-log-panel summary::before{content:"+";margin-right:7px;color:#74a3a5}.game-log-panel[open] summary::before{content:"−"}.game-log-panel summary span{margin-left:auto;color:#55797c;font-size:6px;letter-spacing:.09em}.game-log{max-height:226px;overflow:auto;padding:0 9px 10px;border-top:1px solid rgba(151,239,241,.08);scrollbar-width:thin}.game-log-turn{padding:9px 2px;border-bottom:1px solid rgba(151,239,241,.06)}.game-log-turn:last-child{border-bottom:0}.game-log-turn h3{margin:0 0 7px;color:#587f82;font:800 6px/1 var(--mono);letter-spacing:.12em}.game-log-turn.is-current h3{color:#a5e4e3}.game-log-turn p{margin:0;color:#405f62;font:700 5.5px/1.4 var(--mono);letter-spacing:.08em}.game-log-turn ul{display:grid;gap:5px;margin:0;padding:0;list-style:none}.game-log-turn li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:7px;color:#78999b;font:700 6px/1.25 var(--mono)}.game-log-turn li b{max-width:95px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d3e9e9}.game-log-turn li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.game-log-turn li em{font:800 5px/1 var(--mono);font-style:normal;color:#8cccca;letter-spacing:.06em}.game-log-turn li em[data-status="cancelled"]{color:#c47f88}.game-log-turn li em[data-status="resolved"]{color:#d9c978}
 @media(min-width:761px){.tactical-global-page .player-name{top:77px;max-width:180px;padding:5px 8px;font-size:10px;font-weight:900;letter-spacing:.07em;text-shadow:0 1px 3px #000}.tactical-global-page .player-token-state{top:67px;font-size:6px}.tactical-global-page .world-landmark{font-size:11px;letter-spacing:.16em;opacity:.95;text-shadow:0 1px 4px #000}.tactical-global-page .battle-object span{top:68px;padding:3px 5px;background:rgba(0,7,9,.66);font-size:9px;letter-spacing:.1em;text-shadow:0 1px 3px #000}.tactical-global-page .global-hud-box b{font-size:13px}}
 @media(max-width:760px){.game-log-panel{left:12px;bottom:184px;width:min(52vw,245px);max-height:210px}.game-log-panel summary{min-height:31px;padding:8px 9px;font-size:6px}.game-log{max-height:170px}.game-log-turn li{grid-template-columns:minmax(0,1fr) auto;gap:4px;font-size:5px}.game-log-turn li b{grid-column:1/3;max-width:none}.game-log-turn li span{grid-column:1}.game-log-turn li em{grid-column:2}.turn-copy em{margin-top:5px}}
+
+/* ============================================================
+   E.R.A.S. v1.5.4 — desktop tactical readability pass
+   Screenshot-driven pass: increase desktop character, map,
+   objective, movement-panel, and rolling-log typography.
+   Mobile sizing remains unchanged.
+   ============================================================ */
+@media (min-width: 761px) {
+  .tactical-global-page .player-name {
+    top: 80px;
+    max-width: 240px;
+    padding: 6px 10px;
+    font-size: 15px;
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: .075em;
+    border-color: rgba(151,239,241,.2);
+    background: rgba(0,7,9,.9);
+    text-shadow: 0 2px 4px #000;
+  }
+
+  .tactical-global-page .player-token-state {
+    top: 68px;
+    padding: 2px 4px;
+    font-size: 8px;
+    line-height: 1;
+    letter-spacing: .11em;
+    background: rgba(0,7,9,.72);
+    text-shadow: 0 1px 3px #000;
+  }
+
+  .tactical-global-page .world-landmark {
+    padding: 4px 7px;
+    font-size: 15px;
+    line-height: 1.05;
+    letter-spacing: .17em;
+    opacity: 1;
+    background: rgba(0,7,9,.45);
+    text-shadow: 0 2px 5px #000;
+  }
+
+  .tactical-global-page .battle-object span {
+    top: 70px;
+    padding: 5px 7px;
+    font-size: 12px;
+    line-height: 1.05;
+    letter-spacing: .11em;
+    background: rgba(0,7,9,.84);
+    border: 1px solid rgba(131,224,227,.1);
+    text-shadow: 0 2px 4px #000;
+  }
+
+  .tactical-global-page .global-hud-box {
+    padding: 11px 14px;
+    font-size: 9px;
+    line-height: 1.5;
+  }
+
+  .tactical-global-page .global-hud-box b {
+    margin-bottom: 3px;
+    font-size: 15px;
+    letter-spacing: .08em;
+  }
+
+  .tactical-action-panel {
+    width: 320px;
+    padding: 15px;
+  }
+
+  .tactical-stat {
+    gap: 7px;
+    padding: 10px 0;
+  }
+
+  .tactical-stat span {
+    font-size: 8px;
+    letter-spacing: .14em;
+  }
+
+  .tactical-stat b {
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  .tactical-stat small {
+    font-size: 7px;
+    line-height: 1.4;
+  }
+
+  .tactical-buttons button {
+    min-height: 39px;
+    font-size: 8px;
+    letter-spacing: .09em;
+  }
+
+  .game-log-panel {
+    width: 390px;
+    max-height: 300px;
+  }
+
+  .game-log-panel summary {
+    min-height: 39px;
+    padding: 11px 13px;
+    font-size: 10px;
+  }
+
+  .game-log-panel summary span {
+    font-size: 8px;
+  }
+
+  .game-log {
+    max-height: 255px;
+    padding: 0 12px 12px;
+  }
+
+  .game-log-turn {
+    padding: 11px 3px;
+  }
+
+  .game-log-turn h3 {
+    margin-bottom: 8px;
+    font-size: 8px;
+  }
+
+  .game-log-turn p {
+    font-size: 7px;
+    line-height: 1.5;
+  }
+
+  .game-log-turn li {
+    gap: 8px;
+    font-size: 8px;
+    line-height: 1.35;
+  }
+
+  .game-log-turn li b {
+    max-width: 125px;
+  }
+
+  .game-log-turn li em {
+    font-size: 7px;
+  }
+}

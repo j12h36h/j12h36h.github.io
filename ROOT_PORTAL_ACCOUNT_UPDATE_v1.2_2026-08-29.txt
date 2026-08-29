@@ -1,7 +1,0 @@
-Root Portal Account v1.2
-- Fixed malformed stylesheet markup in /index.html that could prevent the account surface from initializing reliably.
-- Root account control now visibly uses "SIGN IN WITH GOOGLE" rather than a generic SIGN IN action.
-- Replaced the standalone account login handler with the same Firebase GoogleAuthProvider + browserLocalPersistence + signInWithPopup flow used by the working LCS client.
-- Added delayed Firebase auth-state recovery after the popup returns.
-- Added clearer popup-blocked / unauthorized-domain / internal-error diagnostics.
-- No Firestore rules change required.
