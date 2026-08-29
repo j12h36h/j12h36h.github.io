@@ -664,6 +664,62 @@ service cloud.firestore {
     }
 
     // ============================================================
+    // E.R.A.S. GLOBAL SCOREBOARD
+    // Persistent all-time PvE/PvP kill counters. The rolling PvP record
+    // itself remains sourced from the ten-marker gameActions window.
+    // ============================================================
+    function validGlobalStats(data, profileId) {
+      return data.keys().hasOnly(['profileId','pveKills','pvpKills','lastPveKillActionId','lastPvpKillActionId','createdAt','updatedAt'])
+        && data.profileId == profileId
+        && validPublicId(data.profileId) && profileExists(data.profileId)
+        && data.pveKills is int && data.pveKills >= 0
+        && data.pvpKills is int && data.pvpKills >= 0
+        && data.lastPveKillActionId is string && data.lastPveKillActionId.size() <= 180
+        && data.lastPvpKillActionId is string && data.lastPvpKillActionId.size() <= 180
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+    function validScoreKillAction(actionId, targetType) {
+      let actionPath = /databases/$(database)/documents/gameActions/$(actionId);
+      return actionId.size() > 0
+        && existsAfter(actionPath)
+        && getAfter(actionPath).data.worldId == 'global'
+        && getAfter(actionPath).data.actorProfileId == callerProfileId()
+        && getAfter(actionPath).data.actionType == 'attack'
+        && getAfter(actionPath).data.targetType == targetType
+        && getAfter(actionPath).data.status == 'resolved'
+        && getAfter(actionPath).data.outcome == 'kill';
+    }
+    function validPveScoreIncrement(data) {
+      return data.pveKills == resource.data.pveKills + 1
+        && data.pvpKills == resource.data.pvpKills
+        && data.lastPveKillActionId != resource.data.lastPveKillActionId
+        && data.lastPvpKillActionId == resource.data.lastPvpKillActionId
+        && validScoreKillAction(data.lastPveKillActionId, 'enemy');
+    }
+    function validPvpScoreIncrement(data) {
+      return data.pveKills == resource.data.pveKills
+        && data.pvpKills == resource.data.pvpKills + 1
+        && data.lastPveKillActionId == resource.data.lastPveKillActionId
+        && data.lastPvpKillActionId != resource.data.lastPvpKillActionId
+        && validScoreKillAction(data.lastPvpKillActionId, 'profile');
+    }
+    match /globalGameStats/{profileId} {
+      allow read: if signedIn();
+      allow create: if isCallerProfile(profileId)
+        && validGlobalStats(request.resource.data, profileId)
+        && request.resource.data.pveKills == 0
+        && request.resource.data.pvpKills == 0
+        && request.resource.data.lastPveKillActionId == ''
+        && request.resource.data.lastPvpKillActionId == '';
+      allow update: if isCallerProfile(profileId)
+        && validGlobalStats(request.resource.data, profileId)
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (validPveScoreIncrement(request.resource.data) || validPvpScoreIncrement(request.resource.data));
+      allow delete: if false;
+    }
+
+    // ============================================================
     // E.R.A.S. ASSET INVENTORY
     // Public asset files live under /public-assets/ on GitHub Pages.
     // Firestore stores only per-profile ownership/configuration.
@@ -752,14 +808,15 @@ service cloud.firestore {
 
     // ============================================================
     // E.R.A.S. GLOBAL / LOBBY PRESENCE
-    // Intentionally low-frequency Firestore state for the first 2D MVP.
-    // Clients interpolate locally between snapshots.
+    // Low-frequency movement state plus combat/rest state. PvP attackers may
+    // only alter a target presence when the same atomic write resolves their
+    // queued profile attack.
     // ============================================================
     function validWorldId(value) {
       return value is string && value.size() > 0 && value.size() <= 160;
     }
     function validPresence(data) {
-      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','hp','maxHp','deaths','lastDeathEventId','lastCombatTurn','updatedAt'])
+      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','hp','maxHp','deaths','lastDeathEventId','lastCombatTurn','restedTurn','movedTurn','actionTurn','lastPvpEventId','updatedAt'])
         && validWorldId(data.worldId)
         && validPublicId(data.profileId) && profileExists(data.profileId)
         && data.x is number && data.x >= 0 && data.x <= 100
@@ -773,36 +830,111 @@ service cloud.firestore {
         && data.deaths is int && data.deaths >= 0
         && data.lastDeathEventId is string && data.lastDeathEventId.size() <= 180
         && data.lastCombatTurn is int && data.lastCombatTurn >= 0
+        && data.restedTurn is int && data.restedTurn >= 0
+        && data.movedTurn is int && data.movedTurn >= 0
+        && data.actionTurn is int && data.actionTurn >= 0
+        && data.lastPvpEventId is string && data.lastPvpEventId.size() <= 180
         && data.updatedAt is timestamp;
+    }
+    function validOwnRestTransition() {
+      return request.resource.data.restedTurn > resource.data.get('restedTurn',0)
+        && request.resource.data.restedTurn == request.resource.data.turnNumber
+        && resource.data.moveUsed <= 0.001
+        && resource.data.get('movedTurn',0) != request.resource.data.restedTurn
+        && resource.data.get('actionTurn',0) != request.resource.data.restedTurn
+        && request.resource.data.hp == 3
+        && request.resource.data.deaths == resource.data.deaths
+        && request.resource.data.x == resource.data.x
+        && request.resource.data.y == resource.data.y
+        && request.resource.data.moveUsed == resource.data.moveUsed;
+    }
+    function validOwnPresenceUpdate() {
+      return isCallerProfile(resource.data.profileId)
+        && request.resource.data.lastPvpEventId == resource.data.get('lastPvpEventId','')
+        && (request.resource.data.hp <= resource.data.hp
+          || request.resource.data.deaths > resource.data.deaths
+          || validOwnRestTransition());
+    }
+    function validPvpPresenceTransition() {
+      let actionId = request.resource.data.lastPvpEventId;
+      let actionPath = /databases/$(database)/documents/gameActions/$(actionId);
+      return callerCanContribute()
+        && resource.data.profileId != callerProfileId()
+        && actionId.size() > 0
+        && existsAfter(actionPath)
+        && getAfter(actionPath).data.worldId == resource.data.worldId
+        && getAfter(actionPath).data.actorProfileId == callerProfileId()
+        && getAfter(actionPath).data.actionType == 'attack'
+        && getAfter(actionPath).data.targetType == 'profile'
+        && getAfter(actionPath).data.targetId == resource.data.profileId
+        && getAfter(actionPath).data.status == 'resolved'
+        && getAfter(actionPath).data.outcome in ['hit','kill']
+        && request.resource.data.worldId == resource.data.worldId
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.maxHp == resource.data.maxHp
+        && request.resource.data.turnNumber == resource.data.turnNumber
+        && request.resource.data.restedTurn == resource.data.get('restedTurn',0)
+        && request.resource.data.movedTurn == resource.data.get('movedTurn',0)
+        && request.resource.data.actionTurn == resource.data.get('actionTurn',0)
+        && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
+        && request.resource.data.lastPvpEventId == actionId
+        && ((getAfter(actionPath).data.outcome == 'hit'
+          && request.resource.data.hp == resource.data.hp - 1
+          && request.resource.data.deaths == resource.data.deaths
+          && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+          && request.resource.data.x == resource.data.x
+          && request.resource.data.y == resource.data.y
+          && request.resource.data.vx == resource.data.vx
+          && request.resource.data.vy == resource.data.vy
+          && request.resource.data.moveUsed == resource.data.moveUsed)
+        || (getAfter(actionPath).data.outcome == 'kill'
+          && request.resource.data.hp == 3
+          && request.resource.data.deaths == resource.data.deaths + 1
+          && request.resource.data.lastDeathEventId == 'pvp_' + actionId
+          && request.resource.data.x == 50
+          && request.resource.data.y == 50
+          && request.resource.data.vx == 0
+          && request.resource.data.vy == 0
+          && request.resource.data.moveUsed == 0));
     }
     match /gamePresence/{presenceId} {
       allow read: if signedIn();
-      allow create, update: if callerCanContribute()
+      allow create: if callerCanContribute()
         && isCallerProfile(request.resource.data.profileId)
         && presenceId == request.resource.data.profileId + '__' + request.resource.data.worldId
         && validPresence(request.resource.data);
+      allow update: if validPresence(request.resource.data)
+        && presenceId == request.resource.data.profileId + '__' + request.resource.data.worldId
+        && (validOwnPresenceUpdate() || validPvpPresenceTransition());
       allow delete: if isCallerProfile(resource.data.profileId);
     }
 
     // ============================================================
     // E.R.A.S. SHARED ENEMIES
-    // Two one-HP cache slimes exist per world. Their death/respawn
-    // state is shared by every client in that world.
+    // Two one-HP Cache Slimes roam bounded areas while out of combat. A single
+    // elected client advances their shared position at a low write frequency.
     // ============================================================
     function validEnemyKey(value) { return value in ['cache-slime-a','cache-slime-b']; }
-    function validEnemyTemplate(data) {
-      return (data.enemyKey == 'cache-slime-a' && data.label == 'CACHE SLIME A' && data.x == 80.5 && data.y == 72)
-        || (data.enemyKey == 'cache-slime-b' && data.label == 'CACHE SLIME B' && data.x == 85 && data.y == 77);
+    function validEnemyIdentity(data) {
+      return (data.enemyKey == 'cache-slime-a' && data.label == 'CACHE SLIME A')
+        || (data.enemyKey == 'cache-slime-b' && data.label == 'CACHE SLIME B');
+    }
+    function validEnemyBounds(data) {
+      return (data.enemyKey == 'cache-slime-a' && data.x >= 76 && data.x <= 86 && data.y >= 68 && data.y <= 79)
+        || (data.enemyKey == 'cache-slime-b' && data.x >= 80 && data.x <= 91 && data.y >= 71 && data.y <= 84);
+    }
+    function enemyAtSpawn(data) {
+      return (data.enemyKey == 'cache-slime-a' && data.x == 80.5 && data.y == 72)
+        || (data.enemyKey == 'cache-slime-b' && data.x == 85 && data.y == 77);
     }
     function validGameEnemy(data) {
-      return data.keys().hasOnly(['worldId','enemyKey','type','label','x','y','hp','maxHp','alive','respawnTurn','lastHitActionId','lastHitByProfileId','lastKillActionId','killerProfileId','updatedAt'])
+      return data.keys().hasOnly(['worldId','enemyKey','type','label','x','y','hp','maxHp','alive','respawnTurn','lastHitActionId','lastHitByProfileId','lastKillActionId','killerProfileId','wanderStep','lastWanderAt','updatedAt'])
         && validWorldId(data.worldId)
         && validEnemyKey(data.enemyKey)
-        && validEnemyTemplate(data)
+        && validEnemyIdentity(data)
+        && validEnemyBounds(data)
         && data.type == 'slime'
         && data.label is string && data.label.size() > 0 && data.label.size() <= 40
-        && data.x is number && data.x >= 0 && data.x <= 100
-        && data.y is number && data.y >= 0 && data.y <= 100
         && data.maxHp == 1
         && data.hp is int && data.hp >= 0 && data.hp <= 1
         && data.alive is bool
@@ -812,6 +944,8 @@ service cloud.firestore {
         && data.lastHitByProfileId is string && (data.lastHitByProfileId == '' || validPublicId(data.lastHitByProfileId))
         && data.lastKillActionId is string && data.lastKillActionId.size() <= 180
         && data.killerProfileId is string && (data.killerProfileId == '' || validPublicId(data.killerProfileId))
+        && data.wanderStep is int && data.wanderStep >= 0
+        && data.lastWanderAt is timestamp
         && data.updatedAt is timestamp;
     }
     function validEnemyAttackAction(enemyId, actionId, killed) {
@@ -835,7 +969,11 @@ service cloud.firestore {
         && validEnemyAttackAction(enemyId, actionId, killed)
         && request.resource.data.alive == !killed
         && request.resource.data.lastKillActionId == (killed ? actionId : resource.data.lastKillActionId)
-        && request.resource.data.killerProfileId == (killed ? callerProfileId() : resource.data.killerProfileId);
+        && request.resource.data.killerProfileId == (killed ? callerProfileId() : resource.data.killerProfileId)
+        && request.resource.data.x == resource.data.x
+        && request.resource.data.y == resource.data.y
+        && request.resource.data.wanderStep == resource.data.get('wanderStep',0)
+        && request.resource.data.lastWanderAt == resource.data.get('lastWanderAt',request.resource.data.lastWanderAt);
     }
     function validEnemyRespawnTransition() {
       return callerCanContribute()
@@ -846,30 +984,65 @@ service cloud.firestore {
         && request.resource.data.lastHitActionId == ''
         && request.resource.data.lastHitByProfileId == ''
         && request.resource.data.killerProfileId == ''
-        && request.resource.data.lastKillActionId == resource.data.lastKillActionId;
+        && request.resource.data.lastKillActionId == resource.data.lastKillActionId
+        && enemyAtSpawn(request.resource.data)
+        && request.resource.data.wanderStep == resource.data.get('wanderStep',0)
+        && request.resource.data.lastWanderAt is timestamp;
+    }
+    function validEnemyWanderTransition() {
+      return callerCanContribute()
+        && resource.data.alive == true
+        && request.resource.data.alive == resource.data.alive
+        && request.resource.data.hp == resource.data.hp
+        && request.resource.data.respawnTurn == resource.data.respawnTurn
+        && request.resource.data.lastHitActionId == resource.data.lastHitActionId
+        && request.resource.data.lastHitByProfileId == resource.data.lastHitByProfileId
+        && request.resource.data.lastKillActionId == resource.data.lastKillActionId
+        && request.resource.data.killerProfileId == resource.data.killerProfileId
+        && request.resource.data.x >= resource.data.x - 3.5
+        && request.resource.data.x <= resource.data.x + 3.5
+        && request.resource.data.y >= resource.data.y - 3.5
+        && request.resource.data.y <= resource.data.y + 3.5
+        && request.resource.data.wanderStep == resource.data.get('wanderStep',0) + 1
+        && resource.data.lastWanderAt is timestamp
+        && request.resource.data.lastWanderAt == request.time
+        && request.time >= resource.data.lastWanderAt + duration.value(12, 's');
+    }
+    function validEnemyWanderMigration() {
+      return resource.data.alive == request.resource.data.alive
+        && resource.data.hp == request.resource.data.hp
+        && resource.data.x == request.resource.data.x
+        && resource.data.y == request.resource.data.y
+        && resource.data.respawnTurn == request.resource.data.respawnTurn
+        && resource.data.lastHitActionId == request.resource.data.lastHitActionId
+        && resource.data.lastHitByProfileId == request.resource.data.lastHitByProfileId
+        && resource.data.lastKillActionId == request.resource.data.lastKillActionId
+        && resource.data.killerProfileId == request.resource.data.killerProfileId
+        && request.resource.data.wanderStep == 0
+        && request.resource.data.lastWanderAt is timestamp;
     }
     match /gameEnemies/{enemyId} {
       allow read: if signedIn();
       allow create: if callerCanContribute()
         && validGameEnemy(request.resource.data)
         && enemyId == request.resource.data.worldId + '__' + request.resource.data.enemyKey
+        && enemyAtSpawn(request.resource.data)
         && request.resource.data.hp == 1
         && request.resource.data.alive == true
         && request.resource.data.respawnTurn == 0
         && request.resource.data.lastHitActionId == ''
         && request.resource.data.lastHitByProfileId == ''
         && request.resource.data.lastKillActionId == ''
-        && request.resource.data.killerProfileId == '';
+        && request.resource.data.killerProfileId == ''
+        && request.resource.data.wanderStep == 0;
       allow update: if callerCanContribute()
         && validGameEnemy(request.resource.data)
         && request.resource.data.worldId == resource.data.worldId
         && request.resource.data.enemyKey == resource.data.enemyKey
         && request.resource.data.type == resource.data.type
         && request.resource.data.label == resource.data.label
-        && request.resource.data.x == resource.data.x
-        && request.resource.data.y == resource.data.y
         && request.resource.data.maxHp == resource.data.maxHp
-        && (validEnemyAttackTransition(enemyId) || validEnemyRespawnTransition());
+        && (validEnemyAttackTransition(enemyId) || validEnemyRespawnTransition() || validEnemyWanderTransition() || validEnemyWanderMigration());
       allow delete: if false;
     }
 

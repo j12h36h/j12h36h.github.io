@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#02090b">
   <title>Global Tactical Table — E.R.A.S. Mobile</title>
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="/game-mobile/assets/mobile.css?v=1.6.1">
+  <link rel="stylesheet" href="/game-mobile/assets/mobile.css?v=1.7.0">
 </head>
 <body class="mobile-global tactical-mobile-global">
   <header class="mobile-game-header"><a class="mobile-game-brand" href="/game-mobile/"><span>PROJECT E.R.A.S. : GLOBAL</span><small>MOBILE TACTICAL CLIENT</small></a><div class="mobile-credit-header" title="Universal Credits">◈ <b id="creditBalance">0</b></div><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">ACCOUNT…</div></div></header>
@@ -23,14 +23,24 @@
     </div>
     <div class="mobile-world-hud"><div><b id="worldName">GLOBAL TABLE</b><span id="worldState">CONNECTING…</span></div></div>
 
-    <details class="game-log-panel mobile-game-log">
-      <summary>GAME LOG <span>10 MARKERS</span></summary>
-      <div class="game-log" id="gameLog"><section class="game-log-turn is-current"><h3>CURRENT WINDOW</h3><p>NO DECLARATIONS</p></section></div>
-    </details>
-    <aside class="tactical-action-panel mobile-tactical-actions"><div class="tactical-stat"><span>MOVE</span><b id="moveRemaining">40.0 / 40</b><i id="moveBudgetBar"></i><small id="autoMoveState">TAP BOARD TO AUTO-MOVE</small></div><div class="tactical-stat compact"><span>HP</span><b id="playerHealth">3 / 3</b></div><div class="tactical-stat compact"><span>TARGET</span><b id="selectedTarget">NONE</b></div><div class="tactical-stat compact"><span>QUEUE</span><b id="queuedAction">NONE</b></div><div class="tactical-buttons"><button id="queueAttack" type="button" disabled>ATTACK</button><button id="queueInteract" type="button" disabled>INTERACT</button><button id="cancelAction" class="is-cancel" type="button" disabled>CANCEL</button><button id="cancelAutoMove" class="is-secondary" type="button">STOP AUTO</button></div></aside>
+    <section class="mobile-telemetry-stack" aria-label="Global combat records">
+      <details class="scoreboard-panel mobile-scoreboard-panel" id="scoreboardPanel">
+        <summary>GLOBAL SCOREBOARD <span>ALL-TIME</span></summary>
+        <div class="global-scoreboard" id="globalScoreboard"><div><h3>PVE KILLS</h3><ol><li class="is-empty">LOADING…</li></ol></div><div><h3>PVP KILLS</h3><ol><li class="is-empty">LOADING…</li></ol></div></div>
+      </details>
+      <details class="pvp-record-panel mobile-pvp-record">
+        <summary>PVP RECORD <span>10 MARKERS</span></summary>
+        <div class="game-log pvp-record" id="pvpRecord"><section class="game-log-turn is-current"><h3>CURRENT WINDOW</h3><p>NO PVP EVENTS</p></section></div>
+      </details>
+      <details class="game-log-panel mobile-game-log">
+        <summary>GAME LOG <span>10 MARKERS</span></summary>
+        <div class="game-log" id="gameLog"><section class="game-log-turn is-current"><h3>CURRENT WINDOW</h3><p>NO DECLARATIONS</p></section></div>
+      </details>
+    </section>
+    <aside class="tactical-action-panel mobile-tactical-actions"><div class="tactical-stat"><span>MOVE</span><b id="moveRemaining">40.0 / 40</b><i id="moveBudgetBar"></i><small id="autoMoveState">TAP BOARD TO AUTO-MOVE</small></div><div class="tactical-stat compact"><span>HP</span><b id="playerHealth">3 / 3</b><small id="restState">READY TO REST</small></div><div class="tactical-stat compact"><span>TARGET</span><b id="selectedTarget">NONE</b></div><div class="tactical-stat compact"><span>QUEUE</span><b id="queuedAction">NONE</b></div><div class="tactical-buttons"><button id="queueAttack" type="button" disabled>ATTACK</button><button id="queueInteract" type="button" disabled>INTERACT</button><button id="cancelAction" class="is-cancel" type="button" disabled>CANCEL</button><button id="restAction" class="is-rest" type="button">REST</button><button id="cancelAutoMove" class="is-secondary tactical-button-wide" type="button">STOP AUTO</button></div></aside>
     <div class="mobile-touch-pad"><button class="touch-up" data-move="up" type="button">▲</button><button class="touch-left" data-move="left" type="button">◀</button><button class="touch-right" data-move="right" type="button">▶</button><button class="touch-down" data-move="down" type="button">▼</button></div>
     <div class="mobile-world-message" id="globalMessage">SIGN IN TO MATERIALIZE YOUR LCS PROFILE TOKEN.</div>
   </main>
-  <script type="module" src="/account/assets/js/account.js"></script><script type="module" src="./global.js?v=1.6.2"></script>
+  <script type="module" src="/account/assets/js/account.js"></script><script type="module" src="./global.js?v=1.7.0"></script>
 </body>
 </html>

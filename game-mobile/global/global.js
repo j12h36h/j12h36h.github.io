@@ -1,6 +1,6 @@
-import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.6.2';
-import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.6.2';
-import { runTransaction as firestoreRunTransaction } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.0';
+import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.0';
+import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
@@ -18,9 +18,13 @@ const PLAYER_MAX_HP = 3;
 const PLAYER_ATTACK_RANGE = 14;
 const SLIME_ATTACK_RANGE = 13;
 const SLIME_MAX_HP = 1;
+const SLIME_WANDER_INTERVAL_MS = 15_000;
+const SLIME_WANDER_STEP = 3.2;
+const SLIME_WANDER_STOP_RANGE = 16;
+const GLOBAL_STATS_COLLECTION = 'globalGameStats';
 const SLIME_DEFS = Object.freeze([
-  { key: 'cache-slime-a', label: 'CACHE SLIME A', x: 80.5, y: 72.0, tint: '#62d776' },
-  { key: 'cache-slime-b', label: 'CACHE SLIME B', x: 85.0, y: 77.0, tint: '#8ee767' }
+  { key: 'cache-slime-a', label: 'CACHE SLIME A', x: 80.5, y: 72.0, tint: '#62d776', minX: 76, maxX: 86, minY: 68, maxY: 79 },
+  { key: 'cache-slime-b', label: 'CACHE SLIME B', x: 85.0, y: 77.0, tint: '#8ee767', minX: 80, maxX: 91, minY: 71, maxY: 84 }
 ]);
 
 // Camera follows the local token through a small central soft zone instead
@@ -41,6 +45,10 @@ const state = {
   deaths: 0,
   lastDeathEventId: '',
   lastCombatTurn: 0,
+  restedTurn: 0,
+  movedTurn: 0,
+  actionTurn: 0,
+  lastPvpEventId: '',
   turnNumber: 0,
   lastFrame: performance.now(),
   lastWrite: 0,
@@ -51,6 +59,7 @@ const state = {
   actionUnsub: null,
   enemyUnsub: null,
   creditUnsub: null,
+  statsUnsub: null,
   creditBalance: 0,
   profiles: new Map(),
   remote: new Map(),
@@ -59,6 +68,7 @@ const state = {
   tokenMap: new Map(),
   enemies: new Map(),
   enemyElements: new Map(),
+  globalStats: new Map(),
   autoTarget: null,
   selectedTarget: null,
   actions: new Map(),
@@ -70,6 +80,8 @@ const state = {
   resolvingActions: new Set(),
   combatMarkerInFlight: new Set(),
   lastPruneAt: 0,
+  lastWanderAt: 0,
+  lastEnemyVisualAt: 0,
   cameraX: 0,
   cameraY: 0,
   cameraTargetX: 0,
@@ -150,6 +162,84 @@ function targetLabel(target) {
     return state.profiles.get(target.id)?.displayName || target.label || 'PLAYER';
   }
   return target.label || target.id || 'OBJECT';
+}
+
+function isRestedThisTurn() {
+  return state.restedTurn === turnInfo().turnNumber;
+}
+
+function isQueuedAttackAgainstLocal() {
+  const profileId = state.identity?.profileId;
+  if (!profileId) return false;
+  return [...state.actions.values()].some(action =>
+    action.status === 'queued'
+    && action.actionType === 'attack'
+    && action.targetType === 'profile'
+    && action.targetId === profileId
+    && Number(action.resolveTurn || 0) > turnInfo().turnNumber
+  );
+}
+
+function isActiveActionCombat(currentTurn = turnInfo().turnNumber) {
+  const profileId = state.identity?.profileId;
+  if (!profileId) return false;
+  return [...state.actions.values()].some(action => {
+    if (action.actionType !== 'attack') return false;
+    const involvesLocal = action.actorProfileId === profileId
+      || (action.targetType === 'profile' && action.targetId === profileId);
+    if (!involvesLocal) return false;
+    const resolveTurn = Number(action.resolveTurn || 0);
+    return (action.status === 'queued' && resolveTurn > currentTurn)
+      || (action.status === 'resolved' && resolveTurn === currentTurn);
+  });
+}
+
+function enemyIsInCombat(enemy) {
+  if (!enemy?.alive) return false;
+  if ([...state.actions.values()].some(action => action.status === 'queued' && action.actionType === 'attack' && action.targetType === 'enemy' && action.targetId === enemy.id)) return true;
+  if (state.identity?.profileId && distanceBetween(state.x, state.y, enemy.x, enemy.y) <= SLIME_WANDER_STOP_RANGE) return true;
+  for (const remote of state.remote.values()) {
+    if (distanceBetween(remote.x, remote.y, enemy.x, enemy.y) <= SLIME_WANDER_STOP_RANGE) return true;
+  }
+  return false;
+}
+
+function restBlockReason() {
+  const currentTurn = turnInfo().turnNumber;
+  if (!state.identity?.profileId) return 'SIGN IN FIRST';
+  if (state.hp >= PLAYER_MAX_HP) return 'ALREADY FULL HEALTH';
+  if (state.restedTurn === currentTurn) return 'ALREADY RESTED THIS REFRESH';
+  if (state.movedTurn === currentTurn || state.moveUsed > .001) return 'YOU MOVED THIS REFRESH';
+  if (state.actionTurn === currentTurn || state.ownQueuedActionId) return 'YOU DECLARED AN ACTION THIS REFRESH';
+  if (isQueuedAttackAgainstLocal()) return 'PVP ATTACK INCOMING';
+  if (isActiveActionCombat(currentTurn) || state.lastCombatTurn === currentTurn) return 'YOU ARE IN ACTIVE COMBAT';
+  if ([...state.enemies.values()].some(enemy => enemy?.alive && distanceBetween(state.x, state.y, enemy.x, enemy.y) <= SLIME_WANDER_STOP_RANGE)) return 'YOU ARE IN ACTIVE COMBAT';
+  return '';
+}
+
+function statsDocRef(profileId) {
+  return fs.doc(db, GLOBAL_STATS_COLLECTION, profileId);
+}
+
+async function ensureGlobalStats(profileId = state.identity?.profileId) {
+  if (!profileId) return;
+  const ref = statsDocRef(profileId);
+  const snap = await fs.getDoc(ref);
+  if (snap.exists()) return;
+  try {
+    await fs.setDoc(ref, {
+      profileId,
+      pveKills: 0,
+      pvpKills: 0,
+      lastPveKillActionId: '',
+      lastPvpKillActionId: '',
+      createdAt: fs.serverTimestamp(),
+      updatedAt: fs.serverTimestamp()
+    });
+  } catch (error) {
+    const retry = await fs.getDoc(ref).catch(() => null);
+    if (!retry?.exists?.()) console.debug('Global stats init', error?.code || error);
+  }
 }
 
 function setSelectedTarget(target) {
@@ -295,7 +385,7 @@ function renderLocalBase() {
   el.style.setProperty('--move-angle', `${ratio * 360}deg`);
   el.classList.toggle('is-exhausted', ratio >= 0.999);
   const label = el.querySelector('.player-token-state');
-  if (label) label.textContent = `${ratio >= 0.999 ? 'RESTING' : 'YOU'} // HP ${state.hp}/${PLAYER_MAX_HP}`;
+  if (label) label.textContent = `${isRestedThisTurn() ? 'RESTED' : ratio >= 0.999 ? 'MOVE SPENT' : 'YOU'} // HP ${state.hp}/${PLAYER_MAX_HP}`;
 }
 
 function setRemoteSnapshot(id, data) {
@@ -370,12 +460,15 @@ function ensureEnemyElement(enemy) {
 
 function renderEnemy(enemy) {
   const el = ensureEnemyElement(enemy);
+  const inCombat = enemyIsInCombat(enemy);
   el.style.left = `${enemy.x}%`;
   el.style.top = `${enemy.y}%`;
   el.classList.toggle('is-dead', !enemy.alive);
+  el.classList.toggle('is-combat', inCombat);
+  el.classList.toggle('is-wandering', enemy.alive && !inCombat);
   el.classList.toggle('is-selected', state.selectedTarget?.type === 'enemy' && state.selectedTarget.id === enemy.id);
   el.querySelector('strong').textContent = enemy.label || 'CACHE SLIME';
-  el.querySelector('small').textContent = enemy.alive ? `HP ${enemy.hp} / ${enemy.maxHp}` : 'DOWN // RESPAWNING';
+  el.querySelector('small').textContent = enemy.alive ? `${inCombat ? 'COMBAT' : 'WANDERING'} // HP ${enemy.hp} / ${enemy.maxHp}` : 'DOWN // RESPAWNING';
   el.querySelector('.enemy-health')?.style.setProperty('--enemy-hp', `${Math.max(0, Math.min(100, (Number(enemy.hp || 0) / Math.max(1, Number(enemy.maxHp || 1))) * 100))}%`);
 }
 
@@ -385,7 +478,17 @@ async function ensureSlimePopulation() {
     const id = enemyDocId(def.key);
     const ref = fs.doc(db, 'gameEnemies', id);
     const snap = await fs.getDoc(ref);
-    if (snap.exists()) return;
+    if (snap.exists()) {
+      const live = snap.data();
+      if (!Number.isInteger(live.wanderStep) || !live.lastWanderAt) {
+        await fs.updateDoc(ref, {
+          wanderStep: Math.max(0, Number(live.wanderStep || 0)),
+          lastWanderAt: fs.serverTimestamp(),
+          updatedAt: fs.serverTimestamp()
+        }).catch(error => console.debug('Slime wander migration', error?.code || error));
+      }
+      return;
+    }
     try {
       await fs.setDoc(ref, {
         worldId,
@@ -402,6 +505,8 @@ async function ensureSlimePopulation() {
         lastHitByProfileId: '',
         lastKillActionId: '',
         killerProfileId: '',
+        wanderStep: 0,
+        lastWanderAt: fs.serverTimestamp(),
         updatedAt: fs.serverTimestamp()
       });
     } catch (error) {
@@ -426,6 +531,7 @@ function watchEnemies() {
       if (!next.has(id)) { el.remove(); state.enemyElements.delete(id); }
     }
     renderActionPanel();
+    renderMovementHud();
   }, error => {
     console.error('Enemy feed', error);
     message(`SLIME STATE ERROR: ${error.code || error.message}`);
@@ -454,13 +560,18 @@ async function respawnDeadSlimes(currentTurn) {
         if (!snap.exists()) return;
         const live = snap.data();
         if (live.alive || Number(live.respawnTurn || 0) > currentTurn) return;
+        const def = slimeDefinitionByDocId(enemy.id);
         tx.update(ref, {
+          x: def?.x ?? Number(live.x || 50),
+          y: def?.y ?? Number(live.y || 50),
           hp: Number(live.maxHp || SLIME_MAX_HP),
           alive: true,
           respawnTurn: 0,
           lastHitActionId: '',
           lastHitByProfileId: '',
           killerProfileId: '',
+          wanderStep: Math.max(0, Number(live.wanderStep || 0)),
+          lastWanderAt: fs.serverTimestamp(),
           updatedAt: fs.serverTimestamp()
         });
       });
@@ -468,6 +579,84 @@ async function respawnDeadSlimes(currentTurn) {
       console.debug('Slime respawn race', error?.code || error);
     }
   }));
+}
+
+
+function worldLeaderProfileId() {
+  const ids = [];
+  if (state.identity?.profileId) ids.push(state.identity.profileId);
+  for (const [id, remote] of state.remote) {
+    if (!remote.ts || clockNow() - remote.ts <= 25_000) ids.push(id);
+  }
+  ids.sort();
+  return ids[0] || '';
+}
+
+function seeded01(text) {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) / 4294967295;
+}
+
+function wanderDestination(def, step) {
+  const phase = Math.max(0, step);
+  const rx = seeded01(`${def.key}:${phase}:x`);
+  const ry = seeded01(`${def.key}:${phase}:y`);
+  return {
+    x: def.minX + (def.maxX - def.minX) * rx,
+    y: def.minY + (def.maxY - def.minY) * ry
+  };
+}
+
+async function advanceSlimeWander() {
+  if (!state.identity?.profileId || worldLeaderProfileId() !== state.identity.profileId) return;
+  const now = Date.now();
+  if (now - state.lastWanderAt < 850) return;
+  state.lastWanderAt = now;
+  for (const def of SLIME_DEFS) {
+    const id = enemyDocId(def.key);
+    const observed = state.enemies.get(id);
+    if (!observed?.alive || enemyIsInCombat(observed)) continue;
+    const observedLast = observed.lastWanderAt?.toMillis?.() || 0;
+    if (clockNow() - observedLast < SLIME_WANDER_INTERVAL_MS) continue;
+    const ref = fs.doc(db, 'gameEnemies', id);
+    try {
+      await firestoreRunTransaction(db, async tx => {
+        const snap = await tx.get(ref);
+        if (!snap.exists()) return;
+        const live = { id, ...snap.data() };
+        if (!live.alive || enemyIsInCombat(live)) return;
+        const last = live.lastWanderAt?.toMillis?.() || 0;
+        if (clockNow() - last < SLIME_WANDER_INTERVAL_MS) return;
+        const step = Math.max(0, Number(live.wanderStep || 0));
+        const target = wanderDestination(def, step);
+        const dx = target.x - Number(live.x || def.x);
+        const dy = target.y - Number(live.y || def.y);
+        const distance = Math.hypot(dx, dy);
+        let nx = Number(live.x || def.x);
+        let ny = Number(live.y || def.y);
+        if (distance > .08) {
+          const stride = Math.min(SLIME_WANDER_STEP, distance);
+          nx += dx / distance * stride;
+          ny += dy / distance * stride;
+        }
+        nx = Math.max(def.minX, Math.min(def.maxX, nx));
+        ny = Math.max(def.minY, Math.min(def.maxY, ny));
+        tx.update(ref, {
+          x: nx,
+          y: ny,
+          wanderStep: step + 1,
+          lastWanderAt: fs.serverTimestamp(),
+          updatedAt: fs.serverTimestamp()
+        });
+      });
+    } catch (error) {
+      if (!['aborted','failed-precondition'].includes(error?.code)) console.debug('Slime wander', error?.code || error);
+    }
+  }
 }
 
 function renderRemote(dt) {
@@ -502,6 +691,49 @@ function renderRemote(dt) {
   }
 }
 
+function reconcileOwnPresence(data, hasPendingWrites) {
+  if (hasPendingWrites) return;
+  sampleServerClock(data.updatedAt?.toMillis?.());
+  const externalPvpId = String(data.lastPvpEventId || '');
+  if (!externalPvpId || externalPvpId === state.lastPvpEventId) return;
+
+  const previousDeaths = state.deaths;
+  const nextDeaths = Math.max(0, Number(data.deaths || 0));
+  const wasKnockout = nextDeaths > previousDeaths || String(data.lastDeathEventId || '') === `pvp_${externalPvpId}`.slice(0, 180);
+  state.lastPvpEventId = externalPvpId;
+  state.hp = Math.max(0, Math.min(PLAYER_MAX_HP, Number(data.hp ?? state.hp)));
+  state.deaths = nextDeaths;
+  state.lastDeathEventId = String(data.lastDeathEventId || state.lastDeathEventId || '');
+  state.lastCombatTurn = Math.max(state.lastCombatTurn, Number(data.lastCombatTurn || 0));
+  state.restedTurn = Math.max(0, Number(data.restedTurn || state.restedTurn || 0));
+  state.movedTurn = Math.max(0, Number(data.movedTurn || state.movedTurn || 0));
+  state.actionTurn = Math.max(0, Number(data.actionTurn || state.actionTurn || 0));
+
+  if (wasKnockout) {
+    state.x = Number(data.x ?? 50);
+    state.y = Number(data.y ?? 50);
+    state.vx = 0;
+    state.vy = 0;
+    state.moveUsed = Math.max(0, Number(data.moveUsed || 0));
+    state.autoTarget = null;
+    state.keys.clear();
+    state.touch.clear();
+    const token = state.tokenMap.get(state.identity?.profileId);
+    if (token) {
+      updateToken(token, state.x, state.y);
+      token.classList.add('player-death-pulse');
+      setTimeout(() => token.classList.remove('player-death-pulse'), 1200);
+    }
+    resetCamera(true);
+    message('PVP KO // RESPAWNED AT GLOBAL SPAWN // NO CREDITS LOST.');
+  } else {
+    message(`PVP HIT RECEIVED // HP ${state.hp}/${PLAYER_MAX_HP}.`);
+  }
+  renderLocalBase();
+  renderMovementHud();
+  renderActionPanel();
+}
+
 function watchPresence() {
   state.presenceUnsub?.();
   const q = fs.query(fs.collection(db, 'gamePresence'), fs.where('worldId', '==', worldId));
@@ -511,7 +743,7 @@ function watchPresence() {
       const data = { id: d.id, ...d.data() };
       seen.add(data.profileId);
       if (data.profileId === state.identity?.profileId) {
-        if (!d.metadata.hasPendingWrites) sampleServerClock(data.updatedAt?.toMillis?.());
+        reconcileOwnPresence(data, d.metadata.hasPendingWrites);
       } else {
         setRemoteSnapshot(data.profileId, data);
       }
@@ -548,6 +780,10 @@ async function restorePosition() {
       state.deaths = Math.max(0, Number(snap.data().deaths || 0));
       state.lastDeathEventId = String(snap.data().lastDeathEventId || '');
       state.lastCombatTurn = Math.max(0, Number(snap.data().lastCombatTurn || 0));
+      state.restedTurn = Math.max(0, Number(snap.data().restedTurn || 0));
+      state.movedTurn = Math.max(0, Number(snap.data().movedTurn || 0));
+      state.actionTurn = Math.max(0, Number(snap.data().actionTurn || 0));
+      state.lastPvpEventId = String(snap.data().lastPvpEventId || '');
     }
     updateToken(ensureToken(state.identity.profileId, state.identity.profile, true), state.x, state.y);
     resetCamera(true);
@@ -586,6 +822,10 @@ async function flushPresence(force = false) {
       deaths: state.deaths,
       lastDeathEventId: state.lastDeathEventId,
       lastCombatTurn: state.lastCombatTurn,
+      restedTurn: state.restedTurn,
+      movedTurn: state.movedTurn,
+      actionTurn: state.actionTurn,
+      lastPvpEventId: state.lastPvpEventId,
       updatedAt: fs.serverTimestamp()
     });
     if (lobbyId) {
@@ -594,6 +834,15 @@ async function flushPresence(force = false) {
       }).catch(() => {});
     }
   } catch (error) {
+    if (error?.code === 'permission-denied') {
+      try {
+        const snap = await fs.getDoc(fs.doc(db, 'gamePresence', presenceId(state.identity.profileId)));
+        if (snap.exists() && String(snap.data().lastPvpEventId || '') !== state.lastPvpEventId) {
+          reconcileOwnPresence(snap.data(), false);
+          return;
+        }
+      } catch (_) {}
+    }
     console.error(error);
     message(`PRESENCE WRITE FAILED: ${error.code || error.message}`);
   }
@@ -631,7 +880,7 @@ function direction() {
 function syncVelocity() {
   const [dx, dy] = direction();
   const remaining = Math.max(0, MOVE_BUDGET - state.moveUsed);
-  const allowed = remaining > .001;
+  const allowed = remaining > .001 && !isRestedThisTurn();
   const nvx = allowed ? dx * MOVE_SPEED : 0;
   const nvy = allowed ? dy * MOVE_SPEED : 0;
   const changed = nvx !== state.vx || nvy !== state.vy;
@@ -671,6 +920,7 @@ function movementStep(dt) {
   state.x = Math.max(3, Math.min(97, state.x + dx * actualDistance));
   state.y = Math.max(5, Math.min(94, state.y + dy * actualDistance));
   state.moveUsed = Math.min(MOVE_BUDGET, state.moveUsed + actualDistance);
+  state.movedTurn = state.turnNumber || turnInfo().turnNumber;
   state.dirty = true;
 
   const el = state.tokenMap.get(state.identity.profileId);
@@ -706,6 +956,11 @@ function renderMovementHud() {
   if (hp) hp.textContent = `${state.hp} / ${PLAYER_MAX_HP}`;
   const credits = $('#creditBalance');
   if (credits) credits.textContent = formatCredits(state.creditBalance);
+  const rest = $('#restAction');
+  const restState = $('#restState');
+  const reason = restBlockReason();
+  if (rest) rest.disabled = Boolean(reason);
+  if (restState) restState.textContent = reason || 'READY // FULL HEAL + LOCK UNTIL REFRESH';
 }
 
 function markerWindowLabel(turn, currentTurn) {
@@ -718,7 +973,7 @@ function markerWindowLabel(turn, currentTurn) {
 function actionStatusLabel(action) {
   if (action.status === 'cancelled') return 'CANCELLED';
   if (action.status === 'resolved') {
-    if (action.outcome === 'kill') return 'KILL +1C';
+    if (action.outcome === 'kill') return action.targetType === 'enemy' ? 'KILL +1C' : 'PVP KO';
     if (action.outcome === 'hit') return 'HIT';
     if (action.outcome === 'miss') return 'MISS';
     return 'RESOLVED';
@@ -752,6 +1007,76 @@ function renderGameLog() {
   host.innerHTML = groups.join('');
 }
 
+
+function renderPvpRecord() {
+  const host = $('#pvpRecord');
+  if (!host) return;
+  const currentTurn = turnInfo().turnNumber;
+  const groups = [];
+  for (let age = 0; age < GAME_LOG_TURNS; age += 1) {
+    const turn = currentTurn - age;
+    if (turn < 1) break;
+    const actions = [...state.actions.values()]
+      .filter(action => Number(action.declaredTurn || 0) === turn && action.actionType === 'attack' && action.targetType === 'profile')
+      .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+    if (!actions.length && age > 1) continue;
+    const rows = actions.map(action => {
+      const actor = state.profiles.get(action.actorProfileId)?.displayName || (action.actorProfileId === state.identity?.profileId ? 'YOU' : 'PLAYER');
+      const status = action.outcome === 'kill' ? 'KO' : action.outcome === 'hit' ? 'HIT' : action.outcome === 'miss' ? 'MISS' : action.status.toUpperCase();
+      return `<li><b>${escapeLog(actor)}</b><span>VS ${escapeLog(action.targetLabel || 'PLAYER')}</span><em data-status="${action.status}">${status}</em></li>`;
+    }).join('');
+    groups.push(`<section class="game-log-turn${age === 0 ? ' is-current' : ''}"><h3>${markerWindowLabel(turn, currentTurn)}</h3>${rows ? `<ul>${rows}</ul>` : '<p>NO PVP EVENTS</p>'}</section>`);
+  }
+  host.innerHTML = groups.join('') || '<section class="game-log-turn is-current"><h3>CURRENT WINDOW</h3><p>NO PVP EVENTS</p></section>';
+}
+
+function renderScoreboard() {
+  const host = $('#globalScoreboard');
+  if (!host) return;
+  const entries = [...state.globalStats.values()];
+  const pve = [...entries].sort((a, b) => Number(b.pveKills || 0) - Number(a.pveKills || 0) || String(a.profileId).localeCompare(String(b.profileId))).slice(0, 5);
+  const pvp = [...entries].sort((a, b) => Number(b.pvpKills || 0) - Number(a.pvpKills || 0) || String(a.profileId).localeCompare(String(b.profileId))).slice(0, 5);
+  const rows = (list, key) => list.length ? list.map((entry, index) => {
+    const name = state.profiles.get(entry.profileId)?.displayName || (entry.profileId === state.identity?.profileId ? state.identity?.profile?.displayName || 'YOU' : 'PLAYER');
+    return `<li><i>${index + 1}</i><b>${escapeLog(name)}</b><strong>${Math.max(0, Number(entry[key] || 0))}</strong></li>`;
+  }).join('') : '<li class="is-empty">NO KILLS RECORDED</li>';
+  host.innerHTML = `<div><h3>PVE KILLS</h3><ol>${rows(pve, 'pveKills')}</ol></div><div><h3>PVP KILLS</h3><ol>${rows(pvp, 'pvpKills')}</ol></div>`;
+}
+
+function watchGlobalStats() {
+  if (worldId !== 'global') {
+    const panel = $('#scoreboardPanel');
+    if (panel) panel.hidden = true;
+    return;
+  }
+  state.statsUnsub?.();
+  const buckets = { pve: new Map(), pvp: new Map() };
+  const mergeAndRender = () => {
+    const next = new Map([...buckets.pve, ...buckets.pvp]);
+    state.globalStats = next;
+    for (const entry of next.values()) {
+      const id = entry.profileId || entry.id;
+      if (id && !state.profiles.has(id)) getProfile(id).then(() => renderScoreboard()).catch(() => {});
+    }
+    renderScoreboard();
+  };
+  const bind = (field, bucket) => {
+    const q = fs.query(fs.collection(db, GLOBAL_STATS_COLLECTION), firestoreOrderBy(field, 'desc'), firestoreLimit(5));
+    return fs.onSnapshot(q, snap => {
+      const next = new Map();
+      snap.forEach(docSnap => {
+        const entry = { id: docSnap.id, ...docSnap.data() };
+        next.set(entry.profileId || docSnap.id, entry);
+      });
+      buckets[bucket] = next;
+      mergeAndRender();
+    }, error => console.debug(`Global ${bucket} scoreboard`, error?.code || error));
+  };
+  const unsubPve = bind('pveKills', 'pve');
+  const unsubPvp = bind('pvpKills', 'pvp');
+  state.statsUnsub = () => { unsubPve?.(); unsubPvp?.(); };
+}
+
 function escapeLog(value = '') {
   return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -783,6 +1108,9 @@ function applyTurnChange(nextTurn) {
   flushPresence(true);
   if (previous) message('GLOBAL MARKER // refreshed. Movement and actions restored.');
   renderGameLog();
+  renderPvpRecord();
+  renderActionPanel();
+  renderMovementHud();
   pruneOldActions(true);
   runCombatMarker(nextTurn).catch(error => {
     console.error('Combat marker', error);
@@ -803,9 +1131,11 @@ function renderTurnClock() {
   if (countdown) countdown.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
   if (ring) ring.style.setProperty('--turn-angle', `${info.progress * 360}deg`);
   if (stateEl) {
-    stateEl.textContent = state.moveUsed >= MOVE_BUDGET - .001
-      ? 'RESTING // NEXT REFRESH AT MARKER'
-      : 'LIVE DECLARATION WINDOW';
+    stateEl.textContent = isRestedThisTurn()
+      ? 'RESTED // FULL HEAL // NEXT REFRESH'
+      : state.moveUsed >= MOVE_BUDGET - .001
+        ? 'MOVEMENT SPENT // NEXT REFRESH AT MARKER'
+        : 'LIVE DECLARATION WINDOW';
   }
 }
 
@@ -839,6 +1169,10 @@ async function queueAction(actionType) {
     message('Select a player or battlefield object first.');
     return;
   }
+  if (isRestedThisTurn()) {
+    message('You rested this refresh. Movement and declarations return at the next marker.');
+    return;
+  }
   if (state.ownQueuedActionId) {
     message('Cancel your current declaration before replacing it.');
     return;
@@ -861,8 +1195,12 @@ async function queueAction(actionType) {
   try {
     await fs.setDoc(fs.doc(db, 'gameActions', id), payload);
     state.ownQueuedActionId = id;
+    state.actionTurn = turnInfo().turnNumber;
+    state.dirty = true;
+    flushPresence(true);
     message(`${actionType} declared. It resolves at the next global turn marker and may be cancelled until then.`);
     renderActionPanel();
+    renderMovementHud();
   } catch (error) {
     console.error(error);
     message(`ACTION QUEUE FAILED: ${error.code || error.message}`);
@@ -914,10 +1252,11 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
     const enemyRef = fs.doc(db, 'gameEnemies', action.targetId);
     const presenceRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
     const walletRef = fs.doc(db, 'creditWallets', state.identity.profileId);
+    const statsRef = statsDocRef(state.identity.profileId);
 
     const result = await firestoreRunTransaction(db, async tx => {
-      const [actionSnap, enemySnap, presenceSnap, walletSnap] = await Promise.all([
-        tx.get(actionRef), tx.get(enemyRef), tx.get(presenceRef), tx.get(walletRef)
+      const [actionSnap, enemySnap, presenceSnap, walletSnap, statsSnap] = await Promise.all([
+        tx.get(actionRef), tx.get(enemyRef), tx.get(presenceRef), tx.get(walletRef), tx.get(statsRef)
       ]);
       if (!actionSnap.exists() || !enemySnap.exists() || !presenceSnap.exists() || !walletSnap.exists()) return { skipped: true };
       const liveAction = actionSnap.data();
@@ -961,6 +1300,16 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
           lastEventType: 'slime_kill',
           updatedAt: fs.serverTimestamp()
         });
+        if (worldId === 'global' && statsSnap.exists()) {
+          const stats = statsSnap.data();
+          tx.update(statsRef, {
+            pveKills: Math.max(0, Number(stats.pveKills || 0)) + 1,
+            pvpKills: Math.max(0, Number(stats.pvpKills || 0)),
+            lastPveKillActionId: id,
+            lastPvpKillActionId: String(stats.lastPvpKillActionId || ''),
+            updatedAt: fs.serverTimestamp()
+          });
+        }
       }
       return { killed, hit: true, label: enemy.label || action.targetLabel || 'SLIME' };
     });
@@ -971,6 +1320,74 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
   } catch (error) {
     console.error('Enemy attack resolution', error);
     message(`ATTACK RESOLUTION FAILED: ${error.code || error.message}`);
+  } finally {
+    state.resolvingActions.delete(id);
+  }
+}
+
+async function resolveOwnPlayerAttack(id, action, currentTurn) {
+  if (state.resolvingActions.has(id) || !state.identity?.profileId) return;
+  state.resolvingActions.add(id);
+  try {
+    const actionRef = fs.doc(db, 'gameActions', id);
+    const attackerRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
+    const targetRef = fs.doc(db, 'gamePresence', presenceId(action.targetId));
+    const statsRef = statsDocRef(state.identity.profileId);
+    const result = await firestoreRunTransaction(db, async tx => {
+      const [actionSnap, attackerSnap, targetSnap, statsSnap] = await Promise.all([
+        tx.get(actionRef), tx.get(attackerRef), tx.get(targetRef), tx.get(statsRef)
+      ]);
+      if (!actionSnap.exists() || !attackerSnap.exists() || !targetSnap.exists()) return { skipped: true };
+      const liveAction = actionSnap.data();
+      const attacker = attackerSnap.data();
+      const target = targetSnap.data();
+      if (liveAction.status !== 'queued' || Number(liveAction.resolveTurn || 0) > currentTurn) return { skipped: true };
+      const inRange = attacker.worldId === worldId && target.worldId === worldId
+        && distanceBetween(attacker.x, attacker.y, target.x, target.y) <= PLAYER_ATTACK_RANGE;
+      if (!inRange) {
+        tx.update(actionRef, { status: 'resolved', outcome: 'miss', updatedAt: fs.serverTimestamp(), resolvedAt: fs.serverTimestamp() });
+        return { miss: true };
+      }
+      const hpBefore = Math.max(1, Number(target.hp ?? PLAYER_MAX_HP));
+      const hpAfter = hpBefore - 1;
+      const killed = hpAfter <= 0;
+      const targetPatch = {
+        hp: killed ? PLAYER_MAX_HP : hpAfter,
+        maxHp: PLAYER_MAX_HP,
+        lastPvpEventId: id,
+        restedTurn: Math.max(0, Number(target.restedTurn || 0)),
+        movedTurn: Math.max(0, Number(target.movedTurn || 0)),
+        actionTurn: Math.max(0, Number(target.actionTurn || 0)),
+        updatedAt: fs.serverTimestamp()
+      };
+      if (killed) {
+        Object.assign(targetPatch, {
+          x: 50, y: 50, vx: 0, vy: 0,
+          moveUsed: 0,
+          deaths: Math.max(0, Number(target.deaths || 0)) + 1,
+          lastDeathEventId: `pvp_${id}`.slice(0, 180)
+        });
+      }
+      tx.update(targetRef, targetPatch);
+      tx.update(actionRef, { status: 'resolved', outcome: killed ? 'kill' : 'hit', updatedAt: fs.serverTimestamp(), resolvedAt: fs.serverTimestamp() });
+      if (killed && worldId === 'global' && statsSnap.exists()) {
+        const stats = statsSnap.data();
+        tx.update(statsRef, {
+          pveKills: Math.max(0, Number(stats.pveKills || 0)),
+          pvpKills: Math.max(0, Number(stats.pvpKills || 0)) + 1,
+          lastPveKillActionId: String(stats.lastPveKillActionId || ''),
+          lastPvpKillActionId: id,
+          updatedAt: fs.serverTimestamp()
+        });
+      }
+      return { hit: true, killed };
+    });
+    if (result?.killed) message(`${action.targetLabel || 'PLAYER'} DOWNED // PVP KO // NO CREDITS LOST.`);
+    else if (result?.hit) message(`${action.targetLabel || 'PLAYER'} HIT // PVP DAMAGE 1.`);
+    else if (result?.miss) message(`${action.targetLabel || 'PLAYER'} PVP ATTACK MISSED // OUTSIDE ${PLAYER_ATTACK_RANGE} RANGE.`);
+  } catch (error) {
+    console.error('PVP attack resolution', error);
+    message(`PVP RESOLUTION FAILED: ${error.code || error.message}`);
   } finally {
     state.resolvingActions.delete(id);
   }
@@ -1005,6 +1422,7 @@ async function processResolvedActions(currentTurn) {
   );
   for (const [id, action] of due) {
     if (action.actionType === 'attack' && action.targetType === 'enemy') await resolveOwnEnemyAttack(id, action, currentTurn);
+    else if (action.actionType === 'attack' && action.targetType === 'profile') await resolveOwnPlayerAttack(id, action, currentTurn);
     else await resolveOwnStandardAction(id, action, currentTurn);
   }
 
@@ -1014,11 +1432,63 @@ async function processResolvedActions(currentTurn) {
     state.resolvedSeen.add(id);
     pulseTarget(action);
     const actorName = state.profiles.get(action.actorProfileId)?.displayName || (action.actorProfileId === state.identity?.profileId ? 'YOU' : 'PLAYER');
-    const suffix = action.outcome === 'kill' ? ' // KILL +1 CREDIT' : action.outcome === 'miss' ? ' // MISS' : '';
+    const suffix = action.outcome === 'kill'
+      ? (action.targetType === 'enemy' ? ' // KILL +1 CREDIT' : ' // PVP KO // CREDITS SAFE')
+      : action.outcome === 'miss' ? ' // MISS' : '';
     message(`${actorName} ${action.actionType === 'attack' ? 'ATTACK' : 'INTERACTION'} RESOLVED → ${action.targetLabel || 'TARGET'}${suffix}.`);
     if (action.actorProfileId === state.identity?.profileId && state.ownQueuedActionId === id) state.ownQueuedActionId = '';
   }
   renderActionPanel();
+}
+
+async function restToFullHealth() {
+  const reason = restBlockReason();
+  if (reason) {
+    message(`REST BLOCKED // ${reason}.`);
+    renderMovementHud();
+    return;
+  }
+  const currentTurn = turnInfo().turnNumber;
+  const ref = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
+  try {
+    const result = await firestoreRunTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) return { error: 'NO PRESENCE' };
+      const live = snap.data();
+      if (Number(live.movedTurn || 0) === currentTurn || Number(live.moveUsed || 0) > .001) return { error: 'YOU MOVED THIS REFRESH' };
+      if (Number(live.actionTurn || 0) === currentTurn) return { error: 'YOU DECLARED AN ACTION THIS REFRESH' };
+      if (Number(live.restedTurn || 0) === currentTurn) return { error: 'ALREADY RESTED' };
+      tx.update(ref, {
+        hp: PLAYER_MAX_HP,
+        vx: 0,
+        vy: 0,
+        turnNumber: currentTurn,
+        restedTurn: currentTurn,
+        updatedAt: fs.serverTimestamp()
+      });
+      return { ok: true };
+    });
+    if (!result?.ok) {
+      message(`REST BLOCKED // ${result?.error || 'STATE CHANGED'}.`);
+      return;
+    }
+    state.hp = PLAYER_MAX_HP;
+    state.restedTurn = currentTurn;
+    state.vx = 0;
+    state.vy = 0;
+    state.autoTarget = null;
+    state.keys.clear();
+    state.touch.clear();
+    state.dirty = false;
+    state.velocityDirty = false;
+    renderLocalBase();
+    renderMovementHud();
+    renderActionPanel();
+    message('REST COMPLETE // FULL HEALTH // MOVEMENT AND ACTIONS LOCKED UNTIL NEXT GLOBAL REFRESH.');
+  } catch (error) {
+    console.error('Rest', error);
+    message(`REST FAILED: ${error.code || error.message}`);
+  }
 }
 
 async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
@@ -1140,8 +1610,9 @@ function renderActionPanel() {
   const locked = Boolean(ownAction?.status === 'queued');
   const targetType = state.selectedTarget?.type;
   const enemyAlive = targetType !== 'enemy' || Boolean(state.enemies.get(state.selectedTarget?.id)?.alive);
-  if (attack) attack.disabled = !hasTarget || !['profile','enemy'].includes(targetType) || !enemyAlive || locked;
-  if (interact) interact.disabled = !hasTarget || targetType === 'enemy' || locked;
+  const rested = isRestedThisTurn();
+  if (attack) attack.disabled = rested || !hasTarget || !['profile','enemy'].includes(targetType) || !enemyAlive || locked;
+  if (interact) interact.disabled = rested || !hasTarget || targetType === 'enemy' || locked;
   if (cancel) cancel.disabled = !locked;
 }
 
@@ -1156,13 +1627,16 @@ function watchActions() {
       if (action.actorProfileId === state.identity?.profileId && action.status === 'queued' && Number(action.resolveTurn || 0) > turnInfo().turnNumber) {
         state.ownQueuedActionId = action.id;
       }
-      if (action.actorProfileId && !state.profiles.has(action.actorProfileId)) getProfile(action.actorProfileId).then(renderGameLog).catch(() => {});
+      if (action.actorProfileId && !state.profiles.has(action.actorProfileId)) getProfile(action.actorProfileId).then(() => { renderGameLog(); renderPvpRecord(); }).catch(() => {});
     });
     state.actions = next;
     if (state.ownQueuedActionId && !state.actions.has(state.ownQueuedActionId)) state.ownQueuedActionId = '';
     processResolvedActions(turnInfo().turnNumber).catch(error => console.error('Action processing', error));
     renderActionPanel();
+    renderMovementHud();
     renderGameLog();
+    renderPvpRecord();
+    state.enemies.forEach(renderEnemy);
     pruneOldActions();
   }, error => {
     console.error(error);
@@ -1191,6 +1665,10 @@ function setupBattlefieldTargets() {
   $('#globalMap')?.addEventListener('click', event => {
     if (!state.identity?.profileId) return;
     if (event.target.closest('.player-token,[data-tactical-target],button,a')) return;
+    if (isRestedThisTurn()) {
+      message('You rested this refresh. Movement returns at the next marker.');
+      return;
+    }
     const rect = event.currentTarget.getBoundingClientRect();
     const x = Math.max(3, Math.min(97, (event.clientX - rect.left) / rect.width * 100));
     const y = Math.max(5, Math.min(94, (event.clientY - rect.top) / rect.height * 100));
@@ -1210,6 +1688,11 @@ function frame(t) {
     movementStep(dt);
     flushPresence(false);
     renderRemote(dt);
+    if (t - state.lastEnemyVisualAt > 220) {
+      state.lastEnemyVisualAt = t;
+      state.enemies.forEach(renderEnemy);
+    }
+    advanceSlimeWander().catch(() => {});
   }
   updateCamera(dt);
   requestAnimationFrame(frame);
@@ -1226,6 +1709,10 @@ window.addEventListener('keydown', event => {
   const key = keyMap[event.key];
   if (!key) return;
   event.preventDefault();
+  if (isRestedThisTurn()) {
+    message('You rested this refresh. Movement returns at the next marker.');
+    return;
+  }
   state.autoTarget = null;
   if (!state.keys.has(key)) {
     state.keys.add(key);
@@ -1245,6 +1732,10 @@ document.querySelectorAll('[data-move]').forEach(btn => {
   const dir = btn.dataset.move;
   const down = event => {
     event.preventDefault();
+    if (isRestedThisTurn()) {
+      message('You rested this refresh. Movement returns at the next marker.');
+      return;
+    }
     state.autoTarget = null;
     try { btn.setPointerCapture?.(event.pointerId); } catch (_) {}
     if (!state.touch.has(dir)) {
@@ -1266,6 +1757,7 @@ document.querySelectorAll('[data-move]').forEach(btn => {
 $('#queueAttack')?.addEventListener('click', () => queueAction('attack'));
 $('#queueInteract')?.addEventListener('click', () => queueAction('interact'));
 $('#cancelAction')?.addEventListener('click', cancelQueuedAction);
+$('#restAction')?.addEventListener('click', restToFullHealth);
 $('#cancelAutoMove')?.addEventListener('click', () => {
   state.autoTarget = null;
   publishInputChange();
@@ -1288,6 +1780,8 @@ setupBattlefieldTargets();
 renderMovementHud();
 renderActionPanel();
 renderGameLog();
+renderPvpRecord();
+renderScoreboard();
 renderTurnClock();
 requestAnimationFrame(frame);
 
@@ -1301,7 +1795,9 @@ watchIdentity(async identity => {
   message('LCS tactical token online. Global turn movement is active.');
   state.turnNumber = turnInfo().turnNumber;
   await ensureCreditWallet(db, fs, identity.profileId);
+  await ensureGlobalStats(identity.profileId);
   watchCredits();
+  watchGlobalStats();
   await restorePosition();
   await loadWorldName();
   await flushPresence(true);
