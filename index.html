@@ -1,16 +1,81 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aloha</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#02090b">
+  <meta name="description" content="Project E.R.A.S. : Universe — External Reality Access System.">
+  <title>Project E.R.A.S. : Universe</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css"
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">>
 </head>
-<a href="play.html" class="btn">Play</a>
-<a href="media.html" class="btn">Gallery</a>
-<a href="watchlist.html" class="btn">Watchlist</a>
-<body>
-    <h1>Aloha</h1>
-    <p>Ohana means family, and family means nobody gets left behind or forgotten.</p>
+<body class="universe-home">
+  <div class="universe-frame" aria-hidden="true">
+    <i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i>
+    <i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i>
+    <span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span>
+    <span class="uf-line uf-left"></span><span class="uf-line uf-right"></span>
+    <span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Project E.R.A.S. Universe home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>PROJECT E.R.A.S. <b>: UNIVERSE</b></span>
+    </a>
+    <div class="portal-auth-area" id="portalAuthArea" aria-live="polite"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
+  </header>
+
+  <main id="universe" class="universe-landing">
+    <div class="cosmos" aria-hidden="true">
+      <div class="stars stars-a"></div>
+      <div class="stars stars-b"></div>
+      <div class="nebula nebula-a"></div>
+      <div class="nebula nebula-b"></div>
+      <div class="grid-haze"></div>
+    </div>
+
+    <section class="system-stage" aria-label="Project E.R.A.S. Universe navigation" data-parallax-root>
+      <div class="axis axis-x" aria-hidden="true"></div>
+      <div class="axis axis-y" aria-hidden="true"></div>
+      <div class="orbit orbit-outer" aria-hidden="true"></div>
+      <div class="orbit orbit-middle" aria-hidden="true"></div>
+      <div class="orbit orbit-inner" aria-hidden="true"></div>
+      <div class="scan-ring" aria-hidden="true"></div>
+
+      <a class="world-node node-play" href="/game/index.html" aria-label="Play">
+        <b aria-hidden="true"></b><span>PLAY</span><small>ENTER WORLD</small>
+      </a>
+      <a class="world-node node-social" href="/logicalcommunicationservice/" aria-label="Social">
+        <b aria-hidden="true"></b><span>SOCIAL</span><small>COMMUNITY</small>
+      </a>
+      <a class="world-node node-content" href="/game/content/" aria-label="Content">
+        <b aria-hidden="true"></b><span>CONTENT</span><small>LIBRARY</small>
+      </a>
+      <a class="world-node node-options" href="/game/options/" aria-label="Options">
+        <b aria-hidden="true"></b><span>OPTIONS</span><small>SYSTEM</small>
+      </a>
+      <a class="world-node node-information" href="/dai/" aria-label="Information">
+        <b aria-hidden="true"></b><span>INFORMATION</span><small>ARCHIVE</small>
+      </a>
+
+      <div class="universe-core" data-parallax-item>
+        <div class="core-halo halo-a" aria-hidden="true"></div>
+        <div class="core-halo halo-b" aria-hidden="true"></div>
+        <div class="core-planet" aria-hidden="true">
+          <div class="planet-grid"></div>
+          <div class="planet-shine"></div>
+          <div class="continent continent-a"></div>
+          <div class="continent continent-b"></div>
+          <div class="continent continent-c"></div>
+        </div>
+      </div>
+    </section>
+
+    <p class="platform-line">BROWSER-FIRST&nbsp; // &nbsp;CREATOR-DRIVEN&nbsp; // &nbsp;RUNTIME-INDEPENDENT</p>
+  </main>
+
+  <script src="/game/assets/js/site.js"></script>
+  <script type="module" src="/account/assets/js/account.js"></script>
 </body>
 </html>

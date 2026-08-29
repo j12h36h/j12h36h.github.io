@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#02090b">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://accounts.google.com; img-src 'self' data: https://*.googleusercontent.com; connect-src 'self' https://*.googleapis.com https://apis.google.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google.com https://accounts.google.com; frame-src https://*.firebaseapp.com https://apis.google.com https://accounts.google.com https://*.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  <title>Account — Project E.R.A.S. : Universe</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="./assets/css/account-button.css">
+  <link rel="stylesheet" href="./assets/css/account.css">
+</head>
+<body class="account-page">
+  <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Project E.R.A.S. Universe home"><span class="brand-mark" aria-hidden="true"></span><span>PROJECT E.R.A.S. <b>: UNIVERSE</b></span></a>
+    <div class="account-backlinks"><a href="/logicalcommunicationservice/">L.C.S.</a><a href="/dai/">D.A.I.</a><a href="/game/">E.R.A.S.</a></div>
+  </header>
+
+  <main class="account-shell" id="accountApp">
+    <section class="account-intro"><p class="eyebrow">Universal identity</p><h1>Account &amp; public profile</h1><p>This is the standalone account surface shared with LCS. Firebase verifies the private session; public site data uses the same random LCS public profile ID, display name, bio, avatar JSON, and Status assignments.</p></section>
+
+    <section class="account-card" id="accountLoading"><p class="eyebrow">Connecting</p><h2>Checking the saved account session…</h2><p class="account-muted">Restoring Firebase authentication and the private LCS profile mapping.</p></section>
+    <section class="account-card" id="accountSignedOut" hidden><p class="eyebrow">Not signed in</p><h2>Sign in to use your shared site identity.</h2><p class="account-muted">The same account is used by LCS and will later be available to E.R.A.S. gameplay without publishing Google account information.</p><button class="account-primary" data-account-signin type="button">Sign in with Google</button></section>
+
+    <div id="accountSignedIn" hidden>
+      <div class="account-layout">
+        <section class="account-card">
+          <div class="account-profile-head"><div class="account-avatar-art" id="accountAvatar"></div><div><p class="eyebrow">Shown publicly</p><h2 id="accountNamePreview">Member</h2><p class="account-muted" id="accountBioPreview">No public bio yet.</p></div></div>
+          <form class="account-form" id="accountProfileForm">
+            <label class="account-field"><span>Display name</span><input id="accountDisplayName" maxlength="40" minlength="2" required autocomplete="nickname"></label>
+            <label class="account-field"><span>Public bio · <small id="accountBioCount">0 / 240</small></span><textarea id="accountBio" maxlength="240" placeholder="What do you build, study, create, play, or care about?"></textarea></label>
+            <div class="account-actions"><span class="account-message" id="accountMessage" aria-live="polite"></span><button class="account-primary" type="submit">Save public profile</button></div>
+          </form>
+        </section>
+        <aside class="account-side">
+          <section class="account-card"><p class="eyebrow">Public identity key</p><h2>Shared LCS profile</h2><dl class="account-data"><div><dt>Full public profile ID</dt><dd class="account-id-line"><code id="accountPublicId">Creating…</code><button class="account-ghost" id="copyPublicId" type="button">Copy</button></dd></div><div><dt>Security boundary</dt><dd>Private Firebase Auth UID → private mapping → random public profile ID.</dd></div></dl></section>
+          <section class="account-card"><p class="eyebrow">Your Status</p><h2>Active authorization</h2><div class="account-status-list" id="accountStatusList"><span class="account-muted">Checking Status…</span></div></section>
+          <section class="account-card"><p class="eyebrow">Session</p><h2>Account controls</h2><p class="account-muted">Signing out here signs this Firebase session out for the site, including LCS.</p><button class="account-ghost" data-account-signout type="button">Sign out</button></section>
+        </aside>
+      </div>
+
+      <section class="account-card avatar-editor">
+        <p class="eyebrow">Profile image JSON</p><h2>Character avatar</h2><p class="account-muted">This is the same JSON avatar stored on your LCS public profile.</p>
+        <div class="avatar-editor-grid"><div class="avatar-editor-preview" id="avatarEditorPreview"></div><div><label class="account-field"><span>Avatar JSON</span><textarea id="avatarJsonEditor" spellcheck="false"></textarea></label><div class="avatar-editor-status" id="avatarJsonError">Waiting for profile…</div><div class="avatar-editor-buttons"><button class="account-primary" id="saveAvatarButton" type="button">Save profile image</button><button class="account-ghost" id="resetAvatarButton" type="button">Reset to initials</button></div></div></div>
+      </section>
+    </div>
+  </main>
+  <div class="account-toast-region" id="accountToastRegion" aria-live="polite"></div>
+  <script type="module" src="./assets/js/account.js"></script>
+</body>
+</html>

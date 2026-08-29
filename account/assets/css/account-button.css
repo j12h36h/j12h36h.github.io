@@ -1,0 +1,12 @@
+.portal-auth-area{pointer-events:auto;min-height:48px;display:flex;align-items:center;justify-content:flex-end;font-family:var(--sans,system-ui,sans-serif)}
+.portal-auth-loading,.portal-signin{min-height:42px;border:1px solid rgba(131,224,227,.35);background:rgba(4,12,14,.5);color:#e6f4f4;font:600 10px/1 var(--mono,monospace);letter-spacing:.13em;padding:0 15px}
+.portal-signin{cursor:pointer}.portal-signin:hover,.portal-signin:focus-visible{border-color:rgba(151,239,241,.8);background:rgba(131,224,227,.09);outline:none}
+.portal-auth-user{display:flex;align-items:stretch;height:48px;border:1px solid rgba(131,224,227,.35);background:rgba(4,12,14,.55);box-shadow:0 0 22px rgba(88,214,220,.05)}
+.portal-account-main{display:flex;align-items:center;gap:10px;padding:5px 10px 5px 6px;text-decoration:none;color:#eefafa;min-width:0}
+.portal-account-main:hover{background:rgba(131,224,227,.07)}
+.portal-auth-avatar{width:36px;height:36px;display:block;overflow:hidden;border:1px solid rgba(151,239,241,.46);background:#111;border-radius:50%;flex:0 0 auto}
+.portal-auth-avatar svg{display:block;width:100%;height:100%}
+.portal-account-copy{display:flex;flex-direction:column;gap:3px;min-width:0}.portal-account-copy b{font:700 11px/1 var(--sans,system-ui);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}.portal-account-copy small{font:600 8px/1 var(--mono,monospace);color:#7ea2a5;letter-spacing:.08em;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.portal-status{margin-right:4px}.portal-status-founder{color:#ffd36b}.portal-status-moderator{color:#99e6e8}.portal-status-member{color:#b8c6c7}
+.portal-signout{width:40px;border:0;border-left:1px solid rgba(131,224,227,.2);background:transparent;color:#93b7b9;cursor:pointer;font-size:17px}.portal-signout:hover,.portal-signout:focus-visible{color:#fff;background:rgba(131,224,227,.08);outline:none}
+@media(max-width:620px){.portal-account-copy{display:none}.portal-auth-user{height:42px}.portal-auth-avatar{width:32px;height:32px}.portal-signout{width:34px}.portal-auth-area{min-height:42px}}
