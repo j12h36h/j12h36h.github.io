@@ -1,4 +1,4 @@
-# Logical Communication Service — v0.8.1
+# Logical Communication Service — v0.8.2
 
 LCS v0.7.3 keeps the unified **Status** authorization system and a retained moderation/audit architecture on top of the v0.5 private-auth/public-identity boundary.
 
@@ -72,6 +72,18 @@ Avatar layers accept visible Unicode grapheme characters from non-English writin
 ## v0.7.6 Google sign-in compatibility
 The main app now uses `strict-origin-when-cross-origin` rather than `no-referrer`. This allows Firebase/Google browser API key HTTP-referrer restrictions to validate the GitHub Pages origin without exposing the app path or query string cross-origin.
 
+
+
+## v0.8.2 mobile session retention
+- Firebase Auth local persistence is normalized during startup and again before Google account selection.
+- Fixed the auth/Firestore startup race that could restore a valid Firebase user before Firestore was ready, leaving LCS permanently stuck while linking the separate public identity.
+- After Firestore initializes, LCS now immediately re-applies any already-restored Firebase user and resumes the private UID → random public profile mapping.
+- Google popup completion now verifies `auth.currentUser` before reporting success and refreshes the Firebase ID token once.
+- Android `pageshow` and foreground/visibility return events re-check the persisted Firebase user after the Google account picker backgrounds the LCS tab.
+- Private identity linking is promise-guarded to prevent duplicate mapping work during overlapping auth callbacks and mobile resume events.
+- A dedicated `auth/session-not-retained` error is shown if Google account selection returns but Firebase actually has no retained browser session.
+
+The primary mobile path remains popup + local Firebase persistence. The redirect fallback is retained only for popup failures because Firebase documents additional cross-origin storage requirements for `signInWithRedirect()` on apps hosted outside Firebase Hosting.
 
 ## v0.8.1 mobile Google authentication hardening
 - Desktop keeps the existing Google popup sign-in path.

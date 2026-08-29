@@ -1,0 +1,19 @@
+Logical Communication Service v0.8.2 — Mobile Auth Session Retention
+
+Updated: 2026-08-29
+
+FIXED
+- Fixed a startup race where Firebase could restore a valid signed-in user before Firestore was ready, leaving mobile stuck at "Linking public identity…" indefinitely.
+- Added a guarded private-identity restore pass immediately after Firestore becomes ready.
+- Added an identity-link promise guard so auth restoration cannot create duplicate private/public identity work.
+- Mobile popup sign-in now explicitly verifies browserLocalPersistence before Google account selection.
+- After Google returns, LCS verifies Firebase actually retained currentUser and refreshes the Firebase ID token before treating sign-in as complete.
+- Added pageshow and visibility-resume recovery so Android can restore the authenticated state after Google account selection backgrounds the LCS tab.
+- Added a specific auth/session-not-retained diagnostic instead of silently appearing signed out.
+- Preserved the desktop popup behavior and existing public/private identity separation.
+
+WHY THIS PATCH
+On a fresh mobile sign-in, Firebase Auth could finish before the Firestore module finished loading. The auth listener therefore saw the user, but the private identity linker intentionally refused to run until firebaseReady=true. Nothing retriggered it afterward. A reload could look like the account was not being kept even though Firebase had restored the session.
+
+NOTE ABOUT REDIRECT FALLBACK
+LCS remains hosted on GitHub Pages. Firebase documents that signInWithRedirect on non-Firebase hosting can be affected by cross-origin/third-party storage restrictions unless the auth helper is proxied/self-hosted on the same auth domain. The primary mobile path remains popup + local persistence; redirect remains only a fallback for browsers that reject popup sign-in.

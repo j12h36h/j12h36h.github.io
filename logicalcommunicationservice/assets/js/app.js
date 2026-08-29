@@ -41,7 +41,7 @@ const state = {
   momentumMode: 'explore', networkContext: null, sessionImpact: {},
   detail: null, connectContext: null, profileSavePending: false, profileSaveStatus: '', accountDirty: false, profileVerified: false,
   createInFlight: false, publishInFlight: false, commentInFlight: false, detailCommentUnsub: null,
-  publicUnsubs: [], privateUnsubs: [], ownProfileUnsub: null, legacyMigrationStarted: false, founderBootstrapAttempted: false
+  publicUnsubs: [], privateUnsubs: [], ownProfileUnsub: null, legacyMigrationStarted: false, founderBootstrapAttempted: false, identityLinkPromise: null
 };
 
 function isFirebaseConfigured() { const c = LCS_CONFIG.firebase || {}; return Boolean(c.apiKey && c.projectId && c.appId && !String(c.apiKey).includes('YOUR_')); }
@@ -699,6 +699,7 @@ function showAuthError(err,attempt='popup',probe=null){
   else if(code.includes('popup-blocked'))text='The browser blocked the Google popup. LCS can retry using the mobile redirect path.';
   else if(code.includes('project-config-request-failed'))text='Firebase project configuration could not be read with this browser API key. The diagnostic below normally exposes an HTTP-referrer or API restriction that must be corrected in Google Cloud.';
   else if(code.includes('redirect-result-missing'))text='The mobile redirect returned without a Firebase credential. This browser may be blocking the cross-origin Firebase auth helper storage used by redirect sign-in on externally hosted sites.';
+  else if(code.includes('session-not-retained'))text='Google account selection completed, but Firebase did not retain the signed-in browser session. LCS now explicitly verifies local persistence and restores the authenticated identity when the mobile page resumes.';
   else if(code.includes('internal-error'))text='Firebase returned an internal Google sign-in error. LCS removed the old referrer workaround, verifies the Firebase project endpoint directly, and can fall back to a mobile redirect attempt.';
   $('#authErrorTitle').textContent='Google sign-in needs attention';$('#authErrorText').textContent=text;$('#authErrorCode').textContent=code;
   const details=$('#authDiagnosticDetails');if(details){details.textContent=authDiagnosticText(err,attempt,probe);details.hidden=false;}
@@ -730,9 +731,22 @@ async function signInGoogle(){
   if(mobile&&probe?.ok===false){showAuthError({code:'auth/project-config-request-failed',message:`Firebase project configuration request failed with HTTP ${probe.httpStatus}${probe.errorStatus?` (${probe.errorStatus})`:''}.`},'preflight',probe);return;}
   if(mobile&&probe?.currentDomainAuthorized===false){showAuthError({code:'auth/unauthorized-domain',message:`${location.hostname} is not present in the Firebase authorizedDomains response.`},'preflight',probe);return;}
   try{
+    // Force LOCAL persistence before opening Google. Android can background the LCS tab
+    // while account selection is active, so the session must already be configured to survive it.
     await authMod.setPersistence(auth,authMod.browserLocalPersistence);
-    await authMod.signInWithPopup(auth,provider);
-    closeDialog('#authDialog');toast('Signed in. LCS is linking a separate public identity.');
+    const result=await authMod.signInWithPopup(auth,provider);
+    if(result?.user){
+      try{await result.user.getIdToken();}catch(tokenError){console.debug('Firebase token refresh after popup',tokenError?.code||tokenError);}
+    }
+    if(typeof auth.authStateReady==='function')await auth.authStateReady();
+    if(!auth.currentUser){
+      const retentionError=new Error('Google returned to LCS, but Firebase did not retain the authenticated browser session.');
+      retentionError.code='auth/session-not-retained';
+      throw retentionError;
+    }
+    syncFirebaseAuthUser(auth.currentUser);
+    if(state.firebaseReady)await ensurePrivateIdentityOnce();
+    closeDialog('#authDialog');toast('Signed in. This browser will keep the LCS session until you sign out.');
   }catch(e){
     console.error(e);
     if(shouldFallbackToRedirect(e)){
@@ -790,6 +804,17 @@ function publicSubscribe(name,apply,{orderBy='',limit=500,filters=[]}={}){
 function privateQuerySubscribe(name,field,value,apply){const {db,fsMod}=state.firebase;const q=fsMod.query(fsMod.collection(db,name),fsMod.where(field,'==',value),fsMod.limit(250));const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>console.error(`private subscription ${name}`,e));state.privateUnsubs.push(unsub);}
 function setupPrivateSubscriptions(){stopPrivateSubscriptions();if(!state.profileId)return;let friendIn=[],friendOut=[],lfgIn=[],lfgOut=[];const merge=(a,b)=>[...new Map([...a,...b].map(x=>[x.id,x])).values()];privateQuerySubscribe('privateFriendRequests','toProfileId',state.profileId,rows=>{friendIn=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);});privateQuerySubscribe('privateFriendRequests','fromProfileId',state.profileId,rows=>{friendOut=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();});privateQuerySubscribe('privateLfgRequests','toProfileId',state.profileId,rows=>{lfgIn=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();});privateQuerySubscribe('privateLfgRequests','fromProfileId',state.profileId,rows=>{lfgOut=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();});privateQuerySubscribe('statusAssignments','profileId',state.profileId,rows=>{state.statusOwn=rows;mergeStatusRows();renderAuth();renderAccount();renderDetailThread();});const {db,fsMod}=state.firebase;const q=fsMod.query(fsMod.collection(db,'privateFriendships'),fsMod.where('members','array-contains',state.profileId),fsMod.limit(250));state.privateUnsubs.push(fsMod.onSnapshot(q,s=>{state.friendships=s.docs.map(d=>({id:d.id,...d.data()}));renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('friendships',e)));const bq=fsMod.query(fsMod.collection(db,'privateBlocks'),fsMod.where('blockerProfileId','==',state.profileId),fsMod.limit(500));state.privateUnsubs.push(fsMod.onSnapshot(bq,s=>{state.blocks=s.docs.map(d=>({id:d.id,...d.data()}));renderFeed();renderCatalogs();renderSearchPanel();renderLfg();renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('blocks',e)));}
 
+async function ensurePrivateIdentityOnce(){
+  if(!state.authUid||!state.firebaseReady||!state.firebase?.db)return;
+  if(state.profileId)return state.profileId;
+  if(state.identityLinkPromise)return state.identityLinkPromise;
+  const expectedUid=state.authUid;
+  state.identityLinkPromise=(async()=>{
+    await ensurePrivateIdentity();
+    return state.authUid===expectedUid?state.profileId:null;
+  })().finally(()=>{state.identityLinkPromise=null;});
+  return state.identityLinkPromise;
+}
 async function ensurePrivateIdentity(){if(!state.authUid||!state.firebaseReady)return;const {db,fsMod}=state.firebase;const accountRef=fsMod.doc(db,'privateAccounts',state.authUid);let accountSnap=await fsMod.getDoc(accountRef);let profileId=accountSnap.exists()?accountSnap.data().publicProfileId:'';if(!profileId){profileId=crypto.randomUUID();await fsMod.setDoc(accountRef,{publicProfileId:profileId,securityVersion:6,createdAt:fsMod.serverTimestamp()});}
   state.profileId=profileId;
   const profileRef=fsMod.doc(db,'publicProfiles',profileId);let profileSnap=await fsMod.getDoc(profileRef);if(!profileSnap.exists()){
@@ -819,16 +844,46 @@ async function migrateLegacyOwnedData(){if(!state.authUid||!state.profileId)retu
   try{await fsMod.deleteDoc(fsMod.doc(db,'users',uid));}catch{}
 }
 
+function syncFirebaseAuthUser(user){
+  const next=user?.uid||null;
+  const changed=next!==state.authUid;
+  state.authUid=next;
+  state.authReady=true;
+  if(changed){
+    state.profileId=null;state.publicProfile=null;state.profileVerified=false;state.accountDirty=false;
+    state.profileSaveStatus=next?'Authentication verified · restoring private identity link…':'';
+    state.legacyMigrationStarted=false;state.founderBootstrapAttempted=false;state.identityLinkPromise=null;
+    state.statusPublic=[];state.statusOwn=[];state.statusPrivileged=[];state.statuses=[];
+    stopPrivateSubscriptions();stopOwnProfileListener();
+  }
+  renderAuth();renderAccount();renderConnections();renderDetailThread();
+  if(next&&state.firebaseReady)ensurePrivateIdentityOnce().catch(e=>{console.error(e);toast('Could not link the private account to a public profile.');});
+}
+async function recoverPersistedMobileAuth(){
+  const auth=state.firebase?.auth;
+  if(!auth)return;
+  try{
+    if(typeof auth.authStateReady==='function')await auth.authStateReady();
+    if(auth.currentUser)syncFirebaseAuthUser(auth.currentUser);
+  }catch(e){console.debug('Firebase mobile session recovery',e?.code||e);}
+}
+
 async function initFirebase(){
   if(!isFirebaseConfigured()){state.authReady=true;setBackendStatus('Backend configuration missing','Add the Firebase Web App configuration in assets/js/config.js.','error');$('#authSetupWarning').hidden=false;renderAuth();renderAccount();return;}
   try{
     const firestorePromise=import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
     const [appMod,authMod]=await Promise.all([import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')]);
     const app=appMod.initializeApp(LCS_CONFIG.firebase),auth=authMod.getAuth(app);authMod.useDeviceLanguage(auth);state.firebase={app,auth,authMod,db:null,fsMod:null};
-    authMod.onAuthStateChanged(auth,user=>{const next=user?.uid||null;const changed=next!==state.authUid;state.authUid=next;state.authReady=true;if(changed){state.profileId=null;state.publicProfile=null;state.profileVerified=false;state.accountDirty=false;state.profileSaveStatus=next?'Authentication verified · creating private identity link…':'';state.legacyMigrationStarted=false;state.founderBootstrapAttempted=false;state.statusPublic=[];state.statusOwn=[];state.statusPrivileged=[];state.statuses=[];stopPrivateSubscriptions();stopOwnProfileListener();}renderAuth();renderAccount();renderConnections();renderDetailThread();if(next&&state.firebaseReady)ensurePrivateIdentity().catch(e=>{console.error(e);toast('Could not link the private account to a public profile.');});});
+    // Normalize any restored/legacy session onto durable local persistence before auth state is consumed.
+    try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);}catch(e){console.warn('Firebase local persistence unavailable',e?.code||e);}
+    authMod.onAuthStateChanged(auth,syncFirebaseAuthUser);
     if(readRedirectPending())await completePendingGoogleRedirect(auth,authMod);
     if(typeof auth.authStateReady==='function')await auth.authStateReady();
     const fsMod=await firestorePromise,db=fsMod.getFirestore(app);state.firebase={app,auth,authMod,db,fsMod};state.firebaseReady=true;
+    // Firebase Auth can restore the user before Firestore finishes importing. Re-apply that
+    // persisted user here so the private identity linker always gets a ready database.
+    syncFirebaseAuthUser(auth.currentUser);
+    if(auth.currentUser)ensurePrivateIdentityOnce().catch(e=>{console.error(e);toast('Could not restore the private account identity.');});
     publicSubscribe('publicProfiles',rows=>{state.profiles=Object.fromEntries(rows.map(p=>[p.id,p]));if(state.publicProfile)state.profiles[state.publicProfile.id]=state.publicProfile;renderAuth();renderFeed();renderCatalogs();renderSearchPanel();renderConnections();renderLfg();renderStatusTargetOptions();},{limit:1000});
     publicSubscribe('publicPosts',rows=>{state.posts=rows;renderFeed();renderCommunities();renderSearchPanel();renderStatusTargetOptions();if(state.detail?.type==='post')openPostDetail(state.detail.id);},{orderBy:'createdAt',limit:250,filters:[['deleted','==',false]]});
     publicSubscribe('publicObjects',rows=>{state.objects=rows;renderCatalogs();renderUniverse();renderTrends();renderSearchPanel();renderStatusTargetOptions();},{orderBy:'createdAt',limit:350,filters:[['deleted','==',false]]});
@@ -841,8 +896,8 @@ async function initFirebase(){
     publicSubscribe('publicPostLinks',rows=>{state.postLinks=rows;},{limit:2000});
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;renderLfg();renderConnections();renderSearchPanel();},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();},{limit:2000,filters:[['visibility','==','public']]});
-    if(state.authUid)await ensurePrivateIdentity();
-    setBackendStatus('LCS v0.8.1 Momentum + mobile auth hardening connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    if(state.authUid)await ensurePrivateIdentityOnce();
+    setBackendStatus('LCS v0.8.2 Momentum + mobile session retention connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7.1 firestore.rules.','error');renderAuth();renderAccount();}
 }
 
@@ -869,5 +924,8 @@ function bindUI(){
   $('#globalSearch').addEventListener('input',()=>{renderSearchPanel();renderFeed();renderCatalogs();renderLfg();}); document.addEventListener('click',e=>{if(!e.target.closest('.top-search'))$('#searchResultsPanel').hidden=true;}); document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('#globalSearch').focus();}}); $('#focusMapButton').addEventListener('click',()=>{state.mapLayoutSeed++;renderUniverse();}); window.addEventListener('resize',()=>state.activeView==='universe'&&renderUniverse()); $('#detailDialog').addEventListener('close',()=>{stopDetailCommentSubscription();state.detail=null;}); window.addEventListener('hashchange',()=>setView(location.hash.replace('#','')||'home',false));
 }
 function initialRender(){state.sessionImpact=loadSessionImpact();try{const saved=sessionStorage.getItem('lcsMomentumMode');if(MOMENTUM_MODES[saved])state.momentumMode=saved;}catch{}state.networkContext=readNetworkContext();if(state.networkContext?.mode&&MOMENTUM_MODES[state.networkContext.mode])state.momentumMode=state.networkContext.mode;renderAuth();renderAccount();renderSpaces();renderFeed();renderCatalogs();renderCommunities();renderTrends();renderLfg();renderConnections();renderStatusSurfaces();renderModeration();renderMomentumDeck();renderSessionMomentum();renderNetworkContext();setView(location.hash.replace('#','')||'home',false);}
+
+window.addEventListener('pageshow',()=>{if(isMobileAuthBrowser())recoverPersistedMobileAuth();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&isMobileAuthBrowser())recoverPersistedMobileAuth();});
 
 bindUI(); initialRender(); initFirebase(); setInterval(()=>{if(state.statuses.some(x=>x.expiresAt)){renderStatusSurfaces();renderAuth();renderDetailThread();setupModerationSubscriptions();}},30000);
