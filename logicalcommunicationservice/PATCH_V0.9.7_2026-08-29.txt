@@ -1,0 +1,6 @@
+LCS v0.9.7
+- Added Project Member as a project-only public Status.
+- Project Member does not grant moderation authority.
+- Project managers can define an optional Member role/note per assignment.
+- Project people list displays Member roles and supports removal.
+- Firestore rules restrict Member creation/change to managed projects.

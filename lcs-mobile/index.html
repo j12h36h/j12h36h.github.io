@@ -14,7 +14,7 @@
 <link href="https://www.gstatic.com" rel="dns-prefetch"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" rel="modulepreload"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" rel="modulepreload"/>
-<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v096" rel="stylesheet"/>
+<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v097" rel="stylesheet"/>
 <link href="mobile.css?v=20260829-v095" rel="stylesheet"/>
 </head>
 <body>
@@ -280,13 +280,13 @@
 <form class="moderation-form" id="statusGrantForm">
 <label class="field"><span>Public profile</span><select id="statusTargetProfile" required=""></select></label>
 <div class="moderation-form-grid">
-<label class="field"><span>Status</span><select id="statusValue"><option value="moderator">Moderator</option><option value="timeout">Timeout</option></select></label>
+<label class="field"><span>Status</span><select id="statusValue"><option value="member">Project Member</option><option value="moderator">Moderator</option><option value="timeout">Timeout</option></select></label>
 <label class="field"><span>Scope</span><select id="statusScopeKind"><option value="global">Global</option><option value="discussion">Discussion</option><option value="project">Project</option></select></label>
 <label class="field"><span>Target</span><select id="statusScopeTarget"><option value="_">Whole LCS network</option></select></label>
 <label class="field"><span>Duration</span><select id="statusDuration"><option value="none">No expiration</option><option value="hour">1 hour</option><option value="day">24 hours</option><option value="week">7 days</option></select></label>
 </div>
-<label class="field"><span>Reason / note</span><input id="statusReason" maxlength="240" placeholder="Why is this Status being granted?"/></label>
-<div class="moderation-callout"><b>Founder is not grantable.</b><span>The single root Founder is configured through systemPrivate/founder. Root Founder can grant Global/Discussion Moderator. Project creators and Project Moderators can grant Project Moderator inside projects they manage; Timeout remains read-only, not a ban.</span></div>
+<label class="field"><span>Reason / note</span><input id="statusReason" maxlength="240" placeholder="Member role/note, moderation context, or Timeout reason"/></label>
+<div class="moderation-callout"><b>Founder is not grantable.</b><span>The single root Founder is configured through systemPrivate/founder. Root Founder can grant Global/Discussion Moderator. Project creators and Project Moderators can grant Project Member or Project Moderator inside projects they manage. Project Member is an affiliation/role only and grants no moderation authority; Timeout remains read-only, not a ban.</span></div>
 <div class="modal-actions"><button class="primary-button" type="submit">Grant Status</button></div>
 </form>
 </section>
@@ -621,6 +621,6 @@
 <div class="impact-recap" id="impactRecap"></div>
 <div class="modal-actions"><button class="ghost-button" id="resetSessionImpact" type="button">Clear session recap</button><button class="primary-button" data-close-dialog="" type="button">Keep building</button></div>
 </dialog><div aria-live="polite" class="toast-region" id="toastRegion"></div>
-<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v096" type="module"></script>
+<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v097" type="module"></script>
 </body>
 </html>
