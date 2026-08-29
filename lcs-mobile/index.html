@@ -14,8 +14,8 @@
 <link href="https://www.gstatic.com" rel="dns-prefetch"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" rel="modulepreload"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" rel="modulepreload"/>
-<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v093" rel="stylesheet"/>
-<link href="mobile.css?v=20260829-v093" rel="stylesheet"/>
+<link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v094" rel="stylesheet"/>
+<link href="mobile.css?v=20260829-v094" rel="stylesheet"/>
 </head>
 <body>
 <div class="ambient ambient-a"></div>
@@ -271,8 +271,8 @@
 </div>
 <section class="moderation-denied" id="moderationDenied">
 <p class="eyebrow">Restricted workspace</p>
-<h2>No Moderator Status is active for this account.</h2>
-<p>You can still browse LCS normally. This workspace becomes available when Founder or Moderator Status is assigned.</p>
+<h2>No moderation scope is active for this account.</h2>
+<p>You can still browse LCS normally. This workspace is available to the root Founder, assigned Moderators, and creators of projects they own.</p>
 </section>
 <div class="moderation-workspace" hidden="" id="moderationWorkspace">
 <section class="moderation-card status-admin-card">
@@ -286,7 +286,7 @@
 <label class="field"><span>Duration</span><select id="statusDuration"><option value="none">No expiration</option><option value="hour">1 hour</option><option value="day">24 hours</option><option value="week">7 days</option></select></label>
 </div>
 <label class="field"><span>Reason / note</span><input id="statusReason" maxlength="240" placeholder="Why is this Status being granted?"/></label>
-<div class="moderation-callout"><b>Founder is not grantable.</b><span>The single root Founder is configured through systemPrivate/founder. Grant Moderator for global or scoped moderation; Timeout remains read-only, not a ban.</span></div>
+<div class="moderation-callout"><b>Founder is not grantable.</b><span>The single root Founder is configured through systemPrivate/founder. Root Founder can grant Global/Discussion Moderator. Project creators and Project Moderators can grant Project Moderator inside projects they manage; Timeout remains read-only, not a ban.</span></div>
 <div class="modal-actions"><button class="primary-button" type="submit">Grant Status</button></div>
 </form>
 </section>
@@ -533,7 +533,7 @@
 <h2>Add a channel to a community</h2>
 <p class="muted">Channels are real persisted conversation contexts. Posts and work created inside one remain connected to their community.</p>
 <form id="channelForm">
-<label class="field"><span>Community</span><select id="channelCommunity" required=""></select><small>You can add channels to communities you own.</small></label>
+<label class="field"><span>Community</span><select id="channelCommunity" required=""></select><small>You can add channels to communities you own; the root Founder can repair/manage legacy communities.</small></label>
 <label class="field"><span>Channel name</span><input id="channelName" maxlength="40" minlength="2" placeholder="general, development, releases…" required=""/></label>
 <label class="field"><span>Channel type</span><select id="channelType">
 <option value="discussion">Discussion</option>
@@ -621,6 +621,6 @@
 <div class="impact-recap" id="impactRecap"></div>
 <div class="modal-actions"><button class="ghost-button" id="resetSessionImpact" type="button">Clear session recap</button><button class="primary-button" data-close-dialog="" type="button">Keep building</button></div>
 </dialog><div aria-live="polite" class="toast-region" id="toastRegion"></div>
-<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v093" type="module"></script>
+<script src="../logicalcommunicationservice/assets/js/app.js?v=20260829-v094" type="module"></script>
 </body>
 </html>

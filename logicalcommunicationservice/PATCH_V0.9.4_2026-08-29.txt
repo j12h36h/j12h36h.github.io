@@ -1,0 +1,12 @@
+LCS v0.9.4 — Community Profiles + Project-Scoped Management
+
+- Community cards and community names in Live Feed are now clickable community profiles.
+- Community owners (and root Founder for legacy repair) can edit community name/description and add channels from the community profile.
+- Project creators are implicit Project managers; no extra Moderator Status is required.
+- Project detail now contains a Project People & Status list.
+- Project creators / Project Moderators can grant and remove Project Moderator and Project Timeout Status inside that project only.
+- Project managers can edit project title, description, and tags.
+- Project creators receive scoped moderation access to their own project and responses without becoming global moderators.
+- Global/Discussion Moderator grants remain root-Founder only.
+- Desktop and mobile share all behavior.
+- Firestore rules MUST be republished for project-scoped authority and community editing.
