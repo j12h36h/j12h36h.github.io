@@ -1,4 +1,4 @@
-/* LCS v0.8.3 mobile-only presentation layer. Core behavior and styling are shared with desktop. */
+/* LCS v0.8.4 mobile-only presentation layer. Core behavior and styling are shared with desktop. */
 html,body{max-width:100%;overflow-x:hidden}
 body{padding-bottom:max(12px,env(safe-area-inset-bottom))}
 .topbar{padding-top:max(10px,env(safe-area-inset-top));position:sticky;top:0}
@@ -17,3 +17,25 @@ dialog[open]{margin-top:max(10px,env(safe-area-inset-top));margin-bottom:max(10p
 .auth-diagnostics{font-size:11px;max-height:220px}.auth-redirect-retry{min-height:48px}
 .universe-panel{height:min(62vh,560px)!important}.universe-node{min-width:58px;min-height:42px}
 @media(max-width:430px){.brand-copy small{display:none}.brand-mark{width:36px;height:36px}.topbar{padding-left:10px;padding-right:10px}.top-search{grid-column:1/-1}.shell{padding-top:8px!important}.thought-picker,.momentum-mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.session-impact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.post-card{border-radius:16px}.post-actions{overflow-x:auto;flex-wrap:nowrap}.post-actions button{white-space:nowrap}.account-actions,.account-action-buttons{width:100%}.account-action-buttons button{flex:1 1 140px}.category-momentum-actions{padding-bottom:4px}}
+
+
+/* v0.8.4: reserve a permanent top-right account control on mobile. */
+@media(max-width:820px){
+  .topbar{grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important}
+  .brand{min-width:0}
+  .top-actions{display:flex!important;justify-content:flex-end!important;align-items:center!important;min-width:48px;max-width:46vw;overflow:visible;flex:0 0 auto}
+  #authArea{display:block!important;visibility:visible!important;opacity:1!important;min-width:44px;min-height:44px;flex:0 0 auto;position:relative;z-index:2}
+  #authArea>.primary-button{min-width:44px;min-height:44px;padding:0 12px;border-radius:999px;display:grid;place-items:center}
+  #authArea .auth-checking{min-width:44px;min-height:44px;padding:0;border-radius:999px;display:grid;place-items:center}
+  #authArea .auth-checking>span:last-child{display:none}
+  #authArea .auth-user{max-width:none!important;min-height:44px;flex-wrap:nowrap}
+  #authArea .auth-account-main{min-width:40px;min-height:40px;flex:0 0 auto}
+  #authArea .auth-user>#signOutButton{display:grid!important;place-items:center;flex:0 0 38px;width:38px;height:38px}
+  .mobile-auth-fallback{font-size:18px;line-height:1}
+}
+@media(max-width:430px){
+  .top-actions{max-width:112px}
+  #authArea .auth-user{padding:3px}
+  #authArea .auth-account-main{padding:1px}
+  #authArea .auth-user>#signOutButton{width:36px;height:36px;flex-basis:36px}
+}

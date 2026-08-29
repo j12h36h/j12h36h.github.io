@@ -910,7 +910,7 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;renderLfg();renderConnections();renderSearchPanel();},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentityOnce();
-    setBackendStatus('LCS v0.8.3 Momentum + synchronized mobile client connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    setBackendStatus('LCS v0.8.4 Momentum + synchronized mobile client connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.7.1 firestore.rules.','error');renderAuth();renderAccount();}
 }
 
