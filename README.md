@@ -1,5 +1,5 @@
-# Project_Abyss
-Digital Library for J12H36H
+# E.R.A.S. v1.7.3 — Global Clock Sync
 
-For legal purposes all information in any form provided in or out of context is specifically and strictly information for educational purposes on potentially fictional topics including opinions & entertainment. In no way is any content to be used or distributed with malicious intent through association directly or indirectly.
-It is safe to assume all things, people, and places are fictional.
+Deploy `game/` and `game-mobile/` to the site root and publish `firestore_v0.9.15_eras_clock_sync.rules`.
+
+The Global Refresh timer now calibrates against a unique per-tab Firestore server timestamp probe, re-syncs every five minutes, and re-syncs when the page returns from the background. Probe documents are deleted immediately after calibration.

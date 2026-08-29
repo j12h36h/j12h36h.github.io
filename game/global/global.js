@@ -1,6 +1,6 @@
-import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.2';
-import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.2';
-import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.3';
+import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.3';
+import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit, getDocFromServer } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
@@ -11,6 +11,8 @@ const worldId = lobbyId ? `lobby:${lobbyId}` : 'global';
 // Turn 1 begins at the public E.R.A.S. tactical baseline epoch.
 const TURN_LENGTH_MS = 60_000;
 const TURN_EPOCH_MS = Date.UTC(2026, 7, 29, 0, 0, 0);
+const CLOCK_RESYNC_MS = 5 * 60_000;
+const CLOCK_CLIENT_ID = (crypto.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
 const MOVE_BUDGET = 40;
 const MOVE_SPEED = 10;
 const GAME_LOG_TURNS = 10;
@@ -77,6 +79,9 @@ const state = {
   ownQueuedActionId: '',
   resolvedSeen: new Set(),
   serverOffsetMs: 0,
+  clockSynced: false,
+  clockSyncInFlight: null,
+  clockLastSyncAt: 0,
   pendingClockSentAt: 0,
   pruningActions: new Set(),
   resolvingActions: new Set(),
@@ -115,16 +120,78 @@ function presenceId(profileId) {
   return `${profileId}__${worldId}`.replace(/\//g, '_');
 }
 
+function applyClockEstimate(estimate, hard = false) {
+  if (!Number.isFinite(estimate)) return;
+  if (!state.clockSynced || hard) {
+    state.serverOffsetMs = estimate;
+    state.clockSynced = true;
+    return;
+  }
+  const delta = estimate - state.serverOffsetMs;
+  // Keep the visible timer steady for tiny network jitter, but correct meaningful
+  // drift aggressively so desktop and mobile share the same marker boundary.
+  if (Math.abs(delta) > 1000) state.serverOffsetMs = estimate;
+  else if (Math.abs(delta) > 150) state.serverOffsetMs += delta * 0.7;
+  else state.serverOffsetMs += delta * 0.3;
+}
+
 function sampleServerClock(serverMillis) {
   if (!state.pendingClockSentAt || !Number.isFinite(serverMillis)) return;
+  // Presence is only a fallback clock source. A single profile may be open on
+  // desktop and mobile simultaneously, so another client can legitimately write
+  // the same presence document and make its timestamp unsuitable for calibration.
+  if (state.clockSynced) {
+    state.pendingClockSentAt = 0;
+    return;
+  }
   const receivedAt = Date.now();
   const rtt = receivedAt - state.pendingClockSentAt;
   if (rtt < 0 || rtt > 6000) return;
   const midpoint = state.pendingClockSentAt + rtt / 2;
-  const estimate = serverMillis - midpoint;
-  // Smooth clock corrections so the visible global timer never jumps around.
-  state.serverOffsetMs = state.serverOffsetMs * 0.72 + estimate * 0.28;
+  applyClockEstimate(serverMillis - midpoint, true);
   state.pendingClockSentAt = 0;
+}
+
+async function syncServerClock(force = false) {
+  if (!state.identity?.profileId) return false;
+  if (!force && state.clockSynced && Date.now() - state.clockLastSyncAt < CLOCK_RESYNC_MS) return true;
+  if (state.clockSyncInFlight) return state.clockSyncInFlight;
+
+  state.clockSyncInFlight = (async () => {
+    const profileId = state.identity.profileId;
+    const probeId = `${profileId}__${CLOCK_CLIENT_ID}`;
+    const ref = fs.doc(db, 'gameClockProbes', probeId);
+    const sentAt = Date.now();
+    try {
+      await fs.setDoc(ref, {
+        profileId,
+        clientId: CLOCK_CLIENT_ID,
+        worldId,
+        requestedAt: fs.serverTimestamp()
+      });
+      const acknowledgedAt = Date.now();
+      const snap = await getDocFromServer(ref);
+      const serverMillis = snap.data()?.requestedAt?.toMillis?.();
+      if (!Number.isFinite(serverMillis)) throw new Error('Clock probe did not return a server timestamp.');
+      const rtt = acknowledgedAt - sentAt;
+      if (rtt < 0 || rtt > 10_000) throw new Error('Clock probe round-trip was outside the accepted window.');
+      const midpoint = sentAt + rtt / 2;
+      applyClockEstimate(serverMillis - midpoint, !state.clockSynced);
+      state.clockLastSyncAt = Date.now();
+      return true;
+    } catch (error) {
+      console.warn('E.R.A.S. global clock sync', error);
+      return false;
+    } finally {
+      fs.deleteDoc(ref).catch(() => {});
+    }
+  })();
+
+  try {
+    return await state.clockSyncInFlight;
+  } finally {
+    state.clockSyncInFlight = null;
+  }
 }
 
 async function loadWorldName() {
@@ -1162,15 +1229,22 @@ function applyTurnChange(nextTurn) {
 }
 
 function renderTurnClock() {
+  const countdown = $('#turnCountdown');
+  const ring = $('#turnProgress');
+  const stateEl = $('#turnState');
+  if (state.identity?.profileId && !state.clockSynced) {
+    if (countdown) countdown.textContent = '--:--';
+    if (ring) ring.style.setProperty('--turn-angle', '0deg');
+    if (stateEl) stateEl.textContent = 'SYNCING GLOBAL CLOCK';
+    return;
+  }
+
   const info = turnInfo();
-  if (info.turnNumber !== state.turnNumber) applyTurnChange(info.turnNumber);
+  if (state.clockSynced && info.turnNumber !== state.turnNumber) applyTurnChange(info.turnNumber);
 
   const seconds = Math.max(0, Math.ceil(info.remainingMs / 1000));
   const min = Math.floor(seconds / 60);
   const sec = seconds % 60;
-  const countdown = $('#turnCountdown');
-  const ring = $('#turnProgress');
-  const stateEl = $('#turnState');
   if (countdown) countdown.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
   if (ring) ring.style.setProperty('--turn-angle', `${info.progress * 360}deg`);
   if (stateEl) {
@@ -1842,6 +1916,7 @@ $('#cancelAutoMove')?.addEventListener('click', () => {
 window.addEventListener('blur', () => stopAllMovement(false));
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) stopAllMovement(false);
+  else syncServerClock(true).catch(() => {});
 });
 window.addEventListener('pagehide', () => {
   if (state.identity?.profileId) fs.deleteDoc(fs.doc(db, 'gamePresence', presenceId(state.identity.profileId))).catch(() => {});
@@ -1866,7 +1941,17 @@ watchIdentity(async identity => {
     return;
   }
   state.profiles.set(identity.profileId, identity.profile);
-  message('LCS tactical token online. Global turn movement is active.');
+  message('Synchronizing the shared global refresh clock…');
+  const clockReady = await syncServerClock(true);
+  if (!clockReady && !state.clockSynced) {
+    // Keep the game usable if the clock-probe rules have not been deployed yet.
+    // The client will retry periodically and on focus until server sync succeeds.
+    state.serverOffsetMs = 0;
+    state.clockSynced = true;
+    message('Global clock is using local fallback time; server resync will retry automatically.');
+  } else {
+    message('LCS tactical token online. Global clock synchronized.');
+  }
   state.turnNumber = turnInfo().turnNumber;
   await ensureCreditWallet(db, fs, identity.profileId);
   await ensureGlobalStats(identity.profileId);
@@ -1884,3 +1969,4 @@ watchIdentity(async identity => {
 
 loadWorldName();
 setInterval(() => pruneOldActions(), 30_000);
+setInterval(() => syncServerClock(false).catch(() => {}), CLOCK_RESYNC_MS);

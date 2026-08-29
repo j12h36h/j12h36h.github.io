@@ -1,5 +1,9 @@
 # E.R.A.S. Game Package
 
+## v1.7.3 Global Clock Synchronization
+
+Desktop and mobile Global Refresh timers now synchronize against an ephemeral Firestore server-time probe instead of depending on each device clock or the shared player-presence document. Clock probes are per-tab, deleted immediately, refreshed every five minutes, and refreshed when returning from the background.
+
 ## v1.7.2 Randomized Spawn Zones
 - Fresh player entries now materialize at a random point inside the North Platform spawn zone instead of the center of the table.
 - PvE and PvP deaths respawn the defeated player at a deterministic random point inside North Platform.
