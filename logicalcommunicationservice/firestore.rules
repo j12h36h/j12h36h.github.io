@@ -599,6 +599,120 @@ service cloud.firestore {
       allow delete: if hasPrivateAccount() && (resource.data.fromProfileId == callerProfileId() || resource.data.toProfileId == callerProfileId());
     }
 
+    // ============================================================
+    // E.R.A.S. ASSET INVENTORY
+    // Public asset files live under /public-assets/ on GitHub Pages.
+    // Firestore stores only per-profile ownership/configuration.
+    // ============================================================
+    function validErasAssetId(id) {
+      return id in ['eras:slime_monochrome'];
+    }
+    function validAssetTint(tint) {
+      return tint is string && tint.matches('#[0-9a-fA-F]{6}');
+    }
+    match /assetInventory/{profileId}/items/{inventoryId} {
+      allow read: if isCallerProfile(profileId);
+      allow create: if isCallerProfile(profileId)
+        && request.resource.data.keys().hasOnly(['assetId','profileId','tint','acquiredAt','updatedAt'])
+        && request.resource.data.profileId == profileId
+        && validErasAssetId(request.resource.data.assetId)
+        && validAssetTint(request.resource.data.tint)
+        && request.resource.data.acquiredAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+      allow update: if isCallerProfile(profileId)
+        && request.resource.data.keys().hasOnly(['assetId','profileId','tint','acquiredAt','updatedAt'])
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.profileId == profileId
+        && request.resource.data.assetId == resource.data.assetId
+        && request.resource.data.acquiredAt == resource.data.acquiredAt
+        && validErasAssetId(request.resource.data.assetId)
+        && validAssetTint(request.resource.data.tint)
+        && request.resource.data.updatedAt is timestamp;
+      allow delete: if isCallerProfile(profileId);
+    }
+
+    // ============================================================
+    // E.R.A.S. HOST / JOIN LOBBIES
+    // Lobby documents are discovery/orchestration data. They contain
+    // no private Google identity information.
+    // ============================================================
+    function validLobbyVisibility(value) { return value in ['public','friends','code']; }
+    function validLobbyStatus(value) { return value in ['open','playing','closed']; }
+    function validGameLobby(data) {
+      return data.keys().hasOnly(['name','code','hostProfileId','visibility','maxPlayers','mapId','gameStyle','description','status','createdAt','updatedAt','lastHeartbeatAt'])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 50
+        && data.code is string && data.code.matches('[A-Z2-9]{6}')
+        && validPublicId(data.hostProfileId) && profileExists(data.hostProfileId)
+        && validLobbyVisibility(data.visibility)
+        && data.maxPlayers is int && data.maxPlayers >= 2 && data.maxPlayers <= 32
+        && data.mapId in ['global-plaza','slime-yard']
+        && data.gameStyle == 'arcade-topdown'
+        && data.description is string && data.description.size() <= 240
+        && validLobbyStatus(data.status)
+        && data.createdAt is timestamp && data.updatedAt is timestamp && data.lastHeartbeatAt is timestamp;
+    }
+    match /gameLobbies/{lobbyId} {
+      allow read: if signedIn();
+      allow create: if callerCanContribute()
+        && isCallerProfile(request.resource.data.hostProfileId)
+        && request.resource.data.status == 'open'
+        && validGameLobby(request.resource.data);
+      allow update: if callerCanContribute()
+        && isCallerProfile(resource.data.hostProfileId)
+        && request.resource.data.hostProfileId == resource.data.hostProfileId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validGameLobby(request.resource.data);
+      allow delete: if isCallerProfile(resource.data.hostProfileId);
+
+      match /members/{profileId} {
+        function parentLobby() {
+          return get(/databases/$(database)/documents/gameLobbies/$(lobbyId));
+        }
+        function validLobbyMember(data) {
+          return data.keys().hasOnly(['profileId','role','joinedAt','lastSeenAt'])
+            && data.profileId == profileId
+            && validPublicId(data.profileId) && profileExists(data.profileId)
+            && data.role in ['host','player']
+            && data.role == (parentLobby().data.hostProfileId == profileId ? 'host' : 'player')
+            && data.joinedAt is timestamp && data.lastSeenAt is timestamp;
+        }
+        allow read: if signedIn();
+        allow create, update: if callerCanContribute()
+          && isCallerProfile(profileId)
+          && parentLobby().data.status == 'open'
+          && validLobbyMember(request.resource.data);
+        allow delete: if isCallerProfile(profileId)
+          || (hasPrivateAccount() && parentLobby().data.hostProfileId == callerProfileId());
+      }
+    }
+
+    // ============================================================
+    // E.R.A.S. GLOBAL / LOBBY PRESENCE
+    // Intentionally low-frequency Firestore state for the first 2D MVP.
+    // Clients interpolate locally between snapshots.
+    // ============================================================
+    function validWorldId(value) {
+      return value is string && value.size() > 0 && value.size() <= 160;
+    }
+    function validPresence(data) {
+      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','updatedAt'])
+        && validWorldId(data.worldId)
+        && validPublicId(data.profileId) && profileExists(data.profileId)
+        && data.x is number && data.x >= 0 && data.x <= 100
+        && data.y is number && data.y >= 0 && data.y <= 100
+        && data.vx is number && data.vx >= -50 && data.vx <= 50
+        && data.vy is number && data.vy >= -50 && data.vy <= 50
+        && data.updatedAt is timestamp;
+    }
+    match /gamePresence/{presenceId} {
+      allow read: if signedIn();
+      allow create, update: if callerCanContribute()
+        && isCallerProfile(request.resource.data.profileId)
+        && presenceId == request.resource.data.profileId + '__' + request.resource.data.worldId
+        && validPresence(request.resource.data);
+      allow delete: if isCallerProfile(resource.data.profileId);
+    }
+
     // LEGACY v0.4 DATA QUARANTINE. Old UID-bearing documents are never public.
     match /users/{uid} { allow read, delete: if ownAuth(uid); allow create, update: if false; }
     match /posts/{id} { allow read, delete: if signedIn() && resource.data.authorUid == request.auth.uid; allow create, update: if false; }

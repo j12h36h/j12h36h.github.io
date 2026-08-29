@@ -210,7 +210,7 @@ async function init(){
       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
     ]);
-    const app=appMod.initializeApp(ACCOUNT_CONFIG.firebase,'site-account');
+    const app=appMod.getApps().some(item=>item.name==='site-account') ? appMod.getApp('site-account') : appMod.initializeApp(ACCOUNT_CONFIG.firebase,'site-account');
     state.auth=authMod.getAuth(app);state.authMod=authMod;state.db=fs.getFirestore(app);state.fs=fs;
     authMod.useDeviceLanguage(state.auth);
     try{await authMod.setPersistence(state.auth,authMod.browserLocalPersistence);}catch(e){console.debug('Account persistence',e?.code||e);}

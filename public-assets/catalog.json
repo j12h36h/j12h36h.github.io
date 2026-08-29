@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-29",
+  "assets": [
+    {
+      "id": "eras:slime_monochrome",
+      "name": "Monochrome Slime",
+      "type": "texture",
+      "category": "characters",
+      "description": "A tintable monochrome slime character texture for E.R.A.S. creations, prototypes, and games.",
+      "source": "/public-assets/textures/slime_monochrome.png",
+      "thumbnail": "/public-assets/textures/slime_monochrome_thumb.png",
+      "tintable": true,
+      "defaultTint": "#65d67c",
+      "price": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": ["slime", "character", "texture", "tintable", "free"]
+    }
+  ]
+}
