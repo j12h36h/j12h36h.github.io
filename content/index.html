@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#02090b">
+  <meta name="description" content="Project E.R.A.S. : Universe content creator.">
+  <title>Content Creator — Project E.R.A.S. : Universe</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+</head>
+<body class="universe-home creator-page">
+  <div class="universe-frame" aria-hidden="true">
+    <i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i>
+    <i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i>
+    <span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span>
+    <span class="uf-line uf-left"></span><span class="uf-line uf-right"></span>
+    <span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Project E.R.A.S. Universe home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>PROJECT E.R.A.S. <b>: UNIVERSE</b></span>
+    </a>
+    <a class="enter-button" href="/" data-home-link aria-label="Return to Project E.R.A.S. Universe home">HOME</a>
+  </header>
+
+  <main class="creator-landing" aria-label="Project E.R.A.S. Universe content creator">
+    <div class="cosmos" aria-hidden="true">
+      <div class="stars stars-a"></div>
+      <div class="stars stars-b"></div>
+      <div class="nebula nebula-a"></div>
+      <div class="nebula nebula-b"></div>
+      <div class="grid-haze"></div>
+    </div>
+
+    <div class="creator-universe-field" aria-hidden="true">
+      <div class="creator-axis creator-axis-x"></div>
+      <div class="creator-axis creator-axis-y"></div>
+      <div class="creator-orbit creator-orbit-outer"></div>
+      <div class="creator-orbit creator-orbit-middle"></div>
+      <div class="creator-orbit creator-orbit-inner"></div>
+      <div class="creator-center-reticle"><i></i><i></i><i></i><i></i></div>
+    </div>
+
+    <section class="creator-workspace" aria-labelledby="creator-title">
+      <div class="creator-toolbar">
+        <div class="creator-title-block">
+          <span>CONTENT RUNTIME // AUTHORING INTERFACE</span>
+          <h1 id="creator-title">CONTENT CREATOR</h1>
+        </div>
+
+        <div class="creator-view-tabs" role="group" aria-label="Creator view">
+          <button class="creator-tab is-active" type="button" data-creator-view="preview" aria-pressed="true">PREVIEW</button>
+          <button class="creator-tab" type="button" data-creator-view="json" aria-pressed="false">JSON</button>
+        </div>
+
+        <div class="creator-toolbar-actions">
+          <button type="button" data-creator-action="new">NEW</button>
+          <button type="button" data-creator-action="open">OPEN</button>
+          <button type="button" data-creator-action="save">SAVE</button>
+          <input class="creator-file-input" type="file" accept=".json,application/json" data-creator-file aria-label="Open JSON definition">
+        </div>
+      </div>
+
+      <div class="creator-grid">
+        <aside class="creator-panel creator-browser" aria-label="Content browser">
+          <div class="creator-panel-heading">
+            <span>01</span><h2>CONTENT</h2>
+          </div>
+
+          <label class="creator-search">
+            <span class="sr-only">Search content</span>
+            <input type="search" placeholder="SEARCH DEFINITIONS" data-creator-search>
+          </label>
+
+          <div class="creator-types" role="list" aria-label="Content types">
+            <button type="button" class="is-active" data-creator-type="all"><span>ALL</span><b>00</b></button>
+            <button type="button" data-creator-type="item"><span>ITEMS</span><b>00</b></button>
+            <button type="button" data-creator-type="weapon"><span>WEAPONS</span><b>00</b></button>
+            <button type="button" data-creator-type="entity"><span>ENTITIES</span><b>00</b></button>
+            <button type="button" data-creator-type="prefab"><span>PREFABS</span><b>00</b></button>
+            <button type="button" data-creator-type="material"><span>MATERIALS</span><b>00</b></button>
+            <button type="button" data-creator-type="effect"><span>EFFECTS</span><b>00</b></button>
+            <button type="button" data-creator-type="ui"><span>UI</span><b>00</b></button>
+          </div>
+
+          <div class="creator-definition-zone">
+            <div class="creator-subheading"><span>DEFINITIONS</span><button type="button" aria-label="Create definition" data-creator-action="new">+</button></div>
+            <div class="creator-definition-list" data-definition-list>
+              <p class="creator-empty-list">NO CONTENT LOADED</p>
+            </div>
+          </div>
+        </aside>
+
+        <section class="creator-viewport" aria-label="Content preview viewport">
+          <div class="viewport-telemetry viewport-telemetry-left">
+            <span>VISUAL PREVIEW // READY</span>
+            <span>RENDER TARGET // WEB</span>
+          </div>
+          <div class="viewport-telemetry viewport-telemetry-right">
+            <span>X 0.000</span><span>Y 0.000</span><span>Z 0.000</span>
+          </div>
+
+          <div class="creator-preview-mode" data-preview-mode>
+            <div class="creator-preview-system" aria-label="Editable definition nodes orbiting the content preview">
+              <div class="preview-ring preview-ring-outer" aria-hidden="true"></div>
+              <div class="preview-ring preview-ring-middle" aria-hidden="true"></div>
+              <div class="preview-ring preview-ring-inner" aria-hidden="true"></div>
+              <div class="preview-axis preview-axis-x" aria-hidden="true"></div>
+              <div class="preview-axis preview-axis-y" aria-hidden="true"></div>
+
+              <div class="property-orbit property-orbit-a">
+                <div class="property-node-anchor property-node-top">
+                  <button class="property-node" type="button" data-property-node="name" aria-label="Edit Display Name">
+                    <i aria-hidden="true"></i><span>DISPLAY NAME</span>
+                  </button>
+                </div>
+                <div class="property-node-anchor property-node-bottom">
+                  <button class="property-node" type="button" data-property-node="color" aria-label="Edit Color">
+                    <i aria-hidden="true"></i><span>COLOR</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="property-orbit property-orbit-b">
+                <div class="property-node-anchor property-node-left">
+                  <button class="property-node" type="button" data-property-node="model" aria-label="Edit Model">
+                    <i aria-hidden="true"></i><span>MODEL</span>
+                  </button>
+                </div>
+                <div class="property-node-anchor property-node-right">
+                  <button class="property-node" type="button" data-property-node="material" aria-label="Edit Material">
+                    <i aria-hidden="true"></i><span>MATERIAL</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="property-orbit property-orbit-c">
+                <div class="property-node-anchor property-node-top">
+                  <button class="property-node" type="button" data-property-node="type" aria-label="Edit Type">
+                    <i aria-hidden="true"></i><span>TYPE</span>
+                  </button>
+                </div>
+                <div class="property-node-anchor property-node-bottom">
+                  <button class="property-node" type="button" data-property-node="id" aria-label="Edit ID">
+                    <i aria-hidden="true"></i><span>ID</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="creator-content-preview" data-content-preview aria-label="Content visual preview area"></div>
+            </div>
+          </div>
+
+          <div class="creator-json-mode" data-json-mode hidden>
+            <div class="creator-code-heading"><span>DEFINITION JSON</span><b data-json-status>VALID</b></div>
+            <textarea spellcheck="false" aria-label="Content definition JSON" data-creator-json>{
+  "id": "eras:untitled",
+  "type": "item",
+  "visual": {}
+}</textarea>
+          </div>
+
+          <div class="viewport-tools" role="group" aria-label="Preview controls">
+            <button type="button" data-creator-control="orbit">ORBIT</button>
+            <button type="button" data-creator-control="pan">PAN</button>
+            <button type="button" data-creator-control="reset">RESET</button>
+          </div>
+        </section>
+
+        <aside class="creator-panel creator-inspector" aria-label="Inspector">
+          <div class="creator-panel-heading">
+            <span>02</span><h2>INSPECTOR</h2>
+          </div>
+
+          <div class="inspector-state" data-inspector-empty>
+            <div class="inspector-empty-mark" aria-hidden="true">◇</div>
+            <strong>NO DEFINITION SELECTED</strong>
+            <span>CREATE OR OPEN CONTENT TO EDIT ITS PROPERTIES.</span>
+          </div>
+
+          <form class="inspector-form" data-inspector-form hidden>
+            <div class="inspector-group">
+              <span class="inspector-group-title">IDENTITY</span>
+              <label><span>ID</span><input type="text" value="eras:untitled" data-field="id"></label>
+              <label><span>TYPE</span>
+                <select data-field="type">
+                  <option value="item">ITEM</option>
+                  <option value="weapon">WEAPON</option>
+                  <option value="entity">ENTITY</option>
+                  <option value="prefab">PREFAB</option>
+                  <option value="material">MATERIAL</option>
+                  <option value="effect">EFFECT</option>
+                  <option value="ui">UI</option>
+                </select>
+              </label>
+              <label><span>NAME</span><input type="text" value="Untitled Content" data-field="name"></label>
+            </div>
+
+            <div class="inspector-group">
+              <span class="inspector-group-title">VISUAL</span>
+              <label><span>COLOR</span><input class="inspector-color" type="color" value="#83e0e3" data-field="color" aria-label="Content color"></label>
+              <label><span>MODEL</span><input type="text" placeholder="resources/models/..." data-field="model"></label>
+              <label><span>MATERIAL</span><input type="text" placeholder="eras:material" data-field="material"></label>
+            </div>
+
+            <div class="inspector-group inspector-transform">
+              <span class="inspector-group-title">TRANSFORM</span>
+              <div class="inspector-triplet"><span>POSITION</span><input value="0"><input value="0"><input value="0"></div>
+              <div class="inspector-triplet"><span>ROTATION</span><input value="0"><input value="0"><input value="0"></div>
+              <div class="inspector-triplet"><span>SCALE</span><input value="1"><input value="1"><input value="1"></div>
+            </div>
+          </form>
+        </aside>
+      </div>
+
+      <div class="creator-library">
+        <div class="creator-library-heading">
+          <span>03 // RESOURCE LIBRARY</span>
+          <div><button type="button" data-creator-library="models">MODELS</button><button type="button" data-creator-library="MATERIALS">MATERIALS</button><button type="button" data-creator-library="AUDIO">AUDIO</button></div>
+        </div>
+        <div class="creator-library-slots" aria-label="Resource library">
+          <button type="button" class="resource-slot resource-slot-add" data-creator-action="resource"><b>+</b><span>IMPORT</span></button>
+          <div class="resource-slot"><b>◇</b><span>EMPTY</span></div>
+          <div class="resource-slot"><b>◇</b><span>EMPTY</span></div>
+          <div class="resource-slot"><b>◇</b><span>EMPTY</span></div>
+          <div class="resource-slot"><b>◇</b><span>EMPTY</span></div>
+          <div class="resource-slot"><b>◇</b><span>EMPTY</span></div>
+        </div>
+        <div class="creator-status" aria-live="polite"><span>VALIDATOR // READY</span><b data-creator-feedback>WORKSPACE ONLINE</b></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/game/assets/js/site.js"></script>
+</body>
+</html>
