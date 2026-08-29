@@ -1,5 +1,11 @@
-# E.R.A.S. v1.7.3 — Global Clock Sync
+# Portal v1.8.1 — LCS Profile Trading Integration
 
-Deploy `game/` and `game-mobile/` to the site root and publish `firestore_v0.9.15_eras_clock_sync.rules`.
+Overlay this package at the repository root.
 
-The Global Refresh timer now calibrates against a unique per-tab Firestore server timestamp probe, re-syncs every five minutes, and re-syncs when the page returns from the background. Probe documents are deleted immediately after calibration.
+- Public LCS profile details now expose separate **Send Credits** and **Trade Assets** actions.
+- Public profile directory, Friends, Followers, Following, and People search results have quick trading actions.
+- `/trade/?with=<publicProfileId>&mode=credits` preselects the player and focuses direct Credit transfer.
+- `/trade/?with=<publicProfileId>&mode=trade` preselects the player and focuses negotiated asset/Credit trading.
+- Desktop and LCS Mobile use the same shared integration.
+- Self and blocked profiles do not expose trade actions.
+- Firestore rules remain v0.9.16; no rules update is required.

@@ -253,9 +253,18 @@ function bind() {
   });
 }
 
+function focusPrefilledMode(params) {
+  const mode=params.get('mode')||'';
+  const target=mode==='credits'?$('#transferRecipient'):mode==='trade'?$('#tradeRecipient'):null;
+  if(!target)return;
+  const panel=target.closest('.trade-panel');
+  panel?.classList.add('is-profile-target');
+  setTimeout(()=>{panel?.scrollIntoView({behavior:'smooth',block:'center'});target.focus({preventScroll:true});setTimeout(()=>panel?.classList.remove('is-profile-target'),2400);},120);
+}
+
 async function init() {
   bind();await loadCatalog();
-  const prefill=new URLSearchParams(location.search).get('with')||'';if(PROFILE_RE.test(prefill)){['#transferRecipient','#tradeRecipient'].forEach(s=>{const el=$(s);if(el){el.value=prefill;el.dispatchEvent(new Event('input'));}});}
+  const params=new URLSearchParams(location.search),prefill=params.get('with')||'';if(PROFILE_RE.test(prefill)){['#transferRecipient','#tradeRecipient'].forEach(s=>{const el=$(s);if(el){el.value=prefill;el.dispatchEvent(new Event('input'));}});focusPrefilledMode(params);}
   watchIdentity(identity=>{
     state.identity=identity; if(identity?.profileId&&identity.profile)state.profileCache.set(identity.profileId,identity.profile);
     watchCredits();watchHoldings();watchTrades();
