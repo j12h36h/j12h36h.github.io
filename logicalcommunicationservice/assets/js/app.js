@@ -810,7 +810,7 @@ function showAuthError(err,attempt='unknown',probe=null){
   else if(code.includes('project-config-request-failed'))text='Firebase project configuration could not be read with this browser API key. The diagnostic below normally exposes an HTTP-referrer or API restriction that must be corrected in Google Cloud.';
   else if(code.includes('mobile-google-origin'))text='Google rejected the GitHub Pages JavaScript origin for the Firebase Google OAuth client. Add https://j12h36h.github.io as an Authorized JavaScript origin for that OAuth 2.0 Web client in Google Cloud, then retry.';
   else if(code.includes('mobile-bootstrap'))text='LCS could not discover the Google OAuth client configured for Firebase. The diagnostic below contains the Identity Toolkit response.';
-  else if(code.includes('mobile-gis'))text='Google Identity Services could not initialize the mobile sign-in button. Reload the page once and retry.';
+  else if(code.includes('mobile-gis'))text='Google Identity Services could not load on mobile. LCS now permits the GIS script, frame, style, and connection endpoints in its Content Security Policy and Retry performs a fresh script request.';
   else if(code.includes('session-not-retained'))text='Google returned a valid credential, but Firebase did not retain the signed-in browser session.';
   else if(code.includes('internal-error'))text='Firebase returned an internal Google sign-in error. Mobile now uses Google Identity Services directly to obtain an ID token, then gives that credential to Firebase without Firebase popup/redirect helper state.';
   $('#authErrorTitle').textContent='Google sign-in needs attention';$('#authErrorText').textContent=text;$('#authErrorCode').textContent=code;
@@ -822,13 +822,37 @@ function loadGoogleIdentityServices(){
   if(window.google?.accounts?.id)return Promise.resolve(window.google);
   if(googleIdentityScriptPromise)return googleIdentityScriptPromise;
   googleIdentityScriptPromise=new Promise((resolve,reject)=>{
-    const existing=document.querySelector('script[data-lcs-google-identity]');
-    if(existing){existing.addEventListener('load',()=>window.google?.accounts?.id?resolve(window.google):reject(Object.assign(new Error('Google Identity Services loaded without accounts.id.'),{code:'auth/mobile-gis-unavailable'})),{once:true});existing.addEventListener('error',()=>reject(Object.assign(new Error('Google Identity Services failed to load.'),{code:'auth/mobile-gis-load-failed'})),{once:true});return;}
-    const script=document.createElement('script');
-    script.src='https://accounts.google.com/gsi/client';script.async=true;script.defer=true;script.dataset.lcsGoogleIdentity='1';
-    script.onload=()=>window.google?.accounts?.id?resolve(window.google):reject(Object.assign(new Error('Google Identity Services loaded without accounts.id.'),{code:'auth/mobile-gis-unavailable'}));
-    script.onerror=()=>reject(Object.assign(new Error('Google Identity Services failed to load.'),{code:'auth/mobile-gis-load-failed'}));
-    document.head.appendChild(script);
+    let settled=false;
+    const fail=(message,code='auth/mobile-gis-load-failed')=>{
+      if(settled)return;
+      settled=true;
+      googleIdentityScriptPromise=null;
+      reject(Object.assign(new Error(message),{code}));
+    };
+    const succeed=()=>{
+      if(settled)return;
+      if(window.google?.accounts?.id){settled=true;resolve(window.google);}
+      else fail('Google Identity Services loaded without accounts.id.','auth/mobile-gis-unavailable');
+    };
+    let existing=document.querySelector('script[data-lcs-google-identity]');
+    // A previous CSP/network failure leaves a dead script node behind. Remove it so Retry
+    // performs a real request instead of waiting forever on an already-finished element.
+    if(existing && existing.dataset.lcsGoogleIdentityState==='failed'){existing.remove();existing=null;}
+    const script=existing||document.createElement('script');
+    if(!existing){
+      script.src='https://accounts.google.com/gsi/client';
+      script.async=true;script.defer=true;script.dataset.lcsGoogleIdentity='1';
+      document.head.appendChild(script);
+    }
+    script.addEventListener('load',()=>{script.dataset.lcsGoogleIdentityState='loaded';succeed();},{once:true});
+    script.addEventListener('error',()=>{script.dataset.lcsGoogleIdentityState='failed';fail('Google Identity Services failed to load.');},{once:true});
+    // If an existing script finished just before listeners were attached, detect the global.
+    queueMicrotask(()=>{if(window.google?.accounts?.id)succeed();});
+    setTimeout(()=>{
+      if(settled)return;
+      if(window.google?.accounts?.id)succeed();
+      else{script.dataset.lcsGoogleIdentityState='failed';fail('Google Identity Services did not become available before the mobile sign-in timeout.','auth/mobile-gis-timeout');}
+    },8000);
   });
   return googleIdentityScriptPromise;
 }
