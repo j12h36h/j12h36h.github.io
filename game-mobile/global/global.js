@@ -1,8 +1,10 @@
 import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.3';
 import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.3';
 import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit, getDocFromServer, getDocsFromServer } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
-import { createGameInventoryController, ensureGameInventory, gameInventoryRef } from '/game/inventory/inventory.js?v=1.9.2';
-import { normalizeGameInventory, slimeDropsForAction, describeDrops, attackDamageForAction, damageRange } from '/game/inventory/items.js?v=1.9.2';
+import { createGameInventoryController, ensureGameInventory, gameInventoryRef } from '/game/inventory/inventory.js?v=2.1.0';
+import { normalizeGameInventory, slimeDropsForAction, describeDrops, attackDamageForAction, damageRange } from '/game/inventory/items.js?v=2.1.0';
+import { GLOBAL_WORLD_SETTINGS, normalizeWorldSettings, expandedMobSpawns, mobById, terminalById, rollMobDrops } from '/game/config/world-settings.js?v=2.1.0';
+import { createWorldInventoryController, ensureWorldInventory, worldInventoryRef, normalizeWorldInventory, worldAttackDamage } from '/game/inventory/world-inventory.js?v=2.1.0';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
@@ -15,23 +17,24 @@ const TURN_LENGTH_MS = 60_000;
 const TURN_EPOCH_MS = Date.UTC(2026, 7, 29, 0, 0, 0);
 const CLOCK_RESYNC_MS = 5 * 60_000;
 const CLOCK_CLIENT_ID = (crypto.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
-const MOVE_BUDGET = 40;
+let MOVE_BUDGET = 50;
 const MOVE_SPEED = 10;
 const GAME_LOG_TURNS = 10;
-const PLAYER_MAX_HP = 3;
+let PLAYER_MAX_HP = 5;
 const PLAYER_ATTACK_RANGE = 14;
 const SLIME_ATTACK_RANGE = 13;
-const SLIME_MAX_HP = 1;
+let SLIME_MAX_HP = 2;
 const SLIME_WANDER_INTERVAL_MS = 15_000;
 const SLIME_WANDER_STEP = 3.2;
 const SLIME_WANDER_STOP_RANGE = 16;
 const GLOBAL_STATS_COLLECTION = 'globalGameStats';
 const NORTH_PLATFORM_SPAWN = Object.freeze({ minX: 11, maxX: 32, minY: 11, maxY: 28 });
 const SLIME_CACHE_SPAWN = Object.freeze({ minX: 76, maxX: 91, minY: 68, maxY: 84 });
-const SLIME_DEFS = Object.freeze([
-  { key: 'cache-slime-a', label: 'CACHE SLIME A', tint: '#62d776', ...SLIME_CACHE_SPAWN },
-  { key: 'cache-slime-b', label: 'CACHE SLIME B', tint: '#8ee767', ...SLIME_CACHE_SPAWN }
-]);
+let ENEMY_DEFS = [
+  { key: 'cache-slime-a', mobId: 'slime', label: 'CACHE SLIME A', tint: '#62d776', maxHp: 2, damage: 1, attackRange: 13, respawnTurns: 1, ...SLIME_CACHE_SPAWN },
+  { key: 'cache-slime-b', mobId: 'slime', label: 'CACHE SLIME B', tint: '#8ee767', maxHp: 2, damage: 1, attackRange: 13, respawnTurns: 1, ...SLIME_CACHE_SPAWN },
+  { key: 'cache-slime-c', mobId: 'slime', label: 'CACHE SLIME C', tint: '#75df83', maxHp: 2, damage: 1, attackRange: 13, respawnTurns: 1, ...SLIME_CACHE_SPAWN }
+];
 
 // Camera follows the local token through a small central soft zone instead
 // of pinning every movement pixel directly to screen center. This keeps
@@ -48,6 +51,8 @@ const state = {
   vy: 0,
   moveUsed: 0,
   hp: PLAYER_MAX_HP,
+  energy: 1,
+  maxEnergy: 1,
   deaths: 0,
   lastDeathEventId: '',
   lastCombatTurn: 0,
@@ -97,7 +102,10 @@ const state = {
   cameraY: 0,
   cameraTargetX: 0,
   cameraTargetY: 0,
-  cameraInitialized: false
+  cameraInitialized: false,
+  worldSettings: GLOBAL_WORLD_SETTINGS,
+  hostedWorld: false,
+  hostedInventory: null
 };
 
 const message = text => {
@@ -105,7 +113,7 @@ const message = text => {
   if (el) el.textContent = String(text).toUpperCase();
 };
 
-const gameInventoryController = createGameInventoryController({
+const globalInventoryController = createGameInventoryController({
   db,
   fs,
   getProfileId: () => state.identity?.profileId || '',
@@ -124,6 +132,15 @@ const gameInventoryController = createGameInventoryController({
     renderMovementHud();
   }
 });
+let activeInventoryController = globalInventoryController;
+
+function currentDamageRange() {
+  return state.hostedWorld && state.hostedInventory ? state.hostedInventory.getDamageRange() : damageRange(state.gameInventory);
+}
+
+function currentAttackDamage(actionId = '') {
+  return state.hostedWorld && state.hostedInventory ? state.hostedInventory.attackDamage(actionId) : attackDamageForAction(actionId, state.gameInventory);
+}
 
 function clockNow() {
   return Date.now() + state.serverOffsetMs;
@@ -220,25 +237,65 @@ async function syncServerClock(force = false) {
 
 async function loadWorldName() {
   if (!lobbyId) {
+    state.hostedWorld = false;
+    state.worldSettings = GLOBAL_WORLD_SETTINGS;
+    MOVE_BUDGET = 50;
+    PLAYER_MAX_HP = 5;
+    SLIME_MAX_HP = 2;
+    state.maxEnergy = 1;
+    state.energy = Math.max(0, Math.min(state.maxEnergy, Number(state.energy ?? state.maxEnergy)));
+    ENEMY_DEFS = [
+      { key: 'cache-slime-a', mobId: 'slime', label: 'CACHE SLIME A', tint: '#62d776', maxHp: 2, damage: 1, attackRange: 13, respawnTurns: 1, ...SLIME_CACHE_SPAWN },
+      { key: 'cache-slime-b', mobId: 'slime', label: 'CACHE SLIME B', tint: '#8ee767', maxHp: 2, damage: 1, attackRange: 13, respawnTurns: 1, ...SLIME_CACHE_SPAWN },
+      { key: 'cache-slime-c', mobId: 'slime', label: 'CACHE SLIME C', tint: '#75df83', maxHp: 2, damage: 1, attackRange: 13, respawnTurns: 1, ...SLIME_CACHE_SPAWN }
+    ];
+    activeInventoryController = globalInventoryController;
+    const walletHeader = document.querySelector('.game-credit-header, .mobile-credit-header');
+    if (walletHeader) walletHeader.innerHTML = `◈ <b id="creditBalance">0</b> CREDITS`;
     $('#worldName').textContent = 'GLOBAL TABLE';
     return;
   }
   try {
     const snap = await fs.getDoc(fs.doc(db, 'gameLobbies', lobbyId));
-    if (snap.exists()) {
-      $('#worldName').textContent = snap.data().name || 'HOSTED GAME';
-      const member = state.identity?.profileId;
-      if (member) {
-        await fs.setDoc(fs.doc(db, 'gameLobbies', lobbyId, 'members', member), {
-          profileId: member,
-          role: snap.data().hostProfileId === member ? 'host' : 'player',
-          joinedAt: fs.serverTimestamp(),
-          lastSeenAt: fs.serverTimestamp()
-        });
-      }
+    if (!snap.exists()) throw new Error('Hosted world not found.');
+    const lobby = snap.data();
+    state.hostedWorld = true;
+    state.worldSettings = normalizeWorldSettings(lobby.settings || {}, true);
+    const walletHeader = document.querySelector('.game-credit-header, .mobile-credit-header');
+    if (walletHeader) walletHeader.innerHTML = `${state.worldSettings.currency.symbol} <b id="creditBalance">0</b> ${state.worldSettings.currency.name}`;
+    MOVE_BUDGET = state.worldSettings.player.maxWalkDistance;
+    PLAYER_MAX_HP = state.worldSettings.player.maxHp;
+    state.maxEnergy = state.worldSettings.player.energyPerTurn;
+    state.energy = state.maxEnergy;
+    ENEMY_DEFS = expandedMobSpawns(state.worldSettings);
+    $('#worldName').textContent = lobby.name || 'HOSTED GAME';
+    const member = state.identity?.profileId;
+    if (member) {
+      await fs.setDoc(fs.doc(db, 'gameLobbies', lobbyId, 'members', member), {
+        profileId: member,
+        role: lobby.hostProfileId === member ? 'host' : 'player',
+        joinedAt: fs.serverTimestamp(),
+        lastSeenAt: fs.serverTimestamp()
+      });
+      state.hostedInventory?.destroy?.();
+      state.hostedInventory = createWorldInventoryController({
+        db, fs, worldId, lobbyId,
+        getSettings: () => state.worldSettings,
+        getProfileId: () => state.identity?.profileId || '',
+        getHp: () => state.hp,
+        getPresenceRef: () => state.identity?.profileId ? fs.doc(db, 'gamePresence', presenceId(state.identity.profileId)) : null,
+        message,
+        onHpChanged: hp => {
+          state.hp = Math.max(0, Math.min(PLAYER_MAX_HP, Number(hp || 0)));
+          renderLocalBase(); renderMovementHud();
+        },
+        onInventoryChanged: () => { renderMovementHud(); }
+      });
+      activeInventoryController = state.hostedInventory;
     }
   } catch (error) {
     console.error(error);
+    message(`HOSTED WORLD CONFIG ERROR: ${error.code || error.message}`);
   }
 }
 
@@ -329,7 +386,7 @@ function enemyIsInCombat(enemy) {
 function restBlockReason() {
   const currentTurn = turnInfo().turnNumber;
   if (!state.identity?.profileId) return 'SIGN IN FIRST';
-  if (state.hp >= PLAYER_MAX_HP) return 'ALREADY FULL HEALTH';
+  if (state.hp >= PLAYER_MAX_HP && state.energy >= state.maxEnergy) return 'HEALTH + ENERGY ALREADY FULL';
   if (state.restedTurn === currentTurn) return 'ALREADY RESTED THIS REFRESH';
   if (state.movedTurn === currentTurn || state.moveUsed > .001) return 'YOU MOVED THIS REFRESH';
   if (state.actionTurn === currentTurn || state.ownQueuedActionId) return 'YOU DECLARED AN ACTION THIS REFRESH';
@@ -555,7 +612,7 @@ function distanceBetween(ax, ay, bx, by) {
 }
 
 function slimeDefinitionByDocId(id) {
-  return SLIME_DEFS.find(def => enemyDocId(def.key) === id) || null;
+  return ENEMY_DEFS.find(def => enemyDocId(def.key) === id) || null;
 }
 
 function ensureEnemyElement(enemy) {
@@ -565,9 +622,12 @@ function ensureEnemyElement(enemy) {
   el.type = 'button';
   el.className = 'enemy-token';
   el.dataset.enemyId = enemy.id;
-  el.setAttribute('aria-label', enemy.label || 'Slime');
-  el.innerHTML = `<span class="enemy-base"><span class="enemy-sprite"><img src="/public-assets/textures/slime_monochrome.png" alt=""></span><i class="enemy-health"></i></span><strong></strong><small></small>`;
+  el.setAttribute('aria-label', enemy.label || 'Enemy');
   const def = slimeDefinitionByDocId(enemy.id);
+  const sprite = state.hostedWorld && def?.iconJson
+    ? avatarSvg({ displayName: def.label || 'MOB', avatarJson: def.iconJson })
+    : '<img src="/public-assets/textures/slime_monochrome.png" alt="">';
+  el.innerHTML = `<span class="enemy-base"><span class="enemy-sprite">${sprite}</span><i class="enemy-health"></i></span><strong></strong><small></small>`;
   el.style.setProperty('--slime-tint', def?.tint || '#65d67c');
   el.addEventListener('click', event => {
     event.stopPropagation();
@@ -591,56 +651,56 @@ function renderEnemy(enemy) {
   el.classList.toggle('is-combat', inCombat);
   el.classList.toggle('is-wandering', enemy.alive && !inCombat);
   el.classList.toggle('is-selected', state.selectedTarget?.type === 'enemy' && state.selectedTarget.id === enemy.id);
-  el.querySelector('strong').textContent = enemy.label || 'CACHE SLIME';
+  el.querySelector('strong').textContent = enemy.label || 'ENEMY';
   el.querySelector('small').textContent = enemy.alive ? `${inCombat ? 'COMBAT' : 'WANDERING'} // HP ${enemy.hp} / ${enemy.maxHp}` : 'DOWN // RESPAWNING';
   el.querySelector('.enemy-health')?.style.setProperty('--enemy-hp', `${Math.max(0, Math.min(100, (Number(enemy.hp || 0) / Math.max(1, Number(enemy.maxHp || 1))) * 100))}%`);
 }
 
 async function ensureSlimePopulation() {
   if (!state.identity?.profileId) return;
-  await Promise.all(SLIME_DEFS.map(async def => {
+  await Promise.all(ENEMY_DEFS.map(async def => {
     const id = enemyDocId(def.key);
     const ref = fs.doc(db, 'gameEnemies', id);
     const snap = await fs.getDoc(ref);
     if (snap.exists()) {
       const live = snap.data();
+      const patch = {};
       if (!Number.isInteger(live.wanderStep) || !live.lastWanderAt) {
-        await fs.updateDoc(ref, {
-          wanderStep: Math.max(0, Number(live.wanderStep || 0)),
-          lastWanderAt: fs.serverTimestamp(),
-          updatedAt: fs.serverTimestamp()
-        }).catch(error => console.debug('Slime wander migration', error?.code || error));
+        patch.wanderStep = Math.max(0, Number(live.wanderStep || 0));
+        patch.lastWanderAt = fs.serverTimestamp();
+      }
+      if (!state.hostedWorld && Number(live.maxHp || 1) === 1) {
+        patch.maxHp = 2;
+        patch.hp = live.alive ? 2 : 0;
+      }
+      if (Object.keys(patch).length) {
+        patch.updatedAt = fs.serverTimestamp();
+        await fs.updateDoc(ref, patch).catch(error => console.debug('Enemy migration', error?.code || error));
       }
       return;
     }
     try {
       const spawn = slimeSpawnPoint(def, turnInfo().turnNumber, 'initial');
-      await fs.setDoc(ref, {
-        worldId,
-        enemyKey: def.key,
-        type: 'slime',
-        label: def.label,
-        x: spawn.x,
-        y: spawn.y,
-        hp: SLIME_MAX_HP,
-        maxHp: SLIME_MAX_HP,
-        alive: true,
-        respawnTurn: 0,
-        lastHitActionId: '',
-        lastHitByProfileId: '',
-        lastKillActionId: '',
-        killerProfileId: '',
-        wanderStep: 0,
-        lastWanderAt: fs.serverTimestamp(),
-        updatedAt: fs.serverTimestamp()
-      });
+      const common = {
+        worldId, enemyKey: def.key, type: state.hostedWorld ? 'custom' : 'slime', label: def.label,
+        x: spawn.x, y: spawn.y, hp: Number(def.maxHp || SLIME_MAX_HP), maxHp: Number(def.maxHp || SLIME_MAX_HP), alive: true,
+        respawnTurn: 0, lastHitActionId: '', lastHitByProfileId: '', lastKillActionId: '', killerProfileId: '',
+        wanderStep: 0, lastWanderAt: fs.serverTimestamp(), updatedAt: fs.serverTimestamp()
+      };
+      if (state.hostedWorld) {
+        common.lobbyId = lobbyId;
+        common.mobId = def.mobId;
+        common.damage = Math.max(0, Math.floor(Number(def.damage || 0)));
+        common.attackRange = Math.max(1, Number(def.attackRange || SLIME_ATTACK_RANGE));
+        common.respawnTurns = Math.max(1, Math.floor(Number(def.respawnTurns || 1)));
+      }
+      await fs.setDoc(ref, common);
     } catch (error) {
       const retry = await fs.getDoc(ref).catch(() => null);
-      if (!retry?.exists?.()) console.error('Slime spawn failed', error);
+      if (!retry?.exists?.()) console.error('Enemy spawn failed', error);
     }
   }));
 }
-
 function watchEnemies() {
   state.enemyUnsub?.();
   const q = fs.query(fs.collection(db, 'gameEnemies'), fs.where('worldId', '==', worldId));
@@ -659,7 +719,7 @@ function watchEnemies() {
     renderMovementHud();
   }, error => {
     console.error('Enemy feed', error);
-    message(`SLIME STATE ERROR: ${error.code || error.message}`);
+    message(`ENEMY STATE ERROR: ${error.code || error.message}`);
   });
 }
 
@@ -702,7 +762,7 @@ async function respawnDeadSlimes(currentTurn) {
         });
       });
     } catch (error) {
-      console.debug('Slime respawn race', error?.code || error);
+      console.debug('Enemy respawn race', error?.code || error);
     }
   }));
 }
@@ -768,7 +828,7 @@ async function advanceSlimeWander() {
   const now = Date.now();
   if (now - state.lastWanderAt < 850) return;
   state.lastWanderAt = now;
-  for (const def of SLIME_DEFS) {
+  for (const def of ENEMY_DEFS) {
     const id = enemyDocId(def.key);
     const observed = state.enemies.get(id);
     if (!observed?.alive || enemyIsInCombat(observed)) continue;
@@ -856,6 +916,8 @@ function reconcileOwnPresence(data, hasPendingWrites) {
   const wasKnockout = nextDeaths > previousDeaths || String(data.lastDeathEventId || '') === `pvp_${externalPvpId}`.slice(0, 180);
   state.lastPvpEventId = externalPvpId;
   state.hp = Math.max(0, Math.min(PLAYER_MAX_HP, Number(data.hp ?? state.hp)));
+  state.maxEnergy = Math.max(1, Number(data.maxEnergy ?? state.maxEnergy));
+  state.energy = Math.max(0, Math.min(state.maxEnergy, Number(data.energy ?? state.energy)));
   state.deaths = nextDeaths;
   state.lastDeathEventId = String(data.lastDeathEventId || state.lastDeathEventId || '');
   state.lastCombatTurn = Math.max(state.lastCombatTurn, Number(data.lastCombatTurn || 0));
@@ -879,7 +941,7 @@ function reconcileOwnPresence(data, hasPendingWrites) {
       setTimeout(() => token.classList.remove('player-death-pulse'), 1200);
     }
     resetCamera(true);
-    gameInventoryController.clearOnDeath(state.lastDeathEventId).catch(() => {});
+    activeInventoryController.clearOnDeath(state.lastDeathEventId).catch(() => {});
     message('PVP KO // GAME INVENTORY CLEARED // RESPAWNED ON NORTH PLATFORM // NO CREDITS LOST.');
   } else {
     message(`PVP HIT RECEIVED // HP ${state.hp}/${PLAYER_MAX_HP}.`);
@@ -932,6 +994,8 @@ async function restorePosition() {
         state.moveUsed = Math.max(0, Number(snap.data().moveUsed || 0));
       }
       state.hp = Math.max(0, Math.min(PLAYER_MAX_HP, Number(snap.data().hp ?? PLAYER_MAX_HP)));
+      state.maxEnergy = Math.max(1, Number(snap.data().maxEnergy ?? state.maxEnergy));
+      state.energy = Math.max(0, Math.min(state.maxEnergy, Number(snap.data().energy ?? state.maxEnergy)));
       state.deaths = Math.max(0, Number(snap.data().deaths || 0));
       state.lastDeathEventId = String(snap.data().lastDeathEventId || '');
       state.lastCombatTurn = Math.max(0, Number(snap.data().lastCombatTurn || 0));
@@ -946,6 +1010,7 @@ async function restorePosition() {
       state.vx = 0;
       state.vy = 0;
       state.moveUsed = 0;
+      state.energy = state.maxEnergy;
     }
     updateToken(ensureToken(state.identity.profileId, state.identity.profile, true), state.x, state.y);
     resetCamera(true);
@@ -981,6 +1046,8 @@ async function flushPresence(force = false) {
       moveUsed: state.moveUsed,
       hp: state.hp,
       maxHp: PLAYER_MAX_HP,
+      energy: state.energy,
+      maxEnergy: state.maxEnergy,
       deaths: state.deaths,
       lastDeathEventId: state.lastDeathEventId,
       lastCombatTurn: state.lastCombatTurn,
@@ -1103,7 +1170,7 @@ function watchCredits() {
   state.creditUnsub = watchCreditWallet(db, fs, state.identity?.profileId, balance => {
     state.creditBalance = balance;
     renderMovementHud();
-    gameInventoryController.refresh();
+    activeInventoryController.refresh();
   }, error => console.debug('Game credit wallet', error?.code || error));
 }
 
@@ -1117,11 +1184,13 @@ function renderMovementHud() {
   if (auto) auto.textContent = state.autoTarget ? `AUTO → ${state.autoTarget.x.toFixed(0)}, ${state.autoTarget.y.toFixed(0)}` : 'CLICK / TAP BOARD TO AUTO-MOVE';
   const hp = $('#playerHealth');
   if (hp) hp.textContent = `${state.hp} / ${PLAYER_MAX_HP}`;
+  const energy = $('#playerEnergy');
+  if (energy) energy.textContent = `${state.energy} / ${state.maxEnergy}`;
   const credits = $('#creditBalance');
-  if (credits) credits.textContent = formatCredits(state.creditBalance);
+  if (credits) credits.textContent = state.hostedWorld ? Math.max(0, Number(activeInventoryController.getInventory?.()?.currencyBalance || 0)).toLocaleString() : formatCredits(state.creditBalance);
   const attackStat = $('#playerAttack');
   if (attackStat) {
-    const range = damageRange(state.gameInventory);
+    const range = currentDamageRange();
     attackStat.textContent = `${range.min}–${range.max} // ${range.label.toUpperCase()}`;
   }
   const rest = $('#restAction');
@@ -1141,7 +1210,7 @@ function markerWindowLabel(turn, currentTurn) {
 function actionStatusLabel(action) {
   if (action.status === 'cancelled') return 'CANCELLED';
   if (action.status === 'resolved') {
-    if (action.outcome === 'kill') return action.targetType === 'enemy' ? 'KILL +1C' : 'PVP KO';
+    if (action.outcome === 'kill') return action.targetType === 'enemy' ? (state.hostedWorld ? 'KILL' : 'KILL +1C') : 'PVP KO';
     if (action.outcome === 'hit') return 'HIT';
     if (action.outcome === 'miss') return 'MISS';
     return 'RESOLVED';
@@ -1271,13 +1340,14 @@ function applyTurnChange(nextTurn) {
   const previous = state.turnNumber;
   state.turnNumber = nextTurn;
   state.moveUsed = 0;
+  state.energy = state.maxEnergy;
   renderLocalBase();
   renderMovementHud();
   syncVelocity();
   state.dirty = true;
   state.velocityDirty = true;
   flushPresence(true);
-  if (previous) message('GLOBAL MARKER // refreshed. Movement and actions restored.');
+  if (previous) message('GLOBAL MARKER // MOVEMENT + ENERGY REFRESHED.');
   renderGameLog();
   renderPvpRecord();
   renderActionPanel();
@@ -1359,16 +1429,20 @@ async function queueAction(actionType) {
     message('Cancel your current declaration before replacing it.');
     return;
   }
+  if (state.energy < 1) {
+    message('NO ENERGY REMAINING // REST OR WAIT FOR THE NEXT MARKER.');
+    return;
+  }
   if (actionType === 'attack' && !['profile','enemy'].includes(state.selectedTarget.type)) {
     message('Attack requires a player or enemy target.');
     return;
   }
   if (actionType === 'attack' && state.selectedTarget.type === 'enemy' && !state.enemies.get(state.selectedTarget.id)?.alive) {
-    message('That slime is already down. It will respawn at a global marker.');
+    message('That enemy is already down. It will respawn at a global marker.');
     return;
   }
   if (actionType === 'interact' && state.selectedTarget.type === 'enemy') {
-    message('Use ATTACK for hostile slime targets.');
+    message('Use ATTACK for hostile enemy targets.');
     return;
   }
 
@@ -1377,6 +1451,7 @@ async function queueAction(actionType) {
   try {
     await fs.setDoc(fs.doc(db, 'gameActions', id), payload);
     state.ownQueuedActionId = id;
+    state.energy = Math.max(0, state.energy - 1);
     state.actionTurn = turnInfo().turnNumber;
     state.dirty = true;
     flushPresence(true);
@@ -1405,7 +1480,10 @@ async function cancelQueuedAction() {
       resolvedAt: null
     });
     state.ownQueuedActionId = '';
-    message('Declared action cancelled before resolution.');
+    state.energy = Math.min(state.maxEnergy, state.energy + 1);
+    state.dirty = true;
+    flushPresence(true);
+    message('Declared action cancelled // ENERGY REFUNDED.');
     renderActionPanel();
   } catch (error) {
     console.error(error);
@@ -1425,7 +1503,55 @@ function pulseTarget(action) {
   setTimeout(() => el.classList.remove('action-resolved'), 1200);
 }
 
+async function resolveOwnHostedEnemyAttack(id, action, currentTurn) {
+  if (state.resolvingActions.has(id) || !state.identity?.profileId) return;
+  state.resolvingActions.add(id);
+  try {
+    const profileId = state.identity.profileId;
+    await ensureWorldInventory(db, fs, worldId, lobbyId, profileId, state.worldSettings);
+    const actionRef = fs.doc(db, 'gameActions', id);
+    const enemyRef = fs.doc(db, 'gameEnemies', action.targetId);
+    const presenceRef = fs.doc(db, 'gamePresence', presenceId(profileId));
+    const inventoryRef = worldInventoryRef(db, fs, worldId, profileId);
+    const result = await firestoreRunTransaction(db, async tx => {
+      const [actionSnap, enemySnap, presenceSnap, invSnap] = await Promise.all([tx.get(actionRef), tx.get(enemyRef), tx.get(presenceRef), tx.get(inventoryRef)]);
+      if (!actionSnap.exists() || !enemySnap.exists() || !presenceSnap.exists() || !invSnap.exists()) return { skipped: true };
+      const liveAction = actionSnap.data(), enemy = enemySnap.data(), presence = presenceSnap.data();
+      if (liveAction.status !== 'queued' || Number(liveAction.resolveTurn || 0) > currentTurn) return { skipped: true };
+      const inRange = enemy.alive && distanceBetween(presence.x, presence.y, enemy.x, enemy.y) <= PLAYER_ATTACK_RANGE;
+      if (!inRange) { tx.update(actionRef,{status:'resolved',outcome:'miss',updatedAt:fs.serverTimestamp(),resolvedAt:fs.serverTimestamp()}); return { miss:true,label:enemy.label||'ENEMY' }; }
+      const inv = normalizeWorldInventory(invSnap.data(), worldId, lobbyId, profileId, state.worldSettings);
+      const damage = worldAttackDamage(id, inv, state.worldSettings);
+      const hpAfter = Math.max(0, Number(enemy.hp || 0) - damage);
+      const killed = hpAfter <= 0;
+      const mob = mobById(state.worldSettings, enemy.mobId) || mobById(state.worldSettings, slimeDefinitionByDocId(enemy.id)?.mobId);
+      const respawnTurns = Math.max(1, Number(mob?.respawnTurns || enemy.respawnTurns || 1));
+      const enemyPatch = { hp:hpAfter, alive:!killed, respawnTurn:killed?currentTurn+respawnTurns:Number(enemy.respawnTurn||0), lastHitActionId:id, lastHitByProfileId:profileId, updatedAt:fs.serverTimestamp() };
+      if (killed) { enemyPatch.lastKillActionId=id; enemyPatch.killerProfileId=profileId; }
+      tx.update(enemyRef, enemyPatch);
+      tx.update(actionRef,{status:'resolved',outcome:killed?'kill':'hit',updatedAt:fs.serverTimestamp(),resolvedAt:fs.serverTimestamp()});
+      let drops = {}, reward = 0;
+      if (killed) {
+        drops = rollMobDrops(id, mob || {id:enemy.mobId,drops:[]});
+        reward = Math.max(0, Math.floor(Number(mob?.killReward || 0)));
+        const items = { ...inv.items };
+        for (const [itemId, qty] of Object.entries(drops)) items[itemId] = Math.max(0, Number(items[itemId] || 0)) + Math.max(0, Number(qty || 0));
+        tx.update(inventoryRef,{items,currencyBalance:inv.currencyBalance+reward,updatedAt:fs.serverTimestamp()});
+      }
+      return { hit:true,killed,damage,drops,reward,label:enemy.label||'ENEMY' };
+    });
+    if (result?.killed) {
+      const dropNames = Object.keys(result.drops||{}).map(itemId => state.worldSettings.items.find(i=>i.id===itemId)?.name || itemId);
+      const currency = state.worldSettings.currency;
+      message(`${result.label} DEFEATED // +${result.reward||0} ${currency.name}${dropNames.length?` // DROP: ${dropNames.join(' + ')}`:''}.`);
+    } else if (result?.hit) message(`${result.label} HIT // ${result.damage||1} DAMAGE.`);
+    else if (result?.miss) message(`${result.label} ATTACK MISSED // OUTSIDE ${PLAYER_ATTACK_RANGE} RANGE.`);
+  } catch (error) { console.error('Hosted enemy attack resolution',error); message(`ATTACK RESOLUTION FAILED: ${error.code||error.message}`); }
+  finally { state.resolvingActions.delete(id); }
+}
+
 async function resolveOwnEnemyAttack(id, action, currentTurn) {
+  if (state.hostedWorld) return resolveOwnHostedEnemyAttack(id, action, currentTurn);
   if (state.resolvingActions.has(id) || !state.identity?.profileId) return;
   state.resolvingActions.add(id);
   try {
@@ -1526,7 +1652,30 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
   }
 }
 
+async function resolveHostedPlayerAttack(id, action, currentTurn) {
+  if (state.resolvingActions.has(id) || !state.identity?.profileId) return;
+  state.resolvingActions.add(id);
+  try {
+    const profileId=state.identity.profileId;
+    await ensureWorldInventory(db,fs,worldId,lobbyId,profileId,state.worldSettings);
+    const actionRef=fs.doc(db,'gameActions',id), attackerRef=fs.doc(db,'gamePresence',presenceId(profileId)), targetRef=fs.doc(db,'gamePresence',presenceId(action.targetId)), invRef=worldInventoryRef(db,fs,worldId,profileId);
+    const pvpRespawn=playerSpawnPoint(`pvp:${worldId}:${action.targetId}:${id}`);
+    const result=await firestoreRunTransaction(db,async tx=>{
+      const [aSnap,attSnap,tSnap,iSnap]=await Promise.all([tx.get(actionRef),tx.get(attackerRef),tx.get(targetRef),tx.get(invRef)]);
+      if(!aSnap.exists()||!attSnap.exists()||!tSnap.exists()||!iSnap.exists())return{skipped:true};
+      const live=aSnap.data(),att=attSnap.data(),target=tSnap.data(); if(live.status!=='queued'||Number(live.resolveTurn||0)>currentTurn)return{skipped:true};
+      if(att.worldId!==worldId||target.worldId!==worldId||distanceBetween(att.x,att.y,target.x,target.y)>PLAYER_ATTACK_RANGE){tx.update(actionRef,{status:'resolved',outcome:'miss',updatedAt:fs.serverTimestamp(),resolvedAt:fs.serverTimestamp()});return{miss:true};}
+      const inv=normalizeWorldInventory(iSnap.data(),worldId,lobbyId,profileId,state.worldSettings);const damage=worldAttackDamage(id,inv,state.worldSettings);const hpBefore=Math.max(1,Number(target.hp??PLAYER_MAX_HP)),hpAfter=hpBefore-damage,killed=hpAfter<=0;
+      const patch={hp:killed?PLAYER_MAX_HP:hpAfter,maxHp:PLAYER_MAX_HP,lastPvpEventId:id,restedTurn:Math.max(0,Number(target.restedTurn||0)),movedTurn:Math.max(0,Number(target.movedTurn||0)),actionTurn:Math.max(0,Number(target.actionTurn||0)),updatedAt:fs.serverTimestamp()};
+      if(killed)Object.assign(patch,{x:pvpRespawn.x,y:pvpRespawn.y,vx:0,vy:0,moveUsed:0,energy:state.maxEnergy,maxEnergy:state.maxEnergy,deaths:Math.max(0,Number(target.deaths||0))+1,lastDeathEventId:`pvp_${id}`.slice(0,180)});
+      tx.update(targetRef,patch);tx.update(actionRef,{status:'resolved',outcome:killed?'kill':'hit',updatedAt:fs.serverTimestamp(),resolvedAt:fs.serverTimestamp()});return{hit:true,killed,damage};
+    });
+    if(result?.killed)message(`${action.targetLabel||'PLAYER'} DOWNED // ${result.damage} DAMAGE // CUSTOM WORLD PVP // NO E.R.A.S. CREDITS.`);else if(result?.hit)message(`${action.targetLabel||'PLAYER'} HIT // ${result.damage} DAMAGE.`);else if(result?.miss)message('PVP ATTACK MISSED // OUT OF RANGE.');
+  }catch(error){console.error('Hosted PVP resolution',error);message(`PVP RESOLUTION FAILED: ${error.code||error.message}`);}finally{state.resolvingActions.delete(id);}
+}
+
 async function resolveOwnPlayerAttack(id, action, currentTurn) {
+  if (state.hostedWorld) return resolveHostedPlayerAttack(id, action, currentTurn);
   if (state.resolvingActions.has(id) || !state.identity?.profileId) return;
   state.resolvingActions.add(id);
   try {
@@ -1572,6 +1721,8 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
         Object.assign(targetPatch, {
           x: pvpRespawn.x, y: pvpRespawn.y, vx: 0, vy: 0,
           moveUsed: 0,
+          energy: state.maxEnergy,
+          maxEnergy: state.maxEnergy,
           deaths: Math.max(0, Number(target.deaths || 0)) + 1,
           lastDeathEventId: deathEventId
         });
@@ -1629,7 +1780,7 @@ async function resolveOwnStandardAction(id, action, currentTurn) {
       return true;
     });
     if (resolved && action.actionType === 'interact' && action.targetType === 'object') {
-      const openedTerminal = gameInventoryController.openTerminal(action.targetId);
+      const openedTerminal = activeInventoryController.openTerminal(action.targetId);
       if (openedTerminal) message(`${action.targetLabel || 'TERMINAL'} OPEN // LEFT PANE SWITCHED TO TERMINAL TRADE.`);
     }
   } catch (error) {
@@ -1658,7 +1809,7 @@ async function processResolvedActions(currentTurn) {
     pulseTarget(action);
     const actorName = state.profiles.get(action.actorProfileId)?.displayName || (action.actorProfileId === state.identity?.profileId ? 'YOU' : 'PLAYER');
     const suffix = action.outcome === 'kill'
-      ? (action.targetType === 'enemy' ? ' // KILL +1 CREDIT' : ' // PVP KO // CREDITS SAFE')
+      ? (action.targetType === 'enemy' ? (state.hostedWorld ? ` // KILL + LOCAL ${state.worldSettings.currency.name}` : ' // KILL +1 CREDIT') : ' // PVP KO // CREDITS SAFE')
       : action.outcome === 'miss' ? ' // MISS' : '';
     message(`${actorName} ${action.actionType === 'attack' ? 'ATTACK' : 'INTERACTION'} RESOLVED → ${action.targetLabel || 'TARGET'}${suffix}.`);
     if (action.actorProfileId === state.identity?.profileId && state.ownQueuedActionId === id) state.ownQueuedActionId = '';
@@ -1697,6 +1848,8 @@ async function autoRestCompletedTurn(completedTurn, resolveTurn, markerAttackers
 
       tx.update(ref, {
         hp: PLAYER_MAX_HP,
+        energy: state.maxEnergy,
+        maxEnergy: state.maxEnergy,
         vx: 0,
         vy: 0,
         // Security rules validate a rest against the turn that was actually
@@ -1710,6 +1863,7 @@ async function autoRestCompletedTurn(completedTurn, resolveTurn, markerAttackers
 
     if (!result?.ok) return false;
     state.hp = PLAYER_MAX_HP;
+    state.energy = state.maxEnergy;
     state.restedTurn = completedTurn;
     state.dirty = true;
     state.velocityDirty = true;
@@ -1717,7 +1871,7 @@ async function autoRestCompletedTurn(completedTurn, resolveTurn, markerAttackers
     renderMovementHud();
     renderActionPanel();
     await flushPresence(true);
-    message('AUTO REST // NO ACTION SELECTED + NO COMBAT // FULL HEALTH.');
+    message('AUTO REST // SAFE + IDLE // FULL HEALTH + ENERGY.');
     return true;
   } catch (error) {
     console.error('Auto rest', error);
@@ -1746,6 +1900,8 @@ async function restToFullHealth() {
       if (Number(live.restedTurn || 0) === currentTurn) return { error: 'ALREADY RESTED' };
       tx.update(ref, {
         hp: PLAYER_MAX_HP,
+        energy: state.maxEnergy,
+        maxEnergy: state.maxEnergy,
         vx: 0,
         vy: 0,
         turnNumber: currentTurn,
@@ -1759,6 +1915,7 @@ async function restToFullHealth() {
       return;
     }
     state.hp = PLAYER_MAX_HP;
+    state.energy = state.maxEnergy;
     state.restedTurn = currentTurn;
     state.vx = 0;
     state.vy = 0;
@@ -1770,14 +1927,40 @@ async function restToFullHealth() {
     renderLocalBase();
     renderMovementHud();
     renderActionPanel();
-    message('REST COMPLETE // FULL HEALTH // MOVEMENT AND ACTIONS LOCKED UNTIL NEXT GLOBAL REFRESH.');
+    message('REST COMPLETE // FULL HEALTH + ENERGY // MOVEMENT AND ACTIONS LOCKED UNTIL NEXT GLOBAL REFRESH.');
   } catch (error) {
     console.error('Rest', error);
     message(`REST FAILED: ${error.code || error.message}`);
   }
 }
 
+async function applyHostedEnemyRetaliation(currentTurn, markerAttackers = []) {
+  if (!state.identity?.profileId) return;
+  const profileId = state.identity.profileId;
+  const presenceRef = fs.doc(db, 'gamePresence', presenceId(profileId));
+  const deathEventId = `death_${presenceId(profileId)}_${currentTurn}`.slice(0, 180);
+  const pveRespawn = playerSpawnPoint(`pve:${worldId}:${profileId}:${deathEventId}`);
+  const attackers = markerAttackers.map(enemy => {
+    const mob = mobById(state.worldSettings, enemy.mobId) || mobById(state.worldSettings, slimeDefinitionByDocId(enemy.id)?.mobId);
+    return { id:enemy.id, damage:Math.max(0,Math.floor(Number(mob?.damage ?? enemy.damage ?? 1))) };
+  }).filter(a=>a.id && a.damage>0);
+  const damage = attackers.reduce((sum,a)=>sum+a.damage,0);
+  if (!damage) return;
+  const result = await firestoreRunTransaction(db, async tx => {
+    const snap = await tx.get(presenceRef); if (!snap.exists()) return { skipped:true };
+    const presence=snap.data(); if(Number(presence.lastCombatTurn||0)>=currentTurn)return{skipped:true};
+    const hpBefore=Math.max(1,Number(presence.hp??PLAYER_MAX_HP)), hpAfter=hpBefore-damage;
+    if(hpAfter>0){tx.update(presenceRef,{hp:hpAfter,lastCombatTurn:currentTurn,updatedAt:fs.serverTimestamp()});return{damage,hp:hpAfter};}
+    tx.update(presenceRef,{x:pveRespawn.x,y:pveRespawn.y,vx:0,vy:0,moveUsed:0,hp:PLAYER_MAX_HP,maxHp:PLAYER_MAX_HP,energy:state.maxEnergy,maxEnergy:state.maxEnergy,deaths:Math.max(0,Number(presence.deaths||0))+1,lastDeathEventId:deathEventId,lastCombatTurn:currentTurn,updatedAt:fs.serverTimestamp()});
+    return{damage,died:true,hp:PLAYER_MAX_HP,deaths:Math.max(0,Number(presence.deaths||0))+1,eventId:deathEventId,spawnX:pveRespawn.x,spawnY:pveRespawn.y};
+  });
+  if(result?.skipped)return;
+  state.lastCombatTurn=currentTurn;
+  if(result?.died){state.hp=PLAYER_MAX_HP;state.energy=state.maxEnergy;state.deaths=result.deaths;state.lastDeathEventId=result.eventId;state.x=result.spawnX;state.y=result.spawnY;state.vx=0;state.vy=0;state.moveUsed=0;state.autoTarget=null;const token=state.tokenMap.get(profileId);if(token){updateToken(token,state.x,state.y);token.classList.add('player-death-pulse');setTimeout(()=>token.classList.remove('player-death-pulse'),1200);}resetCamera(true);activeInventoryController.clearOnDeath(state.lastDeathEventId).catch(()=>{});message(`YOU WERE DOWNED // WORLD INVENTORY CLEARED // ${state.worldSettings.currency.name} DEATH RULE APPLIED // ENERGY RESTORED.`);}else{state.hp=Math.max(0,Number(result.hp??state.hp));message(`ENEMY ATTACK // -${result.damage} HP.`);}renderLocalBase();renderMovementHud();
+}
+
 async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
+  if (state.hostedWorld) return applyHostedEnemyRetaliation(currentTurn, markerAttackers);
   if (!state.identity?.profileId) return;
   await ensureCreditWallet(db, fs, state.identity.profileId);
   const presenceRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
@@ -1823,6 +2006,8 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
       moveUsed: 0,
       hp: PLAYER_MAX_HP,
       maxHp: PLAYER_MAX_HP,
+      energy: state.maxEnergy,
+      maxEnergy: state.maxEnergy,
       deaths: Math.max(0, Number(presence.deaths || 0)) + 1,
       lastDeathEventId: eventId,
       lastCombatTurn: currentTurn,
@@ -1856,13 +2041,14 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
   if (Number(result?.damage || 0) > 0 || result?.died) state.lastCombatTurn = currentTurn;
   if (result?.died) {
     state.hp = PLAYER_MAX_HP;
+    state.energy = state.maxEnergy;
     state.deaths = Math.max(0, Number(result.deaths || state.deaths + 1));
     state.lastDeathEventId = String(result.eventId || deathEventId);
     state.x = Number(result.spawnX ?? pveRespawn.x); state.y = Number(result.spawnY ?? pveRespawn.y); state.vx = 0; state.vy = 0; state.moveUsed = 0; state.autoTarget = null;
     const token = state.tokenMap.get(state.identity.profileId);
     if (token) { updateToken(token, state.x, state.y); token.classList.add('player-death-pulse'); setTimeout(() => token.classList.remove('player-death-pulse'), 1200); }
     resetCamera(true);
-    gameInventoryController.clearOnDeath(state.lastDeathEventId).catch(() => {});
+    activeInventoryController.clearOnDeath(state.lastDeathEventId).catch(() => {});
     message(`YOU WERE DOWNED BY THE CACHE SLIMES // GAME INVENTORY CLEARED // -${result.lost || 0} CREDITS // RESPAWNED ON NORTH PLATFORM.`);
   } else {
     state.hp = Math.max(0, Number(result?.hp ?? state.hp));
@@ -1882,7 +2068,7 @@ async function runCombatMarker(currentTurn) {
     await respawnDeadSlimes(currentTurn);
     const markerEnemies = await refreshEnemyState();
     const markerAttackers = [...markerEnemies.values()].filter(enemy =>
-      enemy.alive && distanceBetween(state.x, state.y, enemy.x, enemy.y) <= SLIME_ATTACK_RANGE
+      enemy.alive && distanceBetween(state.x, state.y, enemy.x, enemy.y) <= Number(mobById(state.worldSettings, enemy.mobId)?.attackRange || slimeDefinitionByDocId(enemy.id)?.attackRange || SLIME_ATTACK_RANGE)
     );
 
     // If the completed turn had no movement/action and no hostile commitment,
@@ -2024,7 +2210,7 @@ const keyMap = {
 window.addEventListener('keydown', event => {
   if (event.key === 'i' || event.key === 'I') {
     event.preventDefault();
-    if (state.identity?.profileId) gameInventoryController.open('equipment');
+    if (state.identity?.profileId) activeInventoryController.open('equipment');
     return;
   }
   if (document.body.classList.contains('game-inventory-open')) return;
@@ -2078,7 +2264,7 @@ document.querySelectorAll('[data-move]').forEach(btn => {
 
 $('#queueAttack')?.addEventListener('click', () => queueAction('attack'));
 $('#queueInteract')?.addEventListener('click', () => queueAction('interact'));
-$('#gameInventoryButton')?.addEventListener('click', () => gameInventoryController.open('equipment'));
+$('#gameInventoryButton')?.addEventListener('click', () => activeInventoryController.open('equipment'));
 $('#cancelAction')?.addEventListener('click', cancelQueuedAction);
 $('#restAction')?.addEventListener('click', restToFullHealth);
 $('#cancelAutoMove')?.addEventListener('click', () => {
@@ -2132,23 +2318,29 @@ watchIdentity(async identity => {
   // Presence is the critical path for materializing the player's map token.
   // Optional economy/inventory failures must never prevent the battlefield from
   // coming online.
-  await restorePosition();
   await loadWorldName();
+  await restorePosition();
   await flushPresence(true);
   watchPresence();
   watchActions();
 
   try {
-    await ensureCreditWallet(db, fs, identity.profileId);
-    await ensureGameInventory(db, fs, identity.profileId);
-    await gameInventoryController.start(identity.profileId);
-    await ensureGlobalStats(identity.profileId);
-    watchCredits();
-    watchGlobalStats();
-    if (state.lastDeathEventId) await gameInventoryController.clearOnDeath(state.lastDeathEventId);
+    if (state.hostedWorld) {
+      await ensureWorldInventory(db, fs, worldId, lobbyId, identity.profileId, state.worldSettings);
+      await activeInventoryController.start(identity.profileId);
+      watchGlobalStats();
+    } else {
+      await ensureCreditWallet(db, fs, identity.profileId);
+      await ensureGameInventory(db, fs, identity.profileId);
+      await activeInventoryController.start(identity.profileId);
+      await ensureGlobalStats(identity.profileId);
+      watchCredits();
+      watchGlobalStats();
+    }
+    if (state.lastDeathEventId) await activeInventoryController.clearOnDeath(state.lastDeathEventId);
   } catch (error) {
     console.error('Optional game inventory/economy init', error);
-    message('BATTLEFIELD ONLINE // INVENTORY OR CREDIT SYSTEM NEEDS FIRESTORE RULES.');
+    message('BATTLEFIELD ONLINE // INVENTORY OR ECONOMY RULES NEED FIRESTORE UPDATE.');
   }
 
   try {

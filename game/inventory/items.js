@@ -36,9 +36,9 @@ const ITEM_DEFINITIONS = {
     bag: true,
     bagOrder: 30,
     equipmentSlot: 'weapon',
-    damageMin: 1,
-    damageMax: 1,
-    description: 'Simple fighting wraps. Damage 1–1.'
+    damageMin: 2,
+    damageMax: 2,
+    description: 'Simple fighting wraps. Damage 2–2.'
   },
   stick: {
     name: 'Stick',

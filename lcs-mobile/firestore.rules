@@ -618,11 +618,13 @@ service cloud.firestore {
     function validSlimeKillCreditAction(data, action) {
       let enemyPath = /databases/$(database)/documents/gameEnemies/$(action.targetId);
       return action.actorProfileId == callerProfileId()
+        && action.worldId == 'global'
         && action.actionType == 'attack'
         && action.targetType == 'enemy'
         && action.status == 'resolved'
         && action.outcome == 'kill'
         && existsAfter(enemyPath)
+        && getAfter(enemyPath).data.worldId == 'global'
         && getAfter(enemyPath).data.alive == false
         && getAfter(enemyPath).data.lastKillActionId == data.lastEventId
         && getAfter(enemyPath).data.killerProfileId == callerProfileId();
@@ -757,6 +759,7 @@ service cloud.firestore {
         && data.equippedWeapon == resource.data.equippedWeapon
         && data.lastDeathEventId == resource.data.lastDeathEventId
         && existsAfter(actionPath)
+        && getAfter(actionPath).data.worldId == 'global'
         && getAfter(actionPath).data.actorProfileId == callerProfileId()
         && getAfter(actionPath).data.actionType == 'attack'
         && getAfter(actionPath).data.targetType == 'enemy'
@@ -1244,7 +1247,7 @@ service cloud.firestore {
     function validLobbyVisibility(value) { return value in ['public','friends','code']; }
     function validLobbyStatus(value) { return value in ['open','playing','closed']; }
     function validGameLobby(data) {
-      return data.keys().hasOnly(['name','code','hostProfileId','visibility','maxPlayers','mapId','gameStyle','description','status','createdAt','updatedAt','lastHeartbeatAt'])
+      return data.keys().hasOnly(['name','code','hostProfileId','visibility','maxPlayers','mapId','gameStyle','description','settings','status','createdAt','updatedAt','lastHeartbeatAt'])
         && data.name is string && data.name.size() >= 2 && data.name.size() <= 50
         && data.code is string && data.code.matches('[A-Z2-9]{6}')
         && validPublicId(data.hostProfileId) && profileExists(data.hostProfileId)
@@ -1253,6 +1256,7 @@ service cloud.firestore {
         && data.mapId in ['global-plaza','slime-yard']
         && data.gameStyle == 'arcade-topdown'
         && data.description is string && data.description.size() <= 240
+        && data.get('settings', {}) is map
         && validLobbyStatus(data.status)
         && data.createdAt is timestamp && data.updatedAt is timestamp && data.lastHeartbeatAt is timestamp;
     }
@@ -1304,7 +1308,7 @@ service cloud.firestore {
       return data.x >= 11 && data.x <= 32 && data.y >= 11 && data.y <= 28;
     }
     function validPresence(data) {
-      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','hp','maxHp','deaths','lastDeathEventId','lastCombatTurn','restedTurn','movedTurn','actionTurn','lastPvpEventId','updatedAt'])
+      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','hp','maxHp','energy','maxEnergy','deaths','lastDeathEventId','lastCombatTurn','restedTurn','movedTurn','actionTurn','lastPvpEventId','updatedAt'])
         && validWorldId(data.worldId)
         && validPublicId(data.profileId) && profileExists(data.profileId)
         && data.x is number && data.x >= 0 && data.x <= 100
@@ -1312,9 +1316,13 @@ service cloud.firestore {
         && data.vx is number && data.vx >= -50 && data.vx <= 50
         && data.vy is number && data.vy >= -50 && data.vy <= 50
         && data.turnNumber is int && data.turnNumber >= 1
-        && data.moveUsed is number && data.moveUsed >= 0 && data.moveUsed <= 40.25
-        && data.hp is int && data.hp >= 0 && data.hp <= 3
-        && data.maxHp == 3
+        && data.moveUsed is number && data.moveUsed >= 0
+        && data.hp is int && data.hp >= 0
+        && data.maxHp is int && data.maxHp >= 1 && data.maxHp <= 50 && data.hp <= data.maxHp
+        && data.energy is int && data.energy >= 0
+        && data.maxEnergy is int && data.maxEnergy >= 1 && data.maxEnergy <= 20 && data.energy <= data.maxEnergy
+        && ((data.worldId == 'global' && data.moveUsed <= 50.25 && data.maxHp == 5 && data.maxEnergy == 1)
+          || (data.worldId != 'global' && data.moveUsed <= 100.25))
         && data.deaths is int && data.deaths >= 0
         && data.lastDeathEventId is string && data.lastDeathEventId.size() <= 180
         && data.lastCombatTurn is int && data.lastCombatTurn >= 0
@@ -1330,7 +1338,8 @@ service cloud.firestore {
         && resource.data.moveUsed <= 0.001
         && resource.data.get('movedTurn',0) != request.resource.data.restedTurn
         && resource.data.get('actionTurn',0) != request.resource.data.restedTurn
-        && request.resource.data.hp == 3
+        && request.resource.data.hp == request.resource.data.maxHp
+        && request.resource.data.energy == request.resource.data.maxEnergy
         && request.resource.data.deaths == resource.data.deaths
         && request.resource.data.x == resource.data.x
         && request.resource.data.y == resource.data.y
@@ -1338,14 +1347,41 @@ service cloud.firestore {
     }
     function validHealthPotionPresenceTransition() {
       let inventoryPath = /databases/$(database)/documents/gameInventories/$(resource.data.profileId);
-      return isCallerProfile(resource.data.profileId)
+      return resource.data.worldId == 'global'
+        && isCallerProfile(resource.data.profileId)
         && exists(inventoryPath) && existsAfter(inventoryPath)
         && getAfter(inventoryPath).data.lastEventType == 'consume_potion'
         && getAfter(inventoryPath).data.lastEventId != get(inventoryPath).data.lastEventId
         && getAfter(inventoryPath).data.healthPotion == get(inventoryPath).data.healthPotion - 1
         && request.resource.data.hp > resource.data.hp
         && request.resource.data.hp <= resource.data.hp + 2
-        && request.resource.data.hp <= 3
+        && request.resource.data.hp <= resource.data.maxHp
+        && request.resource.data.energy == resource.data.energy
+        && request.resource.data.maxEnergy == resource.data.maxEnergy
+        && request.resource.data.worldId == resource.data.worldId
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.maxHp == resource.data.maxHp
+        && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
+        && request.resource.data.vx == resource.data.vx && request.resource.data.vy == resource.data.vy
+        && request.resource.data.turnNumber == resource.data.turnNumber
+        && request.resource.data.moveUsed == resource.data.moveUsed
+        && request.resource.data.deaths == resource.data.deaths
+        && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+        && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
+        && request.resource.data.restedTurn == resource.data.get('restedTurn',0)
+        && request.resource.data.movedTurn == resource.data.get('movedTurn',0)
+        && request.resource.data.actionTurn == resource.data.get('actionTurn',0)
+        && request.resource.data.lastPvpEventId == resource.data.get('lastPvpEventId','');
+    }
+    function validHostedPotionPresenceTransition() {
+      let inventoryPath = /databases/$(database)/documents/gameWorldInventories/$(resource.data.worldId + '__' + resource.data.profileId);
+      return resource.data.worldId != 'global'
+        && isCallerProfile(resource.data.profileId)
+        && exists(inventoryPath) && existsAfter(inventoryPath)
+        && request.resource.data.hp > resource.data.hp
+        && request.resource.data.hp <= resource.data.maxHp
+        && request.resource.data.energy == resource.data.energy
+        && request.resource.data.maxEnergy == resource.data.maxEnergy
         && request.resource.data.worldId == resource.data.worldId
         && request.resource.data.profileId == resource.data.profileId
         && request.resource.data.maxHp == resource.data.maxHp
@@ -1362,12 +1398,60 @@ service cloud.firestore {
         && request.resource.data.lastPvpEventId == resource.data.get('lastPvpEventId','');
     }
     function validOwnPresenceUpdate() {
+      let rest = validOwnRestTransition();
+      let death = request.resource.data.deaths > resource.data.deaths;
       return isCallerProfile(resource.data.profileId)
         && request.resource.data.lastPvpEventId == resource.data.get('lastPvpEventId','')
+        && (request.resource.data.energy <= resource.data.get('energy',request.resource.data.energy)
+          || request.resource.data.turnNumber > resource.data.turnNumber
+          || rest || death)
         && (request.resource.data.hp <= resource.data.hp
-          || request.resource.data.deaths > resource.data.deaths
-          || validOwnRestTransition()
-          || validHealthPotionPresenceTransition());
+          || death || rest
+          || validHealthPotionPresenceTransition()
+          || validHostedPotionPresenceTransition());
+    }
+    function validGlobalPvpPresenceTransition(actionId, actionPath) {
+      let damage = resource.data.hp - request.resource.data.hp;
+      let hasWeapon = exists(/databases/$(database)/documents/gameInventories/$(callerProfileId()))
+        && get(/databases/$(database)/documents/gameInventories/$(callerProfileId())).data.equippedWeapon in ['hand_wraps','stick'];
+      return resource.data.worldId == 'global'
+        && request.resource.data.energy == (getAfter(actionPath).data.outcome == 'kill' ? request.resource.data.maxEnergy : resource.data.energy)
+        && request.resource.data.maxEnergy == resource.data.maxEnergy
+        && ((getAfter(actionPath).data.outcome == 'hit'
+          && damage >= 1 && damage <= 2 && (damage == 1 || hasWeapon)
+          && request.resource.data.hp > 0
+          && request.resource.data.deaths == resource.data.deaths
+          && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+          && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
+          && request.resource.data.vx == resource.data.vx && request.resource.data.vy == resource.data.vy
+          && request.resource.data.moveUsed == resource.data.moveUsed)
+        || (getAfter(actionPath).data.outcome == 'kill'
+          && (resource.data.hp == 1 || (resource.data.hp <= 2 && hasWeapon))
+          && request.resource.data.hp == resource.data.maxHp
+          && request.resource.data.deaths == resource.data.deaths + 1
+          && request.resource.data.lastDeathEventId == 'pvp_' + actionId
+          && playerAtNorthPlatformSpawn(request.resource.data)
+          && request.resource.data.vx == 0 && request.resource.data.vy == 0 && request.resource.data.moveUsed == 0));
+    }
+    function validHostedPvpPresenceTransition(actionId, actionPath) {
+      return resource.data.worldId != 'global'
+        && request.resource.data.maxEnergy == resource.data.maxEnergy
+        && ((getAfter(actionPath).data.outcome == 'hit'
+          && request.resource.data.hp < resource.data.hp && request.resource.data.hp > 0
+          && resource.data.hp - request.resource.data.hp <= 99
+          && request.resource.data.energy == resource.data.energy
+          && request.resource.data.deaths == resource.data.deaths
+          && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+          && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
+          && request.resource.data.vx == resource.data.vx && request.resource.data.vy == resource.data.vy
+          && request.resource.data.moveUsed == resource.data.moveUsed)
+        || (getAfter(actionPath).data.outcome == 'kill'
+          && request.resource.data.hp == resource.data.maxHp
+          && request.resource.data.energy == resource.data.maxEnergy
+          && request.resource.data.deaths == resource.data.deaths + 1
+          && request.resource.data.lastDeathEventId == 'pvp_' + actionId
+          && playerAtNorthPlatformSpawn(request.resource.data)
+          && request.resource.data.vx == 0 && request.resource.data.vy == 0 && request.resource.data.moveUsed == 0));
     }
     function validPvpPresenceTransition() {
       let actionId = request.resource.data.lastPvpEventId;
@@ -1392,32 +1476,7 @@ service cloud.firestore {
         && request.resource.data.actionTurn == resource.data.get('actionTurn',0)
         && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
         && request.resource.data.lastPvpEventId == actionId
-        && ((getAfter(actionPath).data.outcome == 'hit'
-          && resource.data.hp - request.resource.data.hp >= 1
-          && resource.data.hp - request.resource.data.hp <= 2
-          && (resource.data.hp - request.resource.data.hp == 1
-            || (exists(/databases/$(database)/documents/gameInventories/$(callerProfileId()))
-              && get(/databases/$(database)/documents/gameInventories/$(callerProfileId())).data.equippedWeapon == 'stick'))
-          && request.resource.data.hp > 0
-          && request.resource.data.deaths == resource.data.deaths
-          && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
-          && request.resource.data.x == resource.data.x
-          && request.resource.data.y == resource.data.y
-          && request.resource.data.vx == resource.data.vx
-          && request.resource.data.vy == resource.data.vy
-          && request.resource.data.moveUsed == resource.data.moveUsed)
-        || (getAfter(actionPath).data.outcome == 'kill'
-          && (resource.data.hp == 1
-            || (resource.data.hp <= 2
-              && exists(/databases/$(database)/documents/gameInventories/$(callerProfileId()))
-              && get(/databases/$(database)/documents/gameInventories/$(callerProfileId())).data.equippedWeapon == 'stick'))
-          && request.resource.data.hp == 3
-          && request.resource.data.deaths == resource.data.deaths + 1
-          && request.resource.data.lastDeathEventId == 'pvp_' + actionId
-          && playerAtNorthPlatformSpawn(request.resource.data)
-          && request.resource.data.vx == 0
-          && request.resource.data.vy == 0
-          && request.resource.data.moveUsed == 0));
+        && (validGlobalPvpPresenceTransition(actionId, actionPath) || validHostedPvpPresenceTransition(actionId, actionPath));
     }
     match /gamePresence/{presenceId} {
       allow read: if signedIn();
@@ -1457,35 +1516,36 @@ service cloud.firestore {
 
     // ============================================================
     // E.R.A.S. SHARED ENEMIES
-    // Two one-HP Cache Slimes spawn randomly in the shared Cache/Yard zone and roam it while out of combat. A single
-    // elected client advances their shared position at a low write frequency.
+    // Global enemies stay server-authoritative and platform-economic. Hosted
+    // enemies are isolated to a lobby and may use host-defined stats/content,
+    // but can never mint E.R.A.S. Credits.
     // ============================================================
-    function validEnemyKey(value) { return value in ['cache-slime-a','cache-slime-b']; }
-    function validEnemyIdentity(data) {
-      return (data.enemyKey == 'cache-slime-a' && data.label == 'CACHE SLIME A')
-        || (data.enemyKey == 'cache-slime-b' && data.label == 'CACHE SLIME B');
+    function validGlobalEnemyKey(value) {
+      return value in ['cache-slime-a','cache-slime-b','cache-slime-c'];
     }
-    function validEnemyBounds(data) {
+    function validGlobalEnemyIdentity(data) {
+      return (data.enemyKey == 'cache-slime-a' && data.label == 'CACHE SLIME A')
+        || (data.enemyKey == 'cache-slime-b' && data.label == 'CACHE SLIME B')
+        || (data.enemyKey == 'cache-slime-c' && data.label == 'CACHE SLIME C');
+    }
+    function validGlobalEnemyBounds(data) {
       return data.x >= 76 && data.x <= 91 && data.y >= 68 && data.y <= 84;
     }
-    function enemyAtSpawn(data) {
-      // Initial spawns and marker respawns may land anywhere inside the shared
-      // Slime Cache/Yard zone. Randomness is selected client-side; rules enforce
-      // the authoritative geographic boundary.
-      return validEnemyBounds(data);
+    function globalEnemyAtSpawn(data) {
+      return validGlobalEnemyBounds(data);
     }
-    function validGameEnemy(data) {
+    function validGlobalGameEnemy(data) {
       return data.keys().hasOnly(['worldId','enemyKey','type','label','x','y','hp','maxHp','alive','respawnTurn','lastHitActionId','lastHitByProfileId','lastKillActionId','killerProfileId','wanderStep','lastWanderAt','updatedAt'])
-        && validWorldId(data.worldId)
-        && validEnemyKey(data.enemyKey)
-        && validEnemyIdentity(data)
-        && validEnemyBounds(data)
+        && data.worldId == 'global'
+        && validGlobalEnemyKey(data.enemyKey)
+        && validGlobalEnemyIdentity(data)
+        && validGlobalEnemyBounds(data)
         && data.type == 'slime'
         && data.label is string && data.label.size() > 0 && data.label.size() <= 40
-        && data.maxHp == 1
-        && data.hp is int && data.hp >= 0 && data.hp <= 1
+        && data.maxHp == 2
+        && data.hp is int && data.hp >= 0 && data.hp <= 2
         && data.alive is bool
-        && ((data.alive && data.hp == 1) || (!data.alive && data.hp == 0))
+        && ((data.alive && data.hp >= 1) || (!data.alive && data.hp == 0))
         && data.respawnTurn is int && data.respawnTurn >= 0
         && data.lastHitActionId is string && data.lastHitActionId.size() <= 180
         && data.lastHitByProfileId is string && (data.lastHitByProfileId == '' || validPublicId(data.lastHitByProfileId))
@@ -1495,9 +1555,10 @@ service cloud.firestore {
         && data.lastWanderAt is timestamp
         && data.updatedAt is timestamp;
     }
-    function validEnemyAttackAction(enemyId, actionId, killed) {
+    function validGlobalEnemyAttackAction(enemyId, actionId, killed) {
       let actionPath = /databases/$(database)/documents/gameActions/$(actionId);
       return existsAfter(actionPath)
+        && getAfter(actionPath).data.worldId == 'global'
         && getAfter(actionPath).data.actorProfileId == callerProfileId()
         && getAfter(actionPath).data.actionType == 'attack'
         && getAfter(actionPath).data.targetType == 'enemy'
@@ -1506,14 +1567,21 @@ service cloud.firestore {
         && getAfter(actionPath).data.outcome == (killed ? 'kill' : 'hit')
         && request.resource.data.respawnTurn == (killed ? getAfter(actionPath).data.resolveTurn + 1 : resource.data.respawnTurn);
     }
-    function validEnemyAttackTransition(enemyId) {
+    function callerGlobalWeaponAllowsTwoDamage() {
+      let inventoryPath = /databases/$(database)/documents/gameInventories/$(callerProfileId());
+      return exists(inventoryPath)
+        && get(inventoryPath).data.equippedWeapon in ['hand_wraps','stick'];
+    }
+    function validGlobalEnemyAttackTransition(enemyId) {
       let actionId = request.resource.data.lastHitActionId;
       let killed = request.resource.data.hp == 0;
+      let damage = resource.data.hp - request.resource.data.hp;
       return resource.data.alive == true
-        && request.resource.data.hp == resource.data.hp - 1
+        && damage >= 1 && damage <= 2
+        && (damage == 1 || callerGlobalWeaponAllowsTwoDamage())
         && request.resource.data.lastHitByProfileId == callerProfileId()
         && actionId.size() > 0
-        && validEnemyAttackAction(enemyId, actionId, killed)
+        && validGlobalEnemyAttackAction(enemyId, actionId, killed)
         && request.resource.data.alive == !killed
         && request.resource.data.lastKillActionId == (killed ? actionId : resource.data.lastKillActionId)
         && request.resource.data.killerProfileId == (killed ? callerProfileId() : resource.data.killerProfileId)
@@ -1522,7 +1590,7 @@ service cloud.firestore {
         && request.resource.data.wanderStep == resource.data.get('wanderStep',0)
         && request.resource.data.lastWanderAt == resource.data.get('lastWanderAt',request.resource.data.lastWanderAt);
     }
-    function validEnemyRespawnTransition() {
+    function validGlobalEnemyRespawnTransition() {
       return callerCanContribute()
         && resource.data.alive == false
         && request.resource.data.alive == true
@@ -1532,11 +1600,11 @@ service cloud.firestore {
         && request.resource.data.lastHitByProfileId == ''
         && request.resource.data.killerProfileId == ''
         && request.resource.data.lastKillActionId == resource.data.lastKillActionId
-        && enemyAtSpawn(request.resource.data)
+        && globalEnemyAtSpawn(request.resource.data)
         && request.resource.data.wanderStep == resource.data.get('wanderStep',0)
         && request.resource.data.lastWanderAt is timestamp;
     }
-    function validEnemyWanderTransition() {
+    function validGlobalEnemyWanderTransition() {
       return callerCanContribute()
         && resource.data.alive == true
         && request.resource.data.alive == resource.data.alive
@@ -1555,7 +1623,7 @@ service cloud.firestore {
         && request.resource.data.lastWanderAt == request.time
         && request.time >= resource.data.lastWanderAt + duration.value(12, 's');
     }
-    function validEnemyWanderMigration() {
+    function validGlobalEnemyWanderMigration() {
       return resource.data.alive == request.resource.data.alive
         && resource.data.hp == request.resource.data.hp
         && resource.data.x == request.resource.data.x
@@ -1568,29 +1636,134 @@ service cloud.firestore {
         && request.resource.data.wanderStep == 0
         && request.resource.data.lastWanderAt is timestamp;
     }
-    match /gameEnemies/{enemyId} {
-      allow read: if signedIn();
-      allow create: if callerCanContribute()
-        && validGameEnemy(request.resource.data)
-        && enemyId == request.resource.data.worldId + '__' + request.resource.data.enemyKey
-        && enemyAtSpawn(request.resource.data)
-        && request.resource.data.hp == 1
-        && request.resource.data.alive == true
-        && request.resource.data.respawnTurn == 0
-        && request.resource.data.lastHitActionId == ''
-        && request.resource.data.lastHitByProfileId == ''
-        && request.resource.data.lastKillActionId == ''
-        && request.resource.data.killerProfileId == ''
-        && request.resource.data.wanderStep == 0;
-      allow update: if callerCanContribute()
-        && validGameEnemy(request.resource.data)
+    function validGlobalEnemyHpMigration() {
+      return resource.data.worldId == 'global'
+        && resource.data.type == 'slime'
+        && resource.data.maxHp == 1
+        && request.resource.data.maxHp == 2
+        && request.resource.data.hp == (resource.data.alive ? 2 : 0)
+        && request.resource.data.alive == resource.data.alive
         && request.resource.data.worldId == resource.data.worldId
         && request.resource.data.enemyKey == resource.data.enemyKey
         && request.resource.data.type == resource.data.type
         && request.resource.data.label == resource.data.label
-        && request.resource.data.maxHp == resource.data.maxHp
-        && (validEnemyAttackTransition(enemyId) || validEnemyRespawnTransition() || validEnemyWanderTransition() || validEnemyWanderMigration());
+        && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
+        && request.resource.data.respawnTurn == resource.data.respawnTurn
+        && request.resource.data.lastHitActionId == resource.data.lastHitActionId
+        && request.resource.data.lastHitByProfileId == resource.data.lastHitByProfileId
+        && request.resource.data.lastKillActionId == resource.data.lastKillActionId
+        && request.resource.data.killerProfileId == resource.data.killerProfileId
+        && request.resource.data.wanderStep == resource.data.get('wanderStep',0)
+        && request.resource.data.lastWanderAt is timestamp;
+    }
+    function callerInHostedLobby(lobbyId) {
+      return callerCanContribute()
+        && lobbyId is string && lobbyId.size() > 0 && lobbyId.size() <= 120
+        && exists(/databases/$(database)/documents/gameLobbies/$(lobbyId)/members/$(callerProfileId()));
+    }
+
+
+    // ============================================================
+    // HOSTED-WORLD INVENTORY + LOCAL CURRENCY
+    // This namespace is deliberately isolated from creditWallets and the
+    // official Global gameInventories collection. Hosts may define arbitrary
+    // local items/equipment/currency, but nothing here can mint E.R.A.S. Credits.
+    // ============================================================
+    function validHostedWorldInventory(data, inventoryId) {
+      return data.keys().hasOnly(['worldId','lobbyId','profileId','currencyBalance','items','equippedWeapon','lastDeathEventId','createdAt','updatedAt'])
+        && data.worldId is string && data.worldId == 'lobby:' + data.lobbyId
+        && data.worldId != 'global'
+        && data.lobbyId is string && data.lobbyId.size() > 0 && data.lobbyId.size() <= 120
+        && validPublicId(data.profileId) && profileExists(data.profileId)
+        && inventoryId == data.worldId + '__' + data.profileId
+        && data.currencyBalance is int && data.currencyBalance >= 0 && data.currencyBalance <= 100000000
+        && data.items is map
+        && data.equippedWeapon is string && data.equippedWeapon.size() <= 64
+        && data.lastDeathEventId is string && data.lastDeathEventId.size() <= 180
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+    match /gameWorldInventories/{inventoryId} {
+      allow read: if hasPrivateAccount()
+        && isCallerProfile(resource.data.profileId)
+        && resource.data.worldId != 'global'
+        && callerInHostedLobby(resource.data.lobbyId);
+      allow create: if callerCanContribute()
+        && isCallerProfile(request.resource.data.profileId)
+        && callerInHostedLobby(request.resource.data.lobbyId)
+        && validHostedWorldInventory(request.resource.data, inventoryId);
+      allow update: if callerCanContribute()
+        && isCallerProfile(resource.data.profileId)
+        && callerInHostedLobby(resource.data.lobbyId)
+        && request.resource.data.worldId == resource.data.worldId
+        && request.resource.data.lobbyId == resource.data.lobbyId
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validHostedWorldInventory(request.resource.data, inventoryId);
       allow delete: if false;
+    }
+    function validHostedGameEnemy(data) {
+      return data.keys().hasOnly(['worldId','lobbyId','enemyKey','mobId','type','label','x','y','hp','maxHp','alive','damage','attackRange','respawnTurns','respawnTurn','lastHitActionId','lastHitByProfileId','lastKillActionId','killerProfileId','wanderStep','lastWanderAt','updatedAt'])
+        && data.lobbyId is string && data.lobbyId.size() > 0 && data.lobbyId.size() <= 120
+        && data.worldId == 'lobby:' + data.lobbyId
+        && data.enemyKey is string && data.enemyKey.size() > 0 && data.enemyKey.size() <= 120
+        && data.mobId is string && data.mobId.size() > 0 && data.mobId.size() <= 64
+        && data.type == 'custom'
+        && data.label is string && data.label.size() > 0 && data.label.size() <= 64
+        && data.x is number && data.x >= 0 && data.x <= 100
+        && data.y is number && data.y >= 0 && data.y <= 100
+        && data.maxHp is int && data.maxHp >= 1 && data.maxHp <= 100
+        && data.hp is int && data.hp >= 0 && data.hp <= data.maxHp
+        && data.alive is bool && ((data.alive && data.hp >= 1) || (!data.alive && data.hp == 0))
+        && data.damage is int && data.damage >= 0 && data.damage <= 50
+        && data.attackRange is number && data.attackRange >= 1 && data.attackRange <= 40
+        && data.respawnTurns is int && data.respawnTurns >= 1 && data.respawnTurns <= 30
+        && data.respawnTurn is int && data.respawnTurn >= 0
+        && data.lastHitActionId is string && data.lastHitActionId.size() <= 180
+        && data.lastHitByProfileId is string && (data.lastHitByProfileId == '' || validPublicId(data.lastHitByProfileId))
+        && data.lastKillActionId is string && data.lastKillActionId.size() <= 180
+        && data.killerProfileId is string && (data.killerProfileId == '' || validPublicId(data.killerProfileId))
+        && data.wanderStep is int && data.wanderStep >= 0
+        && data.lastWanderAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+    match /gameEnemies/{enemyId} {
+      allow read: if signedIn();
+      allow create: if callerCanContribute()
+        && ((validGlobalGameEnemy(request.resource.data)
+            && enemyId == request.resource.data.worldId + '__' + request.resource.data.enemyKey
+            && globalEnemyAtSpawn(request.resource.data)
+            && request.resource.data.hp == 2
+            && request.resource.data.alive == true
+            && request.resource.data.respawnTurn == 0
+            && request.resource.data.lastHitActionId == ''
+            && request.resource.data.lastHitByProfileId == ''
+            && request.resource.data.lastKillActionId == ''
+            && request.resource.data.killerProfileId == ''
+            && request.resource.data.wanderStep == 0)
+          || (validHostedGameEnemy(request.resource.data)
+            && callerInHostedLobby(request.resource.data.lobbyId)
+            && enemyId == request.resource.data.worldId + '__' + request.resource.data.enemyKey
+            && request.resource.data.hp == request.resource.data.maxHp
+            && request.resource.data.alive == true
+            && request.resource.data.respawnTurn == 0));
+      allow update: if callerCanContribute()
+        && ((validGlobalGameEnemy(request.resource.data)
+            && request.resource.data.worldId == resource.data.worldId
+            && request.resource.data.enemyKey == resource.data.enemyKey
+            && request.resource.data.type == resource.data.type
+            && request.resource.data.label == resource.data.label
+            && request.resource.data.maxHp == resource.data.maxHp
+            && (validGlobalEnemyAttackTransition(enemyId) || validGlobalEnemyRespawnTransition() || validGlobalEnemyWanderTransition() || validGlobalEnemyWanderMigration()))
+          || (validGlobalGameEnemy(request.resource.data) && validGlobalEnemyHpMigration())
+          || (validHostedGameEnemy(request.resource.data)
+            && callerInHostedLobby(request.resource.data.lobbyId)
+            && request.resource.data.worldId == resource.data.worldId
+            && request.resource.data.lobbyId == resource.data.lobbyId
+            && request.resource.data.enemyKey == resource.data.enemyKey
+            && request.resource.data.mobId == resource.data.mobId
+            && enemyId == request.resource.data.worldId + '__' + request.resource.data.enemyKey));
+      allow delete: if resource.data.get('type','') == 'custom'
+        && callerInHostedLobby(resource.data.get('lobbyId',''));
     }
 
     // ============================================================
