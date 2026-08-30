@@ -1,10 +1,14 @@
 import {
   GAME_ITEMS,
+  BAG_ITEM_IDS,
   WEAPON_IDS,
   emptyGameInventory,
   normalizeGameInventory,
+  inventoryZeroPatch,
+  itemCount,
   damageRange
-} from './items.js?v=1.9.0';
+} from './items.js?v=1.9.2';
+import { terminalMeta, terminalOffer } from './terminals.js?v=1.9.2';
 
 export const GAME_INVENTORY_COLLECTION = 'gameInventories';
 export const GAME_ITEM_TRANSACTION_COLLECTION = 'gameItemTransactions';
@@ -40,8 +44,9 @@ function escapeHtml(value = '') {
 }
 
 function itemIcon(item) {
-  if (item.texture) return `<img src="${item.texture}" alt="" draggable="false">`;
-  return '<span class="game-stick-icon" aria-hidden="true"></span>';
+  if (item?.texture) return `<img src="${escapeHtml(item.texture)}" alt="" draggable="false">`;
+  if (item?.id === 'stick') return '<span class="game-stick-icon" aria-hidden="true"></span>';
+  return '<span class="game-generic-item-icon" aria-hidden="true">◇</span>';
 }
 
 function transactionId(profileId, kind) {
@@ -65,6 +70,7 @@ export function createGameInventoryController({
   let inventory = emptyGameInventory('');
   let unsub = null;
   let mode = 'equipment';
+  let activeTerminalId = '';
   let overlay = null;
 
   function ensureOverlay() {
@@ -95,15 +101,14 @@ export function createGameInventoryController({
       if (event.key === 'Escape') close();
     });
     overlay.addEventListener('click', event => {
-      const action = event.target.closest('[data-game-action]')?.dataset.gameAction;
+      const actionNode = event.target.closest('[data-game-action]');
+      const action = actionNode?.dataset.gameAction || '';
       const itemId = event.target.closest('[data-game-item]')?.dataset.gameItem || '';
       if (!action) return;
-      if (action === 'use-potion') useHealthPotion();
+      if (action === 'use-item') useItem(itemId);
       if (action === 'equip') equipWeapon(itemId);
       if (action === 'unequip') unequipWeapon();
-      if (action === 'buy-health-potion') terminalTrade('buy', 'health_potion');
-      if (action === 'buy-stick') terminalTrade('buy', 'stick');
-      if (action === 'sell-slime-juice') terminalTrade('sell', 'slime_juice');
+      if (action === 'terminal-trade') terminalTrade(actionNode?.dataset.terminalOffer || '');
     });
     return overlay;
   }
@@ -121,54 +126,68 @@ export function createGameInventoryController({
       <p class="game-pane-note">Equip weapons from the Bag. Equipped gear is part of the game inventory and is lost on death.</p>`;
   }
 
-  function terminalButton(action, itemId, priceText, disabled = false) {
-    const item = GAME_ITEMS[itemId];
-    return `<button class="terminal-trade-row" type="button" data-game-action="${action}" data-game-item="${itemId}" ${disabled ? 'disabled' : ''}>
+  function terminalButton(offer, credits) {
+    const item = GAME_ITEMS[offer.itemId];
+    if (!item) return '';
+    const price = Math.max(1, Math.floor(Number(offer.price) || 0));
+    const isBuy = offer.direction === 'buy';
+    const disabled = isBuy ? credits < price : itemCount(inventory, offer.itemId) < 1;
+    const priceText = isBuy ? `BUY ${price}C` : `SELL +${price}C`;
+    return `<button class="terminal-trade-row" type="button" data-game-action="terminal-trade" data-terminal-offer="${escapeHtml(offer.id)}" data-game-item="${escapeHtml(offer.itemId)}" ${disabled ? 'disabled' : ''}>
       <span class="game-item-icon">${itemIcon(item)}</span><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.description)}</small></span><strong>${priceText}</strong>
     </button>`;
   }
 
   function renderTerminal() {
+    const terminal = terminalMeta(activeTerminalId);
+    if (!terminal) return renderEquipment();
     const credits = Math.max(0, Math.floor(Number(getCreditBalance?.()) || 0));
+    const offers = terminal.offers.map(offer => terminalButton(offer, credits)).filter(Boolean).join('');
+    const rules = terminal.offers.map(offer => {
+      const item = GAME_ITEMS[offer.itemId];
+      if (!item) return '';
+      const verb = offer.direction === 'buy' ? 'buy' : 'sell';
+      const sign = offer.direction === 'sell' ? '+' : '';
+      return `<span>${escapeHtml(item.name)}: ${verb} ${sign}${offer.price}C</span>`;
+    }).join('');
     return `
-      <div class="game-pane-heading"><small>NORTH TERMINAL</small><h3>TERMINAL TRADE</h3></div>
-      <div class="terminal-trade-list">
-        ${terminalButton('buy-health-potion', 'health_potion', 'BUY 3C', credits < 3)}
-        ${terminalButton('buy-stick', 'stick', 'BUY 5C', credits < 5)}
-        ${terminalButton('sell-slime-juice', 'slime_juice', 'SELL +1C', inventory.slimeJuice < 1)}
-      </div>
-      <div class="game-terminal-rules"><b>GAME ECONOMY ONLY</b><span>Health Potion: buy-only 3C</span><span>Stick: buy-only 5C</span><span>Slime Juice: sell-only +1C</span></div>`;
+      <div class="game-pane-heading"><small>${escapeHtml(terminal.subtitle || terminal.name)}</small><h3>TERMINAL TRADE</h3></div>
+      <div class="terminal-trade-list">${offers || '<div class="game-terminal-empty">NO OFFERS AVAILABLE</div>'}</div>
+      <div class="game-terminal-rules"><b>GAME ECONOMY ONLY</b>${rules}</div>`;
   }
 
   function renderBagItem(itemId) {
     const item = GAME_ITEMS[itemId];
-    const count = Math.max(0, Number(inventory[item.inventoryField] || 0));
+    if (!item) return '';
+    const count = itemCount(inventory, itemId);
+    if (count < 1) return '';
     let action = '';
-    if (itemId === 'health_potion') {
-      const blocked = count < 1 || Number(getHp?.() || 0) >= maxHp;
-      action = `<button type="button" data-game-action="use-potion" ${blocked ? 'disabled' : ''}>USE +2 HP</button>`;
+    if (item.use?.type) {
+      const blocked = item.use.type === 'heal' && Number(getHp?.() || 0) >= maxHp;
+      action = `<button type="button" data-game-action="use-item" ${blocked ? 'disabled' : ''}>${escapeHtml(item.use.label || 'USE')}</button>`;
     } else if (WEAPON_IDS.includes(itemId)) {
-      action = `<button type="button" data-game-action="equip" ${count < 1 ? 'disabled' : ''}>EQUIP</button>`;
+      action = '<button type="button" data-game-action="equip">EQUIP</button>';
     }
-    return `<article class="game-bag-item ${count ? '' : 'is-empty'}" data-game-item="${itemId}">
+    return `<article class="game-bag-item" data-game-item="${escapeHtml(itemId)}">
       <div class="game-item-icon">${itemIcon(item)}</div>
       <div class="game-bag-copy"><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.description)}</small></div>
       <strong>×${count}</strong>${action}
     </article>`;
   }
 
+  function renderBag() {
+    const rows = BAG_ITEM_IDS.map(renderBagItem).filter(Boolean);
+    return `
+      <div class="game-pane-heading"><small>RIGHT PANE</small><h3>BAG</h3></div>
+      <div class="game-bag-grid">${rows.length ? rows.join('') : '<div class="game-bag-empty"><b>BAG EMPTY</b><span>Items appear here when acquired.</span></div>'}</div>`;
+  }
+
   function render() {
     const root = ensureOverlay();
-    root.querySelector('#gameInventoryTitle').textContent = mode === 'terminal' ? 'NORTH TERMINAL' : 'INVENTORY';
-    root.querySelector('[data-game-inventory-left]').innerHTML = mode === 'terminal' ? renderTerminal() : renderEquipment();
-    root.querySelector('[data-game-inventory-bag]').innerHTML = `
-      <div class="game-pane-heading"><small>RIGHT PANE</small><h3>BAG</h3></div>
-      <div class="game-bag-grid">
-        ${renderBagItem('health_potion')}
-        ${renderBagItem('slime_juice')}
-        ${renderBagItem('hand_wraps')}
-        ${renderBagItem('stick')}
-      </div>`;
+    const terminal = mode === 'terminal' ? terminalMeta(activeTerminalId) : null;
+    root.querySelector('#gameInventoryTitle').textContent = terminal?.name || 'INVENTORY';
+    root.querySelector('[data-game-inventory-left]').innerHTML = terminal ? renderTerminal() : renderEquipment();
+    root.querySelector('[data-game-inventory-bag]').innerHTML = renderBag();
     const creditNode = root.querySelector('[data-game-inventory-credits]');
     if (creditNode) creditNode.textContent = Math.max(0, Math.floor(Number(getCreditBalance?.()) || 0)).toLocaleString();
     onInventoryChanged(inventory);
@@ -190,13 +209,26 @@ export function createGameInventoryController({
     return inventory;
   }
 
-  function open(nextMode = 'equipment') {
-    mode = nextMode === 'terminal' ? 'terminal' : 'equipment';
+  function open(nextMode = 'equipment', contextId = '') {
+    if (nextMode === 'terminal') {
+      const terminal = terminalMeta(contextId);
+      if (!terminal) return false;
+      mode = 'terminal';
+      activeTerminalId = terminal.id;
+    } else {
+      mode = 'equipment';
+      activeTerminalId = '';
+    }
     const root = ensureOverlay();
     render();
     root.hidden = false;
     document.body.classList.add('game-inventory-open');
     setTimeout(() => root.querySelector('[data-game-inventory-close]')?.focus(), 0);
+    return true;
+  }
+
+  function openTerminal(terminalId = '') {
+    return open('terminal', terminalId);
   }
 
   function close() {
@@ -204,14 +236,18 @@ export function createGameInventoryController({
     root.hidden = true;
     document.body.classList.remove('game-inventory-open');
     mode = 'equipment';
+    activeTerminalId = '';
   }
 
-  async function useHealthPotion() {
-    if (!profileId) return;
+  async function useItem(itemId) {
+    const item = GAME_ITEMS[itemId];
+    if (!profileId || !item?.use) return;
+    if (item.use.type !== 'heal') return message(`${item.name.toUpperCase()} CANNOT BE USED YET.`);
     const invRef = gameInventoryRef(db, fs, profileId);
     const presenceRef = getPresenceRef?.();
     if (!presenceRef) return;
-    const eventId = transactionId(profileId, 'potion');
+    const eventId = transactionId(profileId, `use_${itemId}`);
+    const healAmount = Math.max(1, Math.floor(Number(item.use.amount) || 0));
     try {
       const result = await fs.runTransaction(db, async tx => {
         const [invSnap, presenceSnap] = await Promise.all([tx.get(invRef), tx.get(presenceRef)]);
@@ -219,19 +255,24 @@ export function createGameInventoryController({
         const inv = normalizeGameInventory(invSnap.data(), profileId);
         const presence = presenceSnap.data();
         const hpBefore = Math.max(0, Math.min(maxHp, Number(presence.hp || 0)));
-        if (inv.healthPotion < 1) return { error: 'NO HEALTH POTION' };
+        if (itemCount(inv, itemId) < 1) return { error: `NO ${item.name.toUpperCase()}` };
         if (hpBefore >= maxHp) return { error: 'HEALTH ALREADY FULL' };
-        const hpAfter = Math.min(maxHp, hpBefore + 2);
-        tx.update(invRef, { healthPotion: inv.healthPotion - 1, lastEventId: eventId, lastEventType: 'consume_potion', updatedAt: fs.serverTimestamp() });
+        const hpAfter = Math.min(maxHp, hpBefore + healAmount);
+        tx.update(invRef, {
+          [item.inventoryField]: itemCount(inv, itemId) - 1,
+          lastEventId: eventId,
+          lastEventType: 'consume_potion',
+          updatedAt: fs.serverTimestamp()
+        });
         tx.update(presenceRef, { hp: hpAfter, updatedAt: fs.serverTimestamp() });
         return { hpBefore, hpAfter };
       });
       if (result?.error) return message(result.error);
       onHpChanged(result.hpAfter);
-      message(`HEALTH POTION USED // +${result.hpAfter - result.hpBefore} HP.`);
+      message(`${item.name.toUpperCase()} USED // +${result.hpAfter - result.hpBefore} HP.`);
     } catch (error) {
-      console.error('Use health potion', error);
-      message(`POTION FAILED: ${error.code || error.message}`);
+      console.error('Use game item', error);
+      message(`ITEM USE FAILED: ${error.code || error.message}`);
     }
   }
 
@@ -246,9 +287,9 @@ export function createGameInventoryController({
         const inv = normalizeGameInventory(snap.data(), profileId);
         if (inv.equippedWeapon === itemId) return { error: `${GAME_ITEMS[itemId].name.toUpperCase()} ALREADY EQUIPPED` };
         const selected = GAME_ITEMS[itemId];
-        if (inv[selected.inventoryField] < 1) return { error: `NO ${selected.name.toUpperCase()} IN BAG` };
+        if (itemCount(inv, itemId) < 1) return { error: `NO ${selected.name.toUpperCase()} IN BAG` };
         const patch = {
-          [selected.inventoryField]: inv[selected.inventoryField] - 1,
+          [selected.inventoryField]: itemCount(inv, itemId) - 1,
           equippedWeapon: itemId,
           lastEventId: eventId,
           lastEventType: 'equip',
@@ -256,7 +297,7 @@ export function createGameInventoryController({
         };
         if (inv.equippedWeapon) {
           const previous = GAME_ITEMS[inv.equippedWeapon];
-          if (previous) patch[previous.inventoryField] = inv[previous.inventoryField] + 1;
+          if (previous) patch[previous.inventoryField] = itemCount(inv, previous.id) + 1;
         }
         tx.update(invRef, patch);
         return { ok: true, name: selected.name };
@@ -280,8 +321,9 @@ export function createGameInventoryController({
         const inv = normalizeGameInventory(snap.data(), profileId);
         if (!inv.equippedWeapon) return { error: 'NO WEAPON EQUIPPED' };
         const previous = GAME_ITEMS[inv.equippedWeapon];
+        if (!previous) return { error: 'EQUIPPED ITEM UNAVAILABLE' };
         tx.update(invRef, {
-          [previous.inventoryField]: inv[previous.inventoryField] + 1,
+          [previous.inventoryField]: itemCount(inv, previous.id) + 1,
           equippedWeapon: '',
           lastEventId: eventId,
           lastEventType: 'equip',
@@ -297,15 +339,16 @@ export function createGameInventoryController({
     }
   }
 
-  async function terminalTrade(direction, itemId) {
-    if (!profileId || mode !== 'terminal') return;
-    const item = GAME_ITEMS[itemId];
-    const isBuy = direction === 'buy';
-    const price = isBuy ? item?.buyPrice : item?.sellPrice;
-    if (!item || !Number.isInteger(price) || price < 1) return;
+  async function terminalTrade(offerId) {
+    if (!profileId || mode !== 'terminal' || !activeTerminalId) return;
+    const offer = terminalOffer(activeTerminalId, offerId);
+    const item = GAME_ITEMS[offer?.itemId];
+    const isBuy = offer?.direction === 'buy';
+    const price = Math.max(0, Math.floor(Number(offer?.price) || 0));
+    if (!offer || !item || !['buy', 'sell'].includes(offer.direction) || price < 1) return;
     const invRef = gameInventoryRef(db, fs, profileId);
     const walletRef = fs.doc(db, 'creditWallets', profileId);
-    const tradeId = transactionId(profileId, `${direction}_${itemId}`);
+    const tradeId = transactionId(profileId, `${activeTerminalId}_${offer.direction}_${offer.itemId}`);
     const receiptRef = fs.doc(db, GAME_ITEM_TRANSACTION_COLLECTION, tradeId);
     try {
       const result = await fs.runTransaction(db, async tx => {
@@ -315,13 +358,13 @@ export function createGameInventoryController({
         const wallet = walletSnap.data();
         const balance = Math.max(0, Math.floor(Number(wallet.balance || 0)));
         if (isBuy && balance < price) return { error: `NEED ${price} CREDITS` };
-        if (!isBuy && inv[item.inventoryField] < 1) return { error: `NO ${item.name.toUpperCase()} TO SELL` };
+        if (!isBuy && itemCount(inv, item.id) < 1) return { error: `NO ${item.name.toUpperCase()} TO SELL` };
         const nextBalance = isBuy ? balance - price : balance + price;
-        const nextCount = inv[item.inventoryField] + (isBuy ? 1 : -1);
+        const nextCount = itemCount(inv, item.id) + (isBuy ? 1 : -1);
         tx.set(receiptRef, {
           profileId,
-          direction,
-          itemId,
+          direction: offer.direction,
+          itemId: item.id,
           quantity: 1,
           credits: price,
           createdAt: fs.serverTimestamp()
@@ -361,10 +404,7 @@ export function createGameInventoryController({
         const inv = normalizeGameInventory(snap.data(), profileId);
         if (inv.lastDeathEventId === eventId) return;
         tx.update(invRef, {
-          slimeJuice: 0,
-          healthPotion: 0,
-          handWraps: 0,
-          stick: 0,
+          ...inventoryZeroPatch(),
           equippedWeapon: '',
           lastEventId: eventId,
           lastEventType: 'death',
@@ -382,5 +422,5 @@ export function createGameInventoryController({
   function getInventory() { return inventory; }
   function destroy() { unsub?.(); unsub = null; overlay?.remove(); overlay = null; }
 
-  return { start, open, close, refresh, getInventory, clearOnDeath, destroy };
+  return { start, open, openTerminal, close, refresh, getInventory, clearOnDeath, destroy };
 }

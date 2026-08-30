@@ -1,83 +1,123 @@
-export const GAME_ITEMS = Object.freeze({
-  health_potion: Object.freeze({
-    id: 'health_potion',
+/**
+ * E.R.A.S. GAME ITEM REGISTRY
+ * --------------------------
+ * Add item metadata here. The Bag renderer, equipment renderer, inventory
+ * normalization, death clearing, and terminal UI all consume this registry.
+ *
+ * For a new persisted item, give it a unique inventoryField. Firestore rules
+ * remain the server-authoritative security boundary and must permit any new
+ * persisted/traded fields before public deployment.
+ */
+const ITEM_DEFINITIONS = {
+  health_potion: {
     name: 'Health Potion',
     kind: 'consumable',
     texture: '/public-assets/textures/health_potion.png',
     inventoryField: 'healthPotion',
-    heal: 2,
-    buyPrice: 3,
-    sellPrice: null,
+    bag: true,
+    bagOrder: 10,
+    use: { type: 'heal', amount: 2, label: 'USE +2 HP' },
     description: 'Restores up to 2 HP.'
-  }),
-  slime_juice: Object.freeze({
-    id: 'slime_juice',
+  },
+  slime_juice: {
     name: 'Slime Juice',
     kind: 'material',
     texture: '/public-assets/textures/slime_juice.png',
     inventoryField: 'slimeJuice',
-    buyPrice: null,
-    sellPrice: 1,
-    description: 'A volatile slime byproduct. NORTH TERMINAL buys it for 1 Credit.'
-  }),
-  hand_wraps: Object.freeze({
-    id: 'hand_wraps',
+    bag: true,
+    bagOrder: 20,
+    description: 'A volatile slime byproduct.'
+  },
+  hand_wraps: {
     name: 'Hand Wraps',
     kind: 'weapon',
     texture: '/public-assets/textures/hand_wraps.png',
     inventoryField: 'handWraps',
+    bag: true,
+    bagOrder: 30,
+    equipmentSlot: 'weapon',
     damageMin: 1,
     damageMax: 1,
-    buyPrice: null,
-    sellPrice: null,
     description: 'Simple fighting wraps. Damage 1–1.'
-  }),
-  stick: Object.freeze({
-    id: 'stick',
+  },
+  stick: {
     name: 'Stick',
     kind: 'weapon',
     texture: '',
     inventoryField: 'stick',
+    bag: true,
+    bagOrder: 40,
+    equipmentSlot: 'weapon',
     damageMin: 1,
     damageMax: 2,
-    buyPrice: 5,
-    sellPrice: null,
     description: 'A basic weapon. Damage 1–2.'
-  })
+  }
+};
+
+export const GAME_ITEMS = Object.freeze(Object.fromEntries(
+  Object.entries(ITEM_DEFINITIONS).map(([id, definition]) => [id, Object.freeze({ id, ...definition })])
+));
+
+export const ITEM_IDS = Object.freeze(Object.keys(GAME_ITEMS));
+export const BAG_ITEM_IDS = Object.freeze(
+  ITEM_IDS.filter(id => GAME_ITEMS[id].bag !== false)
+    .sort((a, b) => Number(GAME_ITEMS[a].bagOrder || 0) - Number(GAME_ITEMS[b].bagOrder || 0))
+);
+export const WEAPON_IDS = Object.freeze(ITEM_IDS.filter(id => GAME_ITEMS[id].equipmentSlot === 'weapon'));
+
+export const GAME_LOOT_TABLES = Object.freeze({
+  slime: Object.freeze([
+    Object.freeze({ itemId: 'slime_juice', chance: 0.05 }),
+    Object.freeze({ itemId: 'health_potion', chance: 0.01 }),
+    Object.freeze({ itemId: 'hand_wraps', chance: 0.001 })
+  ])
 });
 
-export const WEAPON_IDS = Object.freeze(['hand_wraps', 'stick']);
+export function itemMeta(itemId = '') {
+  return GAME_ITEMS[String(itemId || '')] || null;
+}
+
+export function itemCount(inventory = {}, itemId = '') {
+  const item = itemMeta(itemId);
+  if (!item) return 0;
+  return Math.max(0, Math.floor(Number(inventory?.[item.inventoryField]) || 0));
+}
 
 export function emptyGameInventory(profileId = '') {
-  return {
+  const inventory = {
     profileId,
-    slimeJuice: 0,
-    healthPotion: 0,
-    handWraps: 0,
-    stick: 0,
     equippedWeapon: '',
     lastEventId: '',
     lastEventType: 'init',
     lastDeathEventId: ''
   };
+  for (const itemId of ITEM_IDS) inventory[GAME_ITEMS[itemId].inventoryField] = 0;
+  return inventory;
 }
 
 export function normalizeGameInventory(data = {}, profileId = '') {
   const base = emptyGameInventory(profileId || data.profileId || '');
   const equippedWeapon = WEAPON_IDS.includes(String(data.equippedWeapon || '')) ? String(data.equippedWeapon) : '';
-  return {
+  const normalized = {
     ...base,
     ...data,
     profileId: String(data.profileId || profileId || ''),
-    slimeJuice: Math.max(0, Math.floor(Number(data.slimeJuice) || 0)),
-    healthPotion: Math.max(0, Math.floor(Number(data.healthPotion) || 0)),
-    handWraps: Math.max(0, Math.floor(Number(data.handWraps) || 0)),
-    stick: Math.max(0, Math.floor(Number(data.stick) || 0)),
     equippedWeapon,
     lastEventId: String(data.lastEventId || ''),
     lastEventType: String(data.lastEventType || 'init'),
     lastDeathEventId: String(data.lastDeathEventId || '')
   };
+  for (const itemId of ITEM_IDS) {
+    const field = GAME_ITEMS[itemId].inventoryField;
+    normalized[field] = Math.max(0, Math.floor(Number(data[field]) || 0));
+  }
+  return normalized;
+}
+
+export function inventoryZeroPatch() {
+  const patch = {};
+  for (const itemId of ITEM_IDS) patch[GAME_ITEMS[itemId].inventoryField] = 0;
+  return patch;
 }
 
 export function equippedWeaponMeta(inventory = {}) {
@@ -107,14 +147,29 @@ function deterministicRoll(seed = '') {
   return fnv1a32(seed) / 0x100000000;
 }
 
-// Each slime-drop chance is independent. The action id seeds the rolls so a
-// Firestore transaction retry cannot reroll the same kill.
+export function lootDropsForAction(actionId = '', tableId = '') {
+  const table = GAME_LOOT_TABLES[tableId] || [];
+  const drops = {};
+  for (const entry of table) {
+    if (!GAME_ITEMS[entry.itemId]) continue;
+    if (deterministicRoll(`${actionId}:${tableId}:${entry.itemId}`) < Number(entry.chance || 0)) {
+      drops[entry.itemId] = (drops[entry.itemId] || 0) + 1;
+    }
+  }
+  return drops;
+}
+
+// Backward-compatible shape used by the current slime combat transaction.
+// The source table above is now modular; the transaction fields are derived
+// from item metadata instead of being authored in the drop table itself.
 export function slimeDropsForAction(actionId = '') {
-  return {
-    slimeJuice: deterministicRoll(`${actionId}:slime_juice`) < 0.05 ? 1 : 0,
-    healthPotion: deterministicRoll(`${actionId}:health_potion`) < 0.01 ? 1 : 0,
-    handWraps: deterministicRoll(`${actionId}:hand_wraps`) < 0.001 ? 1 : 0
-  };
+  const itemDrops = lootDropsForAction(actionId, 'slime');
+  const fieldDrops = {};
+  for (const itemId of ITEM_IDS) {
+    const field = GAME_ITEMS[itemId].inventoryField;
+    fieldDrops[field] = Math.max(0, Math.floor(Number(itemDrops[itemId]) || 0));
+  }
+  return fieldDrops;
 }
 
 export function attackDamageForAction(actionId = '', inventory = {}) {
@@ -126,8 +181,9 @@ export function attackDamageForAction(actionId = '', inventory = {}) {
 
 export function describeDrops(drops = {}) {
   const found = [];
-  if (Number(drops.slimeJuice || 0) > 0) found.push('SLIME JUICE');
-  if (Number(drops.healthPotion || 0) > 0) found.push('HEALTH POTION');
-  if (Number(drops.handWraps || 0) > 0) found.push('HAND WRAPS');
+  for (const itemId of BAG_ITEM_IDS) {
+    const item = GAME_ITEMS[itemId];
+    if (Math.max(0, Number(drops[item.inventoryField] || 0)) > 0) found.push(item.name.toUpperCase());
+  }
   return found;
 }

@@ -1,8 +1,8 @@
 import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.3';
 import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.3';
 import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit, getDocFromServer, getDocsFromServer } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
-import { createGameInventoryController, ensureGameInventory, gameInventoryRef } from '/game/inventory/inventory.js?v=1.9.0';
-import { normalizeGameInventory, slimeDropsForAction, describeDrops, attackDamageForAction, damageRange } from '/game/inventory/items.js?v=1.9.0';
+import { createGameInventoryController, ensureGameInventory, gameInventoryRef } from '/game/inventory/inventory.js?v=1.9.2';
+import { normalizeGameInventory, slimeDropsForAction, describeDrops, attackDamageForAction, damageRange } from '/game/inventory/items.js?v=1.9.2';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
@@ -1628,9 +1628,9 @@ async function resolveOwnStandardAction(id, action, currentTurn) {
       });
       return true;
     });
-    if (resolved && action.actionType === 'interact' && action.targetType === 'object' && action.targetId === 'north-terminal') {
-      gameInventoryController.open('terminal');
-      message('NORTH TERMINAL OPEN // LEFT PANE SWITCHED TO TERMINAL TRADE.');
+    if (resolved && action.actionType === 'interact' && action.targetType === 'object') {
+      const openedTerminal = gameInventoryController.openTerminal(action.targetId);
+      if (openedTerminal) message(`${action.targetLabel || 'TERMINAL'} OPEN // LEFT PANE SWITCHED TO TERMINAL TRADE.`);
     }
   } catch (error) {
     console.error('Action resolution', error);
