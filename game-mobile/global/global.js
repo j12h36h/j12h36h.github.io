@@ -1648,8 +1648,10 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
 
     const damage = attackerIds.length;
     if (!damage) {
-      tx.update(presenceRef, { lastCombatTurn: currentTurn, updatedAt: fs.serverTimestamp() });
-      return { damage: 0, hp: Number(presence.hp ?? PLAYER_MAX_HP), combatTurn: currentTurn };
+      // No attacker was actually in range at this marker. Do not stamp
+      // lastCombatTurn: doing so made every quiet refresh count as active
+      // combat and permanently blocked REST even after the player disengaged.
+      return { damage: 0, hp: Number(presence.hp ?? PLAYER_MAX_HP), combatTurn: Number(presence.lastCombatTurn || 0) };
     }
 
     const hpBefore = Math.max(1, Number(presence.hp ?? PLAYER_MAX_HP));
@@ -1698,7 +1700,7 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
   });
 
   if (result?.skipped) return;
-  state.lastCombatTurn = currentTurn;
+  if (Number(result?.damage || 0) > 0 || result?.died) state.lastCombatTurn = currentTurn;
   if (result?.died) {
     state.hp = PLAYER_MAX_HP;
     state.deaths = Math.max(0, Number(result.deaths || state.deaths + 1));

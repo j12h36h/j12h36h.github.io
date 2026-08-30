@@ -1,5 +1,5 @@
 import { auth, db, fs, watchIdentity, profileById, avatarSvg, safeText } from '/game/assets/js/eras-data.js?v=1.7.3';
-import { watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
+import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
 import { writeBatch, increment } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 const $ = s => document.querySelector(s);
@@ -210,26 +210,34 @@ async function sendCredits(event) {
   if(!state.identity?.profileId||!auth.currentUser)return feedback('#transferFeedback','Sign in first.','error');
   const to=$('#transferRecipient').value.trim(), amount=clampCredits($('#transferAmount').value), note=$('#transferNote').value.trim().slice(0,120);
   try {
-    await validRecipient(to); if(amount<1)throw new Error('Transfer at least 1 Credit.'); if(amount>state.creditBalance)throw new Error('You do not have enough Credits.');
+    await validRecipient(to);
+    await ensureCreditWallet(db,fs,state.identity.profileId);
+    if(amount<1)throw new Error('Transfer at least 1 Credit.');
+    if(amount>state.creditBalance)throw new Error('You do not have enough Credits.');
+
     const id=crypto.randomUUID(), transferRef=fs.doc(db,'creditTransfers',id), fromWallet=fs.doc(db,'creditWallets',state.identity.profileId), toWallet=fs.doc(db,'creditWallets',to);
-    const commitTransfer = async createRecipientWallet => {
-      const batch=writeBatch(db);
-      batch.set(transferRef,{fromProfileId:state.identity.profileId,toProfileId:to,amount,note,createdAt:fs.serverTimestamp()});
-      batch.update(fromWallet,{balance:increment(-amount),lastEventId:id,lastEventType:'player_transfer_out',updatedAt:fs.serverTimestamp()});
-      if(createRecipientWallet){
-        batch.set(toWallet,{profileId:to,balance:amount,totalEarned:0,totalLost:0,lastEventId:id,lastEventType:'player_transfer_in',createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp()});
-      }else{
-        batch.update(toWallet,{balance:increment(amount),lastEventId:id,lastEventType:'player_transfer_in',updatedAt:fs.serverTimestamp()});
-      }
-      await batch.commit();
-    };
-    try{ await commitTransfer(false); }
-    catch(firstError){
-      try{ await commitTransfer(true); }
-      catch(secondError){ throw secondError || firstError; }
+    // v1.8.3: signed-in players may read game Credit wallets, so determine
+    // whether the recipient wallet exists before building the atomic write.
+    // This removes the old permission-error fallback that could choose the
+    // wrong create/update path and mask the real Firestore failure.
+    const recipientSnap=await fs.getDoc(toWallet);
+    const batch=writeBatch(db);
+    batch.set(transferRef,{fromProfileId:state.identity.profileId,toProfileId:to,amount,note,createdAt:fs.serverTimestamp()});
+    batch.update(fromWallet,{balance:increment(-amount),lastEventId:id,lastEventType:'player_transfer_out',updatedAt:fs.serverTimestamp()});
+    if(recipientSnap.exists()){
+      batch.update(toWallet,{balance:increment(amount),lastEventId:id,lastEventType:'player_transfer_in',updatedAt:fs.serverTimestamp()});
+    }else{
+      batch.set(toWallet,{profileId:to,balance:amount,totalEarned:0,totalLost:0,lastEventId:id,lastEventType:'player_transfer_in',createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp()});
     }
+    await batch.commit();
+
     feedback('#transferFeedback',`${amount} Credits sent to ${profileName(to)}.`,'ok'); toast(`Sent ${amount} Credits to ${profileName(to)}`); $('#transferAmount').value='1';$('#transferNote').value='';
-  } catch(error) { console.error('Credit transfer',error); feedback('#transferFeedback',error?.message||error?.code||'Transfer failed.','error'); }
+  } catch(error) {
+    console.error('Credit transfer',error);
+    const code=String(error?.code||'');
+    const msg=code.includes('permission-denied')?'Transfer was blocked by Firestore rules. Publish v0.9.17 and retry.':(error?.message||code||'Transfer failed.');
+    feedback('#transferFeedback',msg,'error');
+  }
 }
 
 async function createTrade(event) {
@@ -237,7 +245,9 @@ async function createTrade(event) {
   if(!state.identity?.profileId)return feedback('#tradeFeedback','Sign in first.','error');
   const to=$('#tradeRecipient').value.trim(), credits=clampCredits($('#offerCredits').value), holdingId=$('#offerAsset').value;
   try {
-    await validRecipient(to); if(credits>state.creditBalance)throw new Error('You do not have enough Credits for that offer.');
+    await validRecipient(to);
+    await ensureCreditWallet(db,fs,state.identity.profileId);
+    if(credits>state.creditBalance)throw new Error('You do not have enough Credits for that offer.');
     const holding=holdingId?state.holdings.find(h=>h.id===holdingId):null;if(holdingId&&!holding)throw new Error('That asset is no longer in your inventory.');
     const id=crypto.randomUUID();
     await fs.setDoc(fs.doc(db,'playerTrades',id),{
@@ -248,7 +258,12 @@ async function createTrade(event) {
       status:'pending',createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),completedAt:null
     });
     feedback('#tradeFeedback',`Trade created for ${profileName(to)}.`,'ok');toast('Trade offer created');$('#offerCredits').value='0';$('#offerAsset').value='';
-  } catch(error) { console.error('Create trade',error);feedback('#tradeFeedback',error?.message||error?.code||'Could not create trade.','error'); }
+  } catch(error) {
+    console.error('Create trade',error);
+    const code=String(error?.code||'');
+    const msg=code.includes('permission-denied')?'Trade creation was blocked by Firestore rules. Publish v0.9.17 and retry.':(error?.message||code||'Could not create trade.');
+    feedback('#tradeFeedback',msg,'error');
+  }
 }
 
 async function lockRecipientSide(tradeId) {

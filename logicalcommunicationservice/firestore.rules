@@ -686,7 +686,10 @@ service cloud.firestore {
         && data.totalEarned == 0 && data.totalLost == 0;
     }
     match /creditWallets/{profileId} {
-      allow read: if isCallerProfile(profileId);
+      // Credit balances are game-economy data. Authenticated LCS identities may
+      // read wallets so transfers can atomically choose recipient create vs update.
+      // Mutations remain receipt-validated below.
+      allow read: if hasPrivateAccount();
       allow create: if validCreditWallet(request.resource.data, profileId)
         && ((isCallerProfile(profileId)
             && request.resource.data.balance == 0
@@ -1013,6 +1016,13 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    function walletHasCreditsOrZero(profileId, amount) {
+      let walletPath = /databases/$(database)/documents/creditWallets/$(profileId);
+      return amount == 0 || (exists(walletPath)
+        && get(walletPath).data.balance is int
+        && get(walletPath).data.balance >= amount);
+    }
+
     match /playerTrades/{tradeId} {
       allow read: if hasPrivateAccount()
         && (resource.data.initiatorProfileId == callerProfileId() || resource.data.recipientProfileId == callerProfileId());
@@ -1025,7 +1035,7 @@ service cloud.firestore {
         && request.resource.data.recipientAssetTint == ''
         && request.resource.data.completedAt == null
         && validPlayerTrade(request.resource.data)
-        && get(/databases/$(database)/documents/creditWallets/$(callerProfileId())).data.balance >= request.resource.data.initiatorCredits
+        && walletHasCreditsOrZero(callerProfileId(), request.resource.data.initiatorCredits)
         && tradeHoldingOwnedAndMatches(request.resource.data.initiatorProfileId,request.resource.data.initiatorHoldingId,request.resource.data.initiatorAssetId,request.resource.data.initiatorAssetTint);
       allow update: if hasPrivateAccount()
         && validPlayerTrade(request.resource.data)
@@ -1036,7 +1046,7 @@ service cloud.firestore {
             && playerTradeFixedTerms(resource.data,request.resource.data)
             && request.resource.data.completedAt == null
             && (request.resource.data.initiatorCredits > 0 || request.resource.data.recipientCredits > 0 || request.resource.data.initiatorHoldingId != '' || request.resource.data.recipientHoldingId != '')
-            && get(/databases/$(database)/documents/creditWallets/$(callerProfileId())).data.balance >= request.resource.data.recipientCredits
+            && walletHasCreditsOrZero(callerProfileId(), request.resource.data.recipientCredits)
             && tradeHoldingOwnedAndMatches(request.resource.data.recipientProfileId,request.resource.data.recipientHoldingId,request.resource.data.recipientAssetId,request.resource.data.recipientAssetTint))
           || (callerProfileId() == resource.data.initiatorProfileId
             && resource.data.status in ['pending','locked'] && request.resource.data.status == 'cancelled'
