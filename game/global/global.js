@@ -1,6 +1,6 @@
 import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.3';
 import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.3';
-import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit, getDocFromServer } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit, getDocFromServer, getDocsFromServer } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 import { createGameInventoryController, ensureGameInventory, gameInventoryRef } from '/game/inventory/inventory.js?v=1.9.0';
 import { normalizeGameInventory, slimeDropsForAction, describeDrops, attackDamageForAction, damageRange } from '/game/inventory/items.js?v=1.9.0';
 
@@ -89,6 +89,7 @@ const state = {
   pruningActions: new Set(),
   resolvingActions: new Set(),
   combatMarkerInFlight: new Set(),
+  autoRestInFlight: new Set(),
   lastPruneAt: 0,
   lastWanderAt: 0,
   lastEnemyVisualAt: 0,
@@ -272,6 +273,35 @@ function isQueuedAttackAgainstLocal() {
   );
 }
 
+function incomingPlayerAttackForTurn(resolveTurn, actions = state.actions.values()) {
+  const profileId = state.identity?.profileId;
+  if (!profileId) return false;
+  for (const action of actions) {
+    if (action.actionType !== 'attack' || action.targetType !== 'profile' || action.targetId !== profileId) continue;
+    if (Number(action.resolveTurn || 0) !== Number(resolveTurn || 0)) continue;
+    if (action.status === 'queued' || action.status === 'resolved') return true;
+  }
+  return false;
+}
+
+async function incomingPlayerAttackFromServer(resolveTurn) {
+  if (!state.identity?.profileId) return false;
+  try {
+    const q = fs.query(fs.collection(db, 'gameActions'), fs.where('worldId', '==', worldId));
+    const snap = await Promise.race([
+      getDocsFromServer(q),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Threat check timeout')), 1200))
+    ]);
+    const actions = [];
+    snap.forEach(docSnap => actions.push({ id: docSnap.id, ...docSnap.data() }));
+    return incomingPlayerAttackForTurn(resolveTurn, actions);
+  } catch (error) {
+    console.debug('Auto-rest threat check', error?.code || error);
+    // Fail closed: if the authoritative threat check cannot complete, do not auto-rest.
+    return true;
+  }
+}
+
 function isActiveActionCombat(currentTurn = turnInfo().turnNumber) {
   const profileId = state.identity?.profileId;
   if (!profileId) return false;
@@ -303,6 +333,7 @@ function restBlockReason() {
   if (state.restedTurn === currentTurn) return 'ALREADY RESTED THIS REFRESH';
   if (state.movedTurn === currentTurn || state.moveUsed > .001) return 'YOU MOVED THIS REFRESH';
   if (state.actionTurn === currentTurn || state.ownQueuedActionId) return 'YOU DECLARED AN ACTION THIS REFRESH';
+  if (state.combatMarkerInFlight.has(currentTurn)) return 'GLOBAL MARKER RESOLVING';
   if (isQueuedAttackAgainstLocal()) return 'PVP ATTACK INCOMING';
   if (isActiveActionCombat(currentTurn) || state.lastCombatTurn === currentTurn) return 'YOU ARE IN ACTIVE COMBAT';
   if ([...state.enemies.values()].some(enemy => enemy?.alive && distanceBetween(state.x, state.y, enemy.x, enemy.y) <= SLIME_WANDER_STOP_RANGE)) return 'YOU ARE IN ACTIVE COMBAT';
@@ -1011,7 +1042,7 @@ function direction() {
 function syncVelocity() {
   const [dx, dy] = direction();
   const remaining = Math.max(0, MOVE_BUDGET - state.moveUsed);
-  const allowed = remaining > .001 && !isRestedThisTurn();
+  const allowed = remaining > .001 && !isRestedThisTurn() && !state.combatMarkerInFlight.has(state.turnNumber);
   const nvx = allowed ? dx * MOVE_SPEED : 0;
   const nvy = allowed ? dy * MOVE_SPEED : 0;
   const changed = nvx !== state.vx || nvy !== state.vy;
@@ -1097,7 +1128,7 @@ function renderMovementHud() {
   const restState = $('#restState');
   const reason = restBlockReason();
   if (rest) rest.disabled = Boolean(reason);
-  if (restState) restState.textContent = reason || 'READY // FULL HEAL + LOCK UNTIL REFRESH';
+  if (restState) restState.textContent = reason || 'AUTO REST ARMED // IF IDLE + SAFE AT MARKER';
 }
 
 function markerWindowLabel(turn, currentTurn) {
@@ -1318,6 +1349,10 @@ async function queueAction(actionType) {
   }
   if (isRestedThisTurn()) {
     message('You rested this refresh. Movement and declarations return at the next marker.');
+    return;
+  }
+  if (state.combatMarkerInFlight.has(state.turnNumber)) {
+    message('GLOBAL MARKER RESOLVING // DECLARATIONS OPEN WHEN RESOLUTION COMPLETES.');
     return;
   }
   if (state.ownQueuedActionId) {
@@ -1631,6 +1666,67 @@ async function processResolvedActions(currentTurn) {
   renderActionPanel();
 }
 
+async function autoRestCompletedTurn(completedTurn, resolveTurn, markerAttackers = []) {
+  if (!state.identity?.profileId || completedTurn < 1 || state.autoRestInFlight.has(completedTurn)) return false;
+  state.autoRestInFlight.add(completedTurn);
+  try {
+    // Give last-moment declarations a brief chance to reach Firestore, then verify
+    // the completed turn against the server rather than trusting only the local feed.
+    await new Promise(resolve => setTimeout(resolve, 250));
+
+    if (markerAttackers.length > 0) return false;
+    if (incomingPlayerAttackForTurn(resolveTurn)) return false;
+    if (await incomingPlayerAttackFromServer(resolveTurn)) return false;
+    if (isActiveActionCombat(completedTurn) || state.lastCombatTurn >= completedTurn) return false;
+
+    const ref = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
+    const result = await firestoreRunTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) return { ok: false, reason: 'NO PRESENCE' };
+      const live = snap.data();
+      const hp = Math.max(0, Math.min(PLAYER_MAX_HP, Number(live.hp ?? PLAYER_MAX_HP)));
+
+      // Auto-rest is the default completed-turn action only when the player did
+      // nothing that turn. It intentionally preserves the same movement/action
+      // restrictions as manual REST.
+      if (hp >= PLAYER_MAX_HP) return { ok: false, reason: 'FULL' };
+      if (Number(live.restedTurn || 0) >= completedTurn) return { ok: false, reason: 'RESTED' };
+      if (Number(live.movedTurn || 0) === completedTurn || Number(live.moveUsed || 0) > .001) return { ok: false, reason: 'MOVED' };
+      if (Number(live.actionTurn || 0) === completedTurn) return { ok: false, reason: 'ACTION' };
+      if (Number(live.lastCombatTurn || 0) >= completedTurn) return { ok: false, reason: 'COMBAT' };
+
+      tx.update(ref, {
+        hp: PLAYER_MAX_HP,
+        vx: 0,
+        vy: 0,
+        // Security rules validate a rest against the turn that was actually
+        // rested. The next presence heartbeat immediately advances turnNumber.
+        turnNumber: completedTurn,
+        restedTurn: completedTurn,
+        updatedAt: fs.serverTimestamp()
+      });
+      return { ok: true };
+    });
+
+    if (!result?.ok) return false;
+    state.hp = PLAYER_MAX_HP;
+    state.restedTurn = completedTurn;
+    state.dirty = true;
+    state.velocityDirty = true;
+    renderLocalBase();
+    renderMovementHud();
+    renderActionPanel();
+    await flushPresence(true);
+    message('AUTO REST // NO ACTION SELECTED + NO COMBAT // FULL HEALTH.');
+    return true;
+  } catch (error) {
+    console.error('Auto rest', error);
+    return false;
+  } finally {
+    state.autoRestInFlight.delete(completedTurn);
+  }
+}
+
 async function restToFullHealth() {
   const reason = restBlockReason();
   if (reason) {
@@ -1779,12 +1875,20 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
 async function runCombatMarker(currentTurn) {
   if (!state.identity?.profileId || state.combatMarkerInFlight.has(currentTurn)) return;
   state.combatMarkerInFlight.add(currentTurn);
+  syncVelocity();
+  renderActionPanel();
+  renderMovementHud();
   try {
     await respawnDeadSlimes(currentTurn);
     const markerEnemies = await refreshEnemyState();
     const markerAttackers = [...markerEnemies.values()].filter(enemy =>
       enemy.alive && distanceBetween(state.x, state.y, enemy.x, enemy.y) <= SLIME_ATTACK_RANGE
     );
+
+    // If the completed turn had no movement/action and no hostile commitment,
+    // REST becomes its default action. The exact marker snapshot is passed in so
+    // a slime that is attacking this marker always suppresses auto-rest.
+    await autoRestCompletedTurn(currentTurn - 1, currentTurn, markerAttackers);
 
     // Player declarations and hostile retaliation belong to the same marker.
     // We resolve player actions first for clean kill/reward transactions, while
@@ -1795,6 +1899,9 @@ async function runCombatMarker(currentTurn) {
     await applySlimeRetaliation(currentTurn, markerAttackers);
   } finally {
     state.combatMarkerInFlight.delete(currentTurn);
+    syncVelocity();
+    renderActionPanel();
+    renderMovementHud();
   }
 }
 
@@ -1819,8 +1926,9 @@ function renderActionPanel() {
   const targetType = state.selectedTarget?.type;
   const enemyAlive = targetType !== 'enemy' || Boolean(state.enemies.get(state.selectedTarget?.id)?.alive);
   const rested = isRestedThisTurn();
-  if (attack) attack.disabled = rested || !hasTarget || !['profile','enemy'].includes(targetType) || !enemyAlive || locked;
-  if (interact) interact.disabled = rested || !hasTarget || targetType === 'enemy' || locked;
+  const markerResolving = state.combatMarkerInFlight.has(state.turnNumber);
+  if (attack) attack.disabled = markerResolving || rested || !hasTarget || !['profile','enemy'].includes(targetType) || !enemyAlive || locked;
+  if (interact) interact.disabled = markerResolving || rested || !hasTarget || targetType === 'enemy' || locked;
   if (cancel) cancel.disabled = !locked;
 }
 
@@ -2020,21 +2128,36 @@ watchIdentity(async identity => {
     message('LCS tactical token online. Global clock synchronized.');
   }
   state.turnNumber = turnInfo().turnNumber;
-  await ensureCreditWallet(db, fs, identity.profileId);
-  await ensureGameInventory(db, fs, identity.profileId);
-  await gameInventoryController.start(identity.profileId);
-  await ensureGlobalStats(identity.profileId);
-  watchCredits();
-  watchGlobalStats();
+
+  // Presence is the critical path for materializing the player's map token.
+  // Optional economy/inventory failures must never prevent the battlefield from
+  // coming online.
   await restorePosition();
-  if (state.lastDeathEventId) await gameInventoryController.clearOnDeath(state.lastDeathEventId);
   await loadWorldName();
   await flushPresence(true);
-  await ensureSlimePopulation();
-  await respawnDeadSlimes(state.turnNumber);
   watchPresence();
-  watchEnemies();
   watchActions();
+
+  try {
+    await ensureCreditWallet(db, fs, identity.profileId);
+    await ensureGameInventory(db, fs, identity.profileId);
+    await gameInventoryController.start(identity.profileId);
+    await ensureGlobalStats(identity.profileId);
+    watchCredits();
+    watchGlobalStats();
+    if (state.lastDeathEventId) await gameInventoryController.clearOnDeath(state.lastDeathEventId);
+  } catch (error) {
+    console.error('Optional game inventory/economy init', error);
+    message('BATTLEFIELD ONLINE // INVENTORY OR CREDIT SYSTEM NEEDS FIRESTORE RULES.');
+  }
+
+  try {
+    await ensureSlimePopulation();
+    await respawnDeadSlimes(state.turnNumber);
+    watchEnemies();
+  } catch (error) {
+    console.error('Enemy population init', error);
+  }
 });
 
 loadWorldName();
