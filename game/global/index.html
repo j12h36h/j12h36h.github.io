@@ -9,12 +9,13 @@
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
   <link rel="stylesheet" href="/game/assets/css/runtime.css?v=1.8.0">
+  <link rel="stylesheet" href="/game/inventory/inventory.css?v=1.9.0">
 </head>
 <body class="global-page tactical-global-page">
   <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
   <header class="site-header">
     <a class="brand" href="/game/"><span class="brand-mark"></span><span>PROJECT E.R.A.S. <b>: GLOBAL</b></span></a>
-    <div class="global-header-actions"><a class="game-trade-link" href="/trade/">TRADE</a><div class="game-credit-header" title="Universal Credits">◈ <b id="creditBalance">0</b> CREDITS</div></div><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
+    <div class="global-header-actions"><button class="game-inventory-button" id="gameInventoryButton" type="button">INVENTORY [I]</button><a class="game-trade-link" href="/trade/">ASSET TRADE</a><div class="game-credit-header" title="Universal Credits">◈ <b id="creditBalance">0</b> CREDITS</div></div><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
   </header>
 
   <main class="global-shell">
@@ -61,7 +62,7 @@
     </section>
 
     <aside class="tactical-action-panel">
-      <div class="tactical-stat"><span>MOVE LEFT</span><b id="moveRemaining">40.0 / 40</b><i id="moveBudgetBar"></i><small id="autoMoveState">CLICK / TAP BOARD TO AUTO-MOVE</small></div><div class="tactical-stat"><span>HEALTH</span><b id="playerHealth">3 / 3</b><small id="restState">READY // FULL HEAL + LOCK UNTIL REFRESH</small></div>
+      <div class="tactical-stat"><span>MOVE LEFT</span><b id="moveRemaining">40.0 / 40</b><i id="moveBudgetBar"></i><small id="autoMoveState">CLICK / TAP BOARD TO AUTO-MOVE</small></div><div class="tactical-stat"><span>HEALTH</span><b id="playerHealth">3 / 3</b><small id="restState">READY // FULL HEAL + LOCK UNTIL REFRESH</small></div><div class="tactical-stat"><span>ATTACK</span><b id="playerAttack">1–1 // BARE HANDS</b><small>EQUIPMENT SETS DAMAGE RANGE</small></div>
       <div class="tactical-stat"><span>SELECTED TARGET</span><b id="selectedTarget">NONE</b></div>
       <div class="tactical-stat"><span>DECLARED ACTION</span><b id="queuedAction">NONE</b></div>
       <div class="tactical-buttons">
@@ -83,6 +84,6 @@
   </main>
 
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./global.js?v=1.8.3"></script>
+  <script type="module" src="./global.js?v=1.9.0"></script>
 </body>
 </html>

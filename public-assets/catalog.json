@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "updatedAt": "2026-08-29",
   "assets": [
     {
@@ -15,7 +15,79 @@
       "price": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
-      "tags": ["slime", "character", "texture", "tintable", "free"]
+      "tags": [
+        "slime",
+        "character",
+        "texture",
+        "tintable",
+        "free"
+      ]
+    },
+    {
+      "id": "eras:health_potion",
+      "name": "Health Potion",
+      "type": "texture",
+      "category": "items",
+      "description": "Pixel-art health potion texture used by the E.R.A.S. game inventory. In-game consumable restores 2 HP.",
+      "source": "/public-assets/textures/health_potion.png",
+      "thumbnail": "/public-assets/textures/health_potion_thumb.png",
+      "tintable": false,
+      "price": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "health potion",
+        "potion",
+        "consumable",
+        "item",
+        "texture",
+        "game",
+        "free"
+      ]
+    },
+    {
+      "id": "eras:slime_juice",
+      "name": "Slime Juice",
+      "type": "texture",
+      "category": "items",
+      "description": "Pixel-art Slime Juice texture used by the E.R.A.S. game inventory and NORTH TERMINAL trade loop.",
+      "source": "/public-assets/textures/slime_juice.png",
+      "thumbnail": "/public-assets/textures/slime_juice_thumb.png",
+      "tintable": false,
+      "price": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "slime juice",
+        "slime",
+        "material",
+        "item",
+        "texture",
+        "game",
+        "free"
+      ]
+    },
+    {
+      "id": "eras:hand_wraps",
+      "name": "Hand Wraps",
+      "type": "texture",
+      "category": "weapons",
+      "description": "Pixel-art Hand Wraps weapon texture used by the E.R.A.S. game equipment system.",
+      "source": "/public-assets/textures/hand_wraps.png",
+      "thumbnail": "/public-assets/textures/hand_wraps_thumb.png",
+      "tintable": false,
+      "price": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "hand wraps",
+        "weapon",
+        "equipment",
+        "item",
+        "texture",
+        "game",
+        "free"
+      ]
     }
   ]
 }

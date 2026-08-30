@@ -1,6 +1,8 @@
 import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.3';
 import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.3';
 import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit, getDocFromServer } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { createGameInventoryController, ensureGameInventory, gameInventoryRef } from '/game/inventory/inventory.js?v=1.9.0';
+import { normalizeGameInventory, slimeDropsForAction, describeDrops, attackDamageForAction, damageRange } from '/game/inventory/items.js?v=1.9.0';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
@@ -65,6 +67,7 @@ const state = {
   creditUnsub: null,
   statsUnsub: null,
   creditBalance: 0,
+  gameInventory: normalizeGameInventory({}, ''),
   profiles: new Map(),
   remote: new Map(),
   keys: new Set(),
@@ -100,6 +103,26 @@ const message = text => {
   const el = $('#globalMessage');
   if (el) el.textContent = String(text).toUpperCase();
 };
+
+const gameInventoryController = createGameInventoryController({
+  db,
+  fs,
+  getProfileId: () => state.identity?.profileId || '',
+  getCreditBalance: () => state.creditBalance,
+  getHp: () => state.hp,
+  maxHp: PLAYER_MAX_HP,
+  getPresenceRef: () => state.identity?.profileId ? fs.doc(db, 'gamePresence', presenceId(state.identity.profileId)) : null,
+  message,
+  onHpChanged: hp => {
+    state.hp = Math.max(0, Math.min(PLAYER_MAX_HP, Number(hp || 0)));
+    renderLocalBase();
+    renderMovementHud();
+  },
+  onInventoryChanged: inventory => {
+    state.gameInventory = normalizeGameInventory(inventory, state.identity?.profileId || '');
+    renderMovementHud();
+  }
+});
 
 function clockNow() {
   return Date.now() + state.serverOffsetMs;
@@ -825,7 +848,8 @@ function reconcileOwnPresence(data, hasPendingWrites) {
       setTimeout(() => token.classList.remove('player-death-pulse'), 1200);
     }
     resetCamera(true);
-    message('PVP KO // RESPAWNED ON NORTH PLATFORM // NO CREDITS LOST.');
+    gameInventoryController.clearOnDeath(state.lastDeathEventId).catch(() => {});
+    message('PVP KO // GAME INVENTORY CLEARED // RESPAWNED ON NORTH PLATFORM // NO CREDITS LOST.');
   } else {
     message(`PVP HIT RECEIVED // HP ${state.hp}/${PLAYER_MAX_HP}.`);
   }
@@ -1048,6 +1072,7 @@ function watchCredits() {
   state.creditUnsub = watchCreditWallet(db, fs, state.identity?.profileId, balance => {
     state.creditBalance = balance;
     renderMovementHud();
+    gameInventoryController.refresh();
   }, error => console.debug('Game credit wallet', error?.code || error));
 }
 
@@ -1063,6 +1088,11 @@ function renderMovementHud() {
   if (hp) hp.textContent = `${state.hp} / ${PLAYER_MAX_HP}`;
   const credits = $('#creditBalance');
   if (credits) credits.textContent = formatCredits(state.creditBalance);
+  const attackStat = $('#playerAttack');
+  if (attackStat) {
+    const range = damageRange(state.gameInventory);
+    attackStat.textContent = `${range.min}–${range.max} // ${range.label.toUpperCase()}`;
+  }
   const rest = $('#restAction');
   const restState = $('#restState');
   const reason = restBlockReason();
@@ -1365,20 +1395,24 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
   state.resolvingActions.add(id);
   try {
     await ensureCreditWallet(db, fs, state.identity.profileId);
+    await ensureGameInventory(db, fs, state.identity.profileId);
     const actionRef = fs.doc(db, 'gameActions', id);
     const enemyRef = fs.doc(db, 'gameEnemies', action.targetId);
     const presenceRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
     const walletRef = fs.doc(db, 'creditWallets', state.identity.profileId);
+    const inventoryRef = gameInventoryRef(db, fs, state.identity.profileId);
     const statsRef = statsDocRef(state.identity.profileId);
+    const dropRoll = slimeDropsForAction(id);
 
     const result = await firestoreRunTransaction(db, async tx => {
-      const [actionSnap, enemySnap, presenceSnap, walletSnap, statsSnap] = await Promise.all([
-        tx.get(actionRef), tx.get(enemyRef), tx.get(presenceRef), tx.get(walletRef), tx.get(statsRef)
+      const [actionSnap, enemySnap, presenceSnap, walletSnap, inventorySnap, statsSnap] = await Promise.all([
+        tx.get(actionRef), tx.get(enemyRef), tx.get(presenceRef), tx.get(walletRef), tx.get(inventoryRef), tx.get(statsRef)
       ]);
-      if (!actionSnap.exists() || !enemySnap.exists() || !presenceSnap.exists() || !walletSnap.exists()) return { skipped: true };
+      if (!actionSnap.exists() || !enemySnap.exists() || !presenceSnap.exists() || !walletSnap.exists() || !inventorySnap.exists()) return { skipped: true };
       const liveAction = actionSnap.data();
       const enemy = enemySnap.data();
       const presence = presenceSnap.data();
+      const inventory = normalizeGameInventory(inventorySnap.data(), state.identity.profileId);
       if (liveAction.status !== 'queued' || Number(liveAction.resolveTurn || 0) > currentTurn) return { skipped: true };
 
       const inRange = enemy.alive && distanceBetween(presence.x, presence.y, enemy.x, enemy.y) <= PLAYER_ATTACK_RANGE;
@@ -1389,7 +1423,8 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
         return { miss: true, label: enemy.label || action.targetLabel || 'SLIME' };
       }
 
-      const nextHp = Math.max(0, Number(enemy.hp || 0) - 1);
+      const attackDamage = attackDamageForAction(id, inventory);
+      const nextHp = Math.max(0, Number(enemy.hp || 0) - attackDamage);
       const killed = nextHp <= 0;
       const enemyPatch = {
         hp: nextHp,
@@ -1417,6 +1452,17 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
           lastEventType: 'slime_kill',
           updatedAt: fs.serverTimestamp()
         });
+        const droppedAnything = dropRoll.slimeJuice || dropRoll.healthPotion || dropRoll.handWraps;
+        if (droppedAnything) {
+          tx.update(inventoryRef, {
+            slimeJuice: inventory.slimeJuice + dropRoll.slimeJuice,
+            healthPotion: inventory.healthPotion + dropRoll.healthPotion,
+            handWraps: inventory.handWraps + dropRoll.handWraps,
+            lastEventId: id,
+            lastEventType: 'slime_drop',
+            updatedAt: fs.serverTimestamp()
+          });
+        }
         if (worldId === 'global' && statsSnap.exists()) {
           const stats = statsSnap.data();
           tx.update(statsRef, {
@@ -1429,11 +1475,13 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
           });
         }
       }
-      return { killed, hit: true, label: enemy.label || action.targetLabel || 'SLIME' };
+      return { killed, hit: true, damage: attackDamage, drops: killed ? dropRoll : null, label: enemy.label || action.targetLabel || 'SLIME' };
     });
 
-    if (result?.killed) message(`${result.label} defeated // +1 CREDIT.`);
-    else if (result?.hit) message(`${result.label} hit.`);
+    if (result?.killed) {
+      const drops = describeDrops(result.drops || {});
+      message(`${result.label} DEFEATED // +1 CREDIT${drops.length ? ` // DROP: ${drops.join(' + ')}` : ''}.`);
+    } else if (result?.hit) message(`${result.label} HIT // ${result.damage || 1} DAMAGE.`);
     else if (result?.miss) message(`${result.label} attack missed // target was down or outside ${PLAYER_ATTACK_RANGE} range.`);
   } catch (error) {
     console.error('Enemy attack resolution', error);
@@ -1447,20 +1495,23 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
   if (state.resolvingActions.has(id) || !state.identity?.profileId) return;
   state.resolvingActions.add(id);
   try {
+    await ensureGameInventory(db, fs, state.identity.profileId);
     const actionRef = fs.doc(db, 'gameActions', id);
     const attackerRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
+    const inventoryRef = gameInventoryRef(db, fs, state.identity.profileId);
     const targetRef = fs.doc(db, 'gamePresence', presenceId(action.targetId));
     const statsRef = statsDocRef(state.identity.profileId);
     const targetStatsRef = statsDocRef(action.targetId);
     const pvpRespawn = playerSpawnPoint(`pvp:${worldId}:${action.targetId}:${id}`);
     const result = await firestoreRunTransaction(db, async tx => {
-      const [actionSnap, attackerSnap, targetSnap, statsSnap, targetStatsSnap] = await Promise.all([
-        tx.get(actionRef), tx.get(attackerRef), tx.get(targetRef), tx.get(statsRef), tx.get(targetStatsRef)
+      const [actionSnap, attackerSnap, targetSnap, inventorySnap, statsSnap, targetStatsSnap] = await Promise.all([
+        tx.get(actionRef), tx.get(attackerRef), tx.get(targetRef), tx.get(inventoryRef), tx.get(statsRef), tx.get(targetStatsRef)
       ]);
-      if (!actionSnap.exists() || !attackerSnap.exists() || !targetSnap.exists()) return { skipped: true };
+      if (!actionSnap.exists() || !attackerSnap.exists() || !targetSnap.exists() || !inventorySnap.exists()) return { skipped: true };
       const liveAction = actionSnap.data();
       const attacker = attackerSnap.data();
       const target = targetSnap.data();
+      const inventory = normalizeGameInventory(inventorySnap.data(), state.identity.profileId);
       if (liveAction.status !== 'queued' || Number(liveAction.resolveTurn || 0) > currentTurn) return { skipped: true };
       const inRange = attacker.worldId === worldId && target.worldId === worldId
         && distanceBetween(attacker.x, attacker.y, target.x, target.y) <= PLAYER_ATTACK_RANGE;
@@ -1468,8 +1519,9 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
         tx.update(actionRef, { status: 'resolved', outcome: 'miss', updatedAt: fs.serverTimestamp(), resolvedAt: fs.serverTimestamp() });
         return { miss: true };
       }
+      const attackDamage = attackDamageForAction(id, inventory);
       const hpBefore = Math.max(1, Number(target.hp ?? PLAYER_MAX_HP));
-      const hpAfter = hpBefore - 1;
+      const hpAfter = hpBefore - attackDamage;
       const killed = hpAfter <= 0;
       const targetPatch = {
         hp: killed ? PLAYER_MAX_HP : hpAfter,
@@ -1513,10 +1565,10 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
           updatedAt: fs.serverTimestamp()
         });
       }
-      return { hit: true, killed };
+      return { hit: true, killed, damage: attackDamage };
     });
-    if (result?.killed) message(`${action.targetLabel || 'PLAYER'} DOWNED // PVP KO // NO CREDITS LOST.`);
-    else if (result?.hit) message(`${action.targetLabel || 'PLAYER'} HIT // PVP DAMAGE 1.`);
+    if (result?.killed) message(`${action.targetLabel || 'PLAYER'} DOWNED // ${result.damage || 1} DAMAGE // PVP KO // NO CREDITS LOST.`);
+    else if (result?.hit) message(`${action.targetLabel || 'PLAYER'} HIT // PVP DAMAGE ${result.damage || 1}.`);
     else if (result?.miss) message(`${action.targetLabel || 'PLAYER'} PVP ATTACK MISSED // OUTSIDE ${PLAYER_ATTACK_RANGE} RANGE.`);
   } catch (error) {
     console.error('PVP attack resolution', error);
@@ -1531,15 +1583,20 @@ async function resolveOwnStandardAction(id, action, currentTurn) {
   state.resolvingActions.add(id);
   try {
     const ref = fs.doc(db, 'gameActions', id);
-    await firestoreRunTransaction(db, async tx => {
+    const resolved = await firestoreRunTransaction(db, async tx => {
       const snap = await tx.get(ref);
-      if (!snap.exists()) return;
+      if (!snap.exists()) return false;
       const live = snap.data();
-      if (live.status !== 'queued' || Number(live.resolveTurn || 0) > currentTurn) return;
+      if (live.status !== 'queued' || Number(live.resolveTurn || 0) > currentTurn) return false;
       tx.update(ref, {
         status: 'resolved', outcome: action.actionType === 'interact' ? 'interact' : 'resolved', updatedAt: fs.serverTimestamp(), resolvedAt: fs.serverTimestamp()
       });
+      return true;
     });
+    if (resolved && action.actionType === 'interact' && action.targetType === 'object' && action.targetId === 'north-terminal') {
+      gameInventoryController.open('terminal');
+      message('NORTH TERMINAL OPEN // LEFT PANE SWITCHED TO TERMINAL TRADE.');
+    }
   } catch (error) {
     console.error('Action resolution', error);
   } finally {
@@ -1709,7 +1766,8 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
     const token = state.tokenMap.get(state.identity.profileId);
     if (token) { updateToken(token, state.x, state.y); token.classList.add('player-death-pulse'); setTimeout(() => token.classList.remove('player-death-pulse'), 1200); }
     resetCamera(true);
-    message(`YOU WERE DOWNED BY THE CACHE SLIMES // -${result.lost || 0} CREDITS // RESPAWNED ON NORTH PLATFORM.`);
+    gameInventoryController.clearOnDeath(state.lastDeathEventId).catch(() => {});
+    message(`YOU WERE DOWNED BY THE CACHE SLIMES // GAME INVENTORY CLEARED // -${result.lost || 0} CREDITS // RESPAWNED ON NORTH PLATFORM.`);
   } else {
     state.hp = Math.max(0, Number(result?.hp ?? state.hp));
     if (result?.damage) message(`CACHE SLIME${result.damage > 1 ? 'S' : ''} STRUCK BACK // -${result.damage} HP.`);
@@ -1856,6 +1914,12 @@ const keyMap = {
 };
 
 window.addEventListener('keydown', event => {
+  if (event.key === 'i' || event.key === 'I') {
+    event.preventDefault();
+    if (state.identity?.profileId) gameInventoryController.open('equipment');
+    return;
+  }
+  if (document.body.classList.contains('game-inventory-open')) return;
   const key = keyMap[event.key];
   if (!key) return;
   event.preventDefault();
@@ -1906,6 +1970,7 @@ document.querySelectorAll('[data-move]').forEach(btn => {
 
 $('#queueAttack')?.addEventListener('click', () => queueAction('attack'));
 $('#queueInteract')?.addEventListener('click', () => queueAction('interact'));
+$('#gameInventoryButton')?.addEventListener('click', () => gameInventoryController.open('equipment'));
 $('#cancelAction')?.addEventListener('click', cancelQueuedAction);
 $('#restAction')?.addEventListener('click', restToFullHealth);
 $('#cancelAutoMove')?.addEventListener('click', () => {
@@ -1956,10 +2021,13 @@ watchIdentity(async identity => {
   }
   state.turnNumber = turnInfo().turnNumber;
   await ensureCreditWallet(db, fs, identity.profileId);
+  await ensureGameInventory(db, fs, identity.profileId);
+  await gameInventoryController.start(identity.profileId);
   await ensureGlobalStats(identity.profileId);
   watchCredits();
   watchGlobalStats();
   await restorePosition();
+  if (state.lastDeathEventId) await gameInventoryController.clearOnDeath(state.lastDeathEventId);
   await loadWorldName();
   await flushPresence(true);
   await ensureSlimePopulation();

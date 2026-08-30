@@ -604,7 +604,7 @@ service cloud.firestore {
     // One wallet per public profile, shared by root Account, LCS,
     // Content, and E.R.A.S. gameplay.
     // ============================================================
-    function validCreditEventType(value) { return value in ['init','slime_kill','death','market_purchase','player_transfer_out','player_transfer_in','trade']; }
+    function validCreditEventType(value) { return value in ['init','slime_kill','death','market_purchase','player_transfer_out','player_transfer_in','trade','game_item_trade']; }
     function validCreditWallet(data, profileId) {
       return data.keys().hasOnly(['profileId','balance','totalEarned','totalLost','lastEventId','lastEventType','createdAt','updatedAt'])
         && data.profileId == profileId
@@ -675,6 +675,20 @@ service cloud.firestore {
           || (profileId == getAfter(settlementPath).data.recipientProfileId
             && data.balance == resource.data.balance - getAfter(settlementPath).data.recipientCredits + getAfter(settlementPath).data.initiatorCredits));
     }
+    function validGameItemTradeWallet(data, profileId) {
+      let receiptPath = /databases/$(database)/documents/gameItemTransactions/$(data.lastEventId);
+      return isCallerProfile(profileId)
+        && data.lastEventType == 'game_item_trade'
+        && data.lastEventId.size() > 0
+        && !exists(receiptPath) && existsAfter(receiptPath)
+        && getAfter(receiptPath).data.profileId == profileId
+        && data.totalEarned == resource.data.totalEarned
+        && data.totalLost == resource.data.totalLost
+        && ((getAfter(receiptPath).data.direction == 'buy'
+            && data.balance == resource.data.balance - getAfter(receiptPath).data.credits)
+          || (getAfter(receiptPath).data.direction == 'sell'
+            && data.balance == resource.data.balance + getAfter(receiptPath).data.credits));
+    }
     function validNewTransferRecipientWallet(data, profileId) {
       let transferPath = /databases/$(database)/documents/creditTransfers/$(data.lastEventId);
       return data.lastEventType == 'player_transfer_in'
@@ -703,10 +717,166 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt is timestamp
         && ((isCallerProfile(profileId)
-              && (validSlimeKillCredit(request.resource.data) || validDeathCreditLoss(request.resource.data)))
+              && (validSlimeKillCredit(request.resource.data) || validDeathCreditLoss(request.resource.data) || validGameItemTradeWallet(request.resource.data, profileId)))
           || validDirectCreditTransferWallet(request.resource.data, profileId)
           || validPlayerTradeWallet(request.resource.data, profileId));
       allow delete: if false;
+    }
+
+    // ============================================================
+    // E.R.A.S. GAME INVENTORY + NORTH TERMINAL
+    // Separate from assetHoldings/assetInventory. Items in this namespace are
+    // ephemeral gameplay possessions and are designed to clear on death.
+    // ============================================================
+    function validGameInventoryEventType(value) { return value in ['init','slime_drop','terminal_buy','terminal_sell','consume_potion','equip','death']; }
+    function validGameEquippedWeapon(value) { return value in ['','hand_wraps','stick']; }
+    function validGameInventory(data, profileId) {
+      return data.keys().hasOnly(['profileId','slimeJuice','healthPotion','handWraps','stick','equippedWeapon','lastEventId','lastEventType','lastDeathEventId','createdAt','updatedAt'])
+        && data.profileId == profileId
+        && data.slimeJuice is int && data.slimeJuice >= 0
+        && data.healthPotion is int && data.healthPotion >= 0
+        && data.handWraps is int && data.handWraps >= 0
+        && data.stick is int && data.stick >= 0
+        && validGameEquippedWeapon(data.equippedWeapon)
+        && data.lastEventId is string && data.lastEventId.size() <= 180
+        && validGameInventoryEventType(data.lastEventType)
+        && data.lastDeathEventId is string && data.lastDeathEventId.size() <= 180
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+    function validSlimeDropInventory(data) {
+      let actionPath = /databases/$(database)/documents/gameActions/$(data.lastEventId);
+      return isCallerProfile(data.profileId)
+        && data.lastEventType == 'slime_drop'
+        && data.lastEventId.size() > 0
+        && data.lastEventId != resource.data.lastEventId
+        && data.slimeJuice >= resource.data.slimeJuice && data.slimeJuice <= resource.data.slimeJuice + 1
+        && data.healthPotion >= resource.data.healthPotion && data.healthPotion <= resource.data.healthPotion + 1
+        && data.handWraps >= resource.data.handWraps && data.handWraps <= resource.data.handWraps + 1
+        && data.slimeJuice + data.healthPotion + data.handWraps > resource.data.slimeJuice + resource.data.healthPotion + resource.data.handWraps
+        && data.stick == resource.data.stick
+        && data.equippedWeapon == resource.data.equippedWeapon
+        && data.lastDeathEventId == resource.data.lastDeathEventId
+        && existsAfter(actionPath)
+        && getAfter(actionPath).data.actorProfileId == callerProfileId()
+        && getAfter(actionPath).data.actionType == 'attack'
+        && getAfter(actionPath).data.targetType == 'enemy'
+        && getAfter(actionPath).data.status == 'resolved'
+        && getAfter(actionPath).data.outcome == 'kill';
+    }
+    function validGameItemReceipt(data) {
+      return data.keys().hasOnly(['profileId','direction','itemId','quantity','credits','createdAt'])
+        && validPublicId(data.profileId) && profileExists(data.profileId)
+        && data.direction in ['buy','sell']
+        && data.itemId in ['health_potion','slime_juice','stick']
+        && data.quantity == 1
+        && data.credits is int && data.credits >= 1
+        && data.createdAt is timestamp
+        && ((data.direction == 'buy' && data.itemId == 'health_potion' && data.credits == 3)
+          || (data.direction == 'buy' && data.itemId == 'stick' && data.credits == 5)
+          || (data.direction == 'sell' && data.itemId == 'slime_juice' && data.credits == 1));
+    }
+    function validTerminalInventoryTransition(data) {
+      let receiptPath = /databases/$(database)/documents/gameItemTransactions/$(data.lastEventId);
+      let walletPath = /databases/$(database)/documents/creditWallets/$(data.profileId);
+      return isCallerProfile(data.profileId)
+        && data.lastEventId.size() > 0
+        && !exists(receiptPath) && existsAfter(receiptPath)
+        && getAfter(receiptPath).data.profileId == data.profileId
+        && existsAfter(walletPath)
+        && getAfter(walletPath).data.lastEventId == data.lastEventId
+        && getAfter(walletPath).data.lastEventType == 'game_item_trade'
+        && data.equippedWeapon == resource.data.equippedWeapon
+        && data.lastDeathEventId == resource.data.lastDeathEventId
+        && ((data.lastEventType == 'terminal_buy'
+            && getAfter(receiptPath).data.direction == 'buy'
+            && ((getAfter(receiptPath).data.itemId == 'health_potion'
+                && data.healthPotion == resource.data.healthPotion + 1
+                && data.slimeJuice == resource.data.slimeJuice && data.handWraps == resource.data.handWraps && data.stick == resource.data.stick)
+              || (getAfter(receiptPath).data.itemId == 'stick'
+                && data.stick == resource.data.stick + 1
+                && data.slimeJuice == resource.data.slimeJuice && data.healthPotion == resource.data.healthPotion && data.handWraps == resource.data.handWraps)))
+          || (data.lastEventType == 'terminal_sell'
+            && getAfter(receiptPath).data.direction == 'sell'
+            && getAfter(receiptPath).data.itemId == 'slime_juice'
+            && data.slimeJuice == resource.data.slimeJuice - 1
+            && data.healthPotion == resource.data.healthPotion && data.handWraps == resource.data.handWraps && data.stick == resource.data.stick));
+    }
+    function validConsumePotionInventory(data) {
+      return isCallerProfile(data.profileId)
+        && data.lastEventType == 'consume_potion'
+        && data.lastEventId.size() > 0
+        && data.healthPotion == resource.data.healthPotion - 1
+        && data.slimeJuice == resource.data.slimeJuice
+        && data.handWraps == resource.data.handWraps
+        && data.stick == resource.data.stick
+        && data.equippedWeapon == resource.data.equippedWeapon
+        && data.lastDeathEventId == resource.data.lastDeathEventId;
+    }
+    function validEquipInventory(data) {
+      return isCallerProfile(data.profileId)
+        && data.lastEventType == 'equip'
+        && data.lastEventId.size() > 0
+        && data.slimeJuice == resource.data.slimeJuice
+        && data.healthPotion == resource.data.healthPotion
+        && data.lastDeathEventId == resource.data.lastDeathEventId
+        && data.handWraps + (data.equippedWeapon == 'hand_wraps' ? 1 : 0) == resource.data.handWraps + (resource.data.equippedWeapon == 'hand_wraps' ? 1 : 0)
+        && data.stick + (data.equippedWeapon == 'stick' ? 1 : 0) == resource.data.stick + (resource.data.equippedWeapon == 'stick' ? 1 : 0);
+    }
+    function validDeathInventoryClear(data) {
+      return isCallerProfile(data.profileId)
+        && data.lastEventType == 'death'
+        && data.lastEventId.size() > 0
+        && data.lastDeathEventId == data.lastEventId
+        && data.slimeJuice == 0 && data.healthPotion == 0 && data.handWraps == 0 && data.stick == 0
+        && data.equippedWeapon == '';
+    }
+    match /gameInventories/{profileId} {
+      allow read: if hasPrivateAccount() && isCallerProfile(profileId);
+      allow create: if callerCanContribute()
+        && isCallerProfile(profileId)
+        && validGameInventory(request.resource.data, profileId)
+        && request.resource.data.slimeJuice == 0 && request.resource.data.healthPotion == 0
+        && request.resource.data.handWraps == 0 && request.resource.data.stick == 0
+        && request.resource.data.equippedWeapon == ''
+        && request.resource.data.lastEventId == '' && request.resource.data.lastEventType == 'init'
+        && request.resource.data.lastDeathEventId == '';
+      allow update: if callerCanContribute()
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validGameInventory(request.resource.data, profileId)
+        && (validSlimeDropInventory(request.resource.data)
+          || validTerminalInventoryTransition(request.resource.data)
+          || validConsumePotionInventory(request.resource.data)
+          || validEquipInventory(request.resource.data)
+          || validDeathInventoryClear(request.resource.data));
+      allow delete: if false;
+    }
+    function validGameItemTransactionSettlement(transactionId, data) {
+      let walletPath = /databases/$(database)/documents/creditWallets/$(data.profileId);
+      let inventoryPath = /databases/$(database)/documents/gameInventories/$(data.profileId);
+      return exists(walletPath) && exists(inventoryPath)
+        && existsAfter(walletPath) && existsAfter(inventoryPath)
+        && getAfter(walletPath).data.lastEventId == transactionId
+        && getAfter(walletPath).data.lastEventType == 'game_item_trade'
+        && getAfter(inventoryPath).data.lastEventId == transactionId
+        && ((data.direction == 'buy'
+            && get(walletPath).data.balance >= data.credits
+            && getAfter(walletPath).data.balance == get(walletPath).data.balance - data.credits
+            && ((data.itemId == 'health_potion' && getAfter(inventoryPath).data.healthPotion == get(inventoryPath).data.healthPotion + 1)
+              || (data.itemId == 'stick' && getAfter(inventoryPath).data.stick == get(inventoryPath).data.stick + 1)))
+          || (data.direction == 'sell'
+            && data.itemId == 'slime_juice'
+            && get(inventoryPath).data.slimeJuice >= 1
+            && getAfter(walletPath).data.balance == get(walletPath).data.balance + data.credits
+            && getAfter(inventoryPath).data.slimeJuice == get(inventoryPath).data.slimeJuice - 1));
+    }
+    match /gameItemTransactions/{transactionId} {
+      allow read: if hasPrivateAccount() && isCallerProfile(resource.data.profileId);
+      allow create: if callerCanContribute()
+        && isCallerProfile(request.resource.data.profileId)
+        && validGameItemReceipt(request.resource.data)
+        && validGameItemTransactionSettlement(transactionId, request.resource.data);
+      allow update, delete: if false;
     }
 
     // ============================================================
@@ -1166,12 +1336,38 @@ service cloud.firestore {
         && request.resource.data.y == resource.data.y
         && request.resource.data.moveUsed == resource.data.moveUsed;
     }
+    function validHealthPotionPresenceTransition() {
+      let inventoryPath = /databases/$(database)/documents/gameInventories/$(resource.data.profileId);
+      return isCallerProfile(resource.data.profileId)
+        && exists(inventoryPath) && existsAfter(inventoryPath)
+        && getAfter(inventoryPath).data.lastEventType == 'consume_potion'
+        && getAfter(inventoryPath).data.lastEventId != get(inventoryPath).data.lastEventId
+        && getAfter(inventoryPath).data.healthPotion == get(inventoryPath).data.healthPotion - 1
+        && request.resource.data.hp > resource.data.hp
+        && request.resource.data.hp <= resource.data.hp + 2
+        && request.resource.data.hp <= 3
+        && request.resource.data.worldId == resource.data.worldId
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.maxHp == resource.data.maxHp
+        && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
+        && request.resource.data.vx == resource.data.vx && request.resource.data.vy == resource.data.vy
+        && request.resource.data.turnNumber == resource.data.turnNumber
+        && request.resource.data.moveUsed == resource.data.moveUsed
+        && request.resource.data.deaths == resource.data.deaths
+        && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+        && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
+        && request.resource.data.restedTurn == resource.data.get('restedTurn',0)
+        && request.resource.data.movedTurn == resource.data.get('movedTurn',0)
+        && request.resource.data.actionTurn == resource.data.get('actionTurn',0)
+        && request.resource.data.lastPvpEventId == resource.data.get('lastPvpEventId','');
+    }
     function validOwnPresenceUpdate() {
       return isCallerProfile(resource.data.profileId)
         && request.resource.data.lastPvpEventId == resource.data.get('lastPvpEventId','')
         && (request.resource.data.hp <= resource.data.hp
           || request.resource.data.deaths > resource.data.deaths
-          || validOwnRestTransition());
+          || validOwnRestTransition()
+          || validHealthPotionPresenceTransition());
     }
     function validPvpPresenceTransition() {
       let actionId = request.resource.data.lastPvpEventId;
@@ -1197,7 +1393,12 @@ service cloud.firestore {
         && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
         && request.resource.data.lastPvpEventId == actionId
         && ((getAfter(actionPath).data.outcome == 'hit'
-          && request.resource.data.hp == resource.data.hp - 1
+          && resource.data.hp - request.resource.data.hp >= 1
+          && resource.data.hp - request.resource.data.hp <= 2
+          && (resource.data.hp - request.resource.data.hp == 1
+            || (exists(/databases/$(database)/documents/gameInventories/$(callerProfileId()))
+              && get(/databases/$(database)/documents/gameInventories/$(callerProfileId())).data.equippedWeapon == 'stick'))
+          && request.resource.data.hp > 0
           && request.resource.data.deaths == resource.data.deaths
           && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
           && request.resource.data.x == resource.data.x
@@ -1206,6 +1407,10 @@ service cloud.firestore {
           && request.resource.data.vy == resource.data.vy
           && request.resource.data.moveUsed == resource.data.moveUsed)
         || (getAfter(actionPath).data.outcome == 'kill'
+          && (resource.data.hp == 1
+            || (resource.data.hp <= 2
+              && exists(/databases/$(database)/documents/gameInventories/$(callerProfileId()))
+              && get(/databases/$(database)/documents/gameInventories/$(callerProfileId())).data.equippedWeapon == 'stick'))
           && request.resource.data.hp == 3
           && request.resource.data.deaths == resource.data.deaths + 1
           && request.resource.data.lastDeathEventId == 'pvp_' + actionId
