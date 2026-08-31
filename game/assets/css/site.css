@@ -1141,6 +1141,7 @@ button.community-row:focus-visible {
 }
 .connection-actions { display: flex; align-items: center; gap: 5px; }
 .connection-actions button,
+.connection-actions a,
 .request-row button {
   min-height: 26px;
   padding: 0 8px;
@@ -1150,9 +1151,14 @@ button.community-row:focus-visible {
   font: 700 6.8px/1 var(--mono);
   letter-spacing: .10em;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 .connection-actions button:hover,
 .connection-actions button:focus-visible,
+.connection-actions a:hover,
+.connection-actions a:focus-visible,
 .request-row button:hover,
 .request-row button:focus-visible {
   color: var(--accent);

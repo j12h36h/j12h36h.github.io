@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
   <link rel="stylesheet" href="./assets/css/runtime.css?v=1.4.3">
+<link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260831-dm1">
 </head>
 <body class="universe-home play-hub-page">
   <div class="universe-frame" aria-hidden="true">
@@ -18,7 +19,7 @@
   </div>
   <header class="site-header">
     <a class="brand" href="/" aria-label="Project E.R.A.S. Universe home"><span class="brand-mark" aria-hidden="true"></span><span>PROJECT E.R.A.S. <b>: PLAY</b></span></a>
-    <div class="portal-auth-area" id="portalAuthArea" aria-live="polite"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
+    <button class="eras-dm-launch" type="button" data-eras-messages>MESSAGES</button><div class="portal-auth-area" id="portalAuthArea" aria-live="polite"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
   </header>
 
   <main class="universe-landing play-hub">
@@ -46,5 +47,6 @@
   </main>
   <script src="./assets/js/site.js"></script>
   <script type="module" src="/account/assets/js/account.js"></script>
+<script type="module" src="/game/global/messaging.js?v=20260831-dm1"></script>
 </body>
 </html>

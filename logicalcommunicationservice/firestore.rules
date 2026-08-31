@@ -573,6 +573,78 @@ service cloud.firestore {
       allow delete: if hasPrivateAccount() && callerProfileId() in resource.data.members;
     }
 
+
+
+    // DIRECT MESSAGING. DMs use public profile IDs only and require an accepted friendship.
+    // They are participant-readable by default, but the UI deliberately makes no privacy promise:
+    // users are told to treat every DM as if it could become public and never disclose private information.
+    function validMessageLanguage(value) {
+      return value in ['en','es','fr','de','pt','it','ja','ko','zh','ru','ar','hi'];
+    }
+    function validDirectMessageThread(data) {
+      return data.keys().hasOnly(['members','createdAt','updatedAt','lastMessageAt','lastMessageSenderProfileId','lastMessagePreview'])
+        && data.members is list && data.members.size() == 2
+        && validPublicId(data.members[0]) && validPublicId(data.members[1])
+        && data.members[0] != data.members[1]
+        && profileExists(data.members[0]) && profileExists(data.members[1])
+        && data.createdAt is timestamp && data.updatedAt is timestamp
+        && validOptionalTimestamp(data.lastMessageAt)
+        && data.lastMessageSenderProfileId is string
+        && (data.lastMessageSenderProfileId == '' || data.lastMessageSenderProfileId in data.members)
+        && data.lastMessagePreview is string && data.lastMessagePreview.size() <= 120;
+    }
+    function directMessageParticipant(threadId) {
+      let path = /databases/$(database)/documents/directMessageThreads/$(threadId);
+      return hasPrivateAccount() && exists(path) && callerProfileId() in get(path).data.members;
+    }
+    function directMessageFriendshipExists(threadId) {
+      return exists(/databases/$(database)/documents/privateFriendships/$(threadId));
+    }
+    function directMessagePairUnblocked(members) {
+      return !exists(/databases/$(database)/documents/privateBlocks/$(members[0] + '__' + members[1]))
+        && !exists(/databases/$(database)/documents/privateBlocks/$(members[1] + '__' + members[0]));
+    }
+    match /directMessageThreads/{threadId} {
+      allow read: if hasPrivateAccount() && callerProfileId() in resource.data.members;
+      allow create: if callerCanContribute()
+        && validDirectMessageThread(request.resource.data)
+        && callerProfileId() in request.resource.data.members
+        && (threadId == request.resource.data.members[0] + '__' + request.resource.data.members[1]
+          || threadId == request.resource.data.members[1] + '__' + request.resource.data.members[0])
+        && directMessageFriendshipExists(threadId)
+        && directMessagePairUnblocked(request.resource.data.members)
+        && request.resource.data.lastMessageAt == null
+        && request.resource.data.lastMessageSenderProfileId == ''
+        && request.resource.data.lastMessagePreview == '';
+      allow update: if callerCanContribute()
+        && validDirectMessageThread(request.resource.data)
+        && callerProfileId() in resource.data.members
+        && request.resource.data.members == resource.data.members
+        && request.resource.data.createdAt == resource.data.createdAt
+        && directMessageFriendshipExists(threadId)
+        && directMessagePairUnblocked(resource.data.members)
+        && request.resource.data.lastMessageAt is timestamp
+        && request.resource.data.lastMessageSenderProfileId == callerProfileId();
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if directMessageParticipant(threadId);
+        allow create: if callerCanContribute()
+          && directMessageParticipant(threadId)
+          && directMessageFriendshipExists(threadId)
+          && directMessagePairUnblocked(get(/databases/$(database)/documents/directMessageThreads/$(threadId)).data.members)
+          && request.resource.data.keys().hasOnly(['senderProfileId','recipientProfileId','text','language','createdAt'])
+          && request.resource.data.senderProfileId == callerProfileId()
+          && request.resource.data.recipientProfileId != request.resource.data.senderProfileId
+          && request.resource.data.senderProfileId in get(/databases/$(database)/documents/directMessageThreads/$(threadId)).data.members
+          && request.resource.data.recipientProfileId in get(/databases/$(database)/documents/directMessageThreads/$(threadId)).data.members
+          && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+          && validMessageLanguage(request.resource.data.language)
+          && request.resource.data.createdAt is timestamp;
+        allow update, delete: if false;
+      }
+    }
+
     match /privateLfgRequests/{requestId} {
       allow read: if hasPrivateAccount() && (resource.data.fromProfileId == callerProfileId() || resource.data.toProfileId == callerProfileId());
       allow create: if callerCanContribute() && isCallerProfile(request.resource.data.fromProfileId)

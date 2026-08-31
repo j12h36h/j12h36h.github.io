@@ -1,4 +1,5 @@
 import { LCS_CONFIG } from './config.js';
+import { createDirectMessenger } from '/assets/js/direct-messaging.js';
 import { watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -583,12 +584,45 @@ function renderLfg() {
   root.innerHTML=rows.length?rows.map(x=>{const who=identity(x.authorProfileId);const mine=x.authorProfileId===state.profileId;const request=state.lfgRequests.find(r=>r.lfgId===x.id&&r.fromProfileId===state.profileId);return `<article class="lfg-card"><button class="lfg-card-open" data-open-lfg="${escapeHtml(x.id)}" type="button" aria-label="Open LFG listing: ${escapeHtml(x.title)}"><div class="lfg-card-top"><span class="lfg-purpose">${LFG_PURPOSES[x.purpose]?.icon||'⚑'} ${escapeHtml(LFG_PURPOSES[x.purpose]?.label||x.purpose)}</span><small>${timeAgo(x.createdAt)}</small></div><h2>${escapeHtml(x.title)}</h2><p class="lfg-topic">${escapeHtml(x.topic)}</p><p>${escapeHtml(x.description)}</p>${x.availability?`<div class="lfg-availability"><b>Availability</b><span>${escapeHtml(x.availability)}</span></div>`:''}<div class="tag-row">${(x.tags||[]).map(t=>`<span>${escapeHtml(t)}</span>`).join('')}</div></button><div class="lfg-footer"><button class="identity-link" data-open-profile="${escapeHtml(x.authorProfileId)}" type="button">${escapeHtml(who.displayName)}</button>${mine?'<span class="status-pill">Your listing</span>':`<button class="primary-button" data-lfg-request="${escapeHtml(x.id)}" type="button" ${request?'disabled':''}>${request?escapeHtml(request.status==='pending'?'Request sent':request.status):'Request to connect'}</button>`}</div></article>`;}).join(''):'<div class="empty-state"><b>No open LFG listings match.</b><span>Create one for playing, creating, or sharing information.</span></div>';
 }
 
+
+let directMessenger = null;
+function ensureDirectMessenger() {
+  if (!state.firebaseReady || !state.profileId || !state.firebase?.db || !state.firebase?.fsMod) return null;
+  if (!directMessenger) {
+    const { db, fsMod } = state.firebase;
+    directMessenger = createDirectMessenger({
+      db,
+      fs: fsMod,
+      getCurrentProfileId: () => state.profileId,
+      getProfile: async (profileId) => {
+        if (state.profiles[profileId]) return state.profiles[profileId];
+        const snap = await fsMod.getDoc(fsMod.doc(db, 'publicProfiles', profileId));
+        if (!snap.exists()) return null;
+        const profile = { id: snap.id, ...snap.data() };
+        state.profiles[profileId] = profile;
+        return profile;
+      },
+      listContacts: async () => [...new Set(friendProfileIds())].filter(id => !isBlocked(id)),
+      avatarMarkup: (profile) => avatarSvgInner(avatarSpecFor(profile)),
+      onError: (error) => console.error('direct messaging', error)
+    });
+  }
+  return directMessenger;
+}
+function openMessages(profileId = '') {
+  if (!requireUser()) return;
+  const messenger = ensureDirectMessenger();
+  if (!messenger) { toast('Messaging is still connecting.'); return; }
+  if (profileId) messenger.openProfile(profileId); else messenger.openInbox();
+}
+
 function friendProfileIds() { return state.friendships.flatMap(f=>f.members||[]).filter(id=>id!==state.profileId); }
 function renderPersonRow(profileId, extra='') { const p=identity(profileId); return `<button class="person-row" data-open-profile="${escapeHtml(profileId)}" type="button">${avatarMarkup(p,'person-avatar')}<span><b>${escapeHtml(p.displayName)}</b><small>${escapeHtml(extra||p.bio||'Public profile')}</small></span></button>`; }
 function profileTradeActions(profileId, context='row') {
   if(!state.profileId||!profileId||profileId===state.profileId||isBlocked(profileId))return '';
   const id=encodeURIComponent(profileId),compact=context!=='detail';
-  return `<div class="profile-trade-actions ${compact?'profile-trade-actions-compact':''}"><a class="profile-credit-link" href="/trade/?with=${id}&mode=credits" title="Send Credits to this player" aria-label="Send Credits to ${escapeHtml(identity(profileId).displayName)}">◈ <span>${compact?'SEND':'SEND CREDITS'}</span></a><a class="profile-trade-link" href="/trade/?with=${id}&mode=trade" title="Trade assets and Credits with this player" aria-label="Trade with ${escapeHtml(identity(profileId).displayName)}">⇄ <span>${compact?'TRADE':'TRADE ASSETS'}</span></a></div>`;
+  const messageAction=friendshipStateWith(profileId).kind==='friends'?`<button class="profile-credit-link" data-message-profile="${escapeHtml(profileId)}" type="button" title="Direct message" aria-label="Direct message ${escapeHtml(identity(profileId).displayName)}">💬 <span>${compact?'MESSAGE':'DIRECT MESSAGE'}</span></button>`:'';
+  return `<div class="profile-trade-actions ${compact?'profile-trade-actions-compact':''}">${messageAction}<a class="profile-credit-link" href="/trade/?with=${id}&mode=credits" title="Send Credits to this player" aria-label="Send Credits to ${escapeHtml(identity(profileId).displayName)}">◈ <span>${compact?'SEND':'SEND CREDITS'}</span></a><a class="profile-trade-link" href="/trade/?with=${id}&mode=trade" title="Trade assets and Credits with this player" aria-label="Trade with ${escapeHtml(identity(profileId).displayName)}">⇄ <span>${compact?'TRADE':'TRADE ASSETS'}</span></a></div>`;
 }
 function renderPersonTradeRow(profileId, extra='') { return `<div class="person-trade-row">${renderPersonRow(profileId,extra)}${profileTradeActions(profileId,'row')}</div>`; }
 function renderConnections() {
@@ -1064,7 +1098,7 @@ async function signInGoogle(){
   }
 }
 
-async function signOutUser(){if(!state.firebase?.auth)return;stopPrivateSubscriptions();stopOwnProfileListener();await state.firebase.authMod.signOut(state.firebase.auth);toast('Signed out.');}
+async function signOutUser(){if(!state.firebase?.auth)return;directMessenger?.destroy();directMessenger=null;stopPrivateSubscriptions();stopOwnProfileListener();await state.firebase.authMod.signOut(state.firebase.auth);toast('Signed out.');}
 
 function stopOwnProfileListener(){if(state.ownProfileUnsub){state.ownProfileUnsub();state.ownProfileUnsub=null;}}
 function stopPrivateSubscriptions(){state.privateUnsubs.splice(0).forEach(fn=>{try{fn();}catch{}});state.friendRequests=[];state.friendships=[];state.lfgRequests=[];state.blocks=[];state.statusOwn=[];stopModerationSubscriptions();}
@@ -1159,7 +1193,7 @@ function syncFirebaseAuthUser(user){
     state.profileSaveStatus=next?'Authentication verified · restoring private identity link…':'';
     state.legacyMigrationStarted=false;state.identityLinkPromise=null;state.activitySeenAt=0;state.founderAuthorityVerified=false;state.founderAuthorityCheckPromise=null;
     state.statusPublic=[];state.statusOwn=[];state.statusPrivileged=[];state.statuses=[];
-    stopPrivateSubscriptions();stopOwnProfileListener();
+    directMessenger?.destroy();directMessenger=null;stopPrivateSubscriptions();stopOwnProfileListener();
   }
   renderAuth();renderAccount();renderConnections();renderDetailThread();
   if(next&&state.firebaseReady)ensurePrivateIdentityOnce().catch(e=>{console.error(e);toast('Could not link the private account to a public profile.');});
@@ -1213,7 +1247,7 @@ function bindUI(){
     if(t.matches('[data-momentum-mode]')){setMomentumMode(t.dataset.momentumMode);return;} if(t.matches('[data-momentum-action]')){handleMomentumAction(t.dataset.momentumAction,t.dataset.targetType,t.dataset.targetId);return;} if(t.matches('[data-momentum-new]')){openCreate(t.dataset.momentumNew);return;}
     if(t.matches('[data-activity-open]')){openActivityItem(t.dataset.activityOpen,t.dataset.activityId);return;} if(t.matches('[data-open-community]')){e.preventDefault();e.stopPropagation();openCommunityDetail(t.dataset.openCommunity);return;} if(t.matches('[data-open-post]')){openPostDetail(t.dataset.openPost);return;} if(t.matches('[data-open-object]')){openObjectDetail(t.dataset.openObject);return;} if(t.matches('[data-open-profile]')){openProfileDetail(t.dataset.openProfile);return;} if(t.matches('[data-open-lfg]')){openLfg(t.dataset.openLfg);return;} if(t.matches('[data-manage-status]')){setView('moderation');setTimeout(()=>{const el=$('#statusTargetProfile');if(el)el.value=t.dataset.manageStatus;},0);return;} if(t.matches('[data-status-revoke]')){revokeStatus(t.dataset.statusRevoke).catch(console.error);return;} if(t.matches('[data-content-remove]')){moderateContent(t.dataset.contentRemove,t.dataset.contentId,false).catch(console.error);return;} if(t.matches('[data-content-restore]')){moderateContent(t.dataset.contentRestore,t.dataset.contentId,true).catch(console.error);return;} if(t.matches('[data-open-moderation-content]')){openModerationContent(t.dataset.openModerationContent,t.dataset.contentId);return;}
     if(t.matches('[data-helpful-type]')){toggleHelpful(t.dataset.helpfulType,t.dataset.helpfulId).catch(console.error);return;} if(t.matches('[data-follow-type]')){toggleFollow(t.dataset.followType,t.dataset.followId).catch(console.error);return;} if(t.matches('[data-friend-profile]')){sendFriendRequest(t.dataset.friendProfile).catch(console.error);return;}
-    if(t.matches('[data-block-profile]')){blockProfile(t.dataset.blockProfile).catch(console.error);return;} if(t.matches('[data-unblock-profile]')){unblockProfile(t.dataset.unblockProfile).catch(console.error);return;} if(t.matches('[data-friend-action]')){handleFriendRequest(t.dataset.requestId,t.dataset.friendAction).catch(console.error);return;} if(t.matches('[data-lfg-request]')){sendLfgRequest(t.dataset.lfgRequest).catch(console.error);return;} if(t.matches('[data-lfg-action]')){handleLfgRequest(t.dataset.requestId,t.dataset.lfgAction).catch(console.error);return;}
+    if(t.matches('[data-message-profile]')){e.preventDefault();e.stopPropagation();openMessages(t.dataset.messageProfile);return;} if(t.matches('[data-block-profile]')){blockProfile(t.dataset.blockProfile).catch(console.error);return;} if(t.matches('[data-unblock-profile]')){unblockProfile(t.dataset.unblockProfile).catch(console.error);return;} if(t.matches('[data-friend-action]')){handleFriendRequest(t.dataset.requestId,t.dataset.friendAction).catch(console.error);return;} if(t.matches('[data-lfg-request]')){sendLfgRequest(t.dataset.lfgRequest).catch(console.error);return;} if(t.matches('[data-lfg-action]')){handleLfgRequest(t.dataset.requestId,t.dataset.lfgAction).catch(console.error);return;}
     if(t.matches('[data-connect-post]')){openConnect('post',t.dataset.connectPost);return;} if(t.matches('[data-connect-object]')){openConnect('object',t.dataset.connectObject);return;} if(t.matches('[data-reason]')){openLogicGuide(t.dataset.reason);return;}
     if(t.matches('[data-project-grant]')){const controls=t.closest('[data-project-id]');if(controls)grantProjectStatus(controls.dataset.projectId,controls).catch(console.error);return;} if(t.matches('[data-project-save]')){const box=t.closest('[data-project-edit]');if(box)saveProjectDetails(box.dataset.projectEdit,box).catch(console.error);return;} if(t.matches('[data-channel-filter]')){const d=t.closest('dialog');if(d)closeDialog(d);setActiveChannel(t.dataset.channelFilter);$('#searchResultsPanel').hidden=true;return;} if(t.matches('[data-space-filter]')){state.activeSpaceId=t.dataset.spaceFilter;state.activeChannelId='all';setView('home');renderSpaces();renderFeed();renderCatalogs();renderUniverse();$('#searchResultsPanel').hidden=true;return;} if(t.matches('[data-new-channel]')){openChannelDialog(t.dataset.newChannel);return;} if(t.matches('[data-close-dialog]')){closeDialogFromControl(t);return;}
   });
@@ -1224,7 +1258,7 @@ function bindUI(){
   $('#networkContextExplore')?.addEventListener('click',exploreNetworkContext); $('#networkContextPost')?.addEventListener('click',useNetworkContextInPost); $('#networkContextClear')?.addEventListener('click',clearNetworkContext); $('#viewSessionImpact')?.addEventListener('click',()=>{renderSessionMomentum();showDialog('#impactDialog');}); $('#resetSessionImpact')?.addEventListener('click',resetSessionImpact);
   $('#composerText').addEventListener('input',e=>$('#charCounter').textContent=`${e.target.value.length} / ${LCS_CONFIG.maxPostLength}`); $('#publishButton').addEventListener('click',()=>publishPost().catch(console.error)); $('#googleSignInButton').addEventListener('click',()=>signInGoogle()); $('#authRedirectRetryButton')?.addEventListener('click',()=>{clearAuthError();signInGoogle().catch(console.error);}); $('#accountSignInButton').addEventListener('click',openAuthDialog); $('#connectionsSignInButton').addEventListener('click',openAuthDialog); $('#activitySignInButton')?.addEventListener('click',openAuthDialog); $('#accountSignOutButton').addEventListener('click',()=>signOutUser());
   $('#accountProfileForm').addEventListener('submit',e=>savePublicProfile(e)); $('#accountDisplayName').addEventListener('input',markAccountDirty); $('#accountBio').addEventListener('input',markAccountDirty); $('#accountViewPublicProfile').addEventListener('click',()=>state.profileId&&openProfileDetail(state.profileId)); $('#copyPublicIdButton').addEventListener('click',async()=>{if(!state.profileId)return;try{await navigator.clipboard.writeText(state.profileId);toast('Public profile ID copied.');}catch{const r=document.createRange();r.selectNodeContents($('#accountFullPublicId'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast('Public profile ID selected. Copy it with your browser.');}}); $('#accountPublicAvatar').addEventListener('click',openAvatarEditor); $('#avatarJsonEditor').addEventListener('input',avatarEditorRead); $('#avatarResetButton').addEventListener('click',()=>{$('#avatarJsonEditor').value=JSON.stringify(defaultAvatarSpec({...ownProfile(),displayName:$('#accountDisplayName').value||ownProfile().displayName}),null,2);avatarEditorRead();}); $('#avatarSaveButton').addEventListener('click',()=>saveAvatarJson());
-  $('#openLogicGuide').addEventListener('click',()=>openLogicGuide()); $('#explainButton').addEventListener('click',()=>openLogicGuide()); $$('[data-guide]').forEach(b=>b.addEventListener('click',()=>openLogicGuide(b.dataset.guide)));
+  $('#messagesButton')?.addEventListener('click',()=>openMessages()); $('#openLogicGuide').addEventListener('click',()=>openLogicGuide()); $('#explainButton').addEventListener('click',()=>openLogicGuide()); $$('[data-guide]').forEach(b=>b.addEventListener('click',()=>openLogicGuide(b.dataset.guide)));
   $('#newSpaceButton').addEventListener('click',openSpaceDialog); $('#communityCreateButton').addEventListener('click',openSpaceDialog); $('#newChannelButton').addEventListener('click',()=>openChannelDialog(state.activeSpaceId!=='all'?state.activeSpaceId:'')); $$('.quick-create').forEach(b=>b.addEventListener('click',()=>openCreate(b.dataset.kind))); $('#newLfgButton').addEventListener('click',()=>{if(requireUser())showDialog('#lfgDialog');});
   $('#createForm').addEventListener('submit',e=>createObject(e).catch(err=>{console.error(err);setCreateError(firestoreErrorText(err,'create this item'));})); $('#statusGrantForm').addEventListener('submit',e=>grantStatus(e).catch(console.error)); $('#statusScopeKind').addEventListener('change',()=>{renderStatusTargetOptions();renderModeration();}); $('#statusScopeTarget').addEventListener('change',renderModeration); $('#spaceForm').addEventListener('submit',e=>createSpace(e).catch(console.error)); $('#channelForm').addEventListener('submit',e=>createChannel(e).catch(console.error)); $('#connectForm').addEventListener('submit',e=>submitConnection(e).catch(console.error)); $('#detailCommentForm').addEventListener('submit',e=>submitComment(e).catch(console.error)); $('#detailCommentSignIn').addEventListener('click',openAuthDialog); $('#lfgForm').addEventListener('submit',e=>createLfg(e).catch(console.error));
   $('#globalSearch').addEventListener('input',()=>{renderSearchPanel();renderFeed();renderCatalogs();renderLfg();}); document.addEventListener('submit',e=>{if(e.target?.matches('#communityEditForm'))saveCommunityEdit(e).catch(console.error);}); document.addEventListener('click',e=>{if(!e.target.closest('.top-search'))$('#searchResultsPanel').hidden=true;}); document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('#globalSearch').focus();}}); $('#focusMapButton').addEventListener('click',()=>{state.mapLayoutSeed++;renderUniverse();}); window.addEventListener('resize',()=>state.activeView==='universe'&&renderUniverse()); $('#detailDialog').addEventListener('close',()=>{stopDetailCommentSubscription();state.detail=null;}); window.addEventListener('hashchange',()=>setView(location.hash.replace('#','')||'home',false));

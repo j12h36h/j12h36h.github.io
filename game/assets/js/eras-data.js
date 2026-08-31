@@ -20,6 +20,7 @@ import {
   getDocs,
   serverTimestamp,
   limit,
+  orderBy,
   runTransaction
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
@@ -32,7 +33,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const fs = {
   doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where,
-  onSnapshot, getDocs, serverTimestamp, limit, runTransaction
+  onSnapshot, getDocs, serverTimestamp, limit, orderBy, runTransaction
 };
 
 try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}

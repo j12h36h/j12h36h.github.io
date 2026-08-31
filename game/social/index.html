@@ -7,6 +7,7 @@
   <meta name="description" content="Project E.R.A.S. : Universe social network.">
   <title>Social — Project E.R.A.S. : Universe</title>
   <link rel="stylesheet" href="../assets/css/site.css">
+  <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260831-dm1">
 </head>
 <body class="universe-home social-page">
   <div class="universe-frame" aria-hidden="true">
@@ -22,7 +23,7 @@
       <span class="brand-mark" aria-hidden="true"></span>
       <span>PROJECT E.R.A.S. <b>: UNIVERSE</b></span>
     </a>
-    <a class="enter-button" href="../index.html" data-home-link aria-label="Return to Project E.R.A.S. Universe home">HOME</a>
+    <div style="display:flex;gap:8px;align-items:center"><button class="eras-dm-launch" type="button" data-eras-messages>MESSAGES</button><a class="enter-button" href="../index.html" data-home-link aria-label="Return to Project E.R.A.S. Universe home">HOME</a></div>
   </header>
 
   <main class="social-landing" aria-label="Project E.R.A.S. Universe social">
@@ -92,7 +93,7 @@
           <div class="account-fields">
             <label class="account-field account-field-locked">
               <span>USERNAME</span>
-              <input type="text" value="PLAYER_0001" readonly aria-label="Username, uneditable">
+              <input type="text" value="SIGNED_OUT" readonly aria-label="Username, uneditable" data-eras-account-id>
               <small>UNEDITABLE</small>
             </label>
             <label class="account-field">
@@ -113,7 +114,7 @@
             <span>03</span>
             <h2 id="connections-title">CONNECTIONS</h2>
           </div>
-          <div class="connections-list">
+          <div class="connections-list" data-eras-friend-list>
             <article class="connection-card">
               <div class="connection-identity"><i aria-hidden="true"></i><strong>FRIEND_NAME_01</strong></div>
               <div class="connection-actions">
@@ -175,5 +176,6 @@
   </main>
 
   <script src="../assets/js/site.js"></script>
+  <script type="module" src="./social.js?v=20260831-dm1"></script>
 </body>
 </html>

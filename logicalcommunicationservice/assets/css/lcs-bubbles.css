@@ -1,0 +1,234 @@
+/* LCS social bubble skin — Skype-inspired softness layered over the universal E.R.A.S. style.
+   Scope: Logical Communication Service only. No game, DAI, trade, or other site surfaces load this file. */
+
+:root{
+  --lcs-bubble-radius:28px;
+  --lcs-bubble-radius-small:20px;
+  --lcs-bubble-line:rgba(255,255,255,.105);
+  --lcs-bubble-fill:linear-gradient(145deg,rgba(37,28,58,.90),rgba(17,13,29,.88));
+  --lcs-bubble-fill-soft:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.025));
+  --lcs-bubble-shadow:0 14px 34px rgba(0,0,0,.22),0 2px 8px rgba(0,0,0,.18);
+  --lcs-bubble-glow:0 0 0 1px rgba(146,92,255,.035),0 18px 48px rgba(77,43,125,.10);
+}
+
+/* Soft, rounded social chrome. */
+.top-search{
+  border-radius:999px;
+  background:rgba(255,255,255,.055);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+.primary-nav{gap:8px}
+.nav-item{
+  border-radius:999px;
+  padding:12px 16px;
+  transition:background .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease;
+}
+.nav-item:hover{transform:translateX(2px)}
+.nav-item.active{
+  background:linear-gradient(90deg,rgba(255,178,46,.105),rgba(146,92,255,.075));
+  box-shadow:inset 3px 0 0 var(--orange),inset 0 0 0 1px rgba(255,178,46,.15),0 8px 24px rgba(0,0,0,.10);
+}
+
+.ghost-button,.primary-button,.google-button,.segment,.catalog-actions button,
+.momentum-card-actions button,.momentum-catalog-actions button{border-radius:999px}
+.ghost-button{
+  background:rgba(255,255,255,.06);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+.primary-button{
+  box-shadow:0 8px 24px rgba(255,178,46,.18),inset 0 1px 0 rgba(255,255,255,.22);
+}
+.segmented{border-radius:999px;padding:4px}
+.segment{border-radius:999px}
+
+/* Main social islands. */
+.hero-card,.composer,.rail-card,.reasoning-card,.catalog-card,.community-card,
+.network-card,.account-card,.momentum-console,.network-context-card,
+.category-momentum-bar,.activity-signed-out{
+  border-color:var(--lcs-bubble-line);
+  box-shadow:var(--lcs-bubble-shadow),var(--lcs-bubble-glow);
+}
+.hero-card{border-radius:36px}
+.composer{
+  border-radius:34px;
+  background:var(--lcs-bubble-fill);
+  padding:20px;
+  position:relative;
+  overflow:visible;
+}
+.composer::after{
+  content:"";
+  position:absolute;
+  right:34px;
+  bottom:-7px;
+  width:22px;
+  height:14px;
+  border-radius:0 0 18px 18px;
+  background:rgba(19,14,32,.94);
+  transform:skewX(-28deg);
+  border-right:1px solid var(--lcs-bubble-line);
+  border-bottom:1px solid var(--lcs-bubble-line);
+  pointer-events:none;
+}
+.rail-card,.reasoning-card{border-radius:26px}
+.catalog-card,.community-card,.network-card,.account-card{border-radius:30px}
+.momentum-console{border-radius:32px}
+.network-context-card,.category-momentum-bar{border-radius:24px}
+
+/* Posts behave like large conversation bubbles rather than rigid feed rectangles. */
+.feed{gap:16px}
+.post-card{
+  position:relative;
+  overflow:visible;
+  border-radius:32px 32px 32px 12px;
+  padding:20px;
+  border-color:var(--lcs-bubble-line);
+  background:var(--lcs-bubble-fill);
+  box-shadow:var(--lcs-bubble-shadow);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.post-card::after{
+  content:"";
+  position:absolute;
+  left:18px;
+  bottom:-7px;
+  width:22px;
+  height:14px;
+  border-radius:0 0 0 18px;
+  background:rgba(18,13,30,.96);
+  transform:skewX(31deg);
+  border-left:1px solid var(--lcs-bubble-line);
+  border-bottom:1px solid var(--lcs-bubble-line);
+  pointer-events:none;
+}
+.post-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(255,255,255,.16);
+  box-shadow:0 18px 42px rgba(0,0,0,.26),0 0 0 1px rgba(146,92,255,.045);
+}
+.post-text{line-height:1.68}
+.post-author img,.post-author .fallback-avatar,.avatar,.public-profile-avatar,
+.profile-detail-hero>img,.profile-detail-fallback{
+  box-shadow:0 0 0 3px rgba(255,255,255,.055),0 8px 20px rgba(0,0,0,.18);
+}
+.post-actions{
+  gap:7px;
+  border-top:0;
+  padding-top:4px;
+  margin-top:12px;
+  flex-wrap:wrap;
+}
+.post-actions button{
+  border-radius:999px;
+  padding:7px 10px;
+  background:rgba(255,255,255,.03);
+  transition:background .15s ease,color .15s ease,transform .15s ease;
+}
+.post-actions button:hover{
+  background:rgba(255,255,255,.085);
+  transform:translateY(-1px);
+}
+.type-pill,.kind-pill,.tag,.status-pill,.profile-sync-badge,.community-stats span,
+.community-channel-card em{box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+
+/* Projects, communities, and relationship cards use nested bubbles. */
+.catalog-card{
+  background:var(--lcs-bubble-fill);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.catalog-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(255,255,255,.15);
+  box-shadow:0 18px 44px rgba(0,0,0,.24),var(--lcs-bubble-glow);
+}
+.community-card{background:var(--lcs-bubble-fill)}
+.community-channel-card,.linked-object,.profile-stats>div,.session-impact-item,
+.momentum-card,.search-group button{
+  border-radius:var(--lcs-bubble-radius-small);
+  background:var(--lcs-bubble-fill-soft);
+}
+.community-channel-card .channel-symbol,.logic-symbol,.activity-icon{border-radius:50%}
+.community-channel-card:hover,.community-channel-card:focus-visible,.linked-object:hover{
+  background:rgba(255,255,255,.075);
+  transform:translateY(-1px);
+}
+.channel-nav-item{border-radius:999px;padding-left:10px;padding-right:10px}
+.space-item{border-radius:999px}
+
+/* Threads and replies are the most message-like surface. */
+.detail-modal,.modal{
+  border-radius:34px;
+  border-color:var(--lcs-bubble-line);
+  box-shadow:0 32px 100px rgba(0,0,0,.52),0 0 0 1px rgba(255,255,255,.025);
+}
+.detail-author-row{border-bottom-color:rgba(255,255,255,.065)}
+.comment-list{gap:12px}
+.comment-card{
+  position:relative;
+  border-radius:24px 24px 24px 8px;
+  padding:14px 16px;
+  background:linear-gradient(145deg,rgba(146,92,255,.095),rgba(255,255,255,.035));
+  border-color:rgba(188,160,255,.13);
+  box-shadow:0 8px 22px rgba(0,0,0,.15);
+}
+.comment-card::after{
+  content:"";
+  position:absolute;
+  left:12px;
+  bottom:-6px;
+  width:16px;
+  height:11px;
+  border-radius:0 0 0 14px;
+  background:rgba(30,21,47,.92);
+  transform:skewX(30deg);
+  pointer-events:none;
+}
+.comment-card p{line-height:1.62}
+.thread-empty,.empty-state{
+  border-radius:24px;
+  background:rgba(255,255,255,.018);
+}
+.comment-composer .field textarea,.field input,.field textarea,.field select,
+.composer-context select{
+  border-radius:18px;
+  background:rgba(8,6,15,.66);
+}
+
+/* Search, notifications and people lists stay compact but conversational. */
+.search-panel{
+  border-radius:26px;
+  box-shadow:0 24px 72px rgba(0,0,0,.42);
+}
+.activity-list{gap:11px}
+.activity-row{
+  border-radius:24px;
+  background:var(--lcs-bubble-fill-soft);
+  box-shadow:0 7px 18px rgba(0,0,0,.10);
+  transition:transform .16s ease,background .16s ease,border-color .16s ease;
+}
+.activity-row:hover,.activity-row:focus-visible{transform:translateY(-1px)}
+.auth-user,.auth-checking{box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+
+@media (prefers-reduced-motion:no-preference){
+  .post-card,.catalog-card,.community-channel-card,.linked-object,.activity-row,.nav-item{will-change:transform}
+}
+
+@media(max-width:820px){
+  :root{--lcs-bubble-radius:24px;--lcs-bubble-radius-small:18px}
+  .hero-card{border-radius:30px}
+  .composer{border-radius:28px}
+  .post-card{border-radius:28px 28px 28px 10px}
+  .catalog-card,.community-card,.network-card,.account-card{border-radius:26px}
+  .detail-modal,.modal{border-radius:28px}
+  .left-rail{border-radius:0 0 24px 24px}
+}
+
+@media(max-width:520px){
+  .composer{padding:15px;border-radius:24px}
+  .post-card{padding:15px;border-radius:24px 24px 24px 9px}
+  .post-card::after{left:14px}
+  .comment-card{border-radius:20px 20px 20px 7px}
+  .catalog-card,.community-card,.network-card,.account-card{border-radius:22px}
+  .detail-modal,.modal{border-radius:24px}
+  .post-actions button{padding:7px 9px}
+}

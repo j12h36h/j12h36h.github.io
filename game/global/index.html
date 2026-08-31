@@ -10,12 +10,13 @@
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
   <link rel="stylesheet" href="/game/assets/css/runtime.css?v=1.8.0">
   <link rel="stylesheet" href="/game/inventory/inventory.css?v=2.1.0">
+  <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260831-dm1">
 </head>
 <body class="global-page tactical-global-page">
   <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
   <header class="site-header">
     <a class="brand" href="/game/"><span class="brand-mark"></span><span>PROJECT E.R.A.S. <b>: GLOBAL</b></span></a>
-    <div class="global-header-actions"><button class="game-inventory-button" id="gameInventoryButton" type="button">INVENTORY [I]</button><a class="game-trade-link" href="/trade/">ASSET TRADE</a><div class="game-credit-header" title="Universal Credits">◈ <b id="creditBalance">0</b> CREDITS</div></div><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
+    <div class="global-header-actions"><button class="eras-dm-launch" type="button" data-eras-messages>MESSAGES</button><button class="game-inventory-button" id="gameInventoryButton" type="button">INVENTORY [I]</button><a class="game-trade-link" href="/trade/">ASSET TRADE</a><div class="game-credit-header" title="Universal Credits">◈ <b id="creditBalance">0</b> CREDITS</div></div><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
   </header>
 
   <main class="global-shell">
@@ -85,5 +86,6 @@
 
   <script type="module" src="/account/assets/js/account.js"></script>
   <script type="module" src="./global.js?v=2.1.0"></script>
+  <script type="module" src="./messaging.js?v=20260831-dm1"></script>
 </body>
 </html>
