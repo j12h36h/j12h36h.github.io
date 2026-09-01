@@ -37,3 +37,12 @@
 .eras-dm-lcs .eras-dm-compose textarea{border-color:rgba(202,158,255,.2);background:#130c1c;color:#f4ecfb}
 .eras-dm-lcs .eras-dm-compose textarea:focus{border-color:rgba(202,158,255,.55);box-shadow:0 0 0 2px rgba(184,119,255,.08)}
 .eras-dm-lcs .eras-dm-send{border-color:rgba(202,158,255,.3);background:rgba(184,119,255,.14);color:#f2e8fb}
+
+/* v0.9.15 Chat alerts + deterministic server-time reconciliation */
+#messagesButton,[data-eras-messages],.eras-dm-launch{position:relative}
+.chat-alert-badge{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;display:grid;place-items:center;background:#ffb22e;color:#160e05;border:2px solid rgba(7,16,19,.94);box-shadow:0 0 18px rgba(255,178,46,.38);font:900 9px/1 var(--mono,monospace);font-style:normal;letter-spacing:0;z-index:3}
+.chat-alert-badge[hidden]{display:none!important}.has-chat-alerts{border-color:rgba(255,178,46,.42)!important;box-shadow:0 0 0 1px rgba(255,178,46,.08),0 0 18px rgba(255,178,46,.08)}
+.eras-dm-person{grid-template-columns:30px minmax(0,1fr) auto}.eras-dm-person-alert{min-width:18px;height:18px;padding:0 5px;border-radius:999px;display:grid;place-items:center;background:#ffb22e;color:#160e05;font:900 8px/1 var(--mono,monospace);font-style:normal}.eras-dm-person.is-unread .eras-dm-person-copy b{color:#fff3d1}
+.eras-dm-message.is-pending{opacity:.72}.eras-dm-message.is-pending .eras-dm-message-meta span:last-child{font-style:italic}
+@media(max-width:700px){.eras-dm-person{grid-template-columns:minmax(0,1fr) auto}.eras-dm-person-alert{justify-self:end}}
+.eras-dm-lcs .chat-alert-badge{border-color:rgba(20,12,30,.98)}

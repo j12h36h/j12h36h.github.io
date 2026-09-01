@@ -1,5 +1,5 @@
 import { LCS_CONFIG } from './config.js';
-import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260901-dm4';
+import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260901-dm5';
 import { watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -130,7 +130,26 @@ function avatarSvgInner(spec) {
 function avatarMarkup(profile, cls = 'fallback-avatar') { return `<span class="${cls} avatar-composite" aria-hidden="true">${avatarSvgInner(avatarSpecFor(profile))}</span>`; }
 function prettyAvatarJson(profile = null) { return JSON.stringify(avatarSpecFor(profile), null, 2); }
 
-function showDialog(selector) { const d = typeof selector === 'string' ? $(selector) : selector; if (d && !d.open) d.showModal(); }
+function closeOpenDialogs(except = null) {
+  $$('dialog[open]').forEach(dialog => { if (dialog !== except) closeDialog(dialog); });
+}
+function showDialog(selector) {
+  const d = typeof selector === 'string' ? $(selector) : selector;
+  if (!d) return;
+  // LCS uses one active modal surface at a time. Moving from a profile to another
+  // profile/detail/tool closes the previous popup instead of stacking modal layers.
+  closeOpenDialogs(d);
+  // Dynamically-created dialogs get the same outside-click behavior as static dialogs.
+  if (!d.dataset.lcsBackdropBound) {
+    d.dataset.lcsBackdropBound = '1';
+    d.addEventListener('click', e => {
+      if (e.target !== d) return;
+      const r=d.getBoundingClientRect();
+      if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeDialog(d);
+    });
+  }
+  if (!d.open) d.showModal();
+}
 function closeDialog(dialogOrSelector) {
   const d = typeof dialogOrSelector === 'string' ? $(dialogOrSelector) : dialogOrSelector;
   if (!d) return;
@@ -396,6 +415,8 @@ function itemChannelId(item) { return item.channelId || `${item.spaceId || SYSTE
 function contentMatchesQuery(content, extra = '') { const q = ($('#globalSearch')?.value || '').trim().toLowerCase(); return !q || `${content || ''} ${extra || ''}`.toLowerCase().includes(q); }
 
 function setView(view, updateHash = true) {
+  // Navigating to a full view must dismiss any modal that launched the navigation.
+  closeOpenDialogs();
   const valid = ['home','universe','ideas','problems','projects','communities','connections','activity','lfg','moderation','account'];
   let requested=valid.includes(view)?view:'home';
   if(requested==='moderation'&&!canAccessModerationClient()){
@@ -604,13 +625,26 @@ function ensureDirectMessenger() {
       },
       listContacts: async () => [...new Set(friendProfileIds())].filter(id => !isBlocked(id)),
       avatarMarkup: (profile) => avatarSvgInner(avatarSpecFor(profile)),
+      onUnreadChange: (count) => updateChatUnreadBadge(count),
       onError: (error) => console.error('chat', error)
     });
+    directMessenger.startBackground?.();
   }
   return directMessenger;
 }
+function updateChatUnreadBadge(count = 0) {
+  const button = $('#messagesButton'), badge = $('#chatUnreadBadge');
+  const value = Math.max(0, Number(count) || 0);
+  if (badge) { badge.textContent = value > 99 ? '99+' : String(value); badge.hidden = value < 1; }
+  if (button) {
+    button.classList.toggle('has-chat-alerts', value > 0);
+    button.setAttribute('aria-label', value ? `Chats, ${value} unread conversation${value === 1 ? '' : 's'}` : 'Chats');
+  }
+}
 function openChats(profileId = '') {
   if (!requireUser()) return;
+  // Chat is a full overlay rather than a <dialog>; dismiss profile/detail/tool modals first.
+  closeOpenDialogs();
   const messenger = ensureDirectMessenger();
   if (!messenger) { toast('Chat is still connecting.'); return; }
   if (profileId) messenger.openProfile(profileId); else messenger.openInbox();
@@ -1164,6 +1198,7 @@ async function ensurePrivateIdentity(){if(!state.authUid||!state.firebaseReady)r
   state.publicProfile={id:profileId,...profileSnap.data()};state.profiles[profileId]=state.publicProfile;state.profileVerified=true;state.profileSaveStatus='Public profile synced';
   stopOwnProfileListener();state.ownProfileUnsub=fsMod.onSnapshot(profileRef,{includeMetadataChanges:true},s=>{if(!s.exists())return;state.publicProfile={id:s.id,...s.data()};state.profiles[s.id]=state.publicProfile;if(!s.metadata.hasPendingWrites){state.profileVerified=true;const currentName=$('#accountDisplayName')?.value.trim().replace(/\s+/g,' ')||'';const currentBio=$('#accountBio')?.value.trim()||'';const matches=currentName===String(s.data().displayName||'')&&currentBio===String(s.data().bio||'');if(!state.accountDirty||matches){state.profileSaveStatus='Saved · verified public';state.accountDirty=false;}}renderAuth();renderAccount();renderFeed();renderCatalogs();renderSearchPanel();if(state.detail?.type==='profile'&&state.detail.id===s.id)openProfileDetail(s.id);});
   loadActivitySeen();setupPrivateSubscriptions();renderAuth();renderAccount();renderConnections();renderStatusSurfaces();renderActivity();verifyFounderAuthority().catch(console.debug);
+  ensureDirectMessenger()?.startBackground?.();
   if(!state.legacyMigrationStarted){state.legacyMigrationStarted=true;setTimeout(()=>migrateLegacyOwnedData().catch(e=>console.warn('Legacy migration skipped:',e)),300);}
 }
 
@@ -1237,7 +1272,7 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;synthesizeReferencedProfiles();renderLfg();renderConnections();renderSearchPanel();renderActivity();hydrateReferencedProfiles().catch(console.debug);},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;synthesizeReferencedProfiles();mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();renderActivity();hydrateReferencedProfiles().catch(console.debug);},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentityOnce();
-    setBackendStatus('LCS v0.9.14 Chat input + security cleanup connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    setBackendStatus('LCS v0.9.15 Chat alerts + modal flow connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.9.4+ firestore.rules.','error');renderAuth();renderAccount();}
 }
 
@@ -1245,14 +1280,13 @@ function bindUI(){
   document.addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t)return;
     if(t.matches('[data-open-account]')){e.preventDefault();setView('account');return;} if(t.matches('[data-open-auth]')){e.preventDefault();clearAuthError();openAuthDialog();return;} if(t.matches('#signOutButton')){signOutUser();return;}
     if(t.matches('[data-momentum-mode]')){setMomentumMode(t.dataset.momentumMode);return;} if(t.matches('[data-momentum-action]')){handleMomentumAction(t.dataset.momentumAction,t.dataset.targetType,t.dataset.targetId);return;} if(t.matches('[data-momentum-new]')){openCreate(t.dataset.momentumNew);return;}
-    if(t.matches('[data-activity-open]')){openActivityItem(t.dataset.activityOpen,t.dataset.activityId);return;} if(t.matches('[data-open-community]')){e.preventDefault();e.stopPropagation();openCommunityDetail(t.dataset.openCommunity);return;} if(t.matches('[data-open-post]')){openPostDetail(t.dataset.openPost);return;} if(t.matches('[data-open-object]')){openObjectDetail(t.dataset.openObject);return;} if(t.matches('[data-open-profile]')){openProfileDetail(t.dataset.openProfile);return;} if(t.matches('[data-open-lfg]')){openLfg(t.dataset.openLfg);return;} if(t.matches('[data-manage-status]')){setView('moderation');setTimeout(()=>{const el=$('#statusTargetProfile');if(el)el.value=t.dataset.manageStatus;},0);return;} if(t.matches('[data-status-revoke]')){revokeStatus(t.dataset.statusRevoke).catch(console.error);return;} if(t.matches('[data-content-remove]')){moderateContent(t.dataset.contentRemove,t.dataset.contentId,false).catch(console.error);return;} if(t.matches('[data-content-restore]')){moderateContent(t.dataset.contentRestore,t.dataset.contentId,true).catch(console.error);return;} if(t.matches('[data-open-moderation-content]')){openModerationContent(t.dataset.openModerationContent,t.dataset.contentId);return;}
+    if(t.matches('[data-activity-open]')){openActivityItem(t.dataset.activityOpen,t.dataset.activityId);return;} if(t.matches('[data-open-community]')){e.preventDefault();e.stopPropagation();openCommunityDetail(t.dataset.openCommunity);return;} if(t.matches('[data-open-post]')){openPostDetail(t.dataset.openPost);return;} if(t.matches('[data-open-object]')){openObjectDetail(t.dataset.openObject);return;} if(t.matches('[data-open-profile]')){openProfileDetail(t.dataset.openProfile);return;} if(t.matches('[data-open-lfg]')){openLfg(t.dataset.openLfg);return;} if(t.matches('[data-manage-status]')){e.preventDefault();e.stopPropagation();setView('moderation');setTimeout(()=>{const el=$('#statusTargetProfile');if(el){el.value=t.dataset.manageStatus;renderModeration();el.focus({preventScroll:true});}},0);return;} if(t.matches('[data-status-revoke]')){revokeStatus(t.dataset.statusRevoke).catch(console.error);return;} if(t.matches('[data-content-remove]')){moderateContent(t.dataset.contentRemove,t.dataset.contentId,false).catch(console.error);return;} if(t.matches('[data-content-restore]')){moderateContent(t.dataset.contentRestore,t.dataset.contentId,true).catch(console.error);return;} if(t.matches('[data-open-moderation-content]')){openModerationContent(t.dataset.openModerationContent,t.dataset.contentId);return;}
     if(t.matches('[data-helpful-type]')){toggleHelpful(t.dataset.helpfulType,t.dataset.helpfulId).catch(console.error);return;} if(t.matches('[data-follow-type]')){toggleFollow(t.dataset.followType,t.dataset.followId).catch(console.error);return;} if(t.matches('[data-friend-profile]')){sendFriendRequest(t.dataset.friendProfile).catch(console.error);return;}
     if(t.matches('[data-message-profile]')){e.preventDefault();e.stopPropagation();openChats(t.dataset.messageProfile);return;} if(t.matches('[data-block-profile]')){blockProfile(t.dataset.blockProfile).catch(console.error);return;} if(t.matches('[data-unblock-profile]')){unblockProfile(t.dataset.unblockProfile).catch(console.error);return;} if(t.matches('[data-friend-action]')){handleFriendRequest(t.dataset.requestId,t.dataset.friendAction).catch(console.error);return;} if(t.matches('[data-lfg-request]')){sendLfgRequest(t.dataset.lfgRequest).catch(console.error);return;} if(t.matches('[data-lfg-action]')){handleLfgRequest(t.dataset.requestId,t.dataset.lfgAction).catch(console.error);return;}
     if(t.matches('[data-connect-post]')){openConnect('post',t.dataset.connectPost);return;} if(t.matches('[data-connect-object]')){openConnect('object',t.dataset.connectObject);return;} if(t.matches('[data-reason]')){openLogicGuide(t.dataset.reason);return;}
     if(t.matches('[data-project-grant]')){const controls=t.closest('[data-project-id]');if(controls)grantProjectStatus(controls.dataset.projectId,controls).catch(console.error);return;} if(t.matches('[data-project-save]')){const box=t.closest('[data-project-edit]');if(box)saveProjectDetails(box.dataset.projectEdit,box).catch(console.error);return;} if(t.matches('[data-channel-filter]')){const d=t.closest('dialog');if(d)closeDialog(d);setActiveChannel(t.dataset.channelFilter);$('#searchResultsPanel').hidden=true;return;} if(t.matches('[data-space-filter]')){state.activeSpaceId=t.dataset.spaceFilter;state.activeChannelId='all';setView('home');renderSpaces();renderFeed();renderCatalogs();renderUniverse();$('#searchResultsPanel').hidden=true;return;} if(t.matches('[data-new-channel]')){openChannelDialog(t.dataset.newChannel);return;} if(t.matches('[data-close-dialog]')){closeDialogFromControl(t);return;}
   });
   $$('[data-close-dialog]').forEach(button=>button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeDialogFromControl(button);}));
-  $$('dialog.modal').forEach(dialog=>dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeDialog(dialog);}));
   bindTagInput('#createTags','#createTagPreview'); bindTagInput('#postTags','#postTagPreview'); bindTagInput('#lfgTags','#lfgTagPreview');
   $$('.nav-item').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view))); $$('.thought-chip').forEach(b=>b.addEventListener('click',()=>{$$('.thought-chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.activeType=b.dataset.type;})); $$('.segment[data-filter]').forEach(b=>b.addEventListener('click',()=>{$$('.segment[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.activeFilter=b.dataset.filter;renderFeed();})); $$('.segment[data-lfg-filter]').forEach(b=>b.addEventListener('click',()=>{$$('.segment[data-lfg-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.activeLfgFilter=b.dataset.lfgFilter;renderLfg();}));
   $('#networkContextExplore')?.addEventListener('click',exploreNetworkContext); $('#networkContextPost')?.addEventListener('click',useNetworkContextInPost); $('#networkContextClear')?.addEventListener('click',clearNetworkContext); $('#viewSessionImpact')?.addEventListener('click',()=>{renderSessionMomentum();showDialog('#impactDialog');}); $('#resetSessionImpact')?.addEventListener('click',resetSessionImpact);

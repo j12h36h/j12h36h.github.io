@@ -59,3 +59,11 @@ dialog[open]{margin-top:max(10px,env(safe-area-inset-top));margin-bottom:max(10p
   .composer{border-radius:24px}
   .catalog-card,.community-card,.network-card,.account-card{border-radius:22px}
 }
+
+/* v0.9.15: keep Chat reachable without crowding the mobile LCS account/header controls. */
+@media(max-width:820px){
+  body{padding-bottom:max(82px,calc(72px + env(safe-area-inset-bottom)))}
+  #messagesButton{position:fixed!important;right:max(12px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));z-index:35;min-width:92px;min-height:48px;padding:0 16px;border-radius:999px;background:rgba(24,15,36,.96);border-color:rgba(202,158,255,.34);box-shadow:0 12px 36px rgba(0,0,0,.42),0 0 24px rgba(184,119,255,.12);backdrop-filter:blur(16px)}
+  #messagesButton::before{content:'💬';margin-right:7px}
+  #messagesButton .chat-alert-badge{top:-6px;right:-4px}
+}

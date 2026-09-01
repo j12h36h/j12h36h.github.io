@@ -1,2 +1,2 @@
-import { initGameMessaging } from '/game/assets/js/messaging-bootstrap.js?v=20260901-dm4';
+import { initGameMessaging } from '/game/assets/js/messaging-bootstrap.js?v=20260901-dm5';
 initGameMessaging({ friendList: '.connections-list', feedback: '[data-social-feedback]' });
