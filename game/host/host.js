@@ -1,56 +1,60 @@
 import { db, fs, watchIdentity, safeText, avatarSvg } from '/game/assets/js/eras-data.js';
-import { defaultHostedWorldSettings, settingsFromHostForm, DEFAULT_ICON_JSON, DEFAULT_SLIME_ICON_JSON } from '/game/config/world-settings.js?v=2.2.0';
+import { defaultHostedWorldSettings, settingsFromHostForm, DEFAULT_ICON_JSON, DEFAULT_SLIME_ICON_JSON } from '/game/config/world-settings.js?v=3.0.0';
+import { HOSTED_GAME_MODES, VISIBILITY_OPTIONS, ACCESS_MODE_OPTIONS, hostedMode, hostedModeLabel, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.0.0';
+import { openOptionPicker, optionTriggerMarkup } from '/game/assets/js/hosted-option-picker.js?v=1.0.0';
+import { createHostedOffer, deactivateHostedOffer } from '/game/assets/js/hosted-commerce.js?v=1.0.0';
+import { assetPreviewUrl } from '/game/assets/js/catalog-assets.js?v=1.0.0';
 
 const $ = s => document.querySelector(s);
-const state = { identity: null, lobby: null, heartbeat: null, content: defaultHostedWorldSettings(), tacticalCurrency: null };
-const say = (message, tone = '') => { const el = $('#hostFeedback'); if (!el) return; el.textContent = String(message).toUpperCase(); el.dataset.tone = tone; };
-const esc = safeText;
-const jsonPretty = value => { try { return JSON.stringify(typeof value === 'string' ? JSON.parse(value) : value, null, 2); } catch (_) { return String(value || ''); } };
-const slug = value => String(value || '').toLowerCase().trim().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
-
-const GALACTIC_MODE = 'galactic-dominion';
-const isGalacticMode = () => $('#gameStyle')?.value === GALACTIC_MODE;
-function lobbyHref(lobby) {
-  if (lobby?.gameStyle === GALACTIC_MODE) return `/game/galactic-dominion/?lobby=${encodeURIComponent(lobby.id)}`;
-  return location.pathname.startsWith('/game-mobile/')
-    ? `/game-mobile/global/?lobby=${encodeURIComponent(lobby.id)}`
-    : `/game/global/?lobby=${encodeURIComponent(lobby.id)}`;
+const state = { identity:null,lobby:null,heartbeat:null,content:defaultHostedWorldSettings(),holdings:[],holdingUnsub:null,catalog:{assets:[]},selectedHostAssets:[],bundles:[],offerIds:[] };
+const say=(message,tone='')=>{const el=$('#hostFeedback');if(!el)return;el.textContent=String(message).toUpperCase();el.dataset.tone=tone;};
+const esc=safeText;
+const jsonPretty=value=>{try{return JSON.stringify(typeof value==='string'?JSON.parse(value):value,null,2);}catch(_){return String(value||'');}};
+const slug=value=>String(value||'').toLowerCase().trim().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,48);
+const currentMode=()=>hostedMode($('#gameStyle')?.value);
+const clamp=(v,min,max,fallback=min)=>{let n=Number(v);if(!Number.isFinite(n))n=fallback;return Math.max(min,Math.min(max,Math.floor(n)));};
+function lobbyHref(lobby){return hostedModeRuntimeHref(lobby,location.pathname.startsWith('/game-mobile/'));}
+function modeOptionList(){return Object.values(HOSTED_GAME_MODES).map(mode=>{const asset=catalogMeta(mode.assetId||'');return {...mode,image:mode.assetId?assetPreviewUrl(asset):undefined};});}
+function accessOption(id){return ACCESS_MODE_OPTIONS.find(o=>o.id===id)||ACCESS_MODE_OPTIONS[0];}
+function visibilityOption(id){return VISIBILITY_OPTIONS.find(o=>o.id===id)||VISIBILITY_OPTIONS[0];}
+function catalogMeta(assetId=''){return state.catalog.assets.find(a=>a.id===assetId)||{name:assetId||'Asset',thumbnail:'/public-assets/textures/slime_monochrome.png',source:'/public-assets/textures/slime_monochrome.png'};}
+async function loadCatalog(){try{const r=await fetch('/public-assets/catalog.json',{cache:'no-store'});if(r.ok)state.catalog=await r.json();}catch(_){}}
+function updatePickerButtons(){
+  const gm=$('#gameModePicker');if(gm)gm.innerHTML=optionTriggerMarkup(currentMode(),'SELECT GAME MODE');
+  const vis=$('#visibilityPicker');if(vis)vis.innerHTML=optionTriggerMarkup(visibilityOption($('#visibility')?.value),'SELECT VISIBILITY');
+  const access=$('#accessModelPicker');if(access)access.innerHTML=optionTriggerMarkup(accessOption($('#accessModel')?.value),'SELECT ACCESS MODEL');
+  const assetAccess=$('#assetAccessModelPicker');if(assetAccess)assetAccess.innerHTML=optionTriggerMarkup(accessOption($('#assetAccessModel')?.value),'SELECT ASSET LICENSE');
 }
-function applyModeUI() {
-  const galactic = isGalacticMode();
-  document.querySelectorAll('[data-tactical-only]').forEach(node => { node.hidden = galactic; });
-  document.querySelectorAll('[data-galactic-only]').forEach(node => { node.hidden = !galactic; });
-  const map = $('#mapId');
-  if (map) {
-    if (galactic) map.value = 'galactic-ring';
-    else if (map.value === 'galactic-ring') map.value = 'global-plaza';
-    map.disabled = galactic;
-  }
-  const max = $('#maxPlayers');
-  if (max) {
-    [...max.options].forEach(option => { option.disabled = galactic && Number(option.value) > 8; });
-    if (galactic && Number(max.value) > 8) max.value = '8';
-  }
-  const currencyName = $('#worldCurrencyName'), currencySymbol = $('#worldCurrencySymbol'), starting = $('#worldCurrencyStartingBalance'), loss = $('#worldCurrencyDeathLossCap');
-  if (galactic) {
-    if (!state.tacticalCurrency) state.tacticalCurrency = {
-      name: currencyName?.value || 'TOKENS', symbol: currencySymbol?.value || '◆',
-      starting: starting?.value || '0', loss: loss?.value || '10'
-    };
-    if (currencyName && (!currencyName.value || currencyName.value === state.tacticalCurrency.name)) currencyName.value = 'GALACTIC CREDITS';
-    if (currencySymbol && (!currencySymbol.value || currencySymbol.value === state.tacticalCurrency.symbol)) currencySymbol.value = '✦';
-    if (starting && String(starting.value) === String(state.tacticalCurrency.starting)) starting.value = '1500';
-    if (loss && String(loss.value) === String(state.tacticalCurrency.loss)) loss.value = '0';
-  } else if (state.tacticalCurrency) {
-    if (currencyName && currencyName.value === 'GALACTIC CREDITS') currencyName.value = state.tacticalCurrency.name;
-    if (currencySymbol && currencySymbol.value === '✦') currencySymbol.value = state.tacticalCurrency.symbol;
-    if (starting && String(starting.value) === '1500') starting.value = state.tacticalCurrency.starting;
-    if (loss && String(loss.value) === '0') loss.value = state.tacticalCurrency.loss;
-    state.tacticalCurrency = null;
-  }
-  const button = $('#createLobby');
-  if (button) button.textContent = galactic ? 'CREATE GALACTIC DOMINION' : 'CREATE MODULAR WORLD';
+function setMode(id){if(!HOSTED_GAME_MODES[id])return;$('#gameStyle').value=id;applyModeUI();}
+function setVisibility(id){if(!VISIBILITY_OPTIONS.some(o=>o.id===id))return;$('#visibility').value=id;updatePickerButtons();}
+function setAccessModel(id,target='access'){
+  if(!ACCESS_MODE_OPTIONS.some(o=>o.id===id))return;
+  const prefix=target==='asset'?'asset':'access';$(`#${prefix}Model`).value=id;updatePickerButtons();
+  const price=$(`#${prefix}PriceFields`);if(price)price.hidden=id==='free';
+  document.querySelectorAll(`[data-${prefix}-quantity]`).forEach(el=>el.hidden=el.getAttribute(`data-${prefix}-quantity`)!==id);
 }
+function applyModeUI(){
+  const mode=currentMode(), tactical=mode.id==='arcade-topdown';
+  document.querySelectorAll('[data-tactical-only]').forEach(n=>n.hidden=!tactical);
+  document.querySelectorAll('[data-mode-panel]').forEach(n=>n.hidden=n.dataset.modePanel!==mode.id);
+  const map=$('#mapField');if(map)map.hidden=!tactical;
+  const max=$('#maxPlayers');if(max){[...max.options].forEach(o=>o.disabled=Number(o.value)>mode.maxPlayers);if(Number(max.value)>mode.maxPlayers)max.value=String(mode.maxPlayers);}
+  if(mode.id==='galactic-dominion'){
+    if($('#worldCurrencyName').value==='TOKENS')$('#worldCurrencyName').value='GALACTIC CREDITS';if($('#worldCurrencySymbol').value==='◆')$('#worldCurrencySymbol').value='✦';if(Number($('#worldCurrencyStartingBalance').value)===0)$('#worldCurrencyStartingBalance').value='1500';$('#worldCurrencyDeathLossCap').value='0';
+  }
+  const button=$('#createLobby');if(button)button.textContent=`CREATE ${mode.name.toUpperCase()}`;
+  updatePickerButtons();
+  if(state.identity?.profileId)say(`Ready to create ${mode.name}.`,'ok');
+}
+function holdingOption(h){const m=catalogMeta(h.assetId);return{id:h.id,name:m.name,description:`${h.assetId} // TINT ${h.tint||'#ffffff'}`,image:assetPreviewUrl(m),tags:['OWNED','HOST ASSET']};}
+function renderHostAssets(){const root=$('#hostAssetSummary');if(!root)return;const selected=state.holdings.filter(h=>state.selectedHostAssets.includes(h.id));$('#assetLicenseControls').hidden=!selected.length;if(!selected.length){root.innerHTML='<p class="runtime-config-note">NO HOST ASSETS SELECTED.</p>';return;}root.innerHTML=selected.map(h=>{const m=catalogMeta(h.assetId);return `<div class="host-asset-chip" style="--asset-tint:${esc(h.tint||'#ffffff')}"><img src="${esc(assetPreviewUrl(m))}" alt=""><span><b>${esc(m.name)}</b><small>${esc(h.assetId)} // ${esc(h.tint||'#ffffff')}</small></span><span>VERIFIED OWNED</span></div>`;}).join('');}
+function chooseHostAssets(){openOptionPicker({title:'Select host assets',options:state.holdings.map(holdingOption),selected:state.selectedHostAssets,multi:true,max:8,onSelect:ids=>{state.selectedHostAssets=ids;renderHostAssets();renderBundles();}});}
+function hostAssetSnapshots(){return state.selectedHostAssets.map(id=>state.holdings.find(h=>h.id===id)).filter(Boolean).map(h=>({holdingId:h.id,assetId:h.assetId,tint:h.tint||'#ffffff'}));}
+function watchHoldings(){state.holdingUnsub?.();state.holdings=[];state.selectedHostAssets=[];renderHostAssets();if(!state.identity?.profileId)return;const q=fs.query(fs.collection(db,'assetHoldings'),fs.where('ownerProfileId','==',state.identity.profileId),fs.limit(200));state.holdingUnsub=fs.onSnapshot(q,s=>{state.holdings=s.docs.map(d=>({id:d.id,...d.data()}));state.selectedHostAssets=state.selectedHostAssets.filter(id=>state.holdings.some(h=>h.id===id));renderHostAssets();renderBundles();},e=>console.error('Host assets',e));}
+function newBundle(){return{id:crypto.randomUUID(),name:`${currentMode().name} Bundle`,price:25,plays:0,lives:0,minutes:0,permanent:false,assetIds:[...state.selectedHostAssets].slice(0,4)};}
+function syncBundleInputs(){document.querySelectorAll('[data-bundle-id]').forEach(card=>{const b=state.bundles.find(x=>x.id===card.dataset.bundleId);if(!b)return;b.name=card.querySelector('[data-bundle-name]')?.value.trim().slice(0,60)||'Hosted Bundle';b.price=clamp(card.querySelector('[data-bundle-price]')?.value,1,1000000,25);b.plays=clamp(card.querySelector('[data-bundle-plays]')?.value,0,9999,0);b.lives=clamp(card.querySelector('[data-bundle-lives]')?.value,0,9999,0);b.minutes=clamp(card.querySelector('[data-bundle-minutes]')?.value,0,100000,0);b.permanent=!!card.querySelector('[data-bundle-permanent]')?.checked;});}
+function renderBundles(){const root=$('#hostBundleList');if(!root)return;if(!state.bundles.length){root.innerHTML='<p class="runtime-config-note">NO HOST BUNDLES CONFIGURED.</p>';return;}root.innerHTML=state.bundles.map(b=>{const assets=b.assetIds.map(id=>state.holdings.find(h=>h.id===id)).filter(Boolean);return `<article class="host-bundle-card" data-bundle-id="${esc(b.id)}"><header><b>BUNDLE</b><button type="button" data-remove-bundle="${esc(b.id)}">REMOVE</button></header><div class="host-bundle-grid"><label class="runtime-field"><span>NAME</span><input data-bundle-name maxlength="60" value="${esc(b.name)}"></label><label class="runtime-field"><span>PRICE</span><input data-bundle-price type="number" min="1" max="1000000" value="${b.price}"></label><label class="runtime-field"><span>PLAYS</span><input data-bundle-plays type="number" min="0" max="9999" value="${b.plays}"></label><label class="runtime-field"><span>LIVES</span><input data-bundle-lives type="number" min="0" max="9999" value="${b.lives}"></label><label class="runtime-field"><span>MINUTES</span><input data-bundle-minutes type="number" min="0" max="100000" value="${b.minutes}"></label><label class="runtime-field"><span>PERMANENT ACCESS</span><input data-bundle-permanent type="checkbox" ${b.permanent?'checked':''}></label><button class="runtime-secondary" type="button" data-bundle-assets="${esc(b.id)}">SELECT ICONS</button></div><div class="host-bundle-assets">${assets.length?assets.map(h=>esc(catalogMeta(h.assetId).name)).join(' // '):'NO ICON LICENSES IN THIS BUNDLE'}</div></article>`;}).join('');}
+function chooseBundleAssets(id){syncBundleInputs();const b=state.bundles.find(x=>x.id===id);if(!b)return;const allowed=state.holdings.filter(h=>state.selectedHostAssets.includes(h.id));openOptionPicker({title:'Bundle icon licenses',options:allowed.map(holdingOption),selected:b.assetIds,multi:true,max:4,onSelect:ids=>{b.assetIds=ids;renderBundles();}});}
 function code(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let out='';for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];return out;}
 function parseIcon(raw){ const text = String(raw || '').trim(); const parsed = JSON.parse(text); if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.layers) || !parsed.layers.length) throw new Error('Icon JSON must use the LCS version 1 layer format.'); return JSON.stringify(parsed); }
 function areaOptions(selected=''){ return state.content.areas.map(a => `<option value="${esc(a.id)}" ${a.id===selected?'selected':''}>${esc(a.name)}</option>`).join(''); }
@@ -94,47 +98,26 @@ function syncFromDom(){
   });
 }
 
-function settingsSummary(s, mode='arcade-topdown'){
-  if (mode === GALACTIC_MODE) return `GALACTIC DOMINION // ${s.currency.startingBalance} ${esc(s.currency.name)} START // +${s.galactic?.startSalary ?? 200} START SALARY // ${s.galactic?.maxRounds ?? 50} ROUNDS`;
-  return `HP ${s.player.maxHp} // ENERGY ${s.player.energyPerTurn} // MOVE ${s.player.maxWalkDistance} // ${s.mobs.length} MOB TYPES // ${s.items.length} ITEMS // ${s.terminals.length} TERMINALS // ${esc(s.currency.name)}`;
-}
-function render(){const box=$('#lobbyStatus');if(!box)return;if(!state.lobby){box.innerHTML='<div class="runtime-list-empty">NO ACTIVE LOBBY.</div>';return;}const l=state.lobby;const href=lobbyHref(l);const mode=l.gameStyle===GALACTIC_MODE?'GALACTIC DOMINION':'TURN-BASED TACTICAL';box.innerHTML=`<div class="runtime-status-row"><span>LOBBY</span><b>${esc(l.name)}</b></div><div class="runtime-status-row"><span>MODE</span><b>${mode}</b></div><div class="runtime-status-row"><span>JOIN CODE</span><b class="lobby-code">${l.code}</b></div><div class="runtime-status-row"><span>WORLD RULES</span><b>${settingsSummary(l.settings,l.gameStyle)}</b></div><div class="runtime-status-row"><span>ECONOMY</span><b>WORLD-LOCAL ONLY // E.R.A.S. CREDITS DISABLED</b></div><div class="runtime-actions"><a class="runtime-primary" style="display:grid;place-items:center;text-decoration:none;flex:1" href="${href}">ENTER GAME</a><button id="closeLobby" class="runtime-secondary runtime-danger" type="button">CLOSE LOBBY</button></div>`;$('#closeLobby').onclick=closeLobby;}
-async function closeLobby(){if(!state.lobby||!state.identity)return;try{await fs.updateDoc(fs.doc(db,'gameLobbies',state.lobby.id),{status:'closed',updatedAt:fs.serverTimestamp(),lastHeartbeatAt:fs.serverTimestamp()});clearInterval(state.heartbeat);state.lobby=null;render();say('Lobby closed.','ok');}catch(e){console.error(e);say(`Could not close lobby: ${e.code||e.message}`,'error');}}
-async function createLobby(event){
-  event.preventDefault();
-  if(!state.identity?.profileId)return say('Sign in with Google first.','error');
-  const gameStyle=$('#gameStyle').value;
-  if(gameStyle!==GALACTIC_MODE){try{syncFromDom();}catch(e){return say(e.message,'error');}}
-  const id=crypto.randomUUID(),joinCode=code(),name=$('#lobbyName').value.trim().slice(0,50)||'E.R.A.S. Game';
-  const settings=settingsFromHostForm(document,state.content);
-  const serialized=JSON.stringify(settings);
-  if(serialized.length>700000)return say('World definition is too large. Reduce icon layers/content.','error');
-  const maxPlayers=Math.min(gameStyle===GALACTIC_MODE?8:32,Number($('#maxPlayers').value));
-  const mapId=gameStyle===GALACTIC_MODE?'galactic-ring':$('#mapId').value;
-  const lobby={name,code:joinCode,hostProfileId:state.identity.profileId,visibility:$('#visibility').value,maxPlayers,mapId,gameStyle,description:$('#description').value.trim().slice(0,240),settings,status:'open',createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastHeartbeatAt:fs.serverTimestamp()};
-  try{
-    say(gameStyle===GALACTIC_MODE?'Creating Galactic Dominion…':'Creating modular world…');
-    await fs.setDoc(fs.doc(db,'gameLobbies',id),lobby);
-    await fs.setDoc(fs.doc(db,'gameLobbies',id,'members',state.identity.profileId),{profileId:state.identity.profileId,role:'host',joinedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()});
-    state.lobby={id,...lobby,createdAt:null,updatedAt:null,lastHeartbeatAt:null};render();
-    say(gameStyle===GALACTIC_MODE?'Galactic Dominion created. Local match economy is isolated from E.R.A.S. Credits.':'World created. Custom content is isolated from E.R.A.S. Credits and Global inventory.','ok');
-    clearInterval(state.heartbeat);state.heartbeat=setInterval(()=>{if(state.lobby)fs.updateDoc(fs.doc(db,'gameLobbies',state.lobby.id),{lastHeartbeatAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp()}).catch(()=>{});},20000);
-  }catch(e){console.error(e);say(`Could not create lobby: ${e.code||e.message}`,'error');}
-}
+function settingsSummary(s,modeId){const m=hostedMode(modeId);if(modeId==='galactic-dominion')return `${m.name.toUpperCase()} // ${s.currency.startingBalance} ${esc(s.currency.name)} // ${s.galactic?.maxRounds||50} ROUNDS`;if(modeId==='arcade-topdown')return `HP ${s.player.maxHp} // ENERGY ${s.player.energyPerTurn} // MOVE ${s.player.maxWalkDistance} // ${s.mobs.length} MOB TYPES`;return `${m.name.toUpperCase()} // CUSTOM HOST RULES`;}
+function render(){const box=$('#lobbyStatus');if(!box)return;if(!state.lobby){box.innerHTML='<div class="runtime-list-empty">NO ACTIVE LOBBY.</div>';return;}const l=state.lobby;box.innerHTML=`<div class="runtime-status-row"><span>LOBBY</span><b>${esc(l.name)}</b></div><div class="runtime-status-row"><span>MODE</span><b>${esc(hostedModeLabel(l.gameStyle))}</b></div><div class="runtime-status-row"><span>JOIN CODE</span><b class="lobby-code">${esc(l.code)}</b></div><div class="runtime-status-row"><span>WORLD RULES</span><b>${settingsSummary(l.settings,l.gameStyle)}</b></div><div class="runtime-status-row"><span>HOST ASSETS</span><b>${Number(l.hostAssets?.length||0)}</b></div><div class="runtime-status-row"><span>ACCESS</span><b>${l.accessOfferId?'PAID / CREDIT OFFER ACTIVE':'FREE'}</b></div><div class="runtime-actions"><a class="runtime-primary" style="display:grid;place-items:center;text-decoration:none;flex:1" href="${lobbyHref(l)}">ENTER GAME</a><button id="closeLobby" class="runtime-secondary runtime-danger" type="button">CLOSE LOBBY</button></div>`;$('#closeLobby').onclick=closeLobby;}
+async function closeLobby(){if(!state.lobby||!state.identity)return;try{await fs.updateDoc(fs.doc(db,'gameLobbies',state.lobby.id),{status:'closed',updatedAt:fs.serverTimestamp(),lastHeartbeatAt:fs.serverTimestamp()});for(const id of state.offerIds)deactivateHostedOffer(id,state.identity.profileId).catch(()=>{});clearInterval(state.heartbeat);state.lobby=null;state.offerIds=[];render();say('Lobby closed.','ok');}catch(e){console.error(e);say(`Could not close lobby: ${e.code||e.message}`,'error');}}
+function offerPayloadForModel(model,prefix){return{billing:model,playCount:model==='per_play'?clamp($(`#${prefix}PlayCount`)?.value,1,9999,1):0,lifeCount:model==='per_life'?clamp($(`#${prefix}LifeCount`)?.value,1,9999,1):0,minutes:model==='playtime'?clamp($(`#${prefix}Minutes`)?.value,1,100000,30):0,permanent:model==='permanent'};}
+async function createCommerceOffers(lobbyId,lobbyName){const created=[];const model=$('#accessModel').value;if(model!=='free'){const o=await createHostedOffer({sellerProfileId:state.identity.profileId,lobbyId,offerType:'game_access',title:`${lobbyName} — Access`,description:`${currentMode().name} hosted-game access.`,priceCredits:clamp($('#accessPriceCredits').value,1,1000000,10),...offerPayloadForModel(model,'access')});created.push(o);}
+  const assetModel=$('#assetAccessModel').value;if(assetModel!=='free'){for(const h of state.holdings.filter(x=>state.selectedHostAssets.includes(x.id))){const m=catalogMeta(h.assetId);const o=await createHostedOffer({sellerProfileId:state.identity.profileId,lobbyId,offerType:'icon_license',title:`${m.name} — Hosted Icon License`,description:`Use this host-owned icon in ${lobbyName}. Ownership remains with the seller.`,priceCredits:clamp($('#assetPriceCredits').value,1,1000000,5),assetHoldingIds:[h.id],...offerPayloadForModel(assetModel,'asset')});created.push(o);}}
+  syncBundleInputs();for(const b of state.bundles){if(!(b.plays||b.lives||b.minutes||b.permanent||b.assetIds.length))continue;const o=await createHostedOffer({sellerProfileId:state.identity.profileId,lobbyId,offerType:'bundle',billing:'bundle',title:b.name,description:`Bundle for ${lobbyName}. Exact contents shown before purchase.`,priceCredits:b.price,playCount:b.plays,lifeCount:b.lives,minutes:b.minutes,permanent:b.permanent,assetHoldingIds:b.assetIds.slice(0,4)});created.push(o);}return created;}
+async function createLobby(event){event.preventDefault();if(!state.identity?.profileId)return say('Sign in with Google first.','error');const mode=currentMode();if(mode.id==='arcade-topdown'){try{syncFromDom();}catch(e){return say(e.message,'error');}}syncBundleInputs();const id=crypto.randomUUID(),joinCode=code(),name=$('#lobbyName').value.trim().slice(0,50)||'E.R.A.S. Game';const settings=settingsFromHostForm(document,state.content,mode.id);const serialized=JSON.stringify(settings);if(serialized.length>700000)return say('World definition is too large.','error');const maxPlayers=Math.min(mode.maxPlayers,Number($('#maxPlayers').value)||8);const mapId=mode.id==='arcade-topdown'?$('#mapId').value:mode.mapId;const lobby={name,code:joinCode,hostProfileId:state.identity.profileId,visibility:$('#visibility').value,maxPlayers,mapId,gameStyle:mode.id,description:$('#description').value.trim().slice(0,240),settings,hostAssets:hostAssetSnapshots(),accessOfferId:'',status:'open',createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastHeartbeatAt:fs.serverTimestamp()};let lobbyCreated=false;const createdOffers=[];try{say(`Creating ${mode.name}…`);await fs.setDoc(fs.doc(db,'gameLobbies',id),lobby);lobbyCreated=true;const offers=await createCommerceOffers(id,name);createdOffers.push(...offers);const access=offers.find(o=>o.offerType==='game_access');if(access){lobby.accessOfferId=access.id;await fs.updateDoc(fs.doc(db,'gameLobbies',id),{accessOfferId:access.id,updatedAt:fs.serverTimestamp()});}await fs.setDoc(fs.doc(db,'gameLobbies',id,'members',state.identity.profileId),{profileId:state.identity.profileId,role:'host',accessEntitlementId:'',joinedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()});state.offerIds=offers.map(o=>o.id);state.lobby={id,...lobby,createdAt:null,updatedAt:null,lastHeartbeatAt:null};render();say(`${mode.name} created. ${offers.length} hosted commerce offer${offers.length===1?'':'s'} active.`,'ok');clearInterval(state.heartbeat);state.heartbeat=setInterval(()=>{if(state.lobby)fs.updateDoc(fs.doc(db,'gameLobbies',state.lobby.id),{lastHeartbeatAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp()}).catch(()=>{});},20000);}catch(e){console.error(e);for(const o of createdOffers)deactivateHostedOffer(o.id,state.identity.profileId).catch(()=>{});if(lobbyCreated){try{await fs.deleteDoc(fs.doc(db,'gameLobbies',id));}catch(_){}}say(e?.code==='permission-denied'?'Hosted game creation was blocked by Firestore rules. Publish the included firestore.rules and retry.':`Could not create lobby: ${e.code||e.message}`,'error');}}
 
 $('#hostForm')?.addEventListener('submit',createLobby);
-$('#gameStyle')?.addEventListener('change', applyModeUI);
+$('#gameModePicker')?.addEventListener('click',()=>openOptionPicker({title:'Select game mode',options:modeOptionList(),selected:currentMode().id,onSelect:setMode}));
+$('#visibilityPicker')?.addEventListener('click',()=>openOptionPicker({title:'Select visibility',options:VISIBILITY_OPTIONS,selected:$('#visibility').value,onSelect:setVisibility}));
+$('#accessModelPicker')?.addEventListener('click',()=>openOptionPicker({title:'Game access model',options:ACCESS_MODE_OPTIONS,selected:$('#accessModel').value,onSelect:id=>setAccessModel(id,'access')}));
+$('#assetAccessModelPicker')?.addEventListener('click',()=>openOptionPicker({title:'Host asset license model',options:ACCESS_MODE_OPTIONS,selected:$('#assetAccessModel').value,onSelect:id=>setAccessModel(id,'asset')}));
+$('#hostAssetPicker')?.addEventListener('click',chooseHostAssets);
+$('#addHostBundle')?.addEventListener('click',()=>{syncBundleInputs();if(state.bundles.length>=6)return say('A hosted lobby can publish up to 6 bundles.','error');state.bundles.push(newBundle());renderBundles();});
 $('#addArea')?.addEventListener('click',()=>{try{syncFromDom();}catch(e){return say(e.message,'error');}state.content.areas.push({id:`area-${state.content.areas.length+1}`,name:`AREA ${state.content.areas.length+1}`,minX:10,maxX:90,minY:10,maxY:90});renderContent();});
 $('#addItem')?.addEventListener('click',()=>{try{syncFromDom();}catch(e){return say(e.message,'error');}state.content.items.push({id:`item-${state.content.items.length+1}`,name:`Item ${state.content.items.length+1}`,kind:'material',description:'',healAmount:0,equipmentSlot:'',damageMin:0,damageMax:0,iconJson:DEFAULT_ICON_JSON});renderContent();});
 $('#addMob')?.addEventListener('click',()=>{try{syncFromDom();}catch(e){return say(e.message,'error');}state.content.mobs.push({id:`mob-${state.content.mobs.length+1}`,name:`Mob ${state.content.mobs.length+1}`,maxHp:1,damage:1,attackRange:13,areaId:state.content.areas[0]?.id||'cache-yard',spawnCount:1,respawnTurns:1,killReward:1,drops:[],iconJson:DEFAULT_SLIME_ICON_JSON});renderContent();});
 $('#addTerminal')?.addEventListener('click',()=>{try{syncFromDom();}catch(e){return say(e.message,'error');}state.content.terminals.push({id:`terminal-${state.content.terminals.length+1}`,name:`TERMINAL ${state.content.terminals.length+1}`,subtitle:'WORLD TERMINAL',offers:[]});renderContent();});
-document.addEventListener('click',e=>{
-  const addDrop=e.target.closest('[data-add-drop]'); if(addDrop){try{syncFromDom();}catch(err){return say(err.message,'error');}const mob=state.content.mobs[Number(addDrop.dataset.addDrop)];const first=state.content.items[0]?.id||'';if(!first)return say('Create an item before adding a drop.','error');mob.drops.push({itemId:first,chance:.05,quantity:1});renderContent();return;}
-  const removeDrop=e.target.closest('[data-remove-drop]'); if(removeDrop){const card=removeDrop.closest('[data-mob-index]');try{syncFromDom();}catch(err){return say(err.message,'error');}state.content.mobs[Number(card.dataset.mobIndex)].drops.splice(Number(removeDrop.dataset.removeDrop),1);renderContent();return;}
-  const addOffer=e.target.closest('[data-add-offer]'); if(addOffer){try{syncFromDom();}catch(err){return say(err.message,'error');}const terminal=state.content.terminals[Number(addOffer.dataset.addOffer)];const first=state.content.items[0]?.id||'';if(!first)return say('Create an item before adding a shop offer.','error');terminal.offers.push({id:`offer-${terminal.offers.length+1}`,direction:'buy',itemId:first,price:1});renderContent();return;}
-  const removeOffer=e.target.closest('[data-remove-offer]'); if(removeOffer){const card=removeOffer.closest('[data-terminal-index]');try{syncFromDom();}catch(err){return say(err.message,'error');}state.content.terminals[Number(card.dataset.terminalIndex)].offers.splice(Number(removeOffer.dataset.removeOffer),1);renderContent();return;}
-  for(const kind of ['area','item','mob','terminal']){const node=e.target.closest(`[data-remove-${kind}]`);if(!node)continue;try{syncFromDom();}catch(err){return say(err.message,'error');}const index=Number(node.getAttribute(`data-remove-${kind}`));state.content[`${kind}s`].splice(index,1);renderContent();return;}
-});
-renderContent();
-applyModeUI();
-watchIdentity(identity=>{state.identity=identity;const button=$('#createLobby');if(button)button.disabled=!identity?.profileId;say(identity?.profileId?(isGalacticMode()?'Ready to create Galactic Dominion.':'Ready to create a modular world.'):'Sign in to create a lobby.',identity?.profileId?'ok':'');});
+document.addEventListener('click',e=>{const bundleRemove=e.target.closest('[data-remove-bundle]');if(bundleRemove){syncBundleInputs();state.bundles=state.bundles.filter(b=>b.id!==bundleRemove.dataset.removeBundle);renderBundles();return;}const bundleAssets=e.target.closest('[data-bundle-assets]');if(bundleAssets){chooseBundleAssets(bundleAssets.dataset.bundleAssets);return;}const addDrop=e.target.closest('[data-add-drop]');if(addDrop){try{syncFromDom();}catch(err){return say(err.message,'error');}const mob=state.content.mobs[Number(addDrop.dataset.addDrop)],first=state.content.items[0]?.id||'';if(!first)return say('Create an item before adding a drop.','error');mob.drops.push({itemId:first,chance:.05,quantity:1});renderContent();return;}const removeDrop=e.target.closest('[data-remove-drop]');if(removeDrop){const card=removeDrop.closest('[data-mob-index]');try{syncFromDom();}catch(err){return say(err.message,'error');}state.content.mobs[Number(card.dataset.mobIndex)].drops.splice(Number(removeDrop.dataset.removeDrop),1);renderContent();return;}const addOffer=e.target.closest('[data-add-offer]');if(addOffer){try{syncFromDom();}catch(err){return say(err.message,'error');}const terminal=state.content.terminals[Number(addOffer.dataset.addOffer)],first=state.content.items[0]?.id||'';if(!first)return say('Create an item before adding a shop offer.','error');terminal.offers.push({id:`offer-${terminal.offers.length+1}`,direction:'buy',itemId:first,price:1});renderContent();return;}const removeOffer=e.target.closest('[data-remove-offer]');if(removeOffer){const card=removeOffer.closest('[data-terminal-index]');try{syncFromDom();}catch(err){return say(err.message,'error');}state.content.terminals[Number(card.dataset.terminalIndex)].offers.splice(Number(removeOffer.dataset.removeOffer),1);renderContent();return;}for(const kind of ['area','item','mob','terminal']){const node=e.target.closest(`[data-remove-${kind}]`);if(!node)continue;try{syncFromDom();}catch(err){return say(err.message,'error');}state.content[`${kind}s`].splice(Number(node.getAttribute(`data-remove-${kind}`)),1);renderContent();return;}});
+
+await loadCatalog();renderContent();renderBundles();setAccessModel('free','access');setAccessModel('free','asset');applyModeUI();watchIdentity(identity=>{state.identity=identity;watchHoldings();const button=$('#createLobby');if(button)button.disabled=!identity?.profileId;say(identity?.profileId?`Ready to create ${currentMode().name}.`:'Sign in to create a lobby.',identity?.profileId?'ok':'');});

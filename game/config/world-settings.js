@@ -1,3 +1,4 @@
+import { normalizeModeSettings } from '/game/config/hosted-modes.js?v=1.0.0';
 const ICON_JSON_MAX = 32000;
 const MAX_AREAS = 12;
 const MAX_ITEMS = 32;
@@ -143,6 +144,8 @@ export function normalizeWorldSettings(input = {}, hosted = false) {
   const player = input.player || {};
   const currency = input.currency || {};
   const galactic = input.galactic || {};
+  const modeId = String(input.modeId || 'arcade-topdown');
+  const modeSettings = normalizeModeSettings(modeId, input.modeSettings || {});
   const rawAreas = Array.isArray(input.areas) && input.areas.length ? input.areas : base.areas;
   const areas = rawAreas.slice(0, MAX_AREAS).map(normalizeArea);
   const areaIds = new Set(areas.map(a => a.id));
@@ -170,6 +173,8 @@ export function normalizeWorldSettings(input = {}, hosted = false) {
       maxRounds: clamp(galactic.maxRounds, base.galactic?.maxRounds ?? 50, 5, 200, true),
       developmentEnabled: galactic.developmentEnabled !== false
     } : undefined,
+    modeId: hosted ? modeId : 'arcade-topdown',
+    modeSettings: hosted ? modeSettings : {},
     areas, items, mobs, terminals
   };
 }
@@ -178,10 +183,17 @@ export function defaultHostedWorldSettings() {
   return normalizeWorldSettings(HOSTED_WORLD_DEFAULTS, true);
 }
 
-export function settingsFromHostForm(root = document, content = {}) {
+export function settingsFromHostForm(root = document, content = {}, modeId = 'arcade-topdown') {
   const value = id => root.querySelector(`#${id}`)?.value;
   const checked = id => root.querySelector(`#${id}`)?.checked;
+  const modeSettings = modeId === 'surface-discovery' ? { gridSize:value('mode_surfaceGridSize'), lives:value('mode_surfaceLives'), enemyCount:value('mode_surfaceEnemyCount'), powerMoves:value('mode_surfacePowerMoves'), winCondition:value('mode_surfaceWinCondition') }
+    : modeId === 'jeng-stroid' ? { layers:value('mode_jengLayers'), turnSeconds:value('mode_jengTurnSeconds'), gravity:value('mode_jengGravity'), collapseThreshold:value('mode_jengCollapseThreshold') }
+    : modeId === 'sunball' ? { balls:value('mode_sunBalls'), targetScore:value('mode_sunTargetScore'), gravity:value('mode_sunGravity'), bumperForce:value('mode_sunBumperForce'), multiplayerMode:value('mode_sunMultiplayerMode') }
+    : modeId === 'soldoku' ? { boardSize:value('mode_soldokuBoardSize'), difficulty:value('mode_soldokuDifficulty'), hints:value('mode_soldokuHints'), mistakeLimit:value('mode_soldokuMistakeLimit'), playMode:value('mode_soldokuPlayMode') }
+    : modeId === 'escape-pod-dash' ? { lanes:value('mode_dashLanes'), lives:value('mode_dashLives'), startSpeed:value('mode_dashStartSpeed'), acceleration:value('mode_dashAcceleration'), targetDistance:value('mode_dashTargetDistance'), obstacleRate:value('mode_dashObstacleRate') } : {};
   return normalizeWorldSettings({
+    modeId,
+    modeSettings,
     player: { maxHp: value('playerMaxHp'), energyPerTurn: value('energyPerTurn'), maxWalkDistance: value('maxWalkDistance') },
     currency: { name: value('worldCurrencyName'), symbol: value('worldCurrencySymbol'), startingBalance: value('worldCurrencyStartingBalance'), deathLossCap: value('worldCurrencyDeathLossCap') },
     galactic: { startSalary: value('galacticStartSalary'), maxRounds: value('galacticMaxRounds'), developmentEnabled: checked('galacticDevelopmentEnabled') },

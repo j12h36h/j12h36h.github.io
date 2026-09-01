@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "updatedAt": "2026-08-29",
+  "version": 3,
+  "updatedAt": "2026-09-01",
   "assets": [
     {
       "id": "eras:slime_monochrome",
@@ -21,7 +21,8 @@
         "texture",
         "tintable",
         "free"
-      ]
+      ],
+      "priceCredits": 0
     },
     {
       "id": "eras:health_potion",
@@ -43,7 +44,8 @@
         "texture",
         "game",
         "free"
-      ]
+      ],
+      "priceCredits": 0
     },
     {
       "id": "eras:slime_juice",
@@ -65,7 +67,8 @@
         "texture",
         "game",
         "free"
-      ]
+      ],
+      "priceCredits": 0
     },
     {
       "id": "eras:hand_wraps",
@@ -86,6 +89,429 @@
         "item",
         "texture",
         "game",
+        "free"
+      ],
+      "priceCredits": 0
+    },
+    {
+      "id": "eras:mode_turn_based_tactical",
+      "name": "Turn-Based Tactical Emblem",
+      "type": "icon",
+      "category": "game-mode-icons",
+      "description": "Official E.R.A.S. emblem for the Turn-Based Tactical hosted game mode.",
+      "iconJson": {
+        "version": 1,
+        "background": "#071416",
+        "layers": [
+          {
+            "char": "⌖",
+            "x": 64,
+            "y": 64,
+            "fontSize": 74,
+            "color": "#9fe4e3",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "×",
+            "x": 64,
+            "y": 65,
+            "fontSize": 32,
+            "color": "#ffe59b",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "defaultTint": "#9fe4e3",
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "turn-based",
+        "tactical",
+        "game mode",
+        "emblem",
+        "free"
+      ]
+    },
+    {
+      "id": "eras:mode_galactic_dominion",
+      "name": "Galactic Dominion Crest",
+      "type": "icon",
+      "category": "game-mode-icons",
+      "description": "Official orbital crest for Galactic Dominion hosted matches.",
+      "iconJson": {
+        "version": 1,
+        "background": "#100d1e",
+        "layers": [
+          {
+            "char": "◉",
+            "x": 64,
+            "y": 64,
+            "fontSize": 74,
+            "color": "#d7b7ff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "✦",
+            "x": 64,
+            "y": 64,
+            "fontSize": 30,
+            "color": "#ffe59b",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "defaultTint": "#d7b7ff",
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "galactic dominion",
+        "planet",
+        "orbital",
+        "game mode",
+        "free"
+      ]
+    },
+    {
+      "id": "eras:mode_surface_discovery",
+      "name": "Surface Discovery Scanner",
+      "type": "icon",
+      "category": "game-mode-icons",
+      "description": "Official scanner icon for Surface Discovery maze expeditions.",
+      "iconJson": {
+        "version": 1,
+        "background": "#071512",
+        "layers": [
+          {
+            "char": "▦",
+            "x": 64,
+            "y": 64,
+            "fontSize": 70,
+            "color": "#8fe6b1",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "•",
+            "x": 64,
+            "y": 64,
+            "fontSize": 24,
+            "color": "#fff19a",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "defaultTint": "#8fe6b1",
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "surface discovery",
+        "maze",
+        "scanner",
+        "game mode",
+        "free"
+      ]
+    },
+    {
+      "id": "eras:mode_jeng_stroid",
+      "name": "Jeng-stroid Stack",
+      "type": "icon",
+      "category": "game-mode-icons",
+      "description": "Official structural-stack icon for Jeng-stroid hosted games.",
+      "iconJson": {
+        "version": 1,
+        "background": "#12100b",
+        "layers": [
+          {
+            "char": "▰",
+            "x": 64,
+            "y": 39,
+            "fontSize": 50,
+            "color": "#e4b77b",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "▰",
+            "x": 64,
+            "y": 64,
+            "fontSize": 50,
+            "color": "#c99557",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "▰",
+            "x": 64,
+            "y": 89,
+            "fontSize": 50,
+            "color": "#a9753f",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "defaultTint": "#e4b77b",
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "jeng-stroid",
+        "stack",
+        "blocks",
+        "game mode",
+        "free"
+      ]
+    },
+    {
+      "id": "eras:mode_sunball",
+      "name": "Sunball Orb",
+      "type": "icon",
+      "category": "game-mode-icons",
+      "description": "Official solar orb icon for Sunball arcade tables.",
+      "iconJson": {
+        "version": 1,
+        "background": "#171006",
+        "layers": [
+          {
+            "char": "☼",
+            "x": 64,
+            "y": 64,
+            "fontSize": 78,
+            "color": "#ffd56f",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "•",
+            "x": 64,
+            "y": 64,
+            "fontSize": 23,
+            "color": "#fff3b0",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "defaultTint": "#ffd56f",
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "sunball",
+        "pinball",
+        "orb",
+        "game mode",
+        "free"
+      ]
+    },
+    {
+      "id": "eras:mode_soldoku",
+      "name": "Soldoku Logic Grid",
+      "type": "icon",
+      "category": "game-mode-icons",
+      "description": "Official logic-grid icon for Soldoku puzzle matches.",
+      "iconJson": {
+        "version": 1,
+        "background": "#071016",
+        "layers": [
+          {
+            "char": "▦",
+            "x": 64,
+            "y": 64,
+            "fontSize": 76,
+            "color": "#8cc9ff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "9",
+            "x": 64,
+            "y": 65,
+            "fontSize": 31,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "defaultTint": "#8cc9ff",
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "soldoku",
+        "sudoku",
+        "logic",
+        "game mode",
+        "free"
+      ]
+    },
+    {
+      "id": "eras:mode_escape_pod_dash",
+      "name": "Escape Pod Dash Emblem",
+      "type": "icon",
+      "category": "game-mode-icons",
+      "description": "Official high-speed escape-pod icon for Escape Pod Dash runs.",
+      "iconJson": {
+        "version": 1,
+        "background": "#10090c",
+        "layers": [
+          {
+            "char": "➤",
+            "x": 61,
+            "y": 64,
+            "fontSize": 74,
+            "color": "#ff987e",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "≡",
+            "x": 91,
+            "y": 65,
+            "fontSize": 26,
+            "color": "#ffe59b",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "defaultTint": "#ff987e",
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "escape pod dash",
+        "runner",
+        "speed",
+        "game mode",
         "free"
       ]
     }

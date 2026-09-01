@@ -18,7 +18,6 @@ import {
   where,
   onSnapshot,
   getDocs,
-  getDocsFromServer,
   serverTimestamp,
   limit,
   orderBy,
@@ -34,7 +33,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const fs = {
   doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where,
-  onSnapshot, getDocs, getDocsFromServer, serverTimestamp, limit, orderBy, runTransaction
+  onSnapshot, getDocs, serverTimestamp, limit, orderBy, runTransaction
 };
 
 try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}

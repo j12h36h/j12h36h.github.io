@@ -463,7 +463,10 @@ function ensureToken(id, profile, isLocal = false) {
 
   const avatar = document.createElement('div');
   avatar.className = 'player-avatar';
-  avatar.innerHTML = avatarSvg(profile || { displayName: 'Member' });
+  const hostedAsset = isLocal ? window.ERAS_HOSTED_ACTIVE_ASSET : null;
+  if (hostedAsset?.previewUrl) {
+    const img = document.createElement('img'); img.src = hostedAsset.previewUrl; img.alt = ''; img.style.cssText = 'width:100%;height:100%;object-fit:contain;'; avatar.replaceChildren(img);
+  } else avatar.innerHTML = avatarSvg(profile || { displayName: 'Member' });
 
   const statusPip = document.createElement('i');
   statusPip.className = 'player-action-pip';
@@ -2375,3 +2378,15 @@ watchIdentity(async identity => {
 loadWorldName();
 setInterval(() => pruneOldActions(), 30_000);
 setInterval(() => syncServerClock(false).catch(() => {}), CLOCK_RESYNC_MS);
+
+
+document.addEventListener('eras-hosted-asset-change', event => {
+  const localId = state.identity?.profileId || '';
+  const token = state.tokenMap.get(localId);
+  const avatar = token?.querySelector('.player-avatar');
+  if (!avatar) return;
+  const asset = event.detail || window.ERAS_HOSTED_ACTIVE_ASSET;
+  if (asset?.previewUrl) {
+    const img = document.createElement('img'); img.src = asset.previewUrl; img.alt = ''; img.style.cssText = 'width:100%;height:100%;object-fit:contain;'; avatar.replaceChildren(img);
+  } else avatar.innerHTML = avatarSvg(state.profiles?.get?.(localId) || state.identity?.profile || { displayName: 'Member' });
+});

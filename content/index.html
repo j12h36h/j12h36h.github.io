@@ -8,7 +8,8 @@
   <title>Content — E.R.A.S. Asset Marketplace</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="./assets/market.css?v=1.8.0">
+  <link rel="stylesheet" href="./assets/market.css?v=2.0.0">
+  <link rel="stylesheet" href="/game/assets/css/hosted-option-picker.css?v=1.0.0">
 </head>
 <body class="market-page">
   <div class="universe-frame" aria-hidden="true">
@@ -25,14 +26,14 @@
   <main class="market-shell">
     <section class="market-hero">
       <div><p class="market-kicker">PUBLIC ASSET NETWORK // INVENTORY-LINKED</p><h1>ASSET MARKETPLACE</h1><p>Obtain reusable public assets, customize supported properties, and keep them attached to your shared E.R.A.S./LCS profile inventory.</p></div>
-      <div class="market-stats"><span><b id="catalogCount">01</b> PUBLIC ASSETS</span><span><b id="ownedCount">00</b> IN INVENTORY</span><span class="market-credit-stat"><b id="marketCreditBalance">00</b> CREDITS</span><span><b>FREE</b> CURRENT CATALOG</span></div>
+      <div class="market-stats"><span><b id="catalogCount">01</b> PUBLIC ASSETS</span><span><b id="ownedCount">00</b> IN INVENTORY</span><span class="market-credit-stat"><b id="marketCreditBalance">00</b> CREDITS</span><span><b id="gameAssetCount">00</b> GAME ICON ASSETS</span></div>
     </section>
 
     <section class="market-layout">
       <aside class="market-panel market-nav">
         <div class="market-panel-title"><span>01</span><h2>BROWSE</h2></div>
-        <button class="market-filter is-active" type="button">ALL ASSETS <b>01</b></button>
-        <button class="market-filter" type="button" disabled>TEXTURES <b>01</b></button>
+        <button class="market-filter is-active" id="chooseAsset" type="button">SELECT ASSET <b>›</b></button>
+        <button class="market-filter" type="button" disabled>TEXTURES + ICONS <b>LIVE</b></button>
         <button class="market-filter" type="button" disabled>MODELS <b>00</b></button>
         <button class="market-filter" type="button" disabled>AUDIO <b>00</b></button>
         <button class="market-filter" type="button" disabled>GAMEPLAY <b>00</b></button>
@@ -42,22 +43,23 @@
       <section class="asset-stage" aria-label="Selected asset">
         <div class="asset-preview-wrap">
           <div class="asset-preview-grid" aria-hidden="true"></div>
-          <canvas id="assetCanvas" width="256" height="256" aria-label="Tinted Monochrome Slime preview"></canvas>
-          <span class="asset-free-tag">FREE</span>
+          <canvas id="assetCanvas" width="256" height="256" aria-label="Tintable asset preview"></canvas>
+          <img id="assetImagePreview" class="asset-image-preview" alt="" hidden>
+          <span class="asset-free-tag" id="assetPriceTag">FREE</span>
         </div>
         <div class="asset-meta">
-          <div><p class="asset-type">TEXTURE // CHARACTER</p><h2 id="assetName">Monochrome Slime</h2><p id="assetDescription">Tintable monochrome slime character texture.</p></div>
-          <div class="asset-tags"><span>SLIME</span><span>TINTABLE</span><span>MONOCHROME</span></div>
+          <div><p class="asset-type" id="assetType">ASSET</p><h2 id="assetName">Marketplace Asset</h2><p id="assetDescription">Select a public E.R.A.S. asset.</p></div>
+          <div class="asset-tags" id="assetTags"></div>
         </div>
         <div class="asset-controls">
-          <label><span>TINT</span><input id="assetTint" type="color" value="#65d67c"></label>
+          <div id="assetTintControls" class="asset-tint-controls"><label><span>TINT</span><input id="assetTint" type="color" value="#65d67c"></label>
           <div class="asset-swatches" aria-label="Quick tint choices">
             <button type="button" data-tint="#65d67c" style="--swatch:#65d67c" aria-label="Green tint"></button>
             <button type="button" data-tint="#65c8ff" style="--swatch:#65c8ff" aria-label="Blue tint"></button>
             <button type="button" data-tint="#e07cff" style="--swatch:#e07cff" aria-label="Purple tint"></button>
             <button type="button" data-tint="#ff8b67" style="--swatch:#ff8b67" aria-label="Orange tint"></button>
             <button type="button" data-tint="#e8e8e8" style="--swatch:#e8e8e8" aria-label="Neutral tint"></button>
-          </div>
+          </div></div>
           <button class="market-primary" id="obtainAsset" type="button">ADD TO ASSET INVENTORY</button>
           <p class="asset-feedback" id="assetFeedback" aria-live="polite">SIGN IN TO SAVE OWNERSHIP TO YOUR PROFILE.</p>
         </div>
@@ -72,6 +74,6 @@
 
   <script src="/game/assets/js/site.js"></script>
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./assets/market.js?v=1.8.0"></script>
+  <script type="module" src="./assets/market.js?v=2.0.0"></script>
 </body>
 </html>

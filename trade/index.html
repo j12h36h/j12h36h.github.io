@@ -8,7 +8,7 @@
   <title>Trade Center — E.R.A.S.</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="./assets/trade.css?v=1.8.3">
+  <link rel="stylesheet" href="./assets/trade.css?v=2.0.0"><link rel="stylesheet" href="/game/assets/css/hosted-option-picker.css?v=1.0.0">
 </head>
 <body class="trade-page">
   <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
@@ -73,6 +73,23 @@
           <header><span>04</span><div><p>LIVE EXCHANGES</p><h2>YOUR TRADE BOOK</h2></div><div class="trade-book-tabs"><button class="is-active" data-trade-filter="active" type="button">ACTIVE</button><button data-trade-filter="history" type="button">HISTORY</button></div></header>
           <div id="tradeBook" class="trade-book"><p class="trade-empty">SIGN IN TO LOAD PLAYER TRADES.</p></div>
         </section>
+        <section class="trade-panel bundle-market-panel">
+          <header><span>05</span><div><p>HOSTED COMMERCE</p><h2>PLAYER BUNDLES</h2></div></header>
+          <div class="bundle-market-grid">
+            <form id="createBundleForm" class="trade-form">
+              <label><span>BUNDLE NAME</span><input id="bundleName" maxlength="60" value="My Icon Bundle" required></label>
+              <label><span>DESCRIPTION</span><input id="bundleDescription" maxlength="180" placeholder="What usage rights are included?"></label>
+              <label><span>PRICE</span><input id="bundlePrice" type="number" min="1" max="1000000" value="25" required></label>
+              <button id="bundleAssetPicker" class="trade-secondary" type="button">SELECT OWNED ICONS</button>
+              <div id="bundleAssetSummary" class="bundle-asset-summary">NO ASSETS SELECTED.</div>
+              <p class="trade-helper">PLAYER BUNDLES SELL PERMANENT HOSTED-USAGE LICENSES. THE ORIGINAL ASSETS STAY OWNED BY THE SELLER.</p>
+              <button class="trade-primary" type="submit">LIST BUNDLE</button>
+              <p id="bundleFeedback" class="trade-feedback">BUNDLES ARE DETERMINISTIC. BUYERS SEE EXACT CONTENTS.</p>
+            </form>
+            <div><div class="bundle-market-head"><b>ACTIVE BUNDLES</b><button id="refreshBundles" class="trade-secondary" type="button">REFRESH</button></div><div id="bundleMarketplace" class="bundle-market-list"><p class="trade-empty">LOADING BUNDLES…</p></div></div>
+          </div>
+        </section>
+
       </div>
     </section>
   </main>
@@ -80,6 +97,6 @@
   <div class="trade-toast-region" id="tradeToastRegion" aria-live="polite"></div>
   <script src="/game/assets/js/site.js"></script>
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./assets/trade.js?v=1.8.3"></script>
+  <script type="module" src="./assets/trade.js?v=2.0.0"></script>
 </body>
 </html>

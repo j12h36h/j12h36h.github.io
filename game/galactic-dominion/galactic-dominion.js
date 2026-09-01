@@ -45,6 +45,10 @@ function tokenColor(id) {
 function initials(name = 'M') {
   return String(name).trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase().slice(0, 2) || 'M';
 }
+function tokenMarkup(profileId, player) {
+  const asset = profileId === state.identity?.profileId ? window.ERAS_HOSTED_ACTIVE_ASSET : null;
+  return asset?.previewUrl ? `<img src="${safeText(asset.previewUrl)}" alt="">` : esc(initials(player?.displayName));
+}
 function esc(value) { return safeText(value); }
 function displayName(profileId, game = state.game) { return game?.players?.[profileId]?.displayName || 'Member'; }
 function formatMoney(value) { return Math.max(0, Math.floor(Number(value || 0))).toLocaleString(); }
@@ -343,7 +347,7 @@ function renderBoard() {
     if (owner) node.style.setProperty('--owner-color', tokenColor(owner));
     const ownerText = owner ? `<div class="galactic-space-owner">${esc(displayName(owner, game))}</div>` : '';
     const level = space.type === 'property' && Number(holding?.level || 0) > 0 ? `<span class="galactic-level">L${Number(holding.level)}</span>` : '';
-    const tokens = playersHere.map(([id, player]) => `<span class="galactic-token" title="${esc(player.displayName)}" style="--token-color:${tokenColor(id)}">${esc(initials(player.displayName))}</span>`).join('');
+    const tokens = playersHere.map(([id, player]) => `<span class="galactic-token" title="${esc(player.displayName)}" style="--token-color:${tokenColor(id)}">${tokenMarkup(id, player)}</span>`).join('');
     node.innerHTML = `${level}<div class="galactic-space-name">${esc(space.name)}</div><div class="galactic-space-meta">${esc(spaceMeta(space, game))}</div>${ownerText}<div class="galactic-space-tokens">${tokens}</div>`;
     root.appendChild(node);
   });
@@ -577,3 +581,6 @@ else {
   });
   watchLobby();
 }
+
+
+document.addEventListener('eras-hosted-asset-change', () => { renderBoard(); });

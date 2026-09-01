@@ -1,6 +1,9 @@
 import { auth, db, fs, watchIdentity, profileById, avatarSvg, safeText } from '/game/assets/js/eras-data.js?v=1.7.3';
 import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
 import { writeBatch, increment } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { openOptionPicker } from '/game/assets/js/hosted-option-picker.js?v=1.0.0';
+import { createHostedOffer, publicBundleOffers, purchaseHostedOffer } from '/game/assets/js/hosted-commerce.js?v=1.0.0';
+import { assetPreviewUrl } from '/game/assets/js/catalog-assets.js?v=1.0.0';
 
 const $ = s => document.querySelector(s);
 const state = {
@@ -18,7 +21,9 @@ const state = {
   connections: [],
   connectionsUnsub: null,
   connectionFilter: '',
-  selectedConnectionId: ''
+  selectedConnectionId: '',
+  bundleAssetIds: [],
+  bundleOffers: []
 };
 
 const TRADE_ACTIVE = new Set(['pending','locked']);
@@ -154,7 +159,7 @@ function renderInventory() {
   const root=$('#tradeInventory'); if(!root)return;
   if(!state.identity?.profileId){root.innerHTML='<p class="trade-empty">SIGN IN TO LOAD YOUR INVENTORY.</p>';return;}
   if(!state.holdings.length){root.innerHTML='<p class="trade-empty">NO TRADEABLE ASSETS YET. VISIT CONTENT TO OBTAIN ONE.</p>';return;}
-  root.innerHTML=state.holdings.map(h=>{const meta=assetMeta(h.assetId);return `<article class="holding-card"><div class="holding-preview" style="--asset-tint:${escapeHtml(h.tint||'#ffffff')}"><img src="${escapeHtml(meta.source||'')}" alt=""></div><div><b>${escapeHtml(meta.name||h.assetId)}</b><small>${escapeHtml(h.assetId)}<br>TINT ${escapeHtml(h.tint||'#ffffff')}<br>HOLDING ${escapeHtml(h.id.slice(0,10))}…</small></div></article>`;}).join('');
+  root.innerHTML=state.holdings.map(h=>{const meta=assetMeta(h.assetId);return `<article class="holding-card"><div class="holding-preview" style="--asset-tint:${escapeHtml(h.tint||'#ffffff')}"><img src="${escapeHtml(assetPreviewUrl(meta))}" alt=""></div><div><b>${escapeHtml(meta.name||h.assetId)}</b><small>${escapeHtml(h.assetId)}<br>TINT ${escapeHtml(h.tint||'#ffffff')}<br>HOLDING ${escapeHtml(h.id.slice(0,10))}…</small></div></article>`;}).join('');
 }
 
 function watchCredits() {
@@ -309,14 +314,23 @@ async function completeTrade(tradeId) {
   } catch(error) { console.error('Complete trade',error);toast('Trade could not complete. A balance, asset, or trade term changed.'); }
 }
 
+
+function bundlePickerOptions(){return state.holdings.map(h=>{const m=assetMeta(h.assetId);return{id:h.id,name:m.name,description:`${h.assetId} // TINT ${h.tint||'#ffffff'}`,image:assetPreviewUrl(m),tags:['OWNED','LICENSE']};});}
+function renderBundleAssetSummary(){const root=$('#bundleAssetSummary');if(!root)return;const rows=state.holdings.filter(h=>state.bundleAssetIds.includes(h.id));root.innerHTML=rows.length?rows.map(h=>`<b>${escapeHtml(assetMeta(h.assetId).name)} // ${escapeHtml(h.tint||'#ffffff')}</b>`).join(''):'NO ASSETS SELECTED.';}
+function chooseBundleAssets(){openOptionPicker({title:'Select bundle assets',options:bundlePickerOptions(),selected:state.bundleAssetIds,multi:true,max:4,onSelect:ids=>{state.bundleAssetIds=ids;renderBundleAssetSummary();}});}
+function bundleContents(o){const p=[];if(o.playCount)p.push(`${o.playCount} PLAY${o.playCount===1?'':'S'}`);if(o.lifeCount)p.push(`${o.lifeCount} ${o.lifeCount===1?'LIFE':'LIVES'}`);if(o.minutes)p.push(`${o.minutes} MIN`);if(o.permanent)p.push('PERMANENT');if((o.assetHoldingIds||[]).length)p.push(`${o.assetHoldingIds.length} ICON LICENSE${o.assetHoldingIds.length===1?'':'S'}`);return p.join(' + ')||'HOSTED USAGE RIGHTS';}
+async function refreshBundles(){const root=$('#bundleMarketplace');if(!root)return;root.innerHTML='<p class="trade-empty">LOADING BUNDLES…</p>';try{state.bundleOffers=(await publicBundleOffers()).filter(o=>o.sellerProfileId!==state.identity?.profileId);root.innerHTML=state.bundleOffers.length?state.bundleOffers.map(o=>`<article class="bundle-offer-card"><b>${escapeHtml(o.title)}</b><small>${escapeHtml(o.description||'Player-created hosted usage bundle.')}<br>${escapeHtml(bundleContents(o))}</small><strong>◈ ${formatCredits(o.priceCredits)} CREDITS</strong><button type="button" data-buy-bundle="${escapeHtml(o.id)}">PURCHASE BUNDLE</button></article>`).join(''):'<p class="trade-empty">NO PLAYER BUNDLES ARE LISTED.</p>';}catch(e){console.error('Bundle marketplace',e);root.innerHTML='<p class="trade-empty">BUNDLES COULD NOT BE LOADED.</p>';}}
+async function createBundle(event){event.preventDefault();if(!state.identity?.profileId)return feedback('#bundleFeedback','Sign in first.','error');const selected=state.holdings.filter(h=>state.bundleAssetIds.includes(h.id));if(!selected.length)return feedback('#bundleFeedback','Select at least one owned asset.','error');try{const offer=await createHostedOffer({sellerProfileId:state.identity.profileId,lobbyId:'',offerType:'bundle',billing:'bundle',title:$('#bundleName').value.trim(),description:$('#bundleDescription').value.trim(),priceCredits:clampCredits($('#bundlePrice').value),permanent:true,assetHoldingIds:selected.map(h=>h.id)});state.bundleAssetIds=[];renderBundleAssetSummary();feedback('#bundleFeedback',`Bundle listed: ${offer.title}.`,'ok');toast('Bundle listed');await refreshBundles();}catch(e){console.error('Create bundle',e);feedback('#bundleFeedback',e?.message||e?.code||'Could not list bundle.','error');}}
+async function buyBundle(id){if(!state.identity?.profileId)return toast('Sign in first');const offer=state.bundleOffers.find(o=>o.id===id);if(!offer)return;const ok=confirm(`PURCHASE BUNDLE?\n\n${offer.title}\n${bundleContents(offer)}\n${formatCredits(offer.priceCredits)} Credits\n\nThe seller keeps ownership of source assets; you receive the listed hosted-usage licenses.`);if(!ok)return;try{await purchaseHostedOffer({offerId:id,buyerProfileId:state.identity.profileId});toast('Bundle purchased');await refreshBundles();}catch(e){console.error('Buy bundle',e);toast(e?.message||'Bundle purchase failed');}}
+
 function bind() {
   scheduleRecipientLookup('#transferRecipient','#transferRecipientPreview');scheduleRecipientLookup('#tradeRecipient','#tradeRecipientPreview');
-  $('#creditTransferForm')?.addEventListener('submit',sendCredits);$('#createTradeForm')?.addEventListener('submit',createTrade);
+  $('#creditTransferForm')?.addEventListener('submit',sendCredits);$('#createTradeForm')?.addEventListener('submit',createTrade);$('#createBundleForm')?.addEventListener('submit',createBundle);$('#bundleAssetPicker')?.addEventListener('click',chooseBundleAssets);$('#refreshBundles')?.addEventListener('click',refreshBundles);
   $('#connectionSearch')?.addEventListener('input',e=>{state.connectionFilter=e.target.value||'';renderConnections();});
-  document.addEventListener('click',e=>{const t=e.target.closest('[data-select-connection],[data-trade-filter],[data-lock-trade],[data-decline-trade],[data-cancel-trade],[data-complete-trade]');if(!t)return;
+  document.addEventListener('click',e=>{const t=e.target.closest('[data-select-connection],[data-trade-filter],[data-lock-trade],[data-decline-trade],[data-cancel-trade],[data-complete-trade],[data-buy-bundle]');if(!t)return;
     if(t.dataset.selectConnection){selectConnection(t.dataset.selectConnection);return;}
     if(t.dataset.tradeFilter){state.filter=t.dataset.tradeFilter;document.querySelectorAll('[data-trade-filter]').forEach(b=>b.classList.toggle('is-active',b===t));renderTradeBook();return;}
-    if(t.dataset.lockTrade)lockRecipientSide(t.dataset.lockTrade);if(t.dataset.declineTrade)closeTrade(t.dataset.declineTrade,'declined');if(t.dataset.cancelTrade)closeTrade(t.dataset.cancelTrade,'cancelled');if(t.dataset.completeTrade)completeTrade(t.dataset.completeTrade);
+    if(t.dataset.buyBundle){buyBundle(t.dataset.buyBundle);return;}if(t.dataset.lockTrade)lockRecipientSide(t.dataset.lockTrade);if(t.dataset.declineTrade)closeTrade(t.dataset.declineTrade,'declined');if(t.dataset.cancelTrade)closeTrade(t.dataset.cancelTrade,'cancelled');if(t.dataset.completeTrade)completeTrade(t.dataset.completeTrade);
   });
 }
 
@@ -330,11 +344,11 @@ function focusPrefilledMode(params) {
 }
 
 async function init() {
-  bind();await loadCatalog();
+  bind();await loadCatalog();renderBundleAssetSummary();await refreshBundles();
   const params=new URLSearchParams(location.search),prefill=params.get('with')||'';if(PROFILE_RE.test(prefill)){['#transferRecipient','#tradeRecipient'].forEach(s=>{const el=$(s);if(el){el.value=prefill;el.dispatchEvent(new Event('input'));}});focusPrefilledMode(params);}
   watchIdentity(identity=>{
     state.identity=identity; if(identity?.profileId&&identity.profile)state.profileCache.set(identity.profileId,identity.profile);
-    watchCredits();watchHoldings();watchTrades();watchConnections();
+    watchCredits();watchHoldings();watchTrades();watchConnections();refreshBundles();
     if(!identity?.profileId){feedback('#transferFeedback','Sign in to send Credits.');feedback('#tradeFeedback','Sign in to create trades.');}
   });
 }

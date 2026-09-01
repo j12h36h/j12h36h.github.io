@@ -679,7 +679,7 @@ service cloud.firestore {
     // One wallet per public profile, shared by root Account, LCS,
     // Content, and E.R.A.S. gameplay.
     // ============================================================
-    function validCreditEventType(value) { return value in ['init','slime_kill','death','market_purchase','player_transfer_out','player_transfer_in','trade','game_item_trade']; }
+    function validCreditEventType(value) { return value in ['init','slime_kill','death','market_purchase','player_transfer_out','player_transfer_in','trade','game_item_trade','hosted_purchase_out','hosted_purchase_in']; }
     function validCreditWallet(data, profileId) {
       return data.keys().hasOnly(['profileId','balance','totalEarned','totalLost','lastEventId','lastEventType','createdAt','updatedAt'])
         && data.profileId == profileId
@@ -776,6 +776,23 @@ service cloud.firestore {
         && data.balance == getAfter(transferPath).data.amount
         && data.totalEarned == 0 && data.totalLost == 0;
     }
+    function validHostedPurchaseWallet(data, profileId) {
+      let purchasePath = /databases/$(database)/documents/hostedPurchases/$(data.lastEventId);
+      return data.lastEventId.size() > 0
+        && !exists(purchasePath) && existsAfter(purchasePath)
+        && getAfter(purchasePath).data.buyerProfileId == callerProfileId()
+        && getAfter(purchasePath).data.priceCredits is int
+        && getAfter(purchasePath).data.priceCredits > 0
+        && data.totalEarned == resource.data.totalEarned
+        && data.totalLost == resource.data.totalLost
+        && ((profileId == getAfter(purchasePath).data.buyerProfileId
+            && data.lastEventType == 'hosted_purchase_out'
+            && data.balance == resource.data.balance - getAfter(purchasePath).data.priceCredits)
+          || (profileId == getAfter(purchasePath).data.sellerProfileId
+            && data.lastEventType == 'hosted_purchase_in'
+            && data.balance == resource.data.balance + getAfter(purchasePath).data.priceCredits));
+    }
+
     match /creditWallets/{profileId} {
       // Credit balances are game-economy data. Authenticated LCS identities may
       // read wallets so transfers can atomically choose recipient create vs update.
@@ -796,7 +813,8 @@ service cloud.firestore {
         && ((isCallerProfile(profileId)
               && (validSlimeKillCredit(request.resource.data) || validDeathCreditLoss(request.resource.data) || validGameItemTradeWallet(request.resource.data, profileId)))
           || validDirectCreditTransferWallet(request.resource.data, profileId)
-          || validPlayerTradeWallet(request.resource.data, profileId));
+          || validPlayerTradeWallet(request.resource.data, profileId)
+          || validHostedPurchaseWallet(request.resource.data, profileId));
       allow delete: if false;
     }
 
@@ -1086,7 +1104,19 @@ service cloud.firestore {
     // Firestore stores only per-profile ownership/configuration.
     // ============================================================
     function validErasAssetId(id) {
-      return id in ['eras:slime_monochrome'];
+      return id in [
+        'eras:slime_monochrome',
+        'eras:health_potion',
+        'eras:slime_juice',
+        'eras:hand_wraps',
+        'eras:mode_turn_based_tactical',
+        'eras:mode_galactic_dominion',
+        'eras:mode_surface_discovery',
+        'eras:mode_jeng_stroid',
+        'eras:mode_sunball',
+        'eras:mode_soldoku',
+        'eras:mode_escape_pod_dash'
+      ];
     }
     function validAssetTint(tint) {
       return tint is string && tint.matches('#[0-9a-fA-F]{6}');
@@ -1315,23 +1345,208 @@ service cloud.firestore {
     }
 
     // ============================================================
+    // E.R.A.S. HOSTED COMMERCE
+    // Deterministic hosted-game access, icon licenses, and bundles. The seller
+    // retains ownership of source asset holdings; buyers receive usage rights.
+    // ============================================================
+    function validHostedOfferType(v) { return v in ['game_access','icon_license','bundle']; }
+    function validHostedBilling(v) { return v in ['per_play','per_life','playtime','permanent','bundle']; }
+    function offerHoldingOwned(holdingId, sellerProfileId) {
+      let p = /databases/$(database)/documents/assetHoldings/$(holdingId);
+      return holdingId is string && holdingId.size() >= 8 && holdingId.size() <= 180
+        && exists(p) && get(p).data.ownerProfileId == sellerProfileId;
+    }
+    function validOfferHoldingIds(ids, sellerProfileId) {
+      return ids is list && ids.size() <= 4
+        && (ids.size() < 1 || offerHoldingOwned(ids[0], sellerProfileId))
+        && (ids.size() < 2 || offerHoldingOwned(ids[1], sellerProfileId))
+        && (ids.size() < 3 || offerHoldingOwned(ids[2], sellerProfileId))
+        && (ids.size() < 4 || offerHoldingOwned(ids[3], sellerProfileId));
+    }
+    function hostedOfferLobbyOwned(data) {
+      let p = /databases/$(database)/documents/gameLobbies/$(data.lobbyId);
+      return data.lobbyId != '' && exists(p) && get(p).data.hostProfileId == data.sellerProfileId;
+    }
+    function validHostedOffer(data) {
+      let hasAccess = data.playCount > 0 || data.lifeCount > 0 || data.minutes > 0 || data.permanent == true;
+      return data.keys().hasOnly(['sellerProfileId','lobbyId','offerType','billing','title','description','priceCredits','playCount','lifeCount','minutes','permanent','assetHoldingIds','active','createdAt','updatedAt'])
+        && validPublicId(data.sellerProfileId) && profileExists(data.sellerProfileId)
+        && data.lobbyId is string && data.lobbyId.size() <= 80
+        && validHostedOfferType(data.offerType) && validHostedBilling(data.billing)
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 60
+        && data.description is string && data.description.size() <= 180
+        && data.priceCredits is int && data.priceCredits >= 1 && data.priceCredits <= 1000000
+        && data.playCount is int && data.playCount >= 0 && data.playCount <= 9999
+        && data.lifeCount is int && data.lifeCount >= 0 && data.lifeCount <= 9999
+        && data.minutes is int && data.minutes >= 0 && data.minutes <= 100000
+        && data.permanent is bool && data.active is bool
+        && validOfferHoldingIds(data.assetHoldingIds, data.sellerProfileId)
+        && data.createdAt is timestamp && data.updatedAt is timestamp
+        && ((data.offerType == 'game_access'
+            && hostedOfferLobbyOwned(data) && data.assetHoldingIds.size() == 0 && hasAccess
+            && data.billing in ['per_play','per_life','playtime','permanent'])
+          || (data.offerType == 'icon_license'
+            && data.assetHoldingIds.size() >= 1 && hasAccess
+            && (data.lobbyId == '' || hostedOfferLobbyOwned(data))
+            && data.billing in ['per_play','per_life','playtime','permanent'])
+          || (data.offerType == 'bundle'
+            && data.billing == 'bundle'
+            && (data.assetHoldingIds.size() >= 1 || hasAccess)
+            && ((data.lobbyId != '' && hostedOfferLobbyOwned(data))
+              || (data.lobbyId == '' && data.assetHoldingIds.size() >= 1 && data.playCount == 0 && data.lifeCount == 0 && data.minutes == 0 && data.permanent == true))));
+    }
+    match /hostedOffers/{offerId} {
+      allow read: if hasPrivateAccount();
+      allow create: if callerCanContribute()
+        && request.resource.data.sellerProfileId == callerProfileId()
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && validHostedOffer(request.resource.data);
+      allow update: if callerCanContribute()
+        && resource.data.sellerProfileId == callerProfileId()
+        && request.resource.data.sellerProfileId == resource.data.sellerProfileId
+        && request.resource.data.lobbyId == resource.data.lobbyId
+        && request.resource.data.offerType == resource.data.offerType
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && validHostedOffer(request.resource.data);
+      allow delete: if false;
+    }
+    function purchaseMatchesOffer(data, offer) {
+      return offer.active == true && validHostedOffer(offer)
+        && data.sellerProfileId == offer.sellerProfileId
+        && data.offerId is string
+        && data.lobbyId == offer.lobbyId
+        && data.offerType == offer.offerType
+        && data.billing == offer.billing
+        && data.priceCredits == offer.priceCredits
+        && data.playCount == offer.playCount
+        && data.lifeCount == offer.lifeCount
+        && data.minutes == offer.minutes
+        && data.permanent == offer.permanent
+        && data.assetHoldingIds == offer.assetHoldingIds;
+    }
+    function validHostedPurchase(purchaseId, data) {
+      let offerPath = /databases/$(database)/documents/hostedOffers/$(data.offerId);
+      let entitlementPath = /databases/$(database)/documents/hostedEntitlements/$(purchaseId);
+      let buyerWallet = /databases/$(database)/documents/creditWallets/$(data.buyerProfileId);
+      let sellerWallet = /databases/$(database)/documents/creditWallets/$(data.sellerProfileId);
+      return data.keys().hasOnly(['buyerProfileId','sellerProfileId','offerId','lobbyId','offerType','billing','priceCredits','playCount','lifeCount','minutes','permanent','assetHoldingIds','createdAt'])
+        && data.buyerProfileId == callerProfileId()
+        && validPublicId(data.buyerProfileId) && validPublicId(data.sellerProfileId)
+        && data.buyerProfileId != data.sellerProfileId
+        && data.createdAt == request.time
+        && exists(offerPath) && purchaseMatchesOffer(data, get(offerPath).data)
+        && exists(buyerWallet) && exists(sellerWallet)
+        && get(buyerWallet).data.balance >= data.priceCredits
+        && existsAfter(buyerWallet) && existsAfter(sellerWallet)
+        && getAfter(buyerWallet).data.balance == get(buyerWallet).data.balance - data.priceCredits
+        && getAfter(sellerWallet).data.balance == get(sellerWallet).data.balance + data.priceCredits
+        && getAfter(buyerWallet).data.lastEventId == purchaseId && getAfter(buyerWallet).data.lastEventType == 'hosted_purchase_out'
+        && getAfter(sellerWallet).data.lastEventId == purchaseId && getAfter(sellerWallet).data.lastEventType == 'hosted_purchase_in'
+        && existsAfter(entitlementPath)
+        && getAfter(entitlementPath).data.ownerProfileId == data.buyerProfileId
+        && getAfter(entitlementPath).data.offerId == data.offerId;
+    }
+    match /hostedPurchases/{purchaseId} {
+      allow read: if hasPrivateAccount() && (resource.data.buyerProfileId == callerProfileId() || resource.data.sellerProfileId == callerProfileId());
+      allow create: if callerCanContribute() && !exists(/databases/$(database)/documents/hostedPurchases/$(purchaseId)) && validHostedPurchase(purchaseId, request.resource.data);
+      allow update, delete: if false;
+    }
+    function entitlementMatchesPurchase(entitlementId, data) {
+      let p = /databases/$(database)/documents/hostedPurchases/$(entitlementId);
+      return existsAfter(p)
+        && getAfter(p).data.buyerProfileId == data.ownerProfileId
+        && getAfter(p).data.sellerProfileId == data.sellerProfileId
+        && getAfter(p).data.offerId == data.offerId
+        && getAfter(p).data.lobbyId == data.lobbyId
+        && getAfter(p).data.offerType == data.offerType
+        && getAfter(p).data.billing == data.billing
+        && data.remainingPlays == getAfter(p).data.playCount
+        && data.remainingLives == getAfter(p).data.lifeCount
+        && data.remainingSeconds == getAfter(p).data.minutes * 60
+        && data.permanent == getAfter(p).data.permanent
+        && data.assetHoldingIds == getAfter(p).data.assetHoldingIds;
+    }
+    function validHostedEntitlement(data) {
+      return data.keys().hasOnly(['ownerProfileId','sellerProfileId','offerId','lobbyId','offerType','billing','remainingPlays','remainingLives','remainingSeconds','permanent','assetHoldingIds','createdAt','updatedAt'])
+        && validPublicId(data.ownerProfileId) && validPublicId(data.sellerProfileId)
+        && data.offerId is string && data.offerId.size() >= 8 && data.offerId.size() <= 180
+        && data.lobbyId is string && data.lobbyId.size() <= 80
+        && validHostedOfferType(data.offerType) && validHostedBilling(data.billing)
+        && data.remainingPlays is int && data.remainingPlays >= 0 && data.remainingPlays <= 9999
+        && data.remainingLives is int && data.remainingLives >= 0 && data.remainingLives <= 9999
+        && data.remainingSeconds is int && data.remainingSeconds >= 0 && data.remainingSeconds <= 6000000
+        && data.permanent is bool && data.assetHoldingIds is list && data.assetHoldingIds.size() <= 4
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+    match /hostedEntitlements/{entitlementId} {
+      allow read: if hasPrivateAccount() && (resource.data.ownerProfileId == callerProfileId() || resource.data.sellerProfileId == callerProfileId());
+      allow create: if callerCanContribute()
+        && request.resource.data.ownerProfileId == callerProfileId()
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time
+        && validHostedEntitlement(request.resource.data)
+        && entitlementMatchesPurchase(entitlementId, request.resource.data);
+      allow update: if callerCanContribute()
+        && resource.data.ownerProfileId == callerProfileId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['remainingPlays','remainingLives','remainingSeconds','updatedAt'])
+        && request.resource.data.remainingPlays <= resource.data.remainingPlays
+        && request.resource.data.remainingLives <= resource.data.remainingLives
+        && request.resource.data.remainingSeconds <= resource.data.remainingSeconds
+        && request.resource.data.updatedAt == request.time
+        && validHostedEntitlement(request.resource.data);
+      allow delete: if false;
+    }
+
+    // ============================================================
     // E.R.A.S. HOST / JOIN LOBBIES
     // Lobby documents are discovery/orchestration data. They contain
     // no private Google identity information.
     // ============================================================
     function validLobbyVisibility(value) { return value in ['public','friends','code']; }
     function validLobbyStatus(value) { return value in ['open','playing','closed']; }
-    function validGameLobby(data) {
-      return data.keys().hasOnly(['name','code','hostProfileId','visibility','maxPlayers','mapId','gameStyle','description','settings','status','createdAt','updatedAt','lastHeartbeatAt'])
+    function validHostAssetRef(asset, hostProfileId) {
+      let p = /databases/$(database)/documents/assetHoldings/$(asset.holdingId);
+      return asset is map && asset.keys().hasOnly(['holdingId','assetId','tint'])
+        && asset.holdingId is string && asset.holdingId.size() >= 8 && asset.holdingId.size() <= 180
+        && asset.assetId is string && validAssetTint(asset.tint)
+        && exists(p) && get(p).data.ownerProfileId == hostProfileId
+        && get(p).data.assetId == asset.assetId && get(p).data.tint == asset.tint;
+    }
+    function validHostAssets(items, hostProfileId) {
+      return items is list && items.size() <= 8
+        && (items.size() < 1 || validHostAssetRef(items[0], hostProfileId))
+        && (items.size() < 2 || validHostAssetRef(items[1], hostProfileId))
+        && (items.size() < 3 || validHostAssetRef(items[2], hostProfileId))
+        && (items.size() < 4 || validHostAssetRef(items[3], hostProfileId))
+        && (items.size() < 5 || validHostAssetRef(items[4], hostProfileId))
+        && (items.size() < 6 || validHostAssetRef(items[5], hostProfileId))
+        && (items.size() < 7 || validHostAssetRef(items[6], hostProfileId))
+        && (items.size() < 8 || validHostAssetRef(items[7], hostProfileId));
+    }
+    function validLobbyAccessOffer(offerId, lobbyId, hostProfileId) {
+      let p = /databases/$(database)/documents/hostedOffers/$(offerId);
+      return offerId == '' || (exists(p) && get(p).data.active == true && get(p).data.offerType == 'game_access' && get(p).data.lobbyId == lobbyId && get(p).data.sellerProfileId == hostProfileId);
+    }
+    function validGameLobby(data, lobbyId) {
+      return data.keys().hasOnly(['name','code','hostProfileId','visibility','maxPlayers','mapId','gameStyle','description','settings','hostAssets','accessOfferId','status','createdAt','updatedAt','lastHeartbeatAt'])
         && data.name is string && data.name.size() >= 2 && data.name.size() <= 50
         && data.code is string && data.code.matches('[A-Z2-9]{6}')
         && validPublicId(data.hostProfileId) && profileExists(data.hostProfileId)
         && validLobbyVisibility(data.visibility)
         && data.maxPlayers is int && data.maxPlayers >= 2 && data.maxPlayers <= 32
         && ((data.gameStyle == 'arcade-topdown' && data.mapId in ['global-plaza','slime-yard'])
-          || (data.gameStyle == 'galactic-dominion' && data.mapId == 'galactic-ring' && data.maxPlayers <= 8))
+          || (data.gameStyle == 'galactic-dominion' && data.mapId == 'galactic-ring' && data.maxPlayers <= 8)
+          || (data.gameStyle == 'surface-discovery' && data.mapId == 'surface-grid' && data.maxPlayers <= 8)
+          || (data.gameStyle == 'jeng-stroid' && data.mapId == 'stack-bay' && data.maxPlayers <= 8)
+          || (data.gameStyle == 'sunball' && data.mapId == 'solar-table' && data.maxPlayers <= 8)
+          || (data.gameStyle == 'soldoku' && data.mapId == 'logic-grid' && data.maxPlayers <= 12)
+          || (data.gameStyle == 'escape-pod-dash' && data.mapId == 'launch-corridor' && data.maxPlayers <= 8))
         && data.description is string && data.description.size() <= 240
         && data.get('settings', {}) is map
+        && validHostAssets(data.hostAssets, data.hostProfileId)
+        && data.accessOfferId is string && data.accessOfferId.size() <= 180
+        && validLobbyAccessOffer(data.accessOfferId, lobbyId, data.hostProfileId)
         && validLobbyStatus(data.status)
         && data.createdAt is timestamp && data.updatedAt is timestamp && data.lastHeartbeatAt is timestamp;
     }
@@ -1340,31 +1555,58 @@ service cloud.firestore {
       allow create: if callerCanContribute()
         && isCallerProfile(request.resource.data.hostProfileId)
         && request.resource.data.status == 'open'
-        && validGameLobby(request.resource.data);
+        && request.resource.data.accessOfferId == ''
+        && validGameLobby(request.resource.data, lobbyId);
       allow update: if callerCanContribute()
         && isCallerProfile(resource.data.hostProfileId)
         && request.resource.data.hostProfileId == resource.data.hostProfileId
         && request.resource.data.createdAt == resource.data.createdAt
-        && validGameLobby(request.resource.data);
+        && validGameLobby(request.resource.data, lobbyId);
       allow delete: if isCallerProfile(resource.data.hostProfileId);
 
       match /members/{profileId} {
         function parentLobby() {
           return get(/databases/$(database)/documents/gameLobbies/$(lobbyId));
         }
+        function validMemberAccess(entitlementId) {
+          let lobby = parentLobby();
+          let p = /databases/$(database)/documents/hostedEntitlements/$(entitlementId);
+          return lobby.data.hostProfileId == profileId
+            ? entitlementId == ''
+            : (lobby.data.accessOfferId == ''
+              ? entitlementId == ''
+              : (entitlementId is string && entitlementId.size() >= 8 && exists(p) && existsAfter(p)
+                && get(p).data.ownerProfileId == profileId
+                && get(p).data.offerId == lobby.data.accessOfferId
+                && get(p).data.lobbyId == lobbyId
+                && ((get(p).data.permanent == true && getAfter(p).data == get(p).data)
+                  || (get(p).data.billing == 'per_play' && get(p).data.remainingPlays >= 1 && getAfter(p).data.remainingPlays == get(p).data.remainingPlays - 1)
+                  || (get(p).data.billing == 'per_life' && get(p).data.remainingLives >= 1 && getAfter(p).data.remainingLives == get(p).data.remainingLives - 1)
+                  || (get(p).data.billing == 'playtime' && get(p).data.remainingSeconds >= 1))));
+        }
         function validLobbyMember(data) {
-          return data.keys().hasOnly(['profileId','role','joinedAt','lastSeenAt'])
+          return data.keys().hasOnly(['profileId','role','accessEntitlementId','joinedAt','lastSeenAt'])
             && data.profileId == profileId
             && validPublicId(data.profileId) && profileExists(data.profileId)
             && data.role in ['host','player']
             && data.role == (parentLobby().data.hostProfileId == profileId ? 'host' : 'player')
+            && validMemberAccess(data.accessEntitlementId)
             && data.joinedAt is timestamp && data.lastSeenAt is timestamp;
         }
         allow read: if signedIn();
-        allow create, update: if callerCanContribute()
+        allow create: if callerCanContribute()
           && isCallerProfile(profileId)
           && parentLobby().data.status == 'open'
           && validLobbyMember(request.resource.data);
+        allow update: if callerCanContribute()
+          && isCallerProfile(profileId)
+          && parentLobby().data.status == 'open'
+          && request.resource.data.profileId == resource.data.profileId
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.accessEntitlementId == resource.data.accessEntitlementId
+          && request.resource.data.joinedAt == resource.data.joinedAt
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeenAt'])
+          && request.resource.data.lastSeenAt is timestamp;
         allow delete: if isCallerProfile(profileId)
           || (hasPrivateAccount() && parentLobby().data.hostProfileId == callerProfileId());
       }
@@ -1448,6 +1690,32 @@ service cloud.firestore {
         );
       allow delete: if callerInGalacticLobby(lobbyId)
         && callerProfileId() == resource.data.hostProfileId;
+    }
+
+    // ============================================================
+    // GENERIC HOSTED MODE RUNS
+    // Per-player score/progress records for Surface Discovery, Jeng-stroid,
+    // Sunball, Soldoku, and Escape Pod Dash.
+    // ============================================================
+    function callerInLobby(lobbyId) {
+      return hasPrivateAccount() && exists(/databases/$(database)/documents/gameLobbies/$(lobbyId)/members/$(callerProfileId()));
+    }
+    function validHostedRun(data, profileId, lobbyId) {
+      let lobbyPath = /databases/$(database)/documents/gameLobbies/$(lobbyId);
+      return data.keys().hasOnly(['profileId','modeId','score','status','lives','progress','updatedAt'])
+        && data.profileId == profileId && validPublicId(profileId)
+        && data.modeId in ['surface-discovery','jeng-stroid','sunball','soldoku','escape-pod-dash']
+        && exists(lobbyPath) && get(lobbyPath).data.gameStyle == data.modeId
+        && data.score is int && data.score >= 0 && data.score <= 2000000000
+        && data.status in ['ready','playing','finished']
+        && data.lives is int && data.lives >= 0 && data.lives <= 9999
+        && data.progress is int && data.progress >= 0 && data.progress <= 2000000000
+        && data.updatedAt is timestamp;
+    }
+    match /hostedModeRuns/{lobbyId}/players/{profileId} {
+      allow read: if callerInLobby(lobbyId);
+      allow create, update: if callerCanContribute() && isCallerProfile(profileId) && validHostedRun(request.resource.data, profileId, lobbyId);
+      allow delete: if isCallerProfile(profileId);
     }
 
     // ============================================================
