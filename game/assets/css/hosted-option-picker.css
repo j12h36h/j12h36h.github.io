@@ -5,3 +5,39 @@
 @media(max-width:700px){.eras-option-modal{padding:0}.eras-option-dialog{width:100vw;height:100svh;max-height:none;border-width:0}.eras-option-grid{grid-template-columns:1fr;padding:10px}.eras-option-card{min-height:94px;grid-template-columns:54px minmax(0,1fr)}.eras-option-card-icon{width:50px;height:50px;font-size:23px}.eras-option-head{padding-top:max(14px,env(safe-area-inset-top))}.eras-option-foot{padding-bottom:max(11px,env(safe-area-inset-bottom))}.host-bundle-grid{grid-template-columns:1fr 1fr}}
 
 .eras-option-card-icon img{width:100%;height:100%;object-fit:contain;background:var(--asset-tint,#65d67c)}
+
+/* v1.0.1 — hosted selector alignment + mode-switch visual stabilization */
+
+.eras-option-trigger{
+  box-sizing:border-box;min-width:0;grid-template-columns:42px minmax(0,1fr) 18px;
+  overflow:hidden;-webkit-appearance:none;appearance:none;border-radius:0;
+}
+.eras-option-trigger-icon,.eras-option-card-icon{
+  overflow:hidden;display:flex;align-items:center;justify-content:center;
+}
+.eras-option-glyph{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Arial Unicode MS",var(--mono,monospace);
+  font-weight:700;font-style:normal;line-height:1;text-align:center;
+  transform:translateY(-.02em);
+}
+.eras-option-trigger-icon .eras-option-glyph{font-size:19px}
+.eras-option-card-icon .eras-option-glyph{font-size:27px}
+.eras-option-trigger-icon img,.eras-option-card-icon img{
+  display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;margin:0;
+}
+.eras-option-trigger-copy{align-self:center;overflow:hidden}
+.eras-option-trigger-copy b,.eras-option-trigger-copy small{max-width:100%}
+.eras-option-trigger-arrow{width:18px;display:flex;align-items:center;justify-content:center;line-height:1}
+.eras-option-card{padding-right:36px;overflow:hidden}
+.eras-option-card-copy{align-self:center;overflow:hidden}
+.runtime-config-section>.eras-option-trigger,#assetLicenseControls>.eras-option-trigger{margin-top:10px}
+@media(max-width:700px){
+  .eras-option-trigger{min-height:58px;grid-template-columns:44px minmax(0,1fr) 18px;padding:7px 9px;gap:9px}
+  .eras-option-trigger-icon{width:40px;height:40px}
+  .eras-option-trigger-icon .eras-option-glyph{font-size:20px}
+  .eras-option-trigger-copy b{font-size:9px}
+  .eras-option-trigger-copy small{font-size:6px;line-height:1.3}
+  .eras-option-card{padding-right:34px}
+  .eras-option-card-icon .eras-option-glyph{font-size:24px}
+}

@@ -18,7 +18,7 @@ function render(){
   const root=ensureModal(), grid=root.querySelector('#erasOptionGrid'), confirm=root.querySelector('[data-option-confirm]');
   root.querySelector('#erasOptionTitle').textContent=String(active?.title||'SELECT OPTION').toUpperCase();
   confirm.hidden=!active?.multi;
-  grid.innerHTML=normalize(active?.options).map(o=>`<button type="button" class="eras-option-card ${active.selected.has(String(o.id))?'is-selected':''}" data-option-id="${esc(o.id)}"><span class="eras-option-card-icon">${o.image?`<img src="${esc(o.image)}" alt="">`:esc(o.icon||'◇')}</span><span class="eras-option-card-copy"><b>${esc(o.name||o.id)}</b><p>${esc(o.description||'')}</p>${Array.isArray(o.tags)&&o.tags.length?`<span class="eras-option-tags">${o.tags.slice(0,6).map(t=>`<span>${esc(t)}</span>`).join('')}</span>`:''}</span><span class="eras-option-check">✓</span></button>`).join('');
+  grid.innerHTML=normalize(active?.options).map(o=>`<button type="button" class="eras-option-card ${active.selected.has(String(o.id))?'is-selected':''}" data-option-id="${esc(o.id)}"><span class="eras-option-card-icon">${o.image?`<img src="${esc(o.image)}" alt="">`:`<span class="eras-option-glyph" aria-hidden="true">${esc(o.icon||'◇')}</span>`}</span><span class="eras-option-card-copy"><b>${esc(o.name||o.id)}</b><p>${esc(o.description||'')}</p>${Array.isArray(o.tags)&&o.tags.length?`<span class="eras-option-tags">${o.tags.slice(0,6).map(t=>`<span>${esc(t)}</span>`).join('')}</span>`:''}</span><span class="eras-option-check">✓</span></button>`).join('');
 }
 function choose(id){
   if(!active)return;
@@ -35,5 +35,7 @@ export function openOptionPicker({title='Select option',options=[],selected='',m
 }
 export function closeOptionPicker(){const root=document.getElementById('erasOptionModal');if(root)root.hidden=true;active=null;document.documentElement.style.overflow='';}
 export function optionTriggerMarkup(option,label='SELECT'){
-  const o=option||{};return `<span class="eras-option-trigger-icon">${esc(o.icon||'◇')}</span><span class="eras-option-trigger-copy"><b>${esc(o.name||label)}</b><small>${esc(o.description||label)}</small></span><span class="eras-option-trigger-arrow">›</span>`;
+  const o=option||{};
+  const visual=o.image?`<img src="${esc(o.image)}" alt="">`:`<span class="eras-option-glyph" aria-hidden="true">${esc(o.icon||'◇')}</span>`;
+  return `<span class="eras-option-trigger-icon">${visual}</span><span class="eras-option-trigger-copy"><b>${esc(o.name||label)}</b><small>${esc(o.description||label)}</small></span><span class="eras-option-trigger-arrow" aria-hidden="true">›</span>`;
 }

@@ -1,7 +1,7 @@
 import { db, fs, watchIdentity, safeText, avatarSvg } from '/game/assets/js/eras-data.js';
 import { defaultHostedWorldSettings, settingsFromHostForm, DEFAULT_ICON_JSON, DEFAULT_SLIME_ICON_JSON } from '/game/config/world-settings.js?v=3.0.0';
 import { HOSTED_GAME_MODES, VISIBILITY_OPTIONS, ACCESS_MODE_OPTIONS, hostedMode, hostedModeLabel, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.0.0';
-import { openOptionPicker, optionTriggerMarkup } from '/game/assets/js/hosted-option-picker.js?v=1.0.0';
+import { openOptionPicker, optionTriggerMarkup } from '/game/assets/js/hosted-option-picker.js?v=1.0.1';
 import { createHostedOffer, deactivateHostedOffer } from '/game/assets/js/hosted-commerce.js?v=1.0.0';
 import { assetPreviewUrl } from '/game/assets/js/catalog-assets.js?v=1.0.0';
 
@@ -15,16 +15,18 @@ const currentMode=()=>hostedMode($('#gameStyle')?.value);
 const clamp=(v,min,max,fallback=min)=>{let n=Number(v);if(!Number.isFinite(n))n=fallback;return Math.max(min,Math.min(max,Math.floor(n)));};
 function lobbyHref(lobby){return hostedModeRuntimeHref(lobby,location.pathname.startsWith('/game-mobile/'));}
 function modeOptionList(){return Object.values(HOSTED_GAME_MODES).map(mode=>{const asset=catalogMeta(mode.assetId||'');return {...mode,image:mode.assetId?assetPreviewUrl(asset):undefined};});}
+function currentModeOption(){return modeOptionList().find(option=>option.id===currentMode().id)||currentMode();}
 function accessOption(id){return ACCESS_MODE_OPTIONS.find(o=>o.id===id)||ACCESS_MODE_OPTIONS[0];}
 function visibilityOption(id){return VISIBILITY_OPTIONS.find(o=>o.id===id)||VISIBILITY_OPTIONS[0];}
 function catalogMeta(assetId=''){return state.catalog.assets.find(a=>a.id===assetId)||{name:assetId||'Asset',thumbnail:'/public-assets/textures/slime_monochrome.png',source:'/public-assets/textures/slime_monochrome.png'};}
 async function loadCatalog(){try{const r=await fetch('/public-assets/catalog.json',{cache:'no-store'});if(r.ok)state.catalog=await r.json();}catch(_){}}
 function updatePickerButtons(){
-  const gm=$('#gameModePicker');if(gm)gm.innerHTML=optionTriggerMarkup(currentMode(),'SELECT GAME MODE');
+  const gm=$('#gameModePicker');if(gm)gm.innerHTML=optionTriggerMarkup(currentModeOption(),'SELECT GAME MODE');
   const vis=$('#visibilityPicker');if(vis)vis.innerHTML=optionTriggerMarkup(visibilityOption($('#visibility')?.value),'SELECT VISIBILITY');
   const access=$('#accessModelPicker');if(access)access.innerHTML=optionTriggerMarkup(accessOption($('#accessModel')?.value),'SELECT ACCESS MODEL');
   const assetAccess=$('#assetAccessModelPicker');if(assetAccess)assetAccess.innerHTML=optionTriggerMarkup(accessOption($('#assetAccessModel')?.value),'SELECT ASSET LICENSE');
 }
+let lastAppliedModeId=$('#gameStyle')?.value||'arcade-topdown';
 function setMode(id){if(!HOSTED_GAME_MODES[id])return;$('#gameStyle').value=id;applyModeUI();}
 function setVisibility(id){if(!VISIBILITY_OPTIONS.some(o=>o.id===id))return;$('#visibility').value=id;updatePickerButtons();}
 function setAccessModel(id,target='access'){
@@ -38,15 +40,18 @@ function setAccessModel(id,target='access'){
   document.querySelectorAll(`[data-${prefix}-quantity]`).forEach(el=>el.hidden=el.getAttribute(`data-${prefix}-quantity`)!==id);
 }
 function applyModeUI(){
-  const mode=currentMode(), tactical=mode.id==='arcade-topdown';
+  const mode=currentMode(), tactical=mode.id==='arcade-topdown', previousModeId=lastAppliedModeId;
   document.querySelectorAll('[data-tactical-only]').forEach(n=>n.hidden=!tactical);
   document.querySelectorAll('[data-mode-panel]').forEach(n=>n.hidden=n.dataset.modePanel!==mode.id);
   const map=$('#mapField');if(map)map.hidden=!tactical;
   const max=$('#maxPlayers');if(max){[...max.options].forEach(o=>o.disabled=Number(o.value)>mode.maxPlayers);if(Number(max.value)>mode.maxPlayers)max.value=String(mode.maxPlayers);}
-  if(mode.id==='galactic-dominion'){
-    if($('#worldCurrencyName').value==='TOKENS')$('#worldCurrencyName').value='GALACTIC CREDITS';if($('#worldCurrencySymbol').value==='◆')$('#worldCurrencySymbol').value='✦';if(Number($('#worldCurrencyStartingBalance').value)===0)$('#worldCurrencyStartingBalance').value='1500';$('#worldCurrencyDeathLossCap').value='0';
-  }
+  const currencyName=$('#worldCurrencyName'), currencySymbol=$('#worldCurrencySymbol'), startingBalance=$('#worldCurrencyStartingBalance'), deathLoss=$('#worldCurrencyDeathLossCap');
+  const genericCurrency=currencyName?.value==='TOKENS'&&currencySymbol?.value==='◆'&&Number(startingBalance?.value)===0&&Number(deathLoss?.value)===10;
+  const galacticCurrency=currencyName?.value==='GALACTIC CREDITS'&&currencySymbol?.value==='✦'&&Number(startingBalance?.value)===1500&&Number(deathLoss?.value)===0;
+  if(mode.id==='galactic-dominion'&&previousModeId!=='galactic-dominion'&&genericCurrency){currencyName.value='GALACTIC CREDITS';currencySymbol.value='✦';startingBalance.value='1500';deathLoss.value='0';}
+  else if(mode.id!=='galactic-dominion'&&previousModeId==='galactic-dominion'&&galacticCurrency){currencyName.value='TOKENS';currencySymbol.value='◆';startingBalance.value='0';deathLoss.value='10';}
   const button=$('#createLobby');if(button)button.textContent=`CREATE ${mode.name.toUpperCase()}`;
+  lastAppliedModeId=mode.id;
   updatePickerButtons();
   if(state.identity?.profileId)say(`Ready to create ${mode.name}.`,'ok');
 }
