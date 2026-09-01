@@ -37,13 +37,21 @@ export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile,
     root.innerHTML=`<section class="eras-dm-window" role="dialog" aria-modal="true" aria-label="Chats">
       <header class="eras-dm-header"><div class="eras-dm-header-copy"><b>CHATS</b><span id="erasDmPeer">SELECT A CONNECTION</span></div><button class="eras-dm-close" type="button" aria-label="Close chats">×</button></header>
       <aside class="eras-dm-sidebar"><div class="eras-dm-sidebar-title">CHATS + CONNECTIONS</div><div class="eras-dm-list" id="erasDmList"></div></aside>
-      <main class="eras-dm-main"><div class="eras-dm-toolbar"><label for="erasDmWritingLanguage">I WRITE IN</label><select id="erasDmWritingLanguage">${languageOptions(state.writingLanguage)}</select><label for="erasDmTargetLanguage">TRANSLATE TO</label><select id="erasDmTargetLanguage">${languageOptions(state.targetLanguage)}</select><label class="eras-dm-translate-toggle"><input id="erasDmTranslateToggle" type="checkbox"> LIVE BROWSER TRANSLATION</label><span class="eras-dm-translation-status" id="erasDmTranslationStatus">Original chat text is always shown. Translation stays in your browser when the browser Translator API is available.</span></div><div class="eras-dm-messages" id="erasDmMessages"><div class="eras-dm-no-thread">Choose an accepted connection to open a chat.</div></div><form class="eras-dm-compose" id="erasDmCompose"><textarea id="erasDmText" maxlength="2000" placeholder="Write a chat…" disabled></textarea><button class="eras-dm-send" type="submit" disabled>SEND</button></form></main>
+      <main class="eras-dm-main"><div class="eras-dm-toolbar"><label for="erasDmWritingLanguage">I WRITE IN</label><select id="erasDmWritingLanguage">${languageOptions(state.writingLanguage)}</select><label for="erasDmTargetLanguage">TRANSLATE TO</label><select id="erasDmTargetLanguage">${languageOptions(state.targetLanguage)}</select><label class="eras-dm-translate-toggle"><input id="erasDmTranslateToggle" type="checkbox"> LIVE BROWSER TRANSLATION</label><span class="eras-dm-translation-status" id="erasDmTranslationStatus">Original chat text is always shown. Translation stays in your browser when the browser Translator API is available.</span></div><div class="eras-dm-messages" id="erasDmMessages"><div class="eras-dm-no-thread">Choose an accepted connection to open a chat.</div></div><form class="eras-dm-compose" id="erasDmCompose"><textarea id="erasDmText" maxlength="2000" placeholder="Input message here…" autocomplete="off"></textarea><button class="eras-dm-send" type="submit" disabled>SEND</button></form></main>
       <footer class="eras-dm-safety"><b>CHAT SAFETY:</b> ${html(SAFETY_TEXT)}</footer>
     </section>`;
     document.body.appendChild(root); state.root=root;
     root.querySelector('.eras-dm-close').addEventListener('click',close);
     root.addEventListener('click',e=>{if(e.target===root)close();const person=e.target.closest('[data-dm-profile]');if(person)activateProfile(person.dataset.dmProfile);const translate=e.target.closest('[data-dm-translate]');if(translate)translateOne(translate.dataset.dmTranslate);});
     root.querySelector('#erasDmCompose').addEventListener('submit',sendMessage);
+    // Keep Chat keyboard input isolated from browser-game/global hotkeys. Without this,
+    // movement/inventory listeners can prevent normal typing (notably W/A/S/D/I).
+    root.addEventListener('keydown',e=>{
+      if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();return;}
+      e.stopPropagation();
+    });
+    root.addEventListener('keyup',e=>e.stopPropagation());
+    root.addEventListener('keypress',e=>e.stopPropagation());
     root.querySelector('#erasDmWritingLanguage').addEventListener('change',e=>{state.writingLanguage=e.target.value;});
     root.querySelector('#erasDmTargetLanguage').addEventListener('change',e=>{state.targetLanguage=e.target.value;state.translators.forEach(t=>{try{t.destroy?.();}catch{}});state.translators.clear();prepareVisibleTranslations();renderMessages();});
     root.querySelector('#erasDmTranslateToggle').addEventListener('change',e=>{state.translationEnabled=e.target.checked;if(state.translationEnabled)prepareVisibleTranslations();renderMessages();});
@@ -51,7 +59,13 @@ export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile,
     return root;
   }
   function status(text,error=false){const el=state.root?.querySelector('#erasDmTranslationStatus');if(el){el.textContent=text;el.classList.toggle('eras-dm-error',error);}}
-  function setComposeEnabled(enabled){const text=state.root?.querySelector('#erasDmText'),send=state.root?.querySelector('.eras-dm-send');if(text)text.disabled=!enabled;if(send)send.disabled=!enabled;}
+  function setComposeEnabled(enabled){
+    const text=state.root?.querySelector('#erasDmText'),send=state.root?.querySelector('.eras-dm-send');
+    // The input itself must always remain editable while Chat is open. Recipient selection
+    // gates SEND, not typing, so users can focus/type reliably on every E.R.A.S. surface.
+    if(text){text.disabled=false;text.readOnly=false;text.setAttribute('aria-disabled','false');}
+    if(send)send.disabled=!enabled;
+  }
   async function loadContacts(){
     try{const ids=[...new Set((await listContacts?.())||[])].filter(id=>id&&id!==currentId());state.contacts=ids;await Promise.all(ids.slice(0,100).map(profile));renderSidebar();}
     catch(e){onError(e);state.contacts=[];renderSidebar();}
@@ -142,7 +156,13 @@ export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile,
     catch(e2){onError(e2);status('Chat could not be sent. Check your connection, account status, or friendship state.',true);}
     finally{state.busy=false;setComposeEnabled(true);textarea.focus();}
   }
-  async function openInbox(){const root=buildRoot();root.hidden=false;startThreads();await loadContacts();syncActiveThread();}
+  async function openInbox(){
+    const root=buildRoot();root.hidden=false;
+    // Input is always writable; SEND becomes active only after a recipient is selected.
+    setComposeEnabled(Boolean(state.activeProfileId));
+    startThreads();await loadContacts();syncActiveThread();
+    const textarea=root.querySelector('#erasDmText');try{textarea?.focus({preventScroll:true});}catch{textarea?.focus();}
+  }
   async function openProfile(profileId){await openInbox();await activateProfile(profileId);}
   function close(){if(!state.root)return;state.root.hidden=true;stopMessages();stopThreads();}
   function destroy(){close();state.translators.forEach(t=>{try{if(!(t instanceof Promise))t.destroy?.();}catch{}});state.translators.clear();state.root?.remove();state.root=null;}

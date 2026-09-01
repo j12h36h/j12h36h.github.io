@@ -2216,7 +2216,13 @@ const keyMap = {
   ArrowRight: 'right', d: 'right', D: 'right'
 };
 
+function keyboardEventIsTyping(event) {
+  const target = event.target;
+  return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+}
+
 window.addEventListener('keydown', event => {
+  if (keyboardEventIsTyping(event)) return;
   if (event.key === 'i' || event.key === 'I') {
     event.preventDefault();
     if (state.identity?.profileId) activeInventoryController.open('equipment');
@@ -2239,6 +2245,7 @@ window.addEventListener('keydown', event => {
 });
 
 window.addEventListener('keyup', event => {
+  if (keyboardEventIsTyping(event)) return;
   const key = keyMap[event.key];
   if (!key) return;
   event.preventDefault();

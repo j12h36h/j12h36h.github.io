@@ -1,5 +1,5 @@
 import { LCS_CONFIG } from './config.js';
-import { createDirectMessenger } from '/assets/js/direct-messaging.js';
+import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260901-dm4';
 import { watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -1237,7 +1237,7 @@ async function initFirebase(){
     publicSubscribe('publicLfg',rows=>{state.lfg=rows;synthesizeReferencedProfiles();renderLfg();renderConnections();renderSearchPanel();renderActivity();hydrateReferencedProfiles().catch(console.debug);},{orderBy:'createdAt',limit:500,filters:[['deleted','==',false]]});
     publicSubscribe('statusAssignments',rows=>{state.statusPublic=rows;synthesizeReferencedProfiles();mergeStatusRows();renderAuth();renderFeed();renderCatalogs();renderConnections();renderActivity();hydrateReferencedProfiles().catch(console.debug);},{limit:2000,filters:[['visibility','==','public']]});
     if(state.authUid)await ensurePrivateIdentityOnce();
-    setBackendStatus('LCS v0.9.13 Chat + security cleanup connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
+    setBackendStatus('LCS v0.9.14 Chat input + security cleanup connected','Public content uses random public profile IDs. Status authorization, soft-delete retention, and immutable moderation logs are enforced by Firestore rules.','ok');
   }catch(e){console.error(e);state.authReady=true;setBackendStatus('Could not connect to Firebase','Check Firebase configuration and publish the included v0.9.4+ firestore.rules.','error');renderAuth();renderAccount();}
 }
 

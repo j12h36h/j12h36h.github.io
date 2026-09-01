@@ -1,5 +1,5 @@
-import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=20260831-dm3';
-import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260831-dm3';
+import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=20260901-dm4';
+import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260901-dm4';
 
 const escapeHtml = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
