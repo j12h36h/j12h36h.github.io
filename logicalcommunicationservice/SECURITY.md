@@ -1,9 +1,9 @@
-# LCS v0.7.1 Security Architecture
+# LCS Security Architecture
 
 ## Core boundary
 Sensitive provider identity stays in Firebase Authentication. LCS uses only the Firebase Auth UID as a private authorization key to locate the owner-only `privateAccounts/{uid}` mapping. Public LCS data uses a random public profile ID instead.
 
-The application does not read or store Google email, Google account name, provider photo, `providerData`, passwords, OAuth access/refresh tokens, client secrets, service-account credentials, or private keys.
+The application does not read or store Google email, Google account name, provider photo, `providerData`, passwords, OAuth access/refresh tokens, client secrets, service-account credentials, or private keys. Google sign-in uses Firebase popup authentication directly; no provider-token URL bridge is part of the production site.
 
 ## Public data
 `publicProfiles`, normal public content, communities/channels, Helpful reactions, public follows, relationships, and open LFG listings are public by design. They contain public profile IDs only.
@@ -65,3 +65,10 @@ Firebase App Check and a trusted server/Cloud Function layer can later add anti-
 
 ## JSON character avatar safety
 Public profiles may contain an `avatarJson` string capped at 32,000 characters. The browser never inserts raw avatar JSON as HTML. Avatar definitions are limited to 96 character layers. It parses the JSON, validates an allowlisted schema, clamps numeric ranges, restricts fonts/weights/alignment, validates six-digit hex colors, escapes character content, and emits its own SVG text elements. v0.7.3 also permits bounded numeric `scaleX`, `scaleY`, `skewX`, and `skewY` values. The client constructs the resulting SVG transforms itself; raw SVG/CSS transform strings are never accepted. External URLs, uploaded images, raw SVG, raw HTML, raw CSS, and scripts are not part of the avatar schema. Invalid saved definitions fall back to initials.
+
+
+## Chat boundary
+Chats are stored under deterministic participant thread IDs. Firestore requires an accepted friendship, rejects blocked pairs, restricts reads to participants, validates sender/recipient membership, caps text at 2,000 characters, and makes chat records client-immutable after creation. Thread and chat creation timestamps use `request.time` so clients cannot forge server chronology. The UI permanently warns users to treat Chats like public communication and not disclose private information.
+
+## Browser API key
+The Firebase Web API key is public client configuration, not a server secret. It should be restricted in Google Cloud to the Firebase APIs this site uses and to approved website/referrer origins. Service-account keys and other privileged credentials must never be placed in the repository.

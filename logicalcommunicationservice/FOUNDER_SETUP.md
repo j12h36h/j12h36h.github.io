@@ -43,6 +43,6 @@ Do not put your Google email, Google account name, Firebase Auth UID, password, 
 
 Founder is now a singleton root authority. The browser no longer attempts to grant Founder to every newly authenticated account. Firestore recognizes Founder authority only when `systemPrivate/founder.profileId` exactly matches the caller's current LCS public profile ID. Public Founder status documents are badges/metadata and do not independently grant root authority.
 
-The root Founder may grant/revoke Moderator and Timeout statuses. Founder is intentionally not available in the Grant Status dropdown. Legacy or accidental Founder assignments on other profiles can be removed from Moderation → Active Status after publishing `firestore.v093.rules`.
+The root Founder may grant/revoke Moderator and Timeout statuses. Founder is intentionally not available in the Grant Status dropdown. Legacy or accidental Founder assignments on other profiles can be removed from Moderation → Active Status after publishing the canonical `firestore.rules`.
 
 The v0.9.3 frontend verifies root authority by performing a `get` against `systemAuthority/founderProbe`. That document does not need to exist and exposes no data; the v0.9.3 rules authorize the request only when the caller matches `systemPrivate/founder.profileId`.

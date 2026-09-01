@@ -10,3 +10,30 @@
 .eras-dm-safety{grid-column:1/-1;padding:7px 10px;border-top:1px solid rgba(255,203,93,.16);background:#151207;color:#a99a6b;font:700 7px/1.35 var(--mono,monospace);letter-spacing:.025em}.eras-dm-safety b{color:#e5ce83}
 .eras-dm-error{color:#e99898!important}
 @media(max-width:700px){.eras-dm-root{padding:0}.eras-dm-window{width:100vw;height:100vh;border:0;border-radius:0;grid-template-columns:118px minmax(0,1fr)}.eras-dm-person{grid-template-columns:1fr;padding:9px 7px}.eras-dm-person-avatar{display:none}.eras-dm-person-copy small{display:none}.eras-dm-toolbar{grid-template-columns:1fr 1fr}.eras-dm-toolbar label{display:none}.eras-dm-message{max-width:90%}.eras-dm-compose{grid-template-columns:1fr}.eras-dm-send{min-height:36px}.eras-dm-safety{font-size:6px}}
+
+
+/* LCS-native Chat skin. Game pages intentionally retain the terminal/teal presentation above. */
+.eras-dm-root.eras-dm-lcs{background:rgba(10,5,16,.68)}
+.eras-dm-lcs .eras-dm-window{border-color:rgba(202,158,255,.32);background:#120c1a;color:#f0e8fa;box-shadow:0 26px 80px rgba(0,0,0,.66),0 0 45px rgba(154,103,222,.08)}
+.eras-dm-lcs .eras-dm-header{border-bottom-color:rgba(202,158,255,.14);background:rgba(20,12,30,.98)}
+.eras-dm-lcs .eras-dm-header-copy span,.eras-dm-lcs .eras-dm-sidebar-title,.eras-dm-lcs .eras-dm-person-copy small,.eras-dm-lcs .eras-dm-message-meta,.eras-dm-lcs .eras-dm-translation-status{color:#937daa}
+.eras-dm-lcs .eras-dm-close{border-color:rgba(202,158,255,.2);color:#d9c7eb}
+.eras-dm-lcs .eras-dm-sidebar{border-right-color:rgba(202,158,255,.13);background:rgba(14,8,22,.92)}
+.eras-dm-lcs .eras-dm-sidebar-title{border-bottom-color:rgba(202,158,255,.09);background:#120c1a}
+.eras-dm-lcs .eras-dm-person{border-bottom-color:rgba(202,158,255,.07)}
+.eras-dm-lcs .eras-dm-person:hover,.eras-dm-lcs .eras-dm-person.is-active{background:rgba(184,119,255,.11)}
+.eras-dm-lcs .eras-dm-person-avatar{border-color:rgba(202,158,255,.24);color:#e1ccf6}
+.eras-dm-lcs .eras-dm-main{background:linear-gradient(180deg,#140d1d,#0d0913)}
+.eras-dm-lcs .eras-dm-toolbar{border-bottom-color:rgba(202,158,255,.09);background:rgba(15,9,23,.78)}
+.eras-dm-lcs .eras-dm-toolbar label{color:#9a82b1}
+.eras-dm-lcs .eras-dm-toolbar select{border-color:rgba(202,158,255,.18);background:#160f20;color:#eadff4}
+.eras-dm-lcs .eras-dm-translate-toggle input{accent-color:#b877ff}
+.eras-dm-lcs .eras-dm-message{border-color:rgba(202,158,255,.13);background:rgba(184,119,255,.055)}
+.eras-dm-lcs .eras-dm-message.is-own{border-color:rgba(255,178,46,.18);background:rgba(184,119,255,.13)}
+.eras-dm-lcs .eras-dm-translation{border-top-color:rgba(202,158,255,.13);color:#d8c1ef}
+.eras-dm-lcs .eras-dm-translation::before,.eras-dm-lcs .eras-dm-translate-one{color:#a786c5}
+.eras-dm-lcs .eras-dm-no-thread,.eras-dm-lcs .eras-dm-empty{color:#927ca8}
+.eras-dm-lcs .eras-dm-compose{border-top-color:rgba(202,158,255,.1);background:rgba(14,8,22,.96)}
+.eras-dm-lcs .eras-dm-compose textarea{border-color:rgba(202,158,255,.2);background:#130c1c;color:#f4ecfb}
+.eras-dm-lcs .eras-dm-compose textarea:focus{border-color:rgba(202,158,255,.55);box-shadow:0 0 0 2px rgba(184,119,255,.08)}
+.eras-dm-lcs .eras-dm-send{border-color:rgba(202,158,255,.3);background:rgba(184,119,255,.14);color:#f2e8fb}

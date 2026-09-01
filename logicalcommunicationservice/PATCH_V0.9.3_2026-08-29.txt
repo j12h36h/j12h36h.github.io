@@ -1,7 +1,0 @@
-LCS v0.9.3
-- Fixed accidental Founder bootstrap attempts on newly authenticated accounts.
-- Hardened root Founder authority to systemPrivate/founder in Firestore rules.
-- Added explicit Status removal controls and protected the configured root Founder.
-- Prevented unauthorized direct access to Moderation UI.
-- Added Activity / Notifications for comments, helpful reactions, follows, friend requests, LFG requests, and Status changes.
-- Preserved v0.9.2 desktop-parity mobile Firebase authentication.

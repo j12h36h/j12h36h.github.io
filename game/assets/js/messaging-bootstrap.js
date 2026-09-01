@@ -1,5 +1,5 @@
-import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=20260831-dm1';
-import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260831-dm1';
+import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=20260831-dm3';
+import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260831-dm3';
 
 const escapeHtml = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -29,7 +29,7 @@ export function initGameMessaging({ friendList = null, feedback = null } = {}) {
         getProfile: profileById,
         listContacts: friendshipIdsOnce,
         avatarMarkup: profile => avatarSvg(profile),
-        onError: error => { console.error('E.R.A.S. game messaging', error); say('Messaging connection error'); }
+        onError: error => { console.error('E.R.A.S. game chat', error); say('Chat connection error'); }
       });
     }
     return messenger;
@@ -69,7 +69,7 @@ export function initGameMessaging({ friendList = null, feedback = null } = {}) {
     if (launch) {
       event.preventDefault();
       const dm = getMessenger();
-      if (!dm) { say('Sign in to use direct messages'); return; }
+      if (!dm) { say('Sign in to use Chat'); return; }
       dm.openInbox();
       return;
     }
@@ -77,7 +77,7 @@ export function initGameMessaging({ friendList = null, feedback = null } = {}) {
     if (peer) {
       event.preventDefault();
       const dm = getMessenger();
-      if (!dm) { say('Sign in to use direct messages'); return; }
+      if (!dm) { say('Sign in to use Chat'); return; }
       dm.openProfile(peer.dataset.erasDmProfile);
     }
   });
@@ -86,7 +86,7 @@ export function initGameMessaging({ friendList = null, feedback = null } = {}) {
     identity = next?.profileId ? next : null;
     messenger?.destroy?.(); messenger = null;
     startFriendWatch();
-    if (identity) say('Messaging network ready'); else say('Sign in for messaging');
+    if (identity) say('Chat network ready'); else say('Sign in for Chat');
     const username = document.querySelector('[data-eras-account-id]');
     const display = document.querySelector('[data-display-name]');
     if (username) username.value = identity?.profileId ? `LCS_${identity.profileId.slice(0,8).toUpperCase()}` : 'SIGNED_OUT';

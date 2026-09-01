@@ -15,7 +15,7 @@
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" rel="modulepreload"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" rel="modulepreload"/>
 <link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v0917" rel="stylesheet"/>
-<link href="/assets/css/direct-messaging.css?v=20260831-dm1" rel="stylesheet"/>
+<link href="/assets/css/direct-messaging.css?v=20260831-dm3" rel="stylesheet"/>
 <link href="mobile.css?v=20260829-v0917" rel="stylesheet"/>
 </head>
 <body>
@@ -42,7 +42,7 @@
 </div>
 <div class="top-actions">
 <a class="ghost-button dai-return-link" href="/logicalcommunicationservice/">Home</a>
-<button class="ghost-button" id="messagesButton" type="button">Messages</button>
+<button class="ghost-button" id="messagesButton" type="button">Chats</button>
 <button class="ghost-button" id="explainButton" type="button">How this works</button>
 <div id="authArea"><button class="primary-button mobile-auth-fallback" data-open-auth type="button" aria-label="Open LCS account">◉</button></div>
 </div>
@@ -77,9 +77,9 @@
 </div>
 </section>
 <footer class="rail-footer">
-<a href="privacy.html">Privacy</a>
-<a href="terms.html">Terms</a>
-<span>LCS v0.9.12 · Direct Messaging + Live Browser Translation</span>
+<a href="/logicalcommunicationservice/privacy.html">Privacy</a>
+<a href="/logicalcommunicationservice/terms.html">Terms</a>
+<span>LCS v0.9.13 · Chat + Live Browser Translation</span>
 </footer>
 </aside>
 <section class="content-column">
@@ -516,10 +516,10 @@
 <pre class="auth-diagnostics" hidden="" id="authDiagnosticDetails"></pre>
 <button class="ghost-button auth-redirect-retry" hidden="" id="authRedirectRetryButton" type="button">Retry Google sign-in</button>
 </div>
-<p class="tiny muted">By continuing, you agree to the <a href="terms.html">Terms</a> and acknowledge the <a href="privacy.html">Privacy Policy</a>.</p>
+<p class="tiny muted">By continuing, you agree to the <a href="/logicalcommunicationservice/terms.html">Terms</a> and acknowledge the <a href="/logicalcommunicationservice/privacy.html">Privacy Policy</a>.</p>
 <div class="setup-warning" hidden="" id="authSetupWarning">
 <b>Owner setup needed</b>
-<p>Firebase is not configured yet. Add the public Firebase web config in <code>assets/js/config.js</code>, enable Google sign-in, and add <code>j12h36h.github.io</code> as an authorized domain. Mobile and desktop both use Firebase Google popup authentication. No separate Google Identity Services JavaScript-origin entry is required by LCS; keep <code>j12h36h.github.io</code> in Firebase Authentication → Authorized domains.</p>
+<p>Firebase is not configured yet. Add the public Firebase web config in <code>/logicalcommunicationservice/assets/js/config.js</code>, enable Google sign-in, and add <code>j12h36h.github.io</code> as an authorized domain. Mobile and desktop both use Firebase Google popup authentication. No separate Google Identity Services JavaScript-origin entry is required by LCS; keep <code>j12h36h.github.io</code> in Firebase Authentication → Authorized domains.</p>
 <a href="https://console.firebase.google.com/" rel="noreferrer" target="_blank">Open Firebase Console ↗</a>
 </div>
 </dialog>
@@ -628,6 +628,6 @@
 <div class="impact-recap" id="impactRecap"></div>
 <div class="modal-actions"><button class="ghost-button" id="resetSessionImpact" type="button">Clear session recap</button><button class="primary-button" data-close-dialog="" type="button">Keep building</button></div>
 </dialog><div aria-live="polite" class="toast-region" id="toastRegion"></div>
-<script src="../logicalcommunicationservice/assets/js/app.js?v=20260831-v0918" type="module"></script>
+<script src="../logicalcommunicationservice/assets/js/app.js?v=20260831-v0913" type="module"></script>
 </body>
 </html>

@@ -1,8 +1,16 @@
-# Root Portal Patch v1.8.3
+# E.R.A.S. Website
 
-Fixes two issues:
+Static GitHub Pages hub for E.R.A.S., LCS, DAI, the browser game, content, trading, and public assets.
 
-1. Quiet global refresh markers no longer mark the local player as being in combat. REST becomes available after a clean refresh once the player has disengaged, provided they did not move or declare an action during that refresh.
-2. Player Credit transfers and trade creation now explicitly initialize the local wallet, inspect recipient wallet existence through authenticated economy reads, and use Firestore rules v0.9.17. Asset-only/zero-credit trades are no longer blocked by a missing wallet.
+## Canonical deployment files
 
-Publish `firestore_v0.9.17_eras_trade_rest_fix.rules` (or the included `logicalcommunicationservice/firestore.rules`) before testing transfers/trades.
+- LCS client: `logicalcommunicationservice/`
+- LCS mobile shell: `lcs-mobile/` (shares the canonical LCS app/config/assets)
+- Firestore rules: `logicalcommunicationservice/firestore.rules`
+- Firestore indexes: `logicalcommunicationservice/firestore.indexes.json`
+- Firebase CLI config: `logicalcommunicationservice/firebase.json`
+- Shared Chat UI: `assets/js/direct-messaging.js` + `assets/css/direct-messaging.css`
+
+The site uses Firebase Web App configuration in browser code by design. It must never contain service-account JSON, OAuth client secrets, private keys, passwords, refresh tokens, or database exports. Restrict the public Firebase browser API key in Google Cloud to the required Firebase APIs and approved web origins.
+
+`.nojekyll` is intentional: this repository is a static site and should be served without Jekyll-generated duplicate documentation pages.

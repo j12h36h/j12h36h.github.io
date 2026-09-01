@@ -613,6 +613,8 @@ service cloud.firestore {
           || threadId == request.resource.data.members[1] + '__' + request.resource.data.members[0])
         && directMessageFriendshipExists(threadId)
         && directMessagePairUnblocked(request.resource.data.members)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.lastMessageAt == null
         && request.resource.data.lastMessageSenderProfileId == ''
         && request.resource.data.lastMessagePreview == '';
@@ -623,7 +625,8 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && directMessageFriendshipExists(threadId)
         && directMessagePairUnblocked(resource.data.members)
-        && request.resource.data.lastMessageAt is timestamp
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.lastMessageAt == request.time
         && request.resource.data.lastMessageSenderProfileId == callerProfileId();
       allow delete: if false;
 
@@ -640,7 +643,7 @@ service cloud.firestore {
           && request.resource.data.recipientProfileId in get(/databases/$(database)/documents/directMessageThreads/$(threadId)).data.members
           && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
           && validMessageLanguage(request.resource.data.language)
-          && request.resource.data.createdAt is timestamp;
+          && request.resource.data.createdAt == request.time;
         allow update, delete: if false;
       }
     }

@@ -77,7 +77,7 @@ a { color: inherit; }
   justify-content: space-between;
   pointer-events: none;
 }
-.brand, .enter-button { pointer-events: auto; }
+.brand, .enter-button, .site-header .eras-dm-launch, .site-header .portal-auth-area { pointer-events: auto; }
 .brand {
   display: inline-flex;
   align-items: center;

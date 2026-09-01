@@ -9,7 +9,7 @@
       "category": "characters",
       "description": "A tintable monochrome slime character texture for E.R.A.S. creations, prototypes, and games.",
       "source": "/public-assets/textures/slime_monochrome.png",
-      "thumbnail": "/public-assets/textures/slime_monochrome_thumb.png",
+      "thumbnail": "/public-assets/textures/slime_monochrome.png",
       "tintable": true,
       "defaultTint": "#65d67c",
       "price": 0,

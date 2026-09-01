@@ -113,6 +113,17 @@ const message = text => {
   if (el) el.textContent = String(text).toUpperCase();
 };
 
+function renderCurrencyHeader(symbol, name) {
+  const walletHeader = document.querySelector('.game-credit-header, .mobile-credit-header');
+  if (!walletHeader) return;
+  walletHeader.replaceChildren();
+  walletHeader.append(document.createTextNode(`${String(symbol || '')} `));
+  const balance = document.createElement('b');
+  balance.id = 'creditBalance';
+  balance.textContent = '0';
+  walletHeader.append(balance, document.createTextNode(` ${String(name || '')}`));
+}
+
 const globalInventoryController = createGameInventoryController({
   db,
   fs,
@@ -250,8 +261,7 @@ async function loadWorldName() {
       { key: 'cache-slime-c', mobId: 'slime', label: 'CACHE SLIME C', tint: '#75df83', maxHp: 2, damage: 1, attackRange: 13, respawnTurns: 1, ...SLIME_CACHE_SPAWN }
     ];
     activeInventoryController = globalInventoryController;
-    const walletHeader = document.querySelector('.game-credit-header, .mobile-credit-header');
-    if (walletHeader) walletHeader.innerHTML = `◈ <b id="creditBalance">0</b> CREDITS`;
+    renderCurrencyHeader('◈', 'CREDITS');
     $('#worldName').textContent = 'GLOBAL TABLE';
     return;
   }
@@ -261,8 +271,7 @@ async function loadWorldName() {
     const lobby = snap.data();
     state.hostedWorld = true;
     state.worldSettings = normalizeWorldSettings(lobby.settings || {}, true);
-    const walletHeader = document.querySelector('.game-credit-header, .mobile-credit-header');
-    if (walletHeader) walletHeader.innerHTML = `${state.worldSettings.currency.symbol} <b id="creditBalance">0</b> ${state.worldSettings.currency.name}`;
+    renderCurrencyHeader(state.worldSettings.currency.symbol, state.worldSettings.currency.name);
     MOVE_BUDGET = state.worldSettings.player.maxWalkDistance;
     PLAYER_MAX_HP = state.worldSettings.player.maxHp;
     state.maxEnergy = state.worldSettings.player.energyPerTurn;

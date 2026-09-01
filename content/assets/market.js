@@ -2,6 +2,8 @@ import { auth, db, fs, watchIdentity } from '/game/assets/js/eras-data.js';
 import { watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
 
 const $ = s => document.querySelector(s);
+const escapeHtml = (value='') => String(value).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+const safeTint = value => /^#[0-9a-fA-F]{6}$/.test(String(value||'')) ? String(value) : '#ffffff';
 const state = { identity: null, catalog: null, asset: null, inventoryUnsub: null, creditUnsub: null, creditBalance: 0, image: null, holdings: [] };
 
 function say(message, tone='') {
@@ -116,7 +118,7 @@ function watchInventory() {
       const preview = inventoryCanvas(item.tint || asset?.defaultTint || '#ffffff');
       const copy = document.createElement('div');
       copy.className = 'inventory-copy';
-      copy.innerHTML = `<strong>${asset?.name || item.assetId}</strong><small>OWNED // ${asset?.type?.toUpperCase() || 'ASSET'} // TRADEABLE</small><label>TINT <input type="color" value="${item.tint || asset?.defaultTint || '#ffffff'}" aria-label="Inventory tint"></label>`;
+      copy.innerHTML = `<strong>${escapeHtml(asset?.name || item.assetId)}</strong><small>OWNED // ${escapeHtml(asset?.type?.toUpperCase() || 'ASSET')} // TRADEABLE</small><label>TINT <input type="color" value="${safeTint(item.tint || asset?.defaultTint)}" aria-label="Inventory tint"></label>`;
       const input = copy.querySelector('input');
       input.addEventListener('input', () => renderTint(input.value, preview));
       input.addEventListener('change', async () => {
