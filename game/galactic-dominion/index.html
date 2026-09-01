@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#02090b">
+  <title>Galactic Dominion — E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=2.1.0">
+  <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260901-dm5">
+  <link rel="stylesheet" href="./galactic-dominion.css?v=1.0.0">
+</head>
+<body class="runtime-page galactic-page">
+  <header class="site-header galactic-header">
+    <a class="brand" href="/"><span class="brand-mark"></span><span>PROJECT E.R.A.S. <b>: GALACTIC DOMINION</b></span></a>
+    <button class="eras-dm-launch" type="button" data-eras-messages>CHAT</button>
+    <div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
+  </header>
+
+  <main class="galactic-shell">
+    <section class="galactic-topbar">
+      <div>
+        <p class="runtime-kicker">HOSTED GAME MODE // LOCAL ECONOMY ONLY</p>
+        <h1 id="lobbyName">GALACTIC DOMINION</h1>
+        <p id="lobbyMeta" class="galactic-meta">LOADING LOBBY…</p>
+      </div>
+      <div class="galactic-top-actions">
+        <a class="runtime-secondary galactic-link" href="/game/">RETURN TO GAMES</a>
+      </div>
+    </section>
+
+    <p id="gameFeedback" class="runtime-feedback galactic-feedback" aria-live="polite">SIGN IN AND JOIN A GALACTIC DOMINION LOBBY.</p>
+
+    <section class="galactic-layout">
+      <div class="galactic-board-scroll" aria-label="Galactic Dominion board">
+        <div id="galacticBoard" class="galactic-board">
+          <section class="galactic-center">
+            <p>GALACTIC DOMINION</p>
+            <strong id="turnLabel">WAITING FOR PLAYERS</strong>
+            <div id="diceDisplay" class="galactic-dice">—</div>
+            <small id="phaseLabel">LOCAL MATCH CURRENCY // NO E.R.A.S. CREDIT REWARDS</small>
+            <div class="galactic-controls">
+              <button id="startButton" class="runtime-primary" type="button" hidden>START MATCH</button>
+              <button id="rollButton" class="runtime-primary" type="button" hidden>ROLL</button>
+              <button id="buyButton" class="runtime-secondary" type="button" hidden>BUY</button>
+              <button id="developButton" class="runtime-secondary" type="button" hidden>DEVELOP</button>
+              <button id="passButton" class="runtime-secondary" type="button" hidden>PASS</button>
+              <button id="resetButton" class="runtime-secondary" type="button" hidden>RESET MATCH</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <aside class="galactic-sidebar">
+        <section class="runtime-card galactic-panel">
+          <h2>DOMINIONS</h2>
+          <div id="playerList" class="galactic-player-list"><p class="runtime-list-empty">WAITING FOR PLAYERS.</p></div>
+        </section>
+        <section class="runtime-card galactic-panel">
+          <h2>TURN LOG</h2>
+          <div id="eventLog" class="galactic-log"><p class="runtime-list-empty">NO EVENTS YET.</p></div>
+        </section>
+        <section class="runtime-card galactic-panel galactic-rules">
+          <h2>RULES</h2>
+          <p>Roll around the galactic ring, buy planets and warp gates, collect tariffs, complete sectors and develop planets. The match ends when one solvent dominion remains or the host's round limit is reached.</p>
+          <p><b>ECONOMY:</b> This mode uses world-local currency only. It cannot mint, spend or transfer E.R.A.S. Credits.</p>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="./galactic-dominion.js?v=1.0.0"></script>
+  <script type="module" src="/game/global/messaging.js?v=20260901-dm5"></script>
+</body>
+</html>

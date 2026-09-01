@@ -1328,8 +1328,8 @@ service cloud.firestore {
         && validPublicId(data.hostProfileId) && profileExists(data.hostProfileId)
         && validLobbyVisibility(data.visibility)
         && data.maxPlayers is int && data.maxPlayers >= 2 && data.maxPlayers <= 32
-        && data.mapId in ['global-plaza','slime-yard']
-        && data.gameStyle == 'arcade-topdown'
+        && ((data.gameStyle == 'arcade-topdown' && data.mapId in ['global-plaza','slime-yard'])
+          || (data.gameStyle == 'galactic-dominion' && data.mapId == 'galactic-ring' && data.maxPlayers <= 8))
         && data.description is string && data.description.size() <= 240
         && data.get('settings', {}) is map
         && validLobbyStatus(data.status)
@@ -1368,6 +1368,86 @@ service cloud.firestore {
         allow delete: if isCallerProfile(profileId)
           || (hasPrivateAccount() && parentLobby().data.hostProfileId == callerProfileId());
       }
+    }
+
+
+    // ============================================================
+    // E.R.A.S. GALACTIC DOMINION
+    // Hosted-only local-economy game state. No field in this namespace is
+    // linked to Credit wallets, Asset Inventory, or the Global game economy.
+    // Waiting-room joins are member-scoped; once play begins, only the current
+    // player may resolve a turn. The host may start/reset the local match.
+    // ============================================================
+    function galacticLobby(lobbyId) {
+      return get(/databases/$(database)/documents/gameLobbies/$(lobbyId));
+    }
+    function callerInGalacticLobby(lobbyId) {
+      return callerCanContribute()
+        && exists(/databases/$(database)/documents/gameLobbies/$(lobbyId))
+        && galacticLobby(lobbyId).data.gameStyle == 'galactic-dominion'
+        && exists(/databases/$(database)/documents/gameLobbies/$(lobbyId)/members/$(callerProfileId()));
+    }
+    function validGalacticGameStatus(value) { return value in ['waiting','playing','finished']; }
+    function validGalacticGamePhase(value) { return value in ['waiting','roll','action','finished']; }
+    function validGalacticGame(data, lobbyId) {
+      return data.keys().hasOnly(['version','lobbyId','hostProfileId','status','phase','currentPlayerId','turnOrder','turnIndex','round','diceA','diceB','lastSpaceId','pendingSpaceId','winnerId','players','ownership','log','actionSeq','createdAt','updatedAt'])
+        && data.version == 1
+        && data.lobbyId == lobbyId
+        && validPublicId(data.hostProfileId) && profileExists(data.hostProfileId)
+        && data.hostProfileId == galacticLobby(lobbyId).data.hostProfileId
+        && validGalacticGameStatus(data.status)
+        && validGalacticGamePhase(data.phase)
+        && ((data.status == 'waiting' && data.phase == 'waiting')
+          || (data.status == 'playing' && data.phase in ['roll','action'])
+          || (data.status == 'finished' && data.phase == 'finished'))
+        && data.currentPlayerId is string && data.currentPlayerId.size() <= 64
+        && (data.currentPlayerId == '' || data.players.keys().hasAny([data.currentPlayerId]))
+        && data.turnOrder is list && data.turnOrder.size() <= 8
+        && data.turnIndex is int && data.turnIndex >= 0 && data.turnIndex <= 7
+        && data.round is int && data.round >= 0 && data.round <= 201
+        && data.diceA is int && data.diceA >= 0 && data.diceA <= 6
+        && data.diceB is int && data.diceB >= 0 && data.diceB <= 6
+        && data.lastSpaceId is string && data.lastSpaceId.size() <= 64
+        && data.pendingSpaceId is string && data.pendingSpaceId.size() <= 64
+        && data.winnerId is string && data.winnerId.size() <= 64
+        && (data.winnerId == '' || data.players.keys().hasAny([data.winnerId]))
+        && data.players is map && data.players.size() >= 1 && data.players.size() <= 8
+        && data.ownership is map && data.ownership.size() == 14
+        && data.log is list && data.log.size() <= 30
+        && data.actionSeq is int && data.actionSeq >= 0
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+    match /galacticDominionGames/{lobbyId} {
+      allow read: if callerInGalacticLobby(lobbyId);
+      allow create: if callerInGalacticLobby(lobbyId)
+        && callerProfileId() == galacticLobby(lobbyId).data.hostProfileId
+        && galacticLobby(lobbyId).data.status == 'open'
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && validGalacticGame(request.resource.data, lobbyId);
+      allow update: if callerInGalacticLobby(lobbyId)
+        && request.resource.data.lobbyId == resource.data.lobbyId
+        && request.resource.data.hostProfileId == resource.data.hostProfileId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && validGalacticGame(request.resource.data, lobbyId)
+        && (
+          // Lobby members may only add/update the waiting-room player roster + log.
+          (resource.data.status == 'waiting'
+            && request.resource.data.status == 'waiting'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players','log','actionSeq','updatedAt']))
+          // The host starts the waiting room or resets a completed match.
+          || (callerProfileId() == resource.data.hostProfileId
+            && ((resource.data.status == 'waiting' && request.resource.data.status == 'playing')
+              || (resource.data.status == 'finished' && request.resource.data.status == 'waiting')))
+          // During play, only the current player may resolve that turn.
+          || (resource.data.status == 'playing'
+            && resource.data.currentPlayerId == callerProfileId()
+            && request.resource.data.status in ['playing','finished'])
+        );
+      allow delete: if callerInGalacticLobby(lobbyId)
+        && callerProfileId() == resource.data.hostProfileId;
     }
 
     // ============================================================

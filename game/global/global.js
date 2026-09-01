@@ -3,7 +3,7 @@ import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js
 import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit, getDocFromServer, getDocsFromServer } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 import { createGameInventoryController, ensureGameInventory, gameInventoryRef } from '/game/inventory/inventory.js?v=2.1.0';
 import { normalizeGameInventory, slimeDropsForAction, describeDrops, attackDamageForAction, damageRange } from '/game/inventory/items.js?v=2.1.0';
-import { GLOBAL_WORLD_SETTINGS, normalizeWorldSettings, expandedMobSpawns, mobById, terminalById, rollMobDrops } from '/game/config/world-settings.js?v=2.1.0';
+import { GLOBAL_WORLD_SETTINGS, normalizeWorldSettings, expandedMobSpawns, mobById, terminalById, rollMobDrops } from '/game/config/world-settings.js?v=2.2.0';
 import { createWorldInventoryController, ensureWorldInventory, worldInventoryRef, normalizeWorldInventory, worldAttackDamage } from '/game/inventory/world-inventory.js?v=2.1.0';
 
 const $ = selector => document.querySelector(selector);
@@ -269,6 +269,10 @@ async function loadWorldName() {
     const snap = await fs.getDoc(fs.doc(db, 'gameLobbies', lobbyId));
     if (!snap.exists()) throw new Error('Hosted world not found.');
     const lobby = snap.data();
+    if (lobby.gameStyle === 'galactic-dominion') {
+      location.replace(`/game/galactic-dominion/?lobby=${encodeURIComponent(lobbyId)}`);
+      return;
+    }
     state.hostedWorld = true;
     state.worldSettings = normalizeWorldSettings(lobby.settings || {}, true);
     renderCurrencyHeader(state.worldSettings.currency.symbol, state.worldSettings.currency.name);

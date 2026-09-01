@@ -62,6 +62,7 @@ export const HOSTED_WORLD_DEFAULTS = Object.freeze({
   version: 2,
   player: Object.freeze({ maxHp: 5, energyPerTurn: 1, maxWalkDistance: 50 }),
   currency: Object.freeze({ mode: 'local', name: 'TOKENS', symbol: '◆', startingBalance: 0, deathLossCap: 10 }),
+  galactic: Object.freeze({ startSalary: 200, maxRounds: 50, developmentEnabled: true }),
   areas: Object.freeze([
     Object.freeze({ id: 'north-platform', name: 'NORTH PLATFORM', minX: 11, maxX: 32, minY: 11, maxY: 28 }),
     Object.freeze({ id: 'cache-yard', name: 'CACHE YARD', minX: 76, maxX: 91, minY: 68, maxY: 84 })
@@ -141,6 +142,7 @@ export function normalizeWorldSettings(input = {}, hosted = false) {
   const base = hosted ? HOSTED_WORLD_DEFAULTS : GLOBAL_WORLD_SETTINGS;
   const player = input.player || {};
   const currency = input.currency || {};
+  const galactic = input.galactic || {};
   const rawAreas = Array.isArray(input.areas) && input.areas.length ? input.areas : base.areas;
   const areas = rawAreas.slice(0, MAX_AREAS).map(normalizeArea);
   const areaIds = new Set(areas.map(a => a.id));
@@ -163,6 +165,11 @@ export function normalizeWorldSettings(input = {}, hosted = false) {
       symbol: text(currency.symbol, base.currency.symbol, 3), startingBalance: clamp(currency.startingBalance, base.currency.startingBalance, 0, 1000000, true),
       deathLossCap: clamp(currency.deathLossCap, base.currency.deathLossCap, 0, 100000, true)
     },
+    galactic: hosted ? {
+      startSalary: clamp(galactic.startSalary, base.galactic?.startSalary ?? 200, 0, 10000, true),
+      maxRounds: clamp(galactic.maxRounds, base.galactic?.maxRounds ?? 50, 5, 200, true),
+      developmentEnabled: galactic.developmentEnabled !== false
+    } : undefined,
     areas, items, mobs, terminals
   };
 }
@@ -173,9 +180,11 @@ export function defaultHostedWorldSettings() {
 
 export function settingsFromHostForm(root = document, content = {}) {
   const value = id => root.querySelector(`#${id}`)?.value;
+  const checked = id => root.querySelector(`#${id}`)?.checked;
   return normalizeWorldSettings({
     player: { maxHp: value('playerMaxHp'), energyPerTurn: value('energyPerTurn'), maxWalkDistance: value('maxWalkDistance') },
     currency: { name: value('worldCurrencyName'), symbol: value('worldCurrencySymbol'), startingBalance: value('worldCurrencyStartingBalance'), deathLossCap: value('worldCurrencyDeathLossCap') },
+    galactic: { startSalary: value('galacticStartSalary'), maxRounds: value('galacticMaxRounds'), developmentEnabled: checked('galacticDevelopmentEnabled') },
     areas: content.areas,
     items: content.items,
     mobs: content.mobs,

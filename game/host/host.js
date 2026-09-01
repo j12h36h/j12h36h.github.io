@@ -1,12 +1,56 @@
 import { db, fs, watchIdentity, safeText, avatarSvg } from '/game/assets/js/eras-data.js';
-import { defaultHostedWorldSettings, settingsFromHostForm, DEFAULT_ICON_JSON, DEFAULT_SLIME_ICON_JSON } from '/game/config/world-settings.js?v=2.1.0';
+import { defaultHostedWorldSettings, settingsFromHostForm, DEFAULT_ICON_JSON, DEFAULT_SLIME_ICON_JSON } from '/game/config/world-settings.js?v=2.2.0';
 
 const $ = s => document.querySelector(s);
-const state = { identity: null, lobby: null, heartbeat: null, content: defaultHostedWorldSettings() };
+const state = { identity: null, lobby: null, heartbeat: null, content: defaultHostedWorldSettings(), tacticalCurrency: null };
 const say = (message, tone = '') => { const el = $('#hostFeedback'); if (!el) return; el.textContent = String(message).toUpperCase(); el.dataset.tone = tone; };
 const esc = safeText;
 const jsonPretty = value => { try { return JSON.stringify(typeof value === 'string' ? JSON.parse(value) : value, null, 2); } catch (_) { return String(value || ''); } };
 const slug = value => String(value || '').toLowerCase().trim().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
+
+const GALACTIC_MODE = 'galactic-dominion';
+const isGalacticMode = () => $('#gameStyle')?.value === GALACTIC_MODE;
+function lobbyHref(lobby) {
+  if (lobby?.gameStyle === GALACTIC_MODE) return `/game/galactic-dominion/?lobby=${encodeURIComponent(lobby.id)}`;
+  return location.pathname.startsWith('/game-mobile/')
+    ? `/game-mobile/global/?lobby=${encodeURIComponent(lobby.id)}`
+    : `/game/global/?lobby=${encodeURIComponent(lobby.id)}`;
+}
+function applyModeUI() {
+  const galactic = isGalacticMode();
+  document.querySelectorAll('[data-tactical-only]').forEach(node => { node.hidden = galactic; });
+  document.querySelectorAll('[data-galactic-only]').forEach(node => { node.hidden = !galactic; });
+  const map = $('#mapId');
+  if (map) {
+    if (galactic) map.value = 'galactic-ring';
+    else if (map.value === 'galactic-ring') map.value = 'global-plaza';
+    map.disabled = galactic;
+  }
+  const max = $('#maxPlayers');
+  if (max) {
+    [...max.options].forEach(option => { option.disabled = galactic && Number(option.value) > 8; });
+    if (galactic && Number(max.value) > 8) max.value = '8';
+  }
+  const currencyName = $('#worldCurrencyName'), currencySymbol = $('#worldCurrencySymbol'), starting = $('#worldCurrencyStartingBalance'), loss = $('#worldCurrencyDeathLossCap');
+  if (galactic) {
+    if (!state.tacticalCurrency) state.tacticalCurrency = {
+      name: currencyName?.value || 'TOKENS', symbol: currencySymbol?.value || '◆',
+      starting: starting?.value || '0', loss: loss?.value || '10'
+    };
+    if (currencyName && (!currencyName.value || currencyName.value === state.tacticalCurrency.name)) currencyName.value = 'GALACTIC CREDITS';
+    if (currencySymbol && (!currencySymbol.value || currencySymbol.value === state.tacticalCurrency.symbol)) currencySymbol.value = '✦';
+    if (starting && String(starting.value) === String(state.tacticalCurrency.starting)) starting.value = '1500';
+    if (loss && String(loss.value) === String(state.tacticalCurrency.loss)) loss.value = '0';
+  } else if (state.tacticalCurrency) {
+    if (currencyName && currencyName.value === 'GALACTIC CREDITS') currencyName.value = state.tacticalCurrency.name;
+    if (currencySymbol && currencySymbol.value === '✦') currencySymbol.value = state.tacticalCurrency.symbol;
+    if (starting && String(starting.value) === '1500') starting.value = state.tacticalCurrency.starting;
+    if (loss && String(loss.value) === '0') loss.value = state.tacticalCurrency.loss;
+    state.tacticalCurrency = null;
+  }
+  const button = $('#createLobby');
+  if (button) button.textContent = galactic ? 'CREATE GALACTIC DOMINION' : 'CREATE MODULAR WORLD';
+}
 function code(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let out='';for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];return out;}
 function parseIcon(raw){ const text = String(raw || '').trim(); const parsed = JSON.parse(text); if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.layers) || !parsed.layers.length) throw new Error('Icon JSON must use the LCS version 1 layer format.'); return JSON.stringify(parsed); }
 function areaOptions(selected=''){ return state.content.areas.map(a => `<option value="${esc(a.id)}" ${a.id===selected?'selected':''}>${esc(a.name)}</option>`).join(''); }
@@ -50,12 +94,36 @@ function syncFromDom(){
   });
 }
 
-function settingsSummary(s){return `HP ${s.player.maxHp} // ENERGY ${s.player.energyPerTurn} // MOVE ${s.player.maxWalkDistance} // ${s.mobs.length} MOB TYPES // ${s.items.length} ITEMS // ${s.terminals.length} TERMINALS // ${esc(s.currency.name)}`;}
-function render(){const box=$('#lobbyStatus');if(!box)return;if(!state.lobby){box.innerHTML='<div class="runtime-list-empty">NO ACTIVE LOBBY.</div>';return;}const l=state.lobby;const href=location.pathname.startsWith('/game-mobile/')?`/game-mobile/global/?lobby=${encodeURIComponent(l.id)}`:`/game/global/?lobby=${encodeURIComponent(l.id)}`;box.innerHTML=`<div class="runtime-status-row"><span>LOBBY</span><b>${esc(l.name)}</b></div><div class="runtime-status-row"><span>JOIN CODE</span><b class="lobby-code">${l.code}</b></div><div class="runtime-status-row"><span>WORLD RULES</span><b>${settingsSummary(l.settings)}</b></div><div class="runtime-status-row"><span>ECONOMY</span><b>WORLD-LOCAL ONLY // E.R.A.S. CREDITS DISABLED</b></div><div class="runtime-actions"><a class="runtime-primary" style="display:grid;place-items:center;text-decoration:none;flex:1" href="${href}">ENTER GAME</a><button id="closeLobby" class="runtime-secondary runtime-danger" type="button">CLOSE LOBBY</button></div>`;$('#closeLobby').onclick=closeLobby;}
+function settingsSummary(s, mode='arcade-topdown'){
+  if (mode === GALACTIC_MODE) return `GALACTIC DOMINION // ${s.currency.startingBalance} ${esc(s.currency.name)} START // +${s.galactic?.startSalary ?? 200} START SALARY // ${s.galactic?.maxRounds ?? 50} ROUNDS`;
+  return `HP ${s.player.maxHp} // ENERGY ${s.player.energyPerTurn} // MOVE ${s.player.maxWalkDistance} // ${s.mobs.length} MOB TYPES // ${s.items.length} ITEMS // ${s.terminals.length} TERMINALS // ${esc(s.currency.name)}`;
+}
+function render(){const box=$('#lobbyStatus');if(!box)return;if(!state.lobby){box.innerHTML='<div class="runtime-list-empty">NO ACTIVE LOBBY.</div>';return;}const l=state.lobby;const href=lobbyHref(l);const mode=l.gameStyle===GALACTIC_MODE?'GALACTIC DOMINION':'TURN-BASED TACTICAL';box.innerHTML=`<div class="runtime-status-row"><span>LOBBY</span><b>${esc(l.name)}</b></div><div class="runtime-status-row"><span>MODE</span><b>${mode}</b></div><div class="runtime-status-row"><span>JOIN CODE</span><b class="lobby-code">${l.code}</b></div><div class="runtime-status-row"><span>WORLD RULES</span><b>${settingsSummary(l.settings,l.gameStyle)}</b></div><div class="runtime-status-row"><span>ECONOMY</span><b>WORLD-LOCAL ONLY // E.R.A.S. CREDITS DISABLED</b></div><div class="runtime-actions"><a class="runtime-primary" style="display:grid;place-items:center;text-decoration:none;flex:1" href="${href}">ENTER GAME</a><button id="closeLobby" class="runtime-secondary runtime-danger" type="button">CLOSE LOBBY</button></div>`;$('#closeLobby').onclick=closeLobby;}
 async function closeLobby(){if(!state.lobby||!state.identity)return;try{await fs.updateDoc(fs.doc(db,'gameLobbies',state.lobby.id),{status:'closed',updatedAt:fs.serverTimestamp(),lastHeartbeatAt:fs.serverTimestamp()});clearInterval(state.heartbeat);state.lobby=null;render();say('Lobby closed.','ok');}catch(e){console.error(e);say(`Could not close lobby: ${e.code||e.message}`,'error');}}
-async function createLobby(event){event.preventDefault();if(!state.identity?.profileId)return say('Sign in with Google first.','error');try{syncFromDom();}catch(e){return say(e.message,'error');}const id=crypto.randomUUID(),joinCode=code(),name=$('#lobbyName').value.trim().slice(0,50)||'E.R.A.S. Game';const settings=settingsFromHostForm(document,state.content);const serialized=JSON.stringify(settings);if(serialized.length>700000)return say('World definition is too large. Reduce icon layers/content.','error');const lobby={name,code:joinCode,hostProfileId:state.identity.profileId,visibility:$('#visibility').value,maxPlayers:Number($('#maxPlayers').value),mapId:$('#mapId').value,gameStyle:$('#gameStyle').value,description:$('#description').value.trim().slice(0,240),settings,status:'open',createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastHeartbeatAt:fs.serverTimestamp()};try{say('Creating modular world…');await fs.setDoc(fs.doc(db,'gameLobbies',id),lobby);await fs.setDoc(fs.doc(db,'gameLobbies',id,'members',state.identity.profileId),{profileId:state.identity.profileId,role:'host',joinedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()});state.lobby={id,...lobby,createdAt:null,updatedAt:null,lastHeartbeatAt:null};render();say('World created. Custom content is isolated from E.R.A.S. Credits and Global inventory.','ok');clearInterval(state.heartbeat);state.heartbeat=setInterval(()=>{if(state.lobby)fs.updateDoc(fs.doc(db,'gameLobbies',state.lobby.id),{lastHeartbeatAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp()}).catch(()=>{});},20000);}catch(e){console.error(e);say(`Could not create lobby: ${e.code||e.message}`,'error');}}
+async function createLobby(event){
+  event.preventDefault();
+  if(!state.identity?.profileId)return say('Sign in with Google first.','error');
+  const gameStyle=$('#gameStyle').value;
+  if(gameStyle!==GALACTIC_MODE){try{syncFromDom();}catch(e){return say(e.message,'error');}}
+  const id=crypto.randomUUID(),joinCode=code(),name=$('#lobbyName').value.trim().slice(0,50)||'E.R.A.S. Game';
+  const settings=settingsFromHostForm(document,state.content);
+  const serialized=JSON.stringify(settings);
+  if(serialized.length>700000)return say('World definition is too large. Reduce icon layers/content.','error');
+  const maxPlayers=Math.min(gameStyle===GALACTIC_MODE?8:32,Number($('#maxPlayers').value));
+  const mapId=gameStyle===GALACTIC_MODE?'galactic-ring':$('#mapId').value;
+  const lobby={name,code:joinCode,hostProfileId:state.identity.profileId,visibility:$('#visibility').value,maxPlayers,mapId,gameStyle,description:$('#description').value.trim().slice(0,240),settings,status:'open',createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastHeartbeatAt:fs.serverTimestamp()};
+  try{
+    say(gameStyle===GALACTIC_MODE?'Creating Galactic Dominion…':'Creating modular world…');
+    await fs.setDoc(fs.doc(db,'gameLobbies',id),lobby);
+    await fs.setDoc(fs.doc(db,'gameLobbies',id,'members',state.identity.profileId),{profileId:state.identity.profileId,role:'host',joinedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()});
+    state.lobby={id,...lobby,createdAt:null,updatedAt:null,lastHeartbeatAt:null};render();
+    say(gameStyle===GALACTIC_MODE?'Galactic Dominion created. Local match economy is isolated from E.R.A.S. Credits.':'World created. Custom content is isolated from E.R.A.S. Credits and Global inventory.','ok');
+    clearInterval(state.heartbeat);state.heartbeat=setInterval(()=>{if(state.lobby)fs.updateDoc(fs.doc(db,'gameLobbies',state.lobby.id),{lastHeartbeatAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp()}).catch(()=>{});},20000);
+  }catch(e){console.error(e);say(`Could not create lobby: ${e.code||e.message}`,'error');}
+}
 
 $('#hostForm')?.addEventListener('submit',createLobby);
+$('#gameStyle')?.addEventListener('change', applyModeUI);
 $('#addArea')?.addEventListener('click',()=>{try{syncFromDom();}catch(e){return say(e.message,'error');}state.content.areas.push({id:`area-${state.content.areas.length+1}`,name:`AREA ${state.content.areas.length+1}`,minX:10,maxX:90,minY:10,maxY:90});renderContent();});
 $('#addItem')?.addEventListener('click',()=>{try{syncFromDom();}catch(e){return say(e.message,'error');}state.content.items.push({id:`item-${state.content.items.length+1}`,name:`Item ${state.content.items.length+1}`,kind:'material',description:'',healAmount:0,equipmentSlot:'',damageMin:0,damageMax:0,iconJson:DEFAULT_ICON_JSON});renderContent();});
 $('#addMob')?.addEventListener('click',()=>{try{syncFromDom();}catch(e){return say(e.message,'error');}state.content.mobs.push({id:`mob-${state.content.mobs.length+1}`,name:`Mob ${state.content.mobs.length+1}`,maxHp:1,damage:1,attackRange:13,areaId:state.content.areas[0]?.id||'cache-yard',spawnCount:1,respawnTurns:1,killReward:1,drops:[],iconJson:DEFAULT_SLIME_ICON_JSON});renderContent();});
@@ -68,4 +136,5 @@ document.addEventListener('click',e=>{
   for(const kind of ['area','item','mob','terminal']){const node=e.target.closest(`[data-remove-${kind}]`);if(!node)continue;try{syncFromDom();}catch(err){return say(err.message,'error');}const index=Number(node.getAttribute(`data-remove-${kind}`));state.content[`${kind}s`].splice(index,1);renderContent();return;}
 });
 renderContent();
-watchIdentity(identity=>{state.identity=identity;const button=$('#createLobby');if(button)button.disabled=!identity?.profileId;say(identity?.profileId?'Ready to create a modular world.':'Sign in to create a lobby.',identity?.profileId?'ok':'');});
+applyModeUI();
+watchIdentity(identity=>{state.identity=identity;const button=$('#createLobby');if(button)button.disabled=!identity?.profileId;say(identity?.profileId?(isGalacticMode()?'Ready to create Galactic Dominion.':'Ready to create a modular world.'):'Sign in to create a lobby.',identity?.profileId?'ok':'');});
