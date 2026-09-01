@@ -1577,12 +1577,37 @@ service cloud.firestore {
               ? entitlementId == ''
               : (entitlementId is string && entitlementId.size() >= 8 && exists(p) && existsAfter(p)
                 && get(p).data.ownerProfileId == profileId
-                && get(p).data.offerId == lobby.data.accessOfferId
                 && get(p).data.lobbyId == lobbyId
-                && ((get(p).data.permanent == true && getAfter(p).data == get(p).data)
-                  || (get(p).data.billing == 'per_play' && get(p).data.remainingPlays >= 1 && getAfter(p).data.remainingPlays == get(p).data.remainingPlays - 1)
-                  || (get(p).data.billing == 'per_life' && get(p).data.remainingLives >= 1 && getAfter(p).data.remainingLives == get(p).data.remainingLives - 1)
-                  || (get(p).data.billing == 'playtime' && get(p).data.remainingSeconds >= 1))));
+                // A direct access entitlement or a host-created bundle for this
+                // same lobby may satisfy paid entry.
+                && (get(p).data.offerId == lobby.data.accessOfferId || get(p).data.offerType == 'bundle')
+                && (
+                  (get(p).data.permanent == true && getAfter(p).data == get(p).data)
+                  || (get(p).data.billing == 'per_play'
+                    && get(p).data.remainingPlays >= 1
+                    && getAfter(p).data.remainingPlays == get(p).data.remainingPlays - 1
+                    && getAfter(p).data.remainingLives == get(p).data.remainingLives
+                    && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
+                  || (get(p).data.billing == 'per_life'
+                    && get(p).data.remainingLives >= 1
+                    && getAfter(p).data.remainingLives == get(p).data.remainingLives - 1
+                    && getAfter(p).data.remainingPlays == get(p).data.remainingPlays
+                    && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
+                  || (get(p).data.billing == 'playtime'
+                    && get(p).data.remainingSeconds >= 1
+                    && getAfter(p).data == get(p).data)
+                  || (get(p).data.billing == 'bundle'
+                    && ((get(p).data.remainingPlays >= 1
+                        && getAfter(p).data.remainingPlays == get(p).data.remainingPlays - 1
+                        && getAfter(p).data.remainingLives == get(p).data.remainingLives
+                        && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
+                      || (get(p).data.remainingPlays == 0 && get(p).data.remainingLives >= 1
+                        && getAfter(p).data.remainingLives == get(p).data.remainingLives - 1
+                        && getAfter(p).data.remainingPlays == get(p).data.remainingPlays
+                        && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
+                      || (get(p).data.remainingPlays == 0 && get(p).data.remainingLives == 0
+                        && get(p).data.remainingSeconds >= 1
+                        && getAfter(p).data == get(p).data))))));
         }
         function validLobbyMember(data) {
           return data.keys().hasOnly(['profileId','role','accessEntitlementId','joinedAt','lastSeenAt'])

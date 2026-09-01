@@ -15,8 +15,8 @@
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js" rel="modulepreload"/>
 <link href="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js" rel="modulepreload"/>
 <link href="../logicalcommunicationservice/assets/css/styles.css?v=20260829-v0917" rel="stylesheet"/>
-<link href="/assets/css/direct-messaging.css?v=20260831-dm3" rel="stylesheet"/>
-<link href="mobile.css?v=20260829-v0917" rel="stylesheet"/>
+<link href="/assets/css/direct-messaging.css?v=20260901-dm6" rel="stylesheet"/>
+<link href="mobile.css?v=20260901-v0915" rel="stylesheet"/>
 </head>
 <body>
 <div class="ambient ambient-a"></div>
@@ -42,7 +42,7 @@
 </div>
 <div class="top-actions">
 <a class="ghost-button dai-return-link" href="/logicalcommunicationservice/">Home</a>
-<button class="ghost-button" id="messagesButton" type="button">Chats</button>
+<button class="ghost-button" id="messagesButton" type="button" aria-label="Chats">Chats<em class="chat-alert-badge" id="chatUnreadBadge" hidden>0</em></button>
 <button class="ghost-button" id="explainButton" type="button">How this works</button>
 <div id="authArea"><button class="primary-button mobile-auth-fallback" data-open-auth type="button" aria-label="Open LCS account">◉</button></div>
 </div>
@@ -79,7 +79,7 @@
 <footer class="rail-footer">
 <a href="/logicalcommunicationservice/privacy.html">Privacy</a>
 <a href="/logicalcommunicationservice/terms.html">Terms</a>
-<span>LCS v0.9.13 · Chat + Live Browser Translation</span>
+<span>LCS v0.9.16 · Hosted Games Recovery + Chat/Modal Integrity</span>
 </footer>
 </aside>
 <section class="content-column">
@@ -628,6 +628,6 @@
 <div class="impact-recap" id="impactRecap"></div>
 <div class="modal-actions"><button class="ghost-button" id="resetSessionImpact" type="button">Clear session recap</button><button class="primary-button" data-close-dialog="" type="button">Keep building</button></div>
 </dialog><div aria-live="polite" class="toast-region" id="toastRegion"></div>
-<script src="../logicalcommunicationservice/assets/js/app.js?v=20260831-v0913" type="module"></script>
+<script src="../logicalcommunicationservice/assets/js/app.js?v=20260901-v0915" type="module"></script>
 </body>
 </html>

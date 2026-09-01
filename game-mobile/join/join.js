@@ -1,6 +1,6 @@
 import { db, fs, watchIdentity, profileById, safeText } from '/game/assets/js/eras-data.js';
 import { hostedModeLabel, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.0.0';
-import { obtainLobbyEntitlement, createLobbyMembership } from '/game/assets/js/hosted-join.js?v=1.0.0';
+import { obtainLobbyEntitlement, createLobbyMembership } from '/game/assets/js/hosted-join.js?v=1.0.1';
 const $=s=>document.querySelector(s);const state={identity:null,lobbies:[],friends:[],lobbyUnsub:null};
 const say=(m,t='')=>{const e=$('#joinFeedback');if(!e)return;e.textContent=String(m).toUpperCase();e.dataset.tone=t;};
 function lobbyHref(lobby){return hostedModeRuntimeHref(lobby,true);}

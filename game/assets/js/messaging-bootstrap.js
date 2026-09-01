@@ -1,5 +1,5 @@
-import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=20260831-dm3';
-import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260831-dm3';
+import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=20260901-dm6';
+import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260901-dm6';
 
 const escapeHtml = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -11,6 +11,17 @@ export function initGameMessaging({ friendList = null, feedback = null } = {}) {
   const feedbackEl = feedback ? document.querySelector(feedback) : null;
   const friendRoot = friendList ? document.querySelector(friendList) : null;
   const say = text => { if (feedbackEl) feedbackEl.textContent = String(text || '').toUpperCase(); };
+  function updateChatBadges(count = 0) {
+    const value = Math.max(0, Number(count) || 0);
+    document.querySelectorAll('[data-eras-messages]').forEach(button => {
+      let badge = button.querySelector('.chat-alert-badge');
+      if (!badge) { badge = document.createElement('em'); badge.className = 'chat-alert-badge'; button.appendChild(badge); }
+      badge.textContent = value > 99 ? '99+' : String(value);
+      badge.hidden = value < 1;
+      button.classList.toggle('has-chat-alerts', value > 0);
+      button.setAttribute('aria-label', value ? `Chat, ${value} unread conversation${value === 1 ? '' : 's'}` : 'Chat');
+    });
+  }
 
   async function friendshipIdsOnce() {
     if (!identity?.profileId) return [];
@@ -29,8 +40,10 @@ export function initGameMessaging({ friendList = null, feedback = null } = {}) {
         getProfile: profileById,
         listContacts: friendshipIdsOnce,
         avatarMarkup: profile => avatarSvg(profile),
+        onUnreadChange: count => updateChatBadges(count),
         onError: error => { console.error('E.R.A.S. game chat', error); say('Chat connection error'); }
       });
+      messenger.startBackground?.();
     }
     return messenger;
   }
@@ -86,7 +99,7 @@ export function initGameMessaging({ friendList = null, feedback = null } = {}) {
     identity = next?.profileId ? next : null;
     messenger?.destroy?.(); messenger = null;
     startFriendWatch();
-    if (identity) say('Chat network ready'); else say('Sign in for Chat');
+    if (identity) { say('Chat network ready'); getMessenger(); } else { say('Sign in for Chat'); updateChatBadges(0); }
     const username = document.querySelector('[data-eras-account-id]');
     const display = document.querySelector('[data-display-name]');
     if (username) username.value = identity?.profileId ? `LCS_${identity.profileId.slice(0,8).toUpperCase()}` : 'SIGNED_OUT';

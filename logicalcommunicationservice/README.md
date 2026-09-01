@@ -18,6 +18,8 @@ Authorization is enforced by `firestore.rules`, including Founder/Moderator/Memb
 - New threads are created only on the first send; selecting a friend does not probe/create an empty Firestore document.
 - Chat bodies are escaped before HTML rendering; browser-generated translations are inserted as text, not HTML.
 - Original Chat text is canonical; generated translations remain display-only.
+- Open Chat windows retain realtime listeners and also reconcile directly with Firestore every two seconds; committed messages are ordered by the Firestore server `createdAt` timestamp, while local pending writes stay visually pending until the server timestamp resolves.
+- Header Chat alert badges count unread conversations using the latest committed server timestamp; opening that conversation marks it read in the current browser profile.
 - The safety notice remains visible and tells users to treat Chats like public communication and not disclose private information.
 
 ## Deploy

@@ -29,7 +29,11 @@ function setMode(id){if(!HOSTED_GAME_MODES[id])return;$('#gameStyle').value=id;a
 function setVisibility(id){if(!VISIBILITY_OPTIONS.some(o=>o.id===id))return;$('#visibility').value=id;updatePickerButtons();}
 function setAccessModel(id,target='access'){
   if(!ACCESS_MODE_OPTIONS.some(o=>o.id===id))return;
-  const prefix=target==='asset'?'asset':'access';$(`#${prefix}Model`).value=id;updatePickerButtons();
+  const assetTarget=target==='asset';
+  const prefix=assetTarget?'asset':'access';
+  const modelField=$(assetTarget?'#assetAccessModel':'#accessModel');
+  if(!modelField)return;
+  modelField.value=id;updatePickerButtons();
   const price=$(`#${prefix}PriceFields`);if(price)price.hidden=id==='free';
   document.querySelectorAll(`[data-${prefix}-quantity]`).forEach(el=>el.hidden=el.getAttribute(`data-${prefix}-quantity`)!==id);
 }

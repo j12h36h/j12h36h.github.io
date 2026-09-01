@@ -3,6 +3,8 @@ const LANGUAGES = Object.freeze([
   ['ja','日本語'],['ko','한국어'],['zh','中文'],['ru','Русский'],['ar','العربية'],['hi','हिन्दी']
 ]);
 const SAFETY_TEXT = 'Treat every chat exactly like a public post or public message. Do not send your real name, address, phone/email, passwords, payment information, private account details, precise location, or anything you would not want publicly visible. Chats may be stored, reviewed, copied, shared, or become publicly accessible.';
+const POLL_MS = 2000;
+const READ_KEY_PREFIX = 'eras_chat_read_v1';
 const html = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const docId = (...parts) => parts.map(x => String(x || '').replace(/[^a-zA-Z0-9_-]/g,'_')).join('__').slice(0,1400);
 const timeMs = ts => ts?.toMillis ? ts.toMillis() : (ts instanceof Date ? ts.getTime() : Number(ts || 0));
@@ -14,13 +16,21 @@ function languageOptions(selected){return LANGUAGES.map(([code,label])=>`<option
 function threadIdFor(a,b){return docId(...[a,b].sort());}
 function isLcsSurface(){return /^\/(logicalcommunicationservice|lcs-mobile)(?:\/|$)/.test(location.pathname);}
 
-export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile, listContacts, avatarMarkup = null, onError = console.error }) {
+export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile, listContacts, avatarMarkup = null, onError = console.error, onUnreadChange = () => {} }) {
   if (!db || !fs) throw new Error('Chat requires Firestore db + helpers.');
   const required=['doc','getDoc','setDoc','collection','query','where','onSnapshot','serverTimestamp','limit','orderBy'];
   for(const key of required) if(typeof fs[key]!=='function') throw new Error(`Chat missing Firestore helper: ${key}`);
-  const state={root:null,threadUnsub:null,messageUnsub:null,messageThreadId:'',threads:[],contacts:[],profiles:new Map(),activeProfileId:'',messages:[],writingLanguage:browserLanguage(),targetLanguage:browserLanguage(),translationEnabled:false,translators:new Map(),busy:false};
+  if(typeof fs.getDocsFromServer!=='function' && typeof fs.getDocs!=='function') throw new Error('Chat requires getDocsFromServer or getDocs for two-second reconciliation.');
+  const state={
+    root:null,threadUnsub:null,messageUnsub:null,messageThreadId:'',threads:[],contacts:[],profiles:new Map(),activeProfileId:'',messages:[],
+    writingLanguage:browserLanguage(),targetLanguage:browserLanguage(),translationEnabled:false,translators:new Map(),busy:false,
+    open:false,background:false,pollTimer:null,pollBusy:false,lastUnreadCount:-1,readFallback:new Map(),renderSequence:0
+  };
 
   function currentId(){return String(getCurrentProfileId?.() || '');}
+  function threadQuery(){const pid=currentId();return pid?fs.query(fs.collection(db,'directMessageThreads'),fs.where('members','array-contains',pid),fs.limit(100)):null;}
+  function messageQuery(threadId){return threadId?fs.query(fs.collection(db,'directMessageThreads',threadId,'messages'),fs.orderBy('createdAt','desc'),fs.limit(200)):null;}
+  async function serverDocs(query){return typeof fs.getDocsFromServer==='function'?fs.getDocsFromServer(query):fs.getDocs(query);}
   async function profile(id){
     if(!id)return null;
     if(state.profiles.has(id))return state.profiles.get(id);
@@ -31,19 +41,52 @@ export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile,
     if(avatarMarkup){try{return avatarMarkup(p)||html(initials(p?.displayName));}catch{}}
     return html(initials(p?.displayName));
   }
+  function readKey(threadId){return `${READ_KEY_PREFIX}:${currentId()}:${threadId}`;}
+  function readAt(threadId){
+    try{const raw=localStorage.getItem(readKey(threadId));const n=Number(raw||0);if(Number.isFinite(n)&&n>0)return n;}catch{}
+    return Number(state.readFallback.get(threadId)||0);
+  }
+  function storeReadAt(threadId,ms){
+    const value=Math.max(Number(ms)||0,readAt(threadId));if(!value)return;
+    state.readFallback.set(threadId,value);
+    try{localStorage.setItem(readKey(threadId),String(value));}catch{}
+  }
+  function threadStamp(thread){return timeMs(thread?.lastMessageAt)||timeMs(thread?.createdAt)||0;}
+  function isUnreadThread(thread){
+    const stamp=timeMs(thread?.lastMessageAt);if(!stamp)return false;
+    return Boolean(thread.lastMessageSenderProfileId&&thread.lastMessageSenderProfileId!==currentId()&&stamp>readAt(thread.id));
+  }
+  function emitUnread(){
+    const unread=state.threads.filter(isUnreadThread),count=unread.length;
+    if(count!==state.lastUnreadCount){state.lastUnreadCount=count;try{onUnreadChange(count,{threadIds:unread.map(x=>x.id)});}catch(e){onError(e);}}
+    return count;
+  }
+  function markThreadRead(threadId,stamp=0){
+    if(!threadId)return;const thread=state.threads.find(t=>t.id===threadId);const serverStamp=Math.max(Number(stamp)||0,timeMs(thread?.lastMessageAt)||0);if(!serverStamp)return;
+    storeReadAt(threadId,serverStamp);emitUnread();renderSidebar();
+  }
+  function markActiveThreadRead(){
+    if(!state.open||!state.messageThreadId)return;
+    const latestCommitted=state.messages.filter(m=>!m._pending).reduce((max,m)=>Math.max(max,timeMs(m.createdAt)||0),0);
+    const thread=state.threads.find(t=>t.id===state.messageThreadId);markThreadRead(state.messageThreadId,Math.max(latestCommitted,timeMs(thread?.lastMessageAt)||0));
+  }
   function buildRoot(){
     if(state.root)return state.root;
     const root=document.createElement('div');root.className=`eras-dm-root${isLcsSurface()?' eras-dm-lcs':''}`;root.hidden=true;
     root.innerHTML=`<section class="eras-dm-window" role="dialog" aria-modal="true" aria-label="Chats">
       <header class="eras-dm-header"><div class="eras-dm-header-copy"><b>CHATS</b><span id="erasDmPeer">SELECT A CONNECTION</span></div><button class="eras-dm-close" type="button" aria-label="Close chats">×</button></header>
       <aside class="eras-dm-sidebar"><div class="eras-dm-sidebar-title">CHATS + CONNECTIONS</div><div class="eras-dm-list" id="erasDmList"></div></aside>
-      <main class="eras-dm-main"><div class="eras-dm-toolbar"><label for="erasDmWritingLanguage">I WRITE IN</label><select id="erasDmWritingLanguage">${languageOptions(state.writingLanguage)}</select><label for="erasDmTargetLanguage">TRANSLATE TO</label><select id="erasDmTargetLanguage">${languageOptions(state.targetLanguage)}</select><label class="eras-dm-translate-toggle"><input id="erasDmTranslateToggle" type="checkbox"> LIVE BROWSER TRANSLATION</label><span class="eras-dm-translation-status" id="erasDmTranslationStatus">Original chat text is always shown. Translation stays in your browser when the browser Translator API is available.</span></div><div class="eras-dm-messages" id="erasDmMessages"><div class="eras-dm-no-thread">Choose an accepted connection to open a chat.</div></div><form class="eras-dm-compose" id="erasDmCompose"><textarea id="erasDmText" maxlength="2000" placeholder="Write a chat…" disabled></textarea><button class="eras-dm-send" type="submit" disabled>SEND</button></form></main>
+      <main class="eras-dm-main"><div class="eras-dm-toolbar"><label for="erasDmWritingLanguage">I WRITE IN</label><select id="erasDmWritingLanguage">${languageOptions(state.writingLanguage)}</select><label for="erasDmTargetLanguage">TRANSLATE TO</label><select id="erasDmTargetLanguage">${languageOptions(state.targetLanguage)}</select><label class="eras-dm-translate-toggle"><input id="erasDmTranslateToggle" type="checkbox"> LIVE BROWSER TRANSLATION</label><span class="eras-dm-translation-status" id="erasDmTranslationStatus">Original chat text is always shown. Translation stays in your browser when the browser Translator API is available.</span></div><div class="eras-dm-messages" id="erasDmMessages"><div class="eras-dm-no-thread">Choose an accepted connection to open a chat.</div></div><form class="eras-dm-compose" id="erasDmCompose"><textarea id="erasDmText" maxlength="2000" placeholder="Input message here…" autocomplete="off"></textarea><button class="eras-dm-send" type="submit" disabled>SEND</button></form></main>
       <footer class="eras-dm-safety"><b>CHAT SAFETY:</b> ${html(SAFETY_TEXT)}</footer>
     </section>`;
     document.body.appendChild(root); state.root=root;
     root.querySelector('.eras-dm-close').addEventListener('click',close);
     root.addEventListener('click',e=>{if(e.target===root)close();const person=e.target.closest('[data-dm-profile]');if(person)activateProfile(person.dataset.dmProfile);const translate=e.target.closest('[data-dm-translate]');if(translate)translateOne(translate.dataset.dmTranslate);});
     root.querySelector('#erasDmCompose').addEventListener('submit',sendMessage);
+    // Isolate Chat typing from browser-game movement/inventory hotkeys.
+    root.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();return;}e.stopPropagation();});
+    root.addEventListener('keyup',e=>e.stopPropagation());
+    root.addEventListener('keypress',e=>e.stopPropagation());
     root.querySelector('#erasDmWritingLanguage').addEventListener('change',e=>{state.writingLanguage=e.target.value;});
     root.querySelector('#erasDmTargetLanguage').addEventListener('change',e=>{state.targetLanguage=e.target.value;state.translators.forEach(t=>{try{t.destroy?.();}catch{}});state.translators.clear();prepareVisibleTranslations();renderMessages();});
     root.querySelector('#erasDmTranslateToggle').addEventListener('change',e=>{state.translationEnabled=e.target.checked;if(state.translationEnabled)prepareVisibleTranslations();renderMessages();});
@@ -51,7 +94,11 @@ export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile,
     return root;
   }
   function status(text,error=false){const el=state.root?.querySelector('#erasDmTranslationStatus');if(el){el.textContent=text;el.classList.toggle('eras-dm-error',error);}}
-  function setComposeEnabled(enabled){const text=state.root?.querySelector('#erasDmText'),send=state.root?.querySelector('.eras-dm-send');if(text)text.disabled=!enabled;if(send)send.disabled=!enabled;}
+  function setComposeEnabled(enabled){
+    const text=state.root?.querySelector('#erasDmText'),send=state.root?.querySelector('.eras-dm-send');
+    if(text){text.disabled=false;text.readOnly=false;text.setAttribute('aria-disabled','false');}
+    if(send)send.disabled=!enabled;
+  }
   async function loadContacts(){
     try{const ids=[...new Set((await listContacts?.())||[])].filter(id=>id&&id!==currentId());state.contacts=ids;await Promise.all(ids.slice(0,100).map(profile));renderSidebar();}
     catch(e){onError(e);state.contacts=[];renderSidebar();}
@@ -63,20 +110,31 @@ export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile,
     const threadMap=new Map(state.threads.map(t=>[otherMember(t),t]));const ids=[...new Set(state.contacts)].filter(Boolean);
     if(!ids.length){root.innerHTML='<div class="eras-dm-empty">No accepted connections yet. Add a friend in LCS before starting a chat.</div>';return;}
     await Promise.all(ids.map(profile));
-    root.innerHTML=ids.map(id=>{const p=state.profiles.get(id)||{displayName:'Member'},thread=threadMap.get(id),active=id===state.activeProfileId;return `<button class="eras-dm-person ${active?'is-active':''}" type="button" data-dm-profile="${html(id)}"><span class="eras-dm-person-avatar">${avatar(p)}</span><span class="eras-dm-person-copy"><b>${html(p.displayName||'Member')}</b><small>${html(thread?.lastMessagePreview||'Start a chat')}</small></span></button>`;}).join('');
+    root.innerHTML=ids.map(id=>{const p=state.profiles.get(id)||{displayName:'Member'},thread=threadMap.get(id),active=id===state.activeProfileId,unread=thread&&isUnreadThread(thread);return `<button class="eras-dm-person ${active?'is-active':''} ${unread?'is-unread':''}" type="button" data-dm-profile="${html(id)}"><span class="eras-dm-person-avatar">${avatar(p)}</span><span class="eras-dm-person-copy"><b>${html(p.displayName||'Member')}</b><small>${html(thread?.lastMessagePreview||'Start a chat')}</small></span>${unread?'<em class="eras-dm-person-alert" aria-label="Unread chat">1</em>':''}</button>`;}).join('');
+  }
+  function applyThreadsSnapshot(snapshot){
+    state.threads=snapshot.docs.map(d=>({id:d.id,...d.data(),_pending:Boolean(d.metadata?.hasPendingWrites)})).sort((a,b)=>threadStamp(b)-threadStamp(a)||String(a.id).localeCompare(String(b.id)));
+    syncActiveThread();if(state.open)markActiveThreadRead();emitUnread();renderSidebar();
   }
   function startThreads(){
-    stopThreads();const pid=currentId();if(!pid)return;
-    const q=fs.query(fs.collection(db,'directMessageThreads'),fs.where('members','array-contains',pid),fs.limit(100));
-    state.threadUnsub=fs.onSnapshot(q,s=>{state.threads=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>timeMs(b.updatedAt)-timeMs(a.updatedAt));renderSidebar();syncActiveThread();},e=>{onError(e);status('Chat list could not be loaded.',true);});
+    if(state.threadUnsub||!currentId())return;
+    const q=threadQuery();if(!q)return;
+    state.threadUnsub=fs.onSnapshot(q,{includeMetadataChanges:true},s=>applyThreadsSnapshot(s),e=>{onError(e);status('Chat list could not be loaded.',true);});
   }
-  function stopThreads(){try{state.threadUnsub?.();}catch{}state.threadUnsub=null;}
+  function stopThreads(){try{state.threadUnsub?.();}catch{}state.threadUnsub=null;state.threads=[];state.lastUnreadCount=-1;emitUnread();}
   function stopMessages(){try{state.messageUnsub?.();}catch{}state.messageUnsub=null;state.messageThreadId='';state.messages=[];}
+  function applyMessagesSnapshot(snapshot){
+    state.messages=snapshot.docs.map(d=>({id:d.id,...d.data(),_pending:Boolean(d.metadata?.hasPendingWrites)})).sort((a,b)=>{
+      if(a._pending!==b._pending)return a._pending?1:-1;
+      return (timeMs(a.createdAt)-timeMs(b.createdAt))||String(a.id).localeCompare(String(b.id));
+    });
+    renderMessages();if(state.translationEnabled)prepareVisibleTranslations();markActiveThreadRead();
+  }
   function subscribeMessages(threadId){
     if(!threadId||state.messageThreadId===threadId)return;
     stopMessages();state.messageThreadId=threadId;
-    const q=fs.query(fs.collection(db,'directMessageThreads',threadId,'messages'),fs.orderBy('createdAt','desc'),fs.limit(200));
-    state.messageUnsub=fs.onSnapshot(q,s=>{state.messages=s.docs.map(d=>({id:d.id,...d.data()})).reverse();renderMessages();if(state.translationEnabled)prepareVisibleTranslations();},e=>{onError(e);const root=state.root?.querySelector('#erasDmMessages');if(root)root.innerHTML='<div class="eras-dm-no-thread">Unable to load this chat.</div>';});
+    const q=messageQuery(threadId);
+    state.messageUnsub=fs.onSnapshot(q,{includeMetadataChanges:true},s=>applyMessagesSnapshot(s),e=>{onError(e);const root=state.root?.querySelector('#erasDmMessages');if(root)root.innerHTML='<div class="eras-dm-no-thread">Unable to load this chat.</div>';});
   }
   function syncActiveThread(){
     if(!state.activeProfileId||!state.root)return;
@@ -85,18 +143,26 @@ export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile,
     if(state.messageThreadId)stopMessages();
     const root=state.root.querySelector('#erasDmMessages');if(root)root.innerHTML='<div class="eras-dm-no-thread">No chats yet. Send the first chat to create this conversation.</div>';
   }
+  async function refreshThreadsFromServer(){const q=threadQuery();if(!q)return;applyThreadsSnapshot(await serverDocs(q));}
+  async function refreshMessagesFromServer(){if(!state.messageThreadId)return;const q=messageQuery(state.messageThreadId);if(q)applyMessagesSnapshot(await serverDocs(q));}
+  async function refreshNow(){
+    if(state.pollBusy||!state.open||!currentId())return;state.pollBusy=true;
+    try{await refreshThreadsFromServer();await refreshMessagesFromServer();}
+    catch(e){onError(e);status('Two-second Chat reconciliation could not reach the server; realtime sync remains active.',true);}
+    finally{state.pollBusy=false;}
+  }
+  function startPolling(){if(state.pollTimer)return;refreshNow();state.pollTimer=setInterval(refreshNow,POLL_MS);}
+  function stopPolling(){if(state.pollTimer){clearInterval(state.pollTimer);state.pollTimer=null;}state.pollBusy=false;}
   async function ensureThreadForSend(otherId){
     const pid=currentId();if(!pid||!otherId||pid===otherId)throw new Error('Invalid chat participants.');
     const members=[pid,otherId].sort(),id=threadIdFor(pid,otherId),ref=fs.doc(db,'directMessageThreads',id);
     const known=existingThread(otherId);if(known)return {id,ref,members:known.members||members};
     try{
       await fs.setDoc(ref,{members,createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastMessageAt:null,lastMessageSenderProfileId:'',lastMessagePreview:''});
-      state.threads=[...state.threads.filter(t=>t.id!==id),{id,members,createdAt:Date.now(),updatedAt:Date.now(),lastMessageAt:null,lastMessageSenderProfileId:'',lastMessagePreview:''}];
+      // Do not invent client timestamps. The realtime/server snapshots will supply canonical server time.
+      state.threads=[...state.threads.filter(t=>t.id!==id),{id,members,createdAt:null,updatedAt:null,lastMessageAt:null,lastMessageSenderProfileId:'',lastMessagePreview:'',_pending:true}];
       renderSidebar();subscribeMessages(id);return {id,ref,members};
     }catch(createError){
-      // A simultaneous first send from the other participant may have created the deterministic thread.
-      // Only probe after create fails: participant reads are valid for an existing thread, while we never
-      // make the old permission-denied read against a nonexistent document during normal activation.
       try{const snap=await fs.getDoc(ref);if(snap.exists()){const data=snap.data();if(Array.isArray(data.members)&&data.members.includes(pid)&&data.members.includes(otherId)){state.threads=[...state.threads.filter(t=>t.id!==id),{id,...data}];renderSidebar();subscribeMessages(id);return {id,ref,members:data.members};}}}catch(readError){onError(readError);}
       throw createError;
     }
@@ -105,7 +171,7 @@ export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile,
     if(!otherId||otherId===currentId())return;
     buildRoot();state.activeProfileId=otherId;stopMessages();renderSidebar();
     const p=await profile(otherId);state.root.querySelector('#erasDmPeer').textContent=p?.displayName||'CHAT';
-    setComposeEnabled(true);syncActiveThread();
+    setComposeEnabled(true);syncActiveThread();if(state.messageThreadId)markActiveThreadRead();
     const textarea=state.root.querySelector('#erasDmText');try{textarea?.focus({preventScroll:true});}catch{textarea?.focus();}
   }
   function translatorKey(source,target){return `${source}>${target}`;}
@@ -129,22 +195,32 @@ export function createDirectMessenger({ db, fs, getCurrentProfileId, getProfile,
   }
   async function renderMessages(){
     if(!state.root)return;const root=state.root.querySelector('#erasDmMessages');if(!root)return;
+    const sequence=++state.renderSequence;
+    const oldHeight=root.scrollHeight,oldTop=root.scrollTop;
+    const stickToBottom=!root.querySelector('.eras-dm-message')||(oldHeight-oldTop-root.clientHeight)<80;
     if(!state.activeProfileId){root.innerHTML='<div class="eras-dm-no-thread">Choose an accepted connection to open a chat.</div>';return;}
     if(!state.messageThreadId){root.innerHTML='<div class="eras-dm-no-thread">No chats yet. Send the first chat to create this conversation.</div>';return;}
     if(!state.messages.length){root.innerHTML='<div class="eras-dm-no-thread">No chats yet. The safety notice below applies to every chat in this window.</div>';return;}
-    const pid=currentId();root.innerHTML=state.messages.map(msg=>`<article class="eras-dm-message ${msg.senderProfileId===pid?'is-own':''}" data-dm-message="${html(msg.id)}"><div class="eras-dm-message-meta"><span>${msg.senderProfileId===pid?'YOU':'THEM'}</span><span>${html(String(msg.language||'').toUpperCase())}</span><span>${html(timeLabel(msg.createdAt))}</span></div><p class="eras-dm-message-text">${html(msg.text||'')}</p><p class="eras-dm-translation" hidden></p><button class="eras-dm-translate-one" type="button" data-dm-translate="${html(msg.id)}" ${!state.translationEnabled||baseLanguage(msg.language)===state.targetLanguage?'hidden':''}>TRANSLATE</button></article>`).join('');
-    if(state.translationEnabled){for(const msg of state.messages){const article=root.querySelector(`[data-dm-message="${CSS.escape(msg.id)}"]`);if(!article)continue;const translated=await translationFor(msg);if(translated){const out=article.querySelector('.eras-dm-translation');out.textContent=translated;out.hidden=false;article.querySelector('.eras-dm-translate-one').hidden=true;}}}
-    root.scrollTop=root.scrollHeight;
+    const pid=currentId();root.innerHTML=state.messages.map(msg=>`<article class="eras-dm-message ${msg.senderProfileId===pid?'is-own':''} ${msg._pending?'is-pending':''}" data-dm-message="${html(msg.id)}"><div class="eras-dm-message-meta"><span>${msg.senderProfileId===pid?'YOU':'THEM'}</span><span>${html(String(msg.language||'').toUpperCase())}</span><span>${msg._pending?'sending…':html(timeLabel(msg.createdAt))}</span></div><p class="eras-dm-message-text">${html(msg.text||'')}</p><p class="eras-dm-translation" hidden></p><button class="eras-dm-translate-one" type="button" data-dm-translate="${html(msg.id)}" ${!state.translationEnabled||baseLanguage(msg.language)===state.targetLanguage?'hidden':''}>TRANSLATE</button></article>`).join('');
+    if(state.translationEnabled){for(const msg of state.messages){if(sequence!==state.renderSequence)return;const article=root.querySelector(`[data-dm-message="${CSS.escape(msg.id)}"]`);if(!article)continue;const translated=await translationFor(msg);if(translated&&sequence===state.renderSequence){const out=article.querySelector('.eras-dm-translation');out.textContent=translated;out.hidden=false;article.querySelector('.eras-dm-translate-one').hidden=true;}}}
+    if(stickToBottom)root.scrollTop=root.scrollHeight;
+    else root.scrollTop=Math.max(0,oldTop+(root.scrollHeight-oldHeight));
   }
   async function sendMessage(e){
     e.preventDefault();if(state.busy||!state.activeProfileId)return;const textarea=state.root.querySelector('#erasDmText'),text=textarea.value.trim();if(!text)return;const pid=currentId();if(!pid)return;state.busy=true;setComposeEnabled(false);
-    try{const thread=await ensureThreadForSend(state.activeProfileId),messageId=crypto.randomUUID(),messageRef=fs.doc(db,'directMessageThreads',thread.id,'messages',messageId);await fs.setDoc(messageRef,{senderProfileId:pid,recipientProfileId:state.activeProfileId,text:text.slice(0,2000),language:state.writingLanguage,createdAt:fs.serverTimestamp()});await fs.setDoc(thread.ref,{members:thread.members,updatedAt:fs.serverTimestamp(),lastMessageAt:fs.serverTimestamp(),lastMessageSenderProfileId:pid,lastMessagePreview:text.replace(/\s+/g,' ').slice(0,120)},{merge:true});textarea.value='';status('Chat sent.');}
+    try{const thread=await ensureThreadForSend(state.activeProfileId),messageId=crypto.randomUUID(),messageRef=fs.doc(db,'directMessageThreads',thread.id,'messages',messageId);await fs.setDoc(messageRef,{senderProfileId:pid,recipientProfileId:state.activeProfileId,text:text.slice(0,2000),language:state.writingLanguage,createdAt:fs.serverTimestamp()});await fs.setDoc(thread.ref,{members:thread.members,updatedAt:fs.serverTimestamp(),lastMessageAt:fs.serverTimestamp(),lastMessageSenderProfileId:pid,lastMessagePreview:text.replace(/\s+/g,' ').slice(0,120)},{merge:true});textarea.value='';status('Chat sent.');setTimeout(()=>refreshNow(),0);}
     catch(e2){onError(e2);status('Chat could not be sent. Check your connection, account status, or friendship state.',true);}
     finally{state.busy=false;setComposeEnabled(true);textarea.focus();}
   }
-  async function openInbox(){const root=buildRoot();root.hidden=false;startThreads();await loadContacts();syncActiveThread();}
+  async function openInbox(){
+    const root=buildRoot();state.open=true;root.hidden=false;
+    setComposeEnabled(Boolean(state.activeProfileId));startThreads();startPolling();await loadContacts();syncActiveThread();markActiveThreadRead();
+    const textarea=root.querySelector('#erasDmText');try{textarea?.focus({preventScroll:true});}catch{textarea?.focus();}
+  }
   async function openProfile(profileId){await openInbox();await activateProfile(profileId);}
-  function close(){if(!state.root)return;state.root.hidden=true;stopMessages();stopThreads();}
-  function destroy(){close();state.translators.forEach(t=>{try{if(!(t instanceof Promise))t.destroy?.();}catch{}});state.translators.clear();state.root?.remove();state.root=null;}
-  return {openInbox,openProfile,close,destroy,refreshContacts:loadContacts};
+  function startBackground(){state.background=true;startThreads();}
+  function stopBackground(){state.background=false;if(!state.open)stopThreads();}
+  function close(){if(!state.root)return;state.open=false;state.root.hidden=true;stopMessages();stopPolling();if(!state.background)stopThreads();}
+  function destroy(){state.background=false;close();stopThreads();stopPolling();state.translators.forEach(t=>{try{if(!(t instanceof Promise))t.destroy?.();}catch{}});state.translators.clear();state.root?.remove();state.root=null;state.lastUnreadCount=-1;try{onUnreadChange(0,{threadIds:[]});}catch{}}
+  return {openInbox,openProfile,close,destroy,refreshContacts:loadContacts,startBackground,stopBackground,refreshNow,getUnreadCount:()=>emitUnread()};
 }
