@@ -8,8 +8,8 @@
   <title>Content — E.R.A.S. Asset Marketplace</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="./assets/market.css?v=2.0.0">
-  <link rel="stylesheet" href="/game/assets/css/hosted-option-picker.css?v=1.0.0">
+  <link rel="stylesheet" href="./assets/market.css?v=2.2.0">
+  <link rel="stylesheet" href="/game/assets/css/hosted-option-picker.css?v=1.0.2">
 </head>
 <body class="market-page">
   <div class="universe-frame" aria-hidden="true">
@@ -25,7 +25,7 @@
 
   <main class="market-shell">
     <section class="market-hero">
-      <div><p class="market-kicker">PUBLIC ASSET NETWORK // INVENTORY-LINKED</p><h1>ASSET MARKETPLACE</h1><p>Obtain reusable public assets, customize supported properties, and keep them attached to your shared E.R.A.S./LCS profile inventory.</p></div>
+      <div><p class="market-kicker">PUBLIC ASSET NETWORK // INVENTORY-LINKED</p><h1>ASSET MARKETPLACE</h1><p>Obtain reusable public assets, customize supported properties before acquisition, and keep immutable variants attached to your shared E.R.A.S./LCS profile inventory.</p></div>
       <div class="market-stats"><span><b id="catalogCount">01</b> PUBLIC ASSETS</span><span><b id="ownedCount">00</b> IN INVENTORY</span><span class="market-credit-stat"><b id="marketCreditBalance">00</b> CREDITS</span><span><b id="gameAssetCount">00</b> GAME ICON ASSETS</span></div>
     </section>
 
@@ -37,7 +37,7 @@
         <button class="market-filter" type="button" disabled>MODELS <b>00</b></button>
         <button class="market-filter" type="button" disabled>AUDIO <b>00</b></button>
         <button class="market-filter" type="button" disabled>GAMEPLAY <b>00</b></button>
-        <div class="market-note"><b>PUBLIC-ASSETS/</b><p>Marketplace files are served from the site’s public asset package. Firestore stores ownership and user configuration, not duplicate image files.</p></div>
+        <div class="market-note"><b>PUBLIC-ASSETS/</b><p>Marketplace files are served from the site’s public asset package. Firestore stores immutable holdings and lifecycle state, not duplicate image files.</p></div>
       </aside>
 
       <section class="asset-stage" aria-label="Selected asset">
@@ -66,7 +66,12 @@
       </section>
 
       <aside class="market-panel inventory-panel">
-        <div class="market-panel-title"><span>02</span><h2>YOUR INVENTORY</h2></div>
+        <div class="market-panel-title"><span>02</span><h2 id="inventoryPanelTitle">YOUR INVENTORY</h2></div>
+        <div class="inventory-view-tabs" role="tablist" aria-label="Asset storage">
+          <button id="inventoryViewButton" class="is-active" type="button" role="tab" aria-selected="true">INVENTORY <b id="inventoryViewCount">00</b></button>
+          <button id="archiveViewButton" type="button" role="tab" aria-selected="false">ARCHIVE <b id="archiveCount">00</b></button>
+        </div>
+        <p class="inventory-archive-note" id="inventoryArchiveNote">ARCHIVING HIDES AN ASSET WITHOUT DESTROYING IT.</p>
         <div id="inventoryList" class="inventory-list"><p class="inventory-empty">SIGN IN TO LOAD YOUR ASSETS.</p></div>
       </aside>
     </section>
@@ -74,6 +79,6 @@
 
   <script src="/game/assets/js/site.js"></script>
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./assets/market.js?v=2.0.0"></script>
+  <script type="module" src="./assets/market.js?v=2.2.0"></script>
 </body>
 </html>

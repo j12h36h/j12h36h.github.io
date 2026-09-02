@@ -1,13 +1,13 @@
 {
-  "version": 3,
-  "updatedAt": "2026-09-01",
+  "version": 4,
+  "updatedAt": "2026-09-02",
   "assets": [
     {
       "id": "eras:slime_monochrome",
       "name": "Monochrome Slime",
       "type": "texture",
       "category": "characters",
-      "description": "A tintable monochrome slime character texture for E.R.A.S. creations, prototypes, and games.",
+      "description": "A greyscale tint-base slime character texture. The acquired tint becomes an immutable holding variant.",
       "source": "/public-assets/textures/slime_monochrome.png",
       "thumbnail": "/public-assets/textures/slime_monochrome.png",
       "tintable": true,
@@ -29,10 +29,10 @@
       "name": "Health Potion",
       "type": "texture",
       "category": "items",
-      "description": "Pixel-art health potion texture used by the E.R.A.S. game inventory. In-game consumable restores 2 HP.",
+      "description": "Layered health potion asset: greyscale liquid is tintable while the glass bottle and cork remain unchanged. In-game consumable restores 2 HP.",
       "source": "/public-assets/textures/health_potion.png",
       "thumbnail": "/public-assets/textures/health_potion_thumb.png",
-      "tintable": false,
+      "tintable": true,
       "price": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
@@ -43,9 +43,22 @@
         "item",
         "texture",
         "game",
-        "free"
+        "free",
+        "tintable",
+        "layered"
       ],
-      "priceCredits": 0
+      "priceCredits": 0,
+      "defaultTint": "#ff5b67",
+      "layers": [
+        {
+          "source": "/public-assets/textures/potion_liquid_monochrome.png",
+          "tintable": true
+        },
+        {
+          "source": "/public-assets/textures/potion_bottle_shell.png",
+          "tintable": false
+        }
+      ]
     },
     {
       "id": "eras:slime_juice",

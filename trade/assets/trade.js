@@ -3,7 +3,7 @@ import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js
 import { writeBatch, increment } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 import { openOptionPicker } from '/game/assets/js/hosted-option-picker.js?v=1.0.0';
 import { createHostedOffer, publicBundleOffers, purchaseHostedOffer } from '/game/assets/js/hosted-commerce.js?v=1.0.0';
-import { assetPreviewUrl } from '/game/assets/js/catalog-assets.js?v=1.0.0';
+import { assetPreviewUrl, hydrateVariantPreviewImage } from '/game/assets/js/catalog-assets.js?v=1.1.0';
 
 const $ = s => document.querySelector(s);
 const state = {
@@ -120,7 +120,7 @@ function watchHoldings() {
   if(!state.identity?.profileId)return;
   const q=fs.query(fs.collection(db,'assetHoldings'),fs.where('ownerProfileId','==',state.identity.profileId),fs.limit(200));
   state.holdingsUnsub=fs.onSnapshot(q,s=>{
-    state.holdings=s.docs.map(d=>({id:d.id,...d.data()}));
+    state.holdings=s.docs.map(d=>({id:d.id,...d.data()})).filter(h=>h.archived!==true);
     renderInventory(); refreshAssetSelects(); renderTradeBook();
   },e=>console.error('Trade holdings',e));
 }
@@ -136,7 +136,8 @@ function renderInventory() {
   const root=$('#tradeInventory'); if(!root)return;
   if(!state.identity?.profileId){root.innerHTML='<p class="trade-empty">SIGN IN TO LOAD YOUR INVENTORY.</p>';return;}
   if(!state.holdings.length){root.innerHTML='<p class="trade-empty">NO TRADEABLE ASSETS YET. VISIT CONTENT TO OBTAIN ONE.</p>';return;}
-  root.innerHTML=state.holdings.map(h=>{const meta=assetMeta(h.assetId);return `<article class="holding-card"><div class="holding-preview" style="--asset-tint:${escapeHtml(h.tint||'#ffffff')}"><img src="${escapeHtml(assetPreviewUrl(meta))}" alt=""></div><div><b>${escapeHtml(meta.name||h.assetId)}</b><small>${escapeHtml(h.assetId)}<br>TINT ${escapeHtml(h.tint||'#ffffff')}<br>HOLDING ${escapeHtml(h.id.slice(0,10))}…</small></div></article>`;}).join('');
+  root.innerHTML=state.holdings.map(h=>{const meta=assetMeta(h.assetId);return `<article class="holding-card"><div class="holding-preview"><img data-holding-preview="${escapeHtml(h.id)}" src="${escapeHtml(assetPreviewUrl(meta))}" alt=""></div><div><b>${escapeHtml(meta.name||h.assetId)}</b><small>${escapeHtml(h.assetId)}<br>TINT ${escapeHtml(h.tint||'#ffffff')}<br>HOLDING ${escapeHtml(h.id.slice(0,10))}…</small></div></article>`;}).join('');
+  for(const h of state.holdings){const img=root.querySelector(`[data-holding-preview="${CSS.escape(h.id)}"]`);if(img)hydrateVariantPreviewImage(img,assetMeta(h.assetId),h.tint||'#ffffff',96);}
 }
 
 function watchCredits() {
