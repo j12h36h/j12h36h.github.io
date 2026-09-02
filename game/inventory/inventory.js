@@ -352,8 +352,13 @@ export function createGameInventoryController({
     const receiptRef = fs.doc(db, GAME_ITEM_TRANSACTION_COLLECTION, tradeId);
     try {
       const result = await fs.runTransaction(db, async tx => {
-        const [invSnap, walletSnap, receiptSnap] = await Promise.all([tx.get(invRef), tx.get(walletRef), tx.get(receiptRef)]);
-        if (!invSnap.exists() || !walletSnap.exists() || receiptSnap.exists()) return { error: 'TRADE STATE UNAVAILABLE' };
+        const presenceRef = getPresenceRef?.();
+        if (!presenceRef) return { error: 'TERMINAL POSITION UNAVAILABLE' };
+        const [invSnap, walletSnap, receiptSnap, presenceSnap] = await Promise.all([tx.get(invRef), tx.get(walletRef), tx.get(receiptRef), tx.get(presenceRef)]);
+        if (!invSnap.exists() || !walletSnap.exists() || !presenceSnap.exists() || receiptSnap.exists()) return { error: 'TRADE STATE UNAVAILABLE' };
+        const presence = presenceSnap.data();
+        const dx = Number(presence.x || 0) - 19, dy = Number(presence.y || 0) - 19;
+        if (presence.worldId !== 'global' || presence.profileId !== profileId || Number(presence.hp || 0) <= 0 || dx * dx + dy * dy > 100) return { error: 'MOVE CLOSER TO NORTH TERMINAL' };
         const inv = normalizeGameInventory(invSnap.data(), profileId);
         const wallet = walletSnap.data();
         const balance = Math.max(0, Math.floor(Number(wallet.balance || 0)));
@@ -363,6 +368,7 @@ export function createGameInventoryController({
         const nextCount = itemCount(inv, item.id) + (isBuy ? 1 : -1);
         tx.set(receiptRef, {
           profileId,
+          terminalId: activeTerminalId,
           direction: offer.direction,
           itemId: item.id,
           quantity: 1,

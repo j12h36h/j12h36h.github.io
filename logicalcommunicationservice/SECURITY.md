@@ -72,3 +72,30 @@ Chats are stored under deterministic participant thread IDs. Firestore requires 
 
 ## Browser API key
 The Firebase Web API key is public client configuration, not a server secret. It should be restricted in Google Cloud to the Firebase APIs this site uses and to approved website/referrer origins. Service-account keys and other privileged credentials must never be placed in the repository.
+
+## Zero-trust public-client model
+The production repository, Firebase Web configuration, collection names, request shapes, and Firestore rules are treated as public information. The browser is not a security boundary. A modified client, direct Firebase SDK client, or Firestore REST caller receives no authority beyond what Firestore Security Rules allow for the authenticated account.
+
+Security-sensitive writes use strict schemas, immutable identity fields, `request.time` for authoritative chronology, and `getAfter()`/atomic transaction checks where a valid operation spans multiple documents. Completed settlement/receipt records are append-only or immutable.
+
+## Credits and economic integrity
+Global Credit balances cannot be increased by an arbitrary wallet update. Economic events must match one of the allowlisted settlement types and, where applicable, the corresponding transaction, purchase, reward receipt, inventory transition, or counterparty wallet transition in the same atomic write.
+
+Global PvE rewards use immutable `globalRewardReceipts`. A reward receipt is tied to a resolved Global enemy-kill action, the exact enemy transition, the caller's stats increment, and the exact +1 Credit wallet settlement. Deleting/pruning a historical action does not make the economic reward reusable.
+
+Official free Marketplace claims use deterministic holding document IDs derived from profile + asset ID. Legacy `assetInventory` writes are closed. Tradable ownership lives in `assetHoldings`, and ownership changes are accepted only through validated trade settlement transitions.
+
+## Global gameplay integrity
+The Global world uses server-time shared turns. Global action declaration reserves authoritative energy in the same atomic transaction as the queued action. Movement/presence updates are constrained by the authenticated profile, world, server turn, movement budget, elapsed server time, velocity and protected combat fields. Global combat results must match the target's corresponding authoritative state transition.
+
+Global slime rewards and weapon variance do not use a client-selected UUID/random seed. Loot derives from the server-validated lifetime PvE kill sequence; supported Global weapon variance derives from the shared server turn. This removes the ability to search client-generated action IDs for favorable economic outcomes.
+
+North Terminal item trading requires the authenticated player's current authoritative Global presence to be alive and within the allowed terminal radius. Hosted-world local currency and scores have no write path into global Credit wallets or global asset ownership.
+
+## Hosted paid-access integrity
+Paid hosted-game membership is represented by a short server-time lease on the lobby membership document. Starting or renewing a lease must atomically consume the appropriate authoritative entitlement capacity (play, life, or playtime) unless the entitlement is permanent. A stale membership document is not sufficient authorization for paid hosted game state.
+
+The host and free lobbies use bounded free leases for the same membership shape. Hosted entitlements can only decrease their consumable capacity after purchase; clients cannot increase plays, lives, seconds, permanence, seller, lobby, or asset-license contents.
+
+## Important boundary: hosted simulation fairness
+Firestore-only rules protect global Credits, global ownership, authorization, purchases and the hardened Global economy/gameplay transitions. Generic hosted-game scores and some local simulation/physics state are intentionally sandbox-local and do not become global economic authority. Fully cheat-proof arbitrary custom physics or secret random outcomes would require dedicated per-mode transition rules or a trusted execution service. This boundary prevents hosted client manipulation from minting global Credits/assets even when the hosted simulation itself is not ranked-authoritative.

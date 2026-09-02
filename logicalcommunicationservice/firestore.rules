@@ -706,21 +706,35 @@ service cloud.firestore {
     }
     function validSlimeKillCredit(data) {
       let actionPath = /databases/$(database)/documents/gameActions/$(data.lastEventId);
+      let rewardPath = /databases/$(database)/documents/globalRewardReceipts/$(data.lastEventId);
       return data.lastEventType == 'slime_kill'
         && data.lastEventId.size() > 0
+        && data.lastEventId != resource.data.lastEventId
         && data.balance == resource.data.balance + 1
         && data.totalEarned == resource.data.totalEarned + 1
         && data.totalLost == resource.data.totalLost
+        && !exists(rewardPath) && existsAfter(rewardPath)
+        && getAfter(rewardPath).data.actionId == data.lastEventId
+        && getAfter(rewardPath).data.actorProfileId == callerProfileId()
+        && getAfter(rewardPath).data.rewardCredits == 1
         && existsAfter(actionPath)
         && validSlimeKillCreditAction(data, getAfter(actionPath).data);
     }
     function validDeathCreditLoss(data) {
       let lost = resource.data.balance - data.balance;
+      let presencePath = /databases/$(database)/documents/gamePresence/$(callerProfileId() + '__global');
       return data.lastEventType == 'death'
         && data.lastEventId.size() > 0
-        && lost >= 0 && lost <= 10
+        && ((resource.data.balance <= 10 && lost == resource.data.balance)
+          || (resource.data.balance > 10 && lost == 10))
         && data.totalEarned == resource.data.totalEarned
-        && data.totalLost == resource.data.totalLost + lost;
+        && data.totalLost == resource.data.totalLost + lost
+        && exists(presencePath) && existsAfter(presencePath)
+        && getAfter(presencePath).data.profileId == callerProfileId()
+        && getAfter(presencePath).data.worldId == 'global'
+        && getAfter(presencePath).data.deaths == get(presencePath).data.deaths + 1
+        && getAfter(presencePath).data.lastDeathEventId == data.lastEventId
+        && getAfter(presencePath).data.lastDeathEventId != get(presencePath).data.lastDeathEventId;
     }
     function validDirectCreditTransferWallet(data, profileId) {
       let transferPath = /databases/$(database)/documents/creditTransfers/$(data.lastEventId);
@@ -774,7 +788,8 @@ service cloud.firestore {
         && getAfter(transferPath).data.fromProfileId == callerProfileId()
         && getAfter(transferPath).data.toProfileId == profileId
         && data.balance == getAfter(transferPath).data.amount
-        && data.totalEarned == 0 && data.totalLost == 0;
+        && data.totalEarned == 0 && data.totalLost == 0
+        && data.createdAt == request.time && data.updatedAt == request.time;
     }
     function validHostedPurchaseWallet(data, profileId) {
       let purchasePath = /databases/$(database)/documents/hostedPurchases/$(data.lastEventId);
@@ -797,25 +812,77 @@ service cloud.firestore {
       // Credit balances are game-economy data. Authenticated LCS identities may
       // read wallets so transfers can atomically choose recipient create vs update.
       // Mutations remain receipt-validated below.
-      allow read: if hasPrivateAccount();
+      allow get: if hasPrivateAccount();
+      allow list: if false;
       allow create: if validCreditWallet(request.resource.data, profileId)
         && ((isCallerProfile(profileId)
             && request.resource.data.balance == 0
             && request.resource.data.totalEarned == 0
             && request.resource.data.totalLost == 0
             && request.resource.data.lastEventId == ''
-            && request.resource.data.lastEventType == 'init')
+            && request.resource.data.lastEventType == 'init'
+            && request.resource.data.createdAt == request.time
+            && request.resource.data.updatedAt == request.time)
           || validNewTransferRecipientWallet(request.resource.data, profileId));
       allow update: if validCreditWallet(request.resource.data, profileId)
         && request.resource.data.profileId == resource.data.profileId
         && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt is timestamp
+        && request.resource.data.updatedAt == request.time
         && ((isCallerProfile(profileId)
               && (validSlimeKillCredit(request.resource.data) || validDeathCreditLoss(request.resource.data) || validGameItemTradeWallet(request.resource.data, profileId)))
           || validDirectCreditTransferWallet(request.resource.data, profileId)
           || validPlayerTradeWallet(request.resource.data, profileId)
           || validHostedPurchaseWallet(request.resource.data, profileId));
       allow delete: if false;
+    }
+
+    // ============================================================
+    // GLOBAL CREDIT REWARD RECEIPTS
+    // Permanent anti-replay proof for every Global PvE Credit. Action logs may
+    // be pruned later; these tiny immutable receipts are never client-deletable.
+    // ============================================================
+    function validGlobalRewardReceipt(rewardId, data) {
+      let actionPath = /databases/$(database)/documents/gameActions/$(rewardId);
+      let enemyPath = /databases/$(database)/documents/gameEnemies/$(data.enemyId);
+      let walletPath = /databases/$(database)/documents/creditWallets/$(data.actorProfileId);
+      let statsPath = /databases/$(database)/documents/globalGameStats/$(data.actorProfileId);
+      return data.keys().hasOnly(['actionId','actorProfileId','enemyId','rewardCredits','killNumber','createdAt'])
+        && data.actionId == rewardId
+        && data.actorProfileId == callerProfileId()
+        && validPublicId(data.actorProfileId)
+        && data.enemyId is string && data.enemyId.size() > 0 && data.enemyId.size() <= 180
+        && data.rewardCredits == 1
+        && data.killNumber is int && data.killNumber >= 1
+        && data.createdAt == request.time
+        && existsAfter(actionPath)
+        && getAfter(actionPath).data.worldId == 'global'
+        && getAfter(actionPath).data.actorProfileId == data.actorProfileId
+        && getAfter(actionPath).data.actionType == 'attack'
+        && getAfter(actionPath).data.targetType == 'enemy'
+        && getAfter(actionPath).data.targetId == data.enemyId
+        && getAfter(actionPath).data.status == 'resolved'
+        && getAfter(actionPath).data.outcome == 'kill'
+        && existsAfter(enemyPath)
+        && getAfter(enemyPath).data.worldId == 'global'
+        && getAfter(enemyPath).data.alive == false
+        && getAfter(enemyPath).data.lastKillActionId == rewardId
+        && getAfter(enemyPath).data.killerProfileId == data.actorProfileId
+        && exists(walletPath) && existsAfter(walletPath)
+        && getAfter(walletPath).data.balance == get(walletPath).data.balance + 1
+        && getAfter(walletPath).data.lastEventId == rewardId
+        && getAfter(walletPath).data.lastEventType == 'slime_kill'
+        && exists(statsPath) && existsAfter(statsPath)
+        && data.killNumber == get(statsPath).data.pveKills + 1
+        && getAfter(statsPath).data.pveKills == data.killNumber
+        && getAfter(statsPath).data.lastPveKillActionId == rewardId;
+    }
+    match /globalRewardReceipts/{rewardId} {
+      allow get: if hasPrivateAccount() && resource.data.actorProfileId == callerProfileId();
+      allow list: if false;
+      allow create: if callerCanContribute()
+        && !exists(/databases/$(database)/documents/globalRewardReceipts/$(rewardId))
+        && validGlobalRewardReceipt(rewardId, request.resource.data);
+      allow update, delete: if false;
     }
 
     // ============================================================
@@ -840,14 +907,24 @@ service cloud.firestore {
     }
     function validSlimeDropInventory(data) {
       let actionPath = /databases/$(database)/documents/gameActions/$(data.lastEventId);
+      let statsPath = /databases/$(database)/documents/globalGameStats/$(data.profileId);
+      let rewardPath = /databases/$(database)/documents/globalRewardReceipts/$(data.lastEventId);
+      let killNumber = getAfter(statsPath).data.pveKills;
       return isCallerProfile(data.profileId)
         && data.lastEventType == 'slime_drop'
         && data.lastEventId.size() > 0
         && data.lastEventId != resource.data.lastEventId
-        && data.slimeJuice >= resource.data.slimeJuice && data.slimeJuice <= resource.data.slimeJuice + 1
-        && data.healthPotion >= resource.data.healthPotion && data.healthPotion <= resource.data.healthPotion + 1
-        && data.handWraps >= resource.data.handWraps && data.handWraps <= resource.data.handWraps + 1
-        && data.slimeJuice + data.healthPotion + data.handWraps > resource.data.slimeJuice + resource.data.healthPotion + resource.data.handWraps
+        && exists(statsPath) && existsAfter(statsPath)
+        && getAfter(statsPath).data.pveKills == get(statsPath).data.pveKills + 1
+        && getAfter(statsPath).data.lastPveKillActionId == data.lastEventId
+        && existsAfter(rewardPath) && getAfter(rewardPath).data.killNumber == killNumber
+        && (killNumber % 20 == 0 || killNumber % 100 == 0 || killNumber % 1000 == 0)
+        && ((killNumber % 20 == 0 && data.slimeJuice == resource.data.slimeJuice + 1)
+          || (killNumber % 20 != 0 && data.slimeJuice == resource.data.slimeJuice))
+        && ((killNumber % 100 == 0 && data.healthPotion == resource.data.healthPotion + 1)
+          || (killNumber % 100 != 0 && data.healthPotion == resource.data.healthPotion))
+        && ((killNumber % 1000 == 0 && data.handWraps == resource.data.handWraps + 1)
+          || (killNumber % 1000 != 0 && data.handWraps == resource.data.handWraps))
         && data.stick == resource.data.stick
         && data.equippedWeapon == resource.data.equippedWeapon
         && data.lastDeathEventId == resource.data.lastDeathEventId
@@ -860,13 +937,14 @@ service cloud.firestore {
         && getAfter(actionPath).data.outcome == 'kill';
     }
     function validGameItemReceipt(data) {
-      return data.keys().hasOnly(['profileId','direction','itemId','quantity','credits','createdAt'])
+      return data.keys().hasOnly(['profileId','terminalId','direction','itemId','quantity','credits','createdAt'])
+        && data.terminalId == 'north-terminal'
         && validPublicId(data.profileId) && profileExists(data.profileId)
         && data.direction in ['buy','sell']
         && data.itemId in ['health_potion','slime_juice','stick']
         && data.quantity == 1
         && data.credits is int && data.credits >= 1
-        && data.createdAt is timestamp
+        && data.createdAt == request.time
         && ((data.direction == 'buy' && data.itemId == 'health_potion' && data.credits == 3)
           || (data.direction == 'buy' && data.itemId == 'stick' && data.credits == 5)
           || (data.direction == 'sell' && data.itemId == 'slime_juice' && data.credits == 1));
@@ -935,11 +1013,13 @@ service cloud.firestore {
         && request.resource.data.handWraps == 0 && request.resource.data.stick == 0
         && request.resource.data.equippedWeapon == ''
         && request.resource.data.lastEventId == '' && request.resource.data.lastEventType == 'init'
-        && request.resource.data.lastDeathEventId == '';
+        && request.resource.data.lastDeathEventId == ''
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
       allow update: if callerCanContribute()
         && request.resource.data.profileId == resource.data.profileId
         && request.resource.data.createdAt == resource.data.createdAt
         && validGameInventory(request.resource.data, profileId)
+        && request.resource.data.updatedAt == request.time
         && (validSlimeDropInventory(request.resource.data)
           || validTerminalInventoryTransition(request.resource.data)
           || validConsumePotionInventory(request.resource.data)
@@ -950,7 +1030,12 @@ service cloud.firestore {
     function validGameItemTransactionSettlement(transactionId, data) {
       let walletPath = /databases/$(database)/documents/creditWallets/$(data.profileId);
       let inventoryPath = /databases/$(database)/documents/gameInventories/$(data.profileId);
-      return exists(walletPath) && exists(inventoryPath)
+      let presencePath = /databases/$(database)/documents/gamePresence/$(data.profileId + '__global');
+      return exists(walletPath) && exists(inventoryPath) && exists(presencePath)
+        && get(presencePath).data.profileId == data.profileId
+        && get(presencePath).data.worldId == 'global'
+        && get(presencePath).data.hp > 0
+        && squaredDistance(get(presencePath).data.x, get(presencePath).data.y, 19, 19) <= 100
         && existsAfter(walletPath) && existsAfter(inventoryPath)
         && getAfter(walletPath).data.lastEventId == transactionId
         && getAfter(walletPath).data.lastEventType == 'game_item_trade'
@@ -987,7 +1072,7 @@ service cloud.firestore {
         && data.fromProfileId != data.toProfileId
         && data.amount is int && data.amount >= 1 && data.amount <= 1000000
         && data.note is string && data.note.size() <= 120
-        && data.createdAt is timestamp;
+        && data.createdAt == request.time;
     }
     function validCreditTransferSettlement(transferId, data) {
       let fromPath = /databases/$(database)/documents/creditWallets/$(data.fromProfileId);
@@ -1087,11 +1172,13 @@ service cloud.firestore {
         && request.resource.data.pvpKills == 0
         && request.resource.data.lastPveKillActionId == ''
         && request.resource.data.lastPvpKillActionId == ''
-        && request.resource.data.get('lastResetDeathEventId','') == '';
+        && request.resource.data.get('lastResetDeathEventId','') == ''
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
       allow update: if signedIn()
         && validGlobalStats(request.resource.data, profileId)
         && request.resource.data.profileId == resource.data.profileId
         && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
         && ((isCallerProfile(profileId)
             && (validPveScoreIncrement(request.resource.data) || validPvpScoreIncrement(request.resource.data)))
           || validScoreDeathReset(request.resource.data, profileId));
@@ -1118,28 +1205,20 @@ service cloud.firestore {
         'eras:mode_escape_pod_dash'
       ];
     }
+    function freeMarketplaceAssetId(id) {
+      // These are the only zero-price public catalog claims in this release.
+      // When an asset gets a Credit price, remove it here and require an
+      // immutable paid purchase receipt before allowing acquisition.
+      return validErasAssetId(id);
+    }
     function validAssetTint(tint) {
       return tint is string && tint.matches('#[0-9a-fA-F]{6}');
     }
     match /assetInventory/{profileId}/items/{inventoryId} {
+      // Legacy namespace: retained only so owners can inspect old data. New
+      // authoritative ownership is assetHoldings; legacy client writes are closed.
       allow read: if isCallerProfile(profileId);
-      allow create: if isCallerProfile(profileId)
-        && request.resource.data.keys().hasOnly(['assetId','profileId','tint','acquiredAt','updatedAt'])
-        && request.resource.data.profileId == profileId
-        && validErasAssetId(request.resource.data.assetId)
-        && validAssetTint(request.resource.data.tint)
-        && request.resource.data.acquiredAt is timestamp
-        && request.resource.data.updatedAt is timestamp;
-      allow update: if isCallerProfile(profileId)
-        && request.resource.data.keys().hasOnly(['assetId','profileId','tint','acquiredAt','updatedAt'])
-        && request.resource.data.profileId == resource.data.profileId
-        && request.resource.data.profileId == profileId
-        && request.resource.data.assetId == resource.data.assetId
-        && request.resource.data.acquiredAt == resource.data.acquiredAt
-        && validErasAssetId(request.resource.data.assetId)
-        && validAssetTint(request.resource.data.tint)
-        && request.resource.data.updatedAt is timestamp;
-      allow delete: if isCallerProfile(profileId);
+      allow create, update, delete: if false;
     }
 
     // ============================================================
@@ -1181,10 +1260,14 @@ service cloud.firestore {
       allow create: if callerCanContribute()
         && request.resource.data.ownerProfileId == callerProfileId()
         && validAssetHolding(request.resource.data)
-        && ((request.resource.data.lastEventType == 'market_acquire' && request.resource.data.lastEventId == '')
-          || (request.resource.data.lastEventType == 'migration' && request.resource.data.lastEventId == 'legacy-migration'));
+        && request.resource.data.lastEventType == 'market_acquire'
+        && request.resource.data.lastEventId == ''
+        && freeMarketplaceAssetId(request.resource.data.assetId)
+        && holdingId == 'market__' + callerProfileId() + '__' + request.resource.data.assetId
+        && request.resource.data.acquiredAt == request.time
+        && request.resource.data.updatedAt == request.time;
       allow update: if validAssetHolding(request.resource.data)
-        && request.resource.data.updatedAt is timestamp
+        && request.resource.data.updatedAt == request.time
         && ((resource.data.ownerProfileId == callerProfileId()
             && request.resource.data.ownerProfileId == resource.data.ownerProfileId
             && request.resource.data.assetId == resource.data.assetId
@@ -1260,7 +1343,7 @@ service cloud.firestore {
       let iWallet = /databases/$(database)/documents/creditWallets/$(data.initiatorProfileId);
       let rWallet = /databases/$(database)/documents/creditWallets/$(data.recipientProfileId);
       return data.keys().hasOnly(['initiatorProfileId','recipientProfileId','initiatorCredits','recipientCredits','initiatorHoldingId','initiatorAssetId','initiatorAssetTint','recipientHoldingId','recipientAssetId','recipientAssetTint','createdAt'])
-        && data.createdAt is timestamp
+        && data.createdAt == request.time
         && existsAfter(tradePath)
         && getAfter(tradePath).data.status == 'completed'
         && getAfter(tradePath).data.initiatorProfileId == callerProfileId()
@@ -1307,6 +1390,8 @@ service cloud.firestore {
       allow create: if hasPrivateAccount()
         && request.resource.data.initiatorProfileId == callerProfileId()
         && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.recipientCredits == 0
         && request.resource.data.recipientHoldingId == ''
         && request.resource.data.recipientAssetId == ''
@@ -1317,7 +1402,7 @@ service cloud.firestore {
         && tradeHoldingOwnedAndMatches(request.resource.data.initiatorProfileId,request.resource.data.initiatorHoldingId,request.resource.data.initiatorAssetId,request.resource.data.initiatorAssetTint);
       allow update: if hasPrivateAccount()
         && validPlayerTrade(request.resource.data)
-        && request.resource.data.updatedAt is timestamp
+        && request.resource.data.updatedAt == request.time
         && (
           (callerProfileId() == resource.data.recipientProfileId
             && resource.data.status == 'pending' && request.resource.data.status == 'locked'
@@ -1337,7 +1422,7 @@ service cloud.firestore {
           || (callerProfileId() == resource.data.initiatorProfileId
             && resource.data.status == 'locked' && request.resource.data.status == 'completed'
             && playerTradeAllTermsFixed(resource.data,request.resource.data)
-            && request.resource.data.completedAt is timestamp
+            && request.resource.data.completedAt == request.time
             && !exists(/databases/$(database)/documents/tradeSettlements/$(tradeId))
             && existsAfter(/databases/$(database)/documents/tradeSettlements/$(tradeId)))
         );
@@ -1550,6 +1635,34 @@ service cloud.firestore {
         && validLobbyStatus(data.status)
         && data.createdAt is timestamp && data.updatedAt is timestamp && data.lastHeartbeatAt is timestamp;
     }
+    // A paid hosted-game membership is a server-time lease. A stale member
+    // document is not authorization by itself, so keeping/forging an old
+    // membership cannot bypass per-play or playtime access. Free lobbies and
+    // the lobby host remain immediately accessible.
+    function memberHasLiveAccess(lobbyId, profileId) {
+      let lobbyPath = /databases/$(database)/documents/gameLobbies/$(lobbyId);
+      let memberPath = /databases/$(database)/documents/gameLobbies/$(lobbyId)/members/$(profileId);
+      let entitlementId = exists(memberPath) ? get(memberPath).data.get('accessEntitlementId','') : '';
+      let safeEntitlementId = entitlementId == '' ? '__no_entitlement__' : entitlementId;
+      let entitlementPath = /databases/$(database)/documents/hostedEntitlements/$(safeEntitlementId);
+      return exists(lobbyPath) && exists(memberPath)
+        && get(memberPath).data.profileId == profileId
+        && get(memberPath).data.role == (get(lobbyPath).data.hostProfileId == profileId ? 'host' : 'player')
+        && (get(lobbyPath).data.hostProfileId == profileId
+          || get(lobbyPath).data.accessOfferId == ''
+          || (entitlementId is string && entitlementId.size() >= 8
+            && get(memberPath).data.get('accessStartedAt', request.time) is timestamp
+            && get(memberPath).data.get('accessLeaseSeconds',0) is int
+            && get(memberPath).data.get('accessLeaseSeconds',0) >= 1
+            && get(memberPath).data.get('accessLeaseSeconds',0) <= 21600
+            && request.time.toMillis() <= get(memberPath).data.get('accessStartedAt', request.time).toMillis() + get(memberPath).data.get('accessLeaseSeconds',0) * 1000
+            && exists(entitlementPath)
+            && get(entitlementPath).data.ownerProfileId == profileId
+            && get(entitlementPath).data.lobbyId == lobbyId
+            && (get(entitlementPath).data.offerId == get(lobbyPath).data.accessOfferId
+              || get(entitlementPath).data.offerType == 'bundle')));
+    }
+
     match /gameLobbies/{lobbyId} {
       allow read: if signedIn();
       allow create: if callerCanContribute()
@@ -1568,70 +1681,116 @@ service cloud.firestore {
         function parentLobby() {
           return get(/databases/$(database)/documents/gameLobbies/$(lobbyId));
         }
-        function validMemberAccess(entitlementId) {
-          let lobby = parentLobby();
-          let p = /databases/$(database)/documents/hostedEntitlements/$(entitlementId);
-          return lobby.data.hostProfileId == profileId
-            ? entitlementId == ''
-            : (lobby.data.accessOfferId == ''
-              ? entitlementId == ''
-              : (entitlementId is string && entitlementId.size() >= 8 && exists(p) && existsAfter(p)
-                && get(p).data.ownerProfileId == profileId
-                && get(p).data.lobbyId == lobbyId
-                // A direct access entitlement or a host-created bundle for this
-                // same lobby may satisfy paid entry.
-                && (get(p).data.offerId == lobby.data.accessOfferId || get(p).data.offerType == 'bundle')
-                && (
-                  (get(p).data.permanent == true && getAfter(p).data == get(p).data)
-                  || (get(p).data.billing == 'per_play'
-                    && get(p).data.remainingPlays >= 1
-                    && getAfter(p).data.remainingPlays == get(p).data.remainingPlays - 1
-                    && getAfter(p).data.remainingLives == get(p).data.remainingLives
-                    && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
-                  || (get(p).data.billing == 'per_life'
-                    && get(p).data.remainingLives >= 1
-                    && getAfter(p).data.remainingLives == get(p).data.remainingLives - 1
-                    && getAfter(p).data.remainingPlays == get(p).data.remainingPlays
-                    && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
-                  || (get(p).data.billing == 'playtime'
-                    && get(p).data.remainingSeconds >= 1
-                    && getAfter(p).data == get(p).data)
-                  || (get(p).data.billing == 'bundle'
-                    && ((get(p).data.remainingPlays >= 1
-                        && getAfter(p).data.remainingPlays == get(p).data.remainingPlays - 1
-                        && getAfter(p).data.remainingLives == get(p).data.remainingLives
-                        && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
-                      || (get(p).data.remainingPlays == 0 && get(p).data.remainingLives >= 1
-                        && getAfter(p).data.remainingLives == get(p).data.remainingLives - 1
-                        && getAfter(p).data.remainingPlays == get(p).data.remainingPlays
-                        && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
-                      || (get(p).data.remainingPlays == 0 && get(p).data.remainingLives == 0
-                        && get(p).data.remainingSeconds >= 1
-                        && getAfter(p).data == get(p).data))))));
+        function entitlementPath(entitlementId) {
+          return /databases/$(database)/documents/hostedEntitlements/$(entitlementId);
         }
-        function validLobbyMember(data) {
-          return data.keys().hasOnly(['profileId','role','accessEntitlementId','joinedAt','lastSeenAt'])
+        function entitlementMatchesLobby(entitlementId) {
+          let p = entitlementPath(entitlementId);
+          return entitlementId is string && entitlementId.size() >= 8
+            && exists(p) && existsAfter(p)
+            && get(p).data.ownerProfileId == profileId
+            && get(p).data.lobbyId == lobbyId
+            && (get(p).data.offerId == parentLobby().data.accessOfferId || get(p).data.offerType == 'bundle');
+        }
+        function entitlementLeaseTransition(entitlementId, leaseSeconds) {
+          let p = entitlementPath(entitlementId);
+          return entitlementMatchesLobby(entitlementId)
+            && (
+              (get(p).data.permanent == true
+                && leaseSeconds == 600
+                && getAfter(p).data == get(p).data)
+              || (get(p).data.billing == 'per_play'
+                && leaseSeconds == 21600
+                && get(p).data.remainingPlays >= 1
+                && getAfter(p).data.remainingPlays == get(p).data.remainingPlays - 1
+                && getAfter(p).data.remainingLives == get(p).data.remainingLives
+                && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
+              || (get(p).data.billing == 'per_life'
+                && leaseSeconds == 21600
+                && get(p).data.remainingLives >= 1
+                && getAfter(p).data.remainingLives == get(p).data.remainingLives - 1
+                && getAfter(p).data.remainingPlays == get(p).data.remainingPlays
+                && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
+              || (get(p).data.billing == 'playtime'
+                && leaseSeconds >= 1 && leaseSeconds <= 60
+                && get(p).data.remainingSeconds >= leaseSeconds
+                && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds - leaseSeconds
+                && getAfter(p).data.remainingPlays == get(p).data.remainingPlays
+                && getAfter(p).data.remainingLives == get(p).data.remainingLives)
+              || (get(p).data.billing == 'bundle'
+                && ((get(p).data.permanent == true
+                      && leaseSeconds == 600
+                      && getAfter(p).data == get(p).data)
+                  || (get(p).data.remainingPlays >= 1
+                      && leaseSeconds == 21600
+                      && getAfter(p).data.remainingPlays == get(p).data.remainingPlays - 1
+                      && getAfter(p).data.remainingLives == get(p).data.remainingLives
+                      && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
+                  || (get(p).data.remainingPlays == 0 && get(p).data.remainingLives >= 1
+                      && leaseSeconds == 21600
+                      && getAfter(p).data.remainingLives == get(p).data.remainingLives - 1
+                      && getAfter(p).data.remainingPlays == get(p).data.remainingPlays
+                      && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds)
+                  || (get(p).data.remainingPlays == 0 && get(p).data.remainingLives == 0
+                      && leaseSeconds >= 1 && leaseSeconds <= 60
+                      && get(p).data.remainingSeconds >= leaseSeconds
+                      && getAfter(p).data.remainingSeconds == get(p).data.remainingSeconds - leaseSeconds
+                      && getAfter(p).data.remainingPlays == get(p).data.remainingPlays
+                      && getAfter(p).data.remainingLives == get(p).data.remainingLives))));
+        }
+        function validMemberShape(data) {
+          return data.keys().hasOnly(['profileId','role','accessEntitlementId','accessStartedAt','accessLeaseSeconds','joinedAt','lastSeenAt'])
             && data.profileId == profileId
             && validPublicId(data.profileId) && profileExists(data.profileId)
             && data.role in ['host','player']
             && data.role == (parentLobby().data.hostProfileId == profileId ? 'host' : 'player')
-            && validMemberAccess(data.accessEntitlementId)
+            && data.accessEntitlementId is string && data.accessEntitlementId.size() <= 180
+            && data.accessStartedAt is timestamp
+            && data.accessLeaseSeconds is int && data.accessLeaseSeconds >= 1 && data.accessLeaseSeconds <= 21600
             && data.joinedAt is timestamp && data.lastSeenAt is timestamp;
+        }
+        function validAccessStart(data) {
+          return validMemberShape(data)
+            && data.accessStartedAt == request.time
+            && data.lastSeenAt == request.time
+            && ((parentLobby().data.hostProfileId == profileId
+                  && data.accessEntitlementId == '' && data.accessLeaseSeconds == 600)
+              || (parentLobby().data.hostProfileId != profileId && parentLobby().data.accessOfferId == ''
+                  && data.accessEntitlementId == '' && data.accessLeaseSeconds == 600)
+              || (parentLobby().data.hostProfileId != profileId && parentLobby().data.accessOfferId != ''
+                  && entitlementLeaseTransition(data.accessEntitlementId, data.accessLeaseSeconds)));
+        }
+        function validHeartbeat(data) {
+          return validMemberShape(data)
+            && data.profileId == resource.data.profileId
+            && data.role == resource.data.role
+            && data.accessEntitlementId == resource.data.get('accessEntitlementId','')
+            && data.accessStartedAt == resource.data.get('accessStartedAt',data.accessStartedAt)
+            && data.accessLeaseSeconds == resource.data.get('accessLeaseSeconds',data.accessLeaseSeconds)
+            && data.joinedAt == resource.data.joinedAt
+            && data.lastSeenAt == request.time
+            && data.diff(resource.data).affectedKeys().hasOnly(['lastSeenAt'])
+            && memberHasLiveAccess(lobbyId, profileId);
+        }
+        function validAccessRenewal(data) {
+          let priorLease = resource.data.get('accessLeaseSeconds',0);
+          let priorStart = resource.data.get('accessStartedAt',request.time);
+          return validAccessStart(data)
+            && data.profileId == resource.data.profileId
+            && data.role == resource.data.role
+            && data.joinedAt == resource.data.joinedAt
+            && (priorLease == 0 || request.time.toMillis() + 1000 >= priorStart.toMillis() + priorLease * 1000);
         }
         allow read: if signedIn();
         allow create: if callerCanContribute()
           && isCallerProfile(profileId)
           && parentLobby().data.status == 'open'
-          && validLobbyMember(request.resource.data);
+          && request.resource.data.joinedAt == request.time
+          && validAccessStart(request.resource.data);
         allow update: if callerCanContribute()
           && isCallerProfile(profileId)
-          && parentLobby().data.status == 'open'
-          && request.resource.data.profileId == resource.data.profileId
-          && request.resource.data.role == resource.data.role
-          && request.resource.data.accessEntitlementId == resource.data.accessEntitlementId
-          && request.resource.data.joinedAt == resource.data.joinedAt
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeenAt'])
-          && request.resource.data.lastSeenAt is timestamp;
+          && parentLobby().data.status in ['open','playing']
+          && (validHeartbeat(request.resource.data) || validAccessRenewal(request.resource.data));
         allow delete: if isCallerProfile(profileId)
           || (hasPrivateAccount() && parentLobby().data.hostProfileId == callerProfileId());
       }
@@ -1652,7 +1811,7 @@ service cloud.firestore {
       return callerCanContribute()
         && exists(/databases/$(database)/documents/gameLobbies/$(lobbyId))
         && galacticLobby(lobbyId).data.gameStyle == 'galactic-dominion'
-        && exists(/databases/$(database)/documents/gameLobbies/$(lobbyId)/members/$(callerProfileId()));
+        && memberHasLiveAccess(lobbyId, callerProfileId());
     }
     function validGalacticGameStatus(value) { return value in ['waiting','playing','finished']; }
     function validGalacticGamePhase(value) { return value in ['waiting','roll','action','finished']; }
@@ -1723,7 +1882,7 @@ service cloud.firestore {
     // Sunball, Soldoku, and Escape Pod Dash.
     // ============================================================
     function callerInLobby(lobbyId) {
-      return hasPrivateAccount() && exists(/databases/$(database)/documents/gameLobbies/$(lobbyId)/members/$(callerProfileId()));
+      return hasPrivateAccount() && memberHasLiveAccess(lobbyId, callerProfileId());
     }
     function validHostedRun(data, profileId, lobbyId) {
       let lobbyPath = /databases/$(database)/documents/gameLobbies/$(lobbyId);
@@ -1735,7 +1894,7 @@ service cloud.firestore {
         && data.status in ['ready','playing','finished']
         && data.lives is int && data.lives >= 0 && data.lives <= 9999
         && data.progress is int && data.progress >= 0 && data.progress <= 2000000000
-        && data.updatedAt is timestamp;
+        && data.updatedAt == request.time;
     }
     match /hostedModeRuns/{lobbyId}/players/{profileId} {
       allow read: if callerInLobby(lobbyId);
@@ -1745,18 +1904,28 @@ service cloud.firestore {
 
     // ============================================================
     // E.R.A.S. GLOBAL / LOBBY PRESENCE
-    // Low-frequency movement state plus combat/rest state. PvP attackers may
-    // only alter a target presence when the same atomic write resolves their
-    // queued profile attack.
+    // Global is zero-trust: the browser may request movement/actions, but
+    // Firestore validates server time, speed/budget, combat and action-energy
+    // transitions. Hosted worlds remain isolated sandboxes and never mint Credits.
     // ============================================================
     function validWorldId(value) {
       return value is string && value.size() > 0 && value.size() <= 160;
     }
+    function globalTurnNow() {
+      // Turn 1 = 2026-08-29T00:00:00Z. request.time is Firestore server time.
+      return math.floor((request.time.toMillis() - 1787961600000) / 60000) + 1;
+    }
     function playerAtNorthPlatformSpawn(data) {
       return data.x >= 11 && data.x <= 32 && data.y >= 11 && data.y <= 28;
     }
+    function validGlobalVelocity(data) {
+      return data.vx * data.vx + data.vy * data.vy <= 101;
+    }
+    function squaredDistance(x1, y1, x2, y2) {
+      return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+    }
     function validPresence(data) {
-      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','hp','maxHp','energy','maxEnergy','deaths','lastDeathEventId','lastCombatTurn','restedTurn','movedTurn','actionTurn','lastPvpEventId','updatedAt'])
+      return data.keys().hasOnly(['worldId','profileId','x','y','vx','vy','turnNumber','moveUsed','hp','maxHp','energy','maxEnergy','deaths','lastDeathEventId','lastCombatTurn','restedTurn','movedTurn','actionTurn','lastActionEventId','lastPvpEventId','updatedAt'])
         && validWorldId(data.worldId)
         && validPublicId(data.profileId) && profileExists(data.profileId)
         && data.x is number && data.x >= 0 && data.x <= 100
@@ -1769,7 +1938,7 @@ service cloud.firestore {
         && data.maxHp is int && data.maxHp >= 1 && data.maxHp <= 50 && data.hp <= data.maxHp
         && data.energy is int && data.energy >= 0
         && data.maxEnergy is int && data.maxEnergy >= 1 && data.maxEnergy <= 20 && data.energy <= data.maxEnergy
-        && ((data.worldId == 'global' && data.moveUsed <= 50.25 && data.maxHp == 5 && data.maxEnergy == 1)
+        && ((data.worldId == 'global' && data.moveUsed <= 50.25 && data.maxHp == 5 && data.maxEnergy == 1 && validGlobalVelocity(data))
           || (data.worldId != 'global' && data.moveUsed <= 100.25))
         && data.deaths is int && data.deaths >= 0
         && data.lastDeathEventId is string && data.lastDeathEventId.size() <= 180
@@ -1777,21 +1946,99 @@ service cloud.firestore {
         && data.restedTurn is int && data.restedTurn >= 0
         && data.movedTurn is int && data.movedTurn >= 0
         && data.actionTurn is int && data.actionTurn >= 0
+        && data.get('lastActionEventId','') is string && data.get('lastActionEventId','').size() <= 180
         && data.lastPvpEventId is string && data.lastPvpEventId.size() <= 180
         && data.updatedAt is timestamp;
     }
-    function validOwnRestTransition() {
-      return request.resource.data.restedTurn > resource.data.get('restedTurn',0)
-        && request.resource.data.restedTurn == request.resource.data.turnNumber
-        && resource.data.moveUsed <= 0.001
-        && resource.data.get('movedTurn',0) != request.resource.data.restedTurn
-        && resource.data.get('actionTurn',0) != request.resource.data.restedTurn
-        && request.resource.data.hp == request.resource.data.maxHp
+    function validGlobalPresenceCreate(data) {
+      return data.worldId == 'global'
+        && data.turnNumber == globalTurnNow()
+        && playerAtNorthPlatformSpawn(data)
+        && data.vx == 0 && data.vy == 0 && data.moveUsed == 0
+        && data.hp == 5 && data.maxHp == 5
+        && data.energy == 1 && data.maxEnergy == 1
+        && data.deaths == 0 && data.lastDeathEventId == ''
+        && data.lastCombatTurn == 0 && data.restedTurn == 0
+        && data.movedTurn == 0 && data.actionTurn == 0
+        && data.get('lastActionEventId','') == '' && data.lastPvpEventId == ''
+        && data.updatedAt == request.time;
+    }
+    function globalOwnIdentityFixed() {
+      return request.resource.data.worldId == resource.data.worldId
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.maxHp == resource.data.maxHp
+        && request.resource.data.maxEnergy == resource.data.maxEnergy;
+    }
+    function validGlobalMovementTransition() {
+      let moveDelta = request.resource.data.moveUsed - resource.data.moveUsed;
+      let dx = request.resource.data.x - resource.data.x;
+      let dy = request.resource.data.y - resource.data.y;
+      let elapsedMs = request.time.toMillis() - resource.data.updatedAt.toMillis();
+      let speedAllowance = elapsedMs * 0.01 + 1.5;
+      return resource.data.worldId == 'global'
+        && globalOwnIdentityFixed()
+        && request.resource.data.turnNumber == globalTurnNow()
+        && resource.data.turnNumber == request.resource.data.turnNumber
+        && moveDelta >= 0
+        && dx * dx + dy * dy <= (moveDelta + 0.35) * (moveDelta + 0.35)
+        && elapsedMs >= 0
+        && dx * dx + dy * dy <= speedAllowance * speedAllowance
+        && request.resource.data.hp == resource.data.hp
+        && request.resource.data.energy == resource.data.energy
+        && request.resource.data.deaths == resource.data.deaths
+        && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+        && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
+        && request.resource.data.restedTurn == resource.data.restedTurn
+        && request.resource.data.actionTurn == resource.data.actionTurn
+        && request.resource.data.get('lastActionEventId','') == resource.data.get('lastActionEventId','')
+        && request.resource.data.lastPvpEventId == resource.data.lastPvpEventId
+        && ((moveDelta > 0 && request.resource.data.movedTurn == request.resource.data.turnNumber)
+          || (moveDelta == 0 && request.resource.data.movedTurn == resource.data.movedTurn))
+        && request.resource.data.updatedAt == request.time;
+    }
+    function validGlobalTurnRefresh() {
+      return resource.data.worldId == 'global'
+        && globalOwnIdentityFixed()
+        && request.resource.data.turnNumber == globalTurnNow()
+        && request.resource.data.turnNumber > resource.data.turnNumber
+        && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
+        && request.resource.data.moveUsed == 0
+        && request.resource.data.hp == resource.data.hp
         && request.resource.data.energy == request.resource.data.maxEnergy
         && request.resource.data.deaths == resource.data.deaths
-        && request.resource.data.x == resource.data.x
-        && request.resource.data.y == resource.data.y
-        && request.resource.data.moveUsed == resource.data.moveUsed;
+        && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+        && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
+        && request.resource.data.restedTurn == resource.data.restedTurn
+        && request.resource.data.movedTurn == resource.data.movedTurn
+        && request.resource.data.actionTurn == resource.data.actionTurn
+        && request.resource.data.get('lastActionEventId','') == resource.data.get('lastActionEventId','')
+        && request.resource.data.lastPvpEventId == resource.data.lastPvpEventId
+        && request.resource.data.updatedAt == request.time;
+    }
+    function validGlobalRestTransition() {
+      let restTurn = request.resource.data.restedTurn;
+      return resource.data.worldId == 'global'
+        && globalOwnIdentityFixed()
+        && request.resource.data.turnNumber == globalTurnNow()
+        && restTurn > resource.data.restedTurn
+        && (restTurn == globalTurnNow() || restTurn == globalTurnNow() - 1)
+        && resource.data.movedTurn != restTurn
+        && resource.data.actionTurn != restTurn
+        && resource.data.lastCombatTurn < restTurn
+        && (restTurn != globalTurnNow() || resource.data.moveUsed <= 0.001)
+        && request.resource.data.hp == request.resource.data.maxHp
+        && request.resource.data.energy == request.resource.data.maxEnergy
+        && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
+        && request.resource.data.vx == 0 && request.resource.data.vy == 0
+        && request.resource.data.moveUsed == resource.data.moveUsed
+        && request.resource.data.deaths == resource.data.deaths
+        && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+        && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
+        && request.resource.data.movedTurn == resource.data.movedTurn
+        && request.resource.data.actionTurn == resource.data.actionTurn
+        && request.resource.data.get('lastActionEventId','') == resource.data.get('lastActionEventId','')
+        && request.resource.data.lastPvpEventId == resource.data.lastPvpEventId
+        && request.resource.data.updatedAt == request.time;
     }
     function validHealthPotionPresenceTransition() {
       let inventoryPath = /databases/$(database)/documents/gameInventories/$(resource.data.profileId);
@@ -1805,10 +2052,7 @@ service cloud.firestore {
         && request.resource.data.hp <= resource.data.hp + 2
         && request.resource.data.hp <= resource.data.maxHp
         && request.resource.data.energy == resource.data.energy
-        && request.resource.data.maxEnergy == resource.data.maxEnergy
-        && request.resource.data.worldId == resource.data.worldId
-        && request.resource.data.profileId == resource.data.profileId
-        && request.resource.data.maxHp == resource.data.maxHp
+        && globalOwnIdentityFixed()
         && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
         && request.resource.data.vx == resource.data.vx && request.resource.data.vy == resource.data.vy
         && request.resource.data.turnNumber == resource.data.turnNumber
@@ -1816,10 +2060,12 @@ service cloud.firestore {
         && request.resource.data.deaths == resource.data.deaths
         && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
         && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
-        && request.resource.data.restedTurn == resource.data.get('restedTurn',0)
-        && request.resource.data.movedTurn == resource.data.get('movedTurn',0)
-        && request.resource.data.actionTurn == resource.data.get('actionTurn',0)
-        && request.resource.data.lastPvpEventId == resource.data.get('lastPvpEventId','');
+        && request.resource.data.restedTurn == resource.data.restedTurn
+        && request.resource.data.movedTurn == resource.data.movedTurn
+        && request.resource.data.actionTurn == resource.data.actionTurn
+        && request.resource.data.get('lastActionEventId','') == resource.data.get('lastActionEventId','')
+        && request.resource.data.lastPvpEventId == resource.data.lastPvpEventId
+        && request.resource.data.updatedAt == request.time;
     }
     function validHostedPotionPresenceTransition() {
       let inventoryPath = /databases/$(database)/documents/gameWorldInventories/$(resource.data.worldId + '__' + resource.data.profileId);
@@ -1840,41 +2086,156 @@ service cloud.firestore {
         && request.resource.data.deaths == resource.data.deaths
         && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
         && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
-        && request.resource.data.restedTurn == resource.data.get('restedTurn',0)
-        && request.resource.data.movedTurn == resource.data.get('movedTurn',0)
-        && request.resource.data.actionTurn == resource.data.get('actionTurn',0)
-        && request.resource.data.lastPvpEventId == resource.data.get('lastPvpEventId','');
+        && request.resource.data.restedTurn == resource.data.restedTurn
+        && request.resource.data.movedTurn == resource.data.movedTurn
+        && request.resource.data.actionTurn == resource.data.actionTurn
+        && request.resource.data.lastPvpEventId == resource.data.lastPvpEventId
+        && request.resource.data.updatedAt == request.time;
     }
-    function validOwnPresenceUpdate() {
-      let rest = validOwnRestTransition();
+    function validGlobalActionPresenceTransition() {
+      let actionId = request.resource.data.get('lastActionEventId','');
+      let actionPath = /databases/$(database)/documents/gameActions/$(actionId);
+      return resource.data.worldId == 'global'
+        && actionId.size() > 0
+        && globalOwnIdentityFixed()
+        && request.resource.data.turnNumber == resource.data.turnNumber
+        && request.resource.data.turnNumber == globalTurnNow()
+        && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
+        && request.resource.data.vx == resource.data.vx && request.resource.data.vy == resource.data.vy
+        && request.resource.data.moveUsed == resource.data.moveUsed
+        && request.resource.data.hp == resource.data.hp
+        && request.resource.data.deaths == resource.data.deaths
+        && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+        && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
+        && request.resource.data.restedTurn == resource.data.restedTurn
+        && request.resource.data.movedTurn == resource.data.movedTurn
+        && request.resource.data.lastPvpEventId == resource.data.lastPvpEventId
+        && request.resource.data.updatedAt == request.time
+        && existsAfter(actionPath)
+        && getAfter(actionPath).data.actorProfileId == resource.data.profileId
+        && getAfter(actionPath).data.worldId == 'global'
+        && (
+          (!exists(actionPath)
+            && getAfter(actionPath).data.status == 'queued'
+            && getAfter(actionPath).data.declaredTurn == globalTurnNow()
+            && resource.data.energy >= 1
+            && resource.data.actionTurn != globalTurnNow()
+            && resource.data.restedTurn != globalTurnNow()
+            && request.resource.data.energy == resource.data.energy - 1
+            && request.resource.data.actionTurn == globalTurnNow())
+          || (exists(actionPath)
+            && get(actionPath).data.status == 'queued'
+            && getAfter(actionPath).data.status == 'cancelled'
+            && get(actionPath).data.declaredTurn == globalTurnNow()
+            && resource.data.actionTurn == get(actionPath).data.declaredTurn
+            && request.resource.data.energy == resource.data.energy + 1
+            && request.resource.data.energy <= request.resource.data.maxEnergy
+            && request.resource.data.actionTurn == 0)
+        );
+    }
+    function globalSlimeAliveInRange(enemyId, presence) {
+      let p = /databases/$(database)/documents/gameEnemies/$(enemyId);
+      return exists(p)
+        && get(p).data.worldId == 'global'
+        && get(p).data.type == 'slime'
+        && get(p).data.alive == true
+        && squaredDistance(presence.x, presence.y, get(p).data.x, get(p).data.y) <= 169;
+    }
+    function globalSlimeDamageAtPresence(presence) {
+      return (globalSlimeAliveInRange('global__cache-slime-a', presence) ? 1 : 0)
+        + (globalSlimeAliveInRange('global__cache-slime-b', presence) ? 1 : 0)
+        + (globalSlimeAliveInRange('global__cache-slime-c', presence) ? 1 : 0);
+    }
+    function validGlobalPvePresenceTransition() {
+      let damage = globalSlimeDamageAtPresence(resource.data);
+      let deathEventId = 'death_' + resource.data.profileId + '__global_' + globalTurnNow();
+      let walletPath = /databases/$(database)/documents/creditWallets/$(resource.data.profileId);
+      let statsPath = /databases/$(database)/documents/globalGameStats/$(resource.data.profileId);
+      return resource.data.worldId == 'global'
+        && isCallerProfile(resource.data.profileId)
+        && damage >= 1
+        && resource.data.lastCombatTurn < globalTurnNow()
+        && globalOwnIdentityFixed()
+        && request.resource.data.turnNumber == globalTurnNow()
+        && request.resource.data.restedTurn == resource.data.restedTurn
+        && request.resource.data.movedTurn == resource.data.movedTurn
+        && request.resource.data.actionTurn == resource.data.actionTurn
+        && request.resource.data.get('lastActionEventId','') == resource.data.get('lastActionEventId','')
+        && request.resource.data.lastPvpEventId == resource.data.lastPvpEventId
+        && request.resource.data.lastCombatTurn == globalTurnNow()
+        && request.resource.data.updatedAt == request.time
+        && (
+          (resource.data.hp > damage
+            && request.resource.data.hp == resource.data.hp - damage
+            && request.resource.data.deaths == resource.data.deaths
+            && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
+            && request.resource.data.energy == resource.data.energy
+            && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
+            && request.resource.data.vx == resource.data.vx && request.resource.data.vy == resource.data.vy
+            && request.resource.data.moveUsed == resource.data.moveUsed)
+          || (resource.data.hp <= damage
+            && request.resource.data.hp == request.resource.data.maxHp
+            && request.resource.data.deaths == resource.data.deaths + 1
+            && request.resource.data.lastDeathEventId == deathEventId
+            && playerAtNorthPlatformSpawn(request.resource.data)
+            && request.resource.data.vx == 0 && request.resource.data.vy == 0
+            && request.resource.data.moveUsed == 0
+            && request.resource.data.energy == request.resource.data.maxEnergy
+            && exists(walletPath) && existsAfter(walletPath)
+            && getAfter(walletPath).data.lastEventId == deathEventId
+            && getAfter(walletPath).data.lastEventType == 'death'
+            && ((get(walletPath).data.balance <= 10 && getAfter(walletPath).data.balance == 0)
+              || (get(walletPath).data.balance > 10 && getAfter(walletPath).data.balance == get(walletPath).data.balance - 10))
+            && exists(statsPath) && existsAfter(statsPath)
+            && getAfter(statsPath).data.pveKills == 0 && getAfter(statsPath).data.pvpKills == 0
+            && getAfter(statsPath).data.lastResetDeathEventId == deathEventId)
+        );
+    }
+    function validHostedOwnPresenceUpdate() {
+      let rest = request.resource.data.restedTurn > resource.data.get('restedTurn',0)
+        && request.resource.data.restedTurn == request.resource.data.turnNumber
+        && resource.data.moveUsed <= 0.001;
       let death = request.resource.data.deaths > resource.data.deaths;
-      return isCallerProfile(resource.data.profileId)
+      return resource.data.worldId != 'global'
+        && isCallerProfile(resource.data.profileId)
+        && request.resource.data.worldId == resource.data.worldId
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.maxHp == resource.data.maxHp
         && request.resource.data.lastPvpEventId == resource.data.get('lastPvpEventId','')
+        && request.resource.data.updatedAt == request.time
         && (request.resource.data.energy <= resource.data.get('energy',request.resource.data.energy)
           || request.resource.data.turnNumber > resource.data.turnNumber
-          || rest || death)
+          || rest || death
+          || request.resource.data.get('lastActionEventId','') != resource.data.get('lastActionEventId',''))
         && (request.resource.data.hp <= resource.data.hp
-          || death || rest
-          || validHealthPotionPresenceTransition()
-          || validHostedPotionPresenceTransition());
+          || death || rest || validHostedPotionPresenceTransition());
+    }
+    function globalActionDamage(action) {
+      let inventoryPath = /databases/$(database)/documents/gameInventories/$(action.actorProfileId);
+      let weapon = exists(inventoryPath) ? get(inventoryPath).data.equippedWeapon : '';
+      return weapon == 'hand_wraps' ? 2 : ((weapon == 'stick' && action.resolveTurn % 2 == 0) ? 2 : 1);
     }
     function validGlobalPvpPresenceTransition(actionId, actionPath) {
+      let action = getAfter(actionPath).data;
+      let attackerPath = /databases/$(database)/documents/gamePresence/$(action.actorProfileId + '__global');
       let damage = resource.data.hp - request.resource.data.hp;
-      let hasWeapon = exists(/databases/$(database)/documents/gameInventories/$(callerProfileId()))
-        && get(/databases/$(database)/documents/gameInventories/$(callerProfileId())).data.equippedWeapon in ['hand_wraps','stick'];
       return resource.data.worldId == 'global'
-        && request.resource.data.energy == (getAfter(actionPath).data.outcome == 'kill' ? request.resource.data.maxEnergy : resource.data.energy)
+        && action.resolveTurn == globalTurnNow()
+        && exists(attackerPath)
+        && get(attackerPath).data.worldId == 'global'
+        && squaredDistance(get(attackerPath).data.x, get(attackerPath).data.y, resource.data.x, resource.data.y) <= 196
+        && request.resource.data.energy == (action.outcome == 'kill' ? request.resource.data.maxEnergy : resource.data.energy)
         && request.resource.data.maxEnergy == resource.data.maxEnergy
-        && ((getAfter(actionPath).data.outcome == 'hit'
-          && damage >= 1 && damage <= 2 && (damage == 1 || hasWeapon)
+        && ((action.outcome == 'hit'
+          && damage == globalActionDamage(action)
           && request.resource.data.hp > 0
           && request.resource.data.deaths == resource.data.deaths
           && request.resource.data.lastDeathEventId == resource.data.lastDeathEventId
           && request.resource.data.x == resource.data.x && request.resource.data.y == resource.data.y
           && request.resource.data.vx == resource.data.vx && request.resource.data.vy == resource.data.vy
           && request.resource.data.moveUsed == resource.data.moveUsed)
-        || (getAfter(actionPath).data.outcome == 'kill'
-          && (resource.data.hp == 1 || (resource.data.hp <= 2 && hasWeapon))
+        || (action.outcome == 'kill'
+          && resource.data.hp <= globalActionDamage(action)
           && request.resource.data.hp == resource.data.maxHp
           && request.resource.data.deaths == resource.data.deaths + 1
           && request.resource.data.lastDeathEventId == 'pvp_' + actionId
@@ -1919,11 +2280,13 @@ service cloud.firestore {
         && request.resource.data.profileId == resource.data.profileId
         && request.resource.data.maxHp == resource.data.maxHp
         && request.resource.data.turnNumber == resource.data.turnNumber
-        && request.resource.data.restedTurn == resource.data.get('restedTurn',0)
-        && request.resource.data.movedTurn == resource.data.get('movedTurn',0)
-        && request.resource.data.actionTurn == resource.data.get('actionTurn',0)
+        && request.resource.data.restedTurn == resource.data.restedTurn
+        && request.resource.data.movedTurn == resource.data.movedTurn
+        && request.resource.data.actionTurn == resource.data.actionTurn
+        && request.resource.data.get('lastActionEventId','') == resource.data.get('lastActionEventId','')
         && request.resource.data.lastCombatTurn == resource.data.lastCombatTurn
         && request.resource.data.lastPvpEventId == actionId
+        && request.resource.data.updatedAt == request.time
         && (validGlobalPvpPresenceTransition(actionId, actionPath) || validHostedPvpPresenceTransition(actionId, actionPath));
     }
     match /gamePresence/{presenceId} {
@@ -1931,10 +2294,19 @@ service cloud.firestore {
       allow create: if callerCanContribute()
         && isCallerProfile(request.resource.data.profileId)
         && presenceId == request.resource.data.profileId + '__' + request.resource.data.worldId
-        && validPresence(request.resource.data);
+        && validPresence(request.resource.data)
+        && ((request.resource.data.worldId == 'global' && validGlobalPresenceCreate(request.resource.data))
+          || (request.resource.data.worldId != 'global' && request.resource.data.updatedAt == request.time));
       allow update: if validPresence(request.resource.data)
         && presenceId == request.resource.data.profileId + '__' + request.resource.data.worldId
-        && (validOwnPresenceUpdate() || validPvpPresenceTransition());
+        && (validGlobalMovementTransition()
+          || validGlobalTurnRefresh()
+          || validGlobalRestTransition()
+          || validHealthPotionPresenceTransition()
+          || validGlobalActionPresenceTransition()
+          || validGlobalPvePresenceTransition()
+          || validHostedOwnPresenceUpdate()
+          || validPvpPresenceTransition());
       allow delete: if isCallerProfile(resource.data.profileId);
     }
 
@@ -1950,7 +2322,7 @@ service cloud.firestore {
         && validPublicId(data.profileId)
         && data.clientId is string && data.clientId.size() > 0 && data.clientId.size() <= 80
         && validWorldId(data.worldId)
-        && data.requestedAt is timestamp;
+        && data.requestedAt == request.time;
     }
     match /gameClockProbes/{probeId} {
       allow read: if signedIn() && isCallerProfile(resource.data.profileId);
@@ -1979,8 +2351,26 @@ service cloud.firestore {
     function validGlobalEnemyBounds(data) {
       return data.x >= 76 && data.x <= 91 && data.y >= 68 && data.y <= 84;
     }
+    function globalEnemyAtExpectedPosition(data) {
+      let phase = data.wanderStep % 4;
+      return (data.enemyKey == 'cache-slime-a'
+          && ((phase == 0 && data.x == 79 && data.y == 72)
+            || (phase == 1 && data.x == 81 && data.y == 72)
+            || (phase == 2 && data.x == 81 && data.y == 74)
+            || (phase == 3 && data.x == 79 && data.y == 74)))
+        || (data.enemyKey == 'cache-slime-b'
+          && ((phase == 0 && data.x == 84 && data.y == 76)
+            || (phase == 1 && data.x == 86 && data.y == 76)
+            || (phase == 2 && data.x == 86 && data.y == 78)
+            || (phase == 3 && data.x == 84 && data.y == 78)))
+        || (data.enemyKey == 'cache-slime-c'
+          && ((phase == 0 && data.x == 89 && data.y == 81)
+            || (phase == 1 && data.x == 91 && data.y == 81)
+            || (phase == 2 && data.x == 91 && data.y == 83)
+            || (phase == 3 && data.x == 89 && data.y == 83)));
+    }
     function globalEnemyAtSpawn(data) {
-      return validGlobalEnemyBounds(data);
+      return data.wanderStep == 0 && globalEnemyAtExpectedPosition(data);
     }
     function validGlobalGameEnemy(data) {
       return data.keys().hasOnly(['worldId','enemyKey','type','label','x','y','hp','maxHp','alive','respawnTurn','lastHitActionId','lastHitByProfileId','lastKillActionId','killerProfileId','wanderStep','lastWanderAt','updatedAt'])
@@ -2005,6 +2395,7 @@ service cloud.firestore {
     }
     function validGlobalEnemyAttackAction(enemyId, actionId, killed) {
       let actionPath = /databases/$(database)/documents/gameActions/$(actionId);
+      let presencePath = /databases/$(database)/documents/gamePresence/$(callerProfileId() + '__global');
       return existsAfter(actionPath)
         && getAfter(actionPath).data.worldId == 'global'
         && getAfter(actionPath).data.actorProfileId == callerProfileId()
@@ -2013,20 +2404,28 @@ service cloud.firestore {
         && getAfter(actionPath).data.targetId == enemyId
         && getAfter(actionPath).data.status == 'resolved'
         && getAfter(actionPath).data.outcome == (killed ? 'kill' : 'hit')
+        && getAfter(actionPath).data.resolveTurn == globalTurnNow()
+        && exists(presencePath)
+        && get(presencePath).data.worldId == 'global'
+        && get(presencePath).data.turnNumber == globalTurnNow()
+        && squaredDistance(get(presencePath).data.x, get(presencePath).data.y, resource.data.x, resource.data.y) <= 196
+        // If a live slime is currently in retaliation range, the authoritative
+        // retaliation transition must already have been settled this marker.
+        && (globalSlimeDamageAtPresence(get(presencePath).data) == 0
+          || get(presencePath).data.lastCombatTurn == globalTurnNow())
         && request.resource.data.respawnTurn == (killed ? getAfter(actionPath).data.resolveTurn + 1 : resource.data.respawnTurn);
-    }
-    function callerGlobalWeaponAllowsTwoDamage() {
-      let inventoryPath = /databases/$(database)/documents/gameInventories/$(callerProfileId());
-      return exists(inventoryPath)
-        && get(inventoryPath).data.equippedWeapon in ['hand_wraps','stick'];
     }
     function validGlobalEnemyAttackTransition(enemyId) {
       let actionId = request.resource.data.lastHitActionId;
+      let actionPath = /databases/$(database)/documents/gameActions/$(actionId);
       let killed = request.resource.data.hp == 0;
-      let damage = resource.data.hp - request.resource.data.hp;
+      let rawDamage = globalActionDamage(getAfter(actionPath).data);
+      let expected = resource.data.hp < rawDamage ? resource.data.hp : rawDamage;
       return resource.data.alive == true
-        && damage >= 1 && damage <= 2
-        && (damage == 1 || callerGlobalWeaponAllowsTwoDamage())
+        && globalEnemyAtExpectedPosition(resource.data)
+        && request.resource.data.wanderStep == resource.data.wanderStep
+        && globalEnemyAtExpectedPosition(request.resource.data)
+        && request.resource.data.hp == resource.data.hp - expected
         && request.resource.data.lastHitByProfileId == callerProfileId()
         && actionId.size() > 0
         && validGlobalEnemyAttackAction(enemyId, actionId, killed)
@@ -2035,12 +2434,13 @@ service cloud.firestore {
         && request.resource.data.killerProfileId == (killed ? callerProfileId() : resource.data.killerProfileId)
         && request.resource.data.x == resource.data.x
         && request.resource.data.y == resource.data.y
-        && request.resource.data.wanderStep == resource.data.get('wanderStep',0)
-        && request.resource.data.lastWanderAt == resource.data.get('lastWanderAt',request.resource.data.lastWanderAt);
+        && request.resource.data.lastWanderAt == resource.data.lastWanderAt
+        && request.resource.data.updatedAt == request.time;
     }
     function validGlobalEnemyRespawnTransition() {
-      return callerCanContribute()
-        && resource.data.alive == false
+      return resource.data.alive == false
+        && resource.data.respawnTurn > 0
+        && resource.data.respawnTurn <= globalTurnNow()
         && request.resource.data.alive == true
         && request.resource.data.hp == request.resource.data.maxHp
         && request.resource.data.respawnTurn == 0
@@ -2048,13 +2448,14 @@ service cloud.firestore {
         && request.resource.data.lastHitByProfileId == ''
         && request.resource.data.killerProfileId == ''
         && request.resource.data.lastKillActionId == resource.data.lastKillActionId
-        && globalEnemyAtSpawn(request.resource.data)
-        && request.resource.data.wanderStep == resource.data.get('wanderStep',0)
-        && request.resource.data.lastWanderAt is timestamp;
+        && request.resource.data.wanderStep == resource.data.wanderStep
+        && globalEnemyAtExpectedPosition(request.resource.data)
+        && request.resource.data.lastWanderAt == request.time
+        && request.resource.data.updatedAt == request.time;
     }
     function validGlobalEnemyWanderTransition() {
-      return callerCanContribute()
-        && resource.data.alive == true
+      return resource.data.alive == true
+        && globalEnemyAtExpectedPosition(resource.data)
         && request.resource.data.alive == resource.data.alive
         && request.resource.data.hp == resource.data.hp
         && request.resource.data.respawnTurn == resource.data.respawnTurn
@@ -2062,27 +2463,27 @@ service cloud.firestore {
         && request.resource.data.lastHitByProfileId == resource.data.lastHitByProfileId
         && request.resource.data.lastKillActionId == resource.data.lastKillActionId
         && request.resource.data.killerProfileId == resource.data.killerProfileId
-        && request.resource.data.x >= resource.data.x - 3.5
-        && request.resource.data.x <= resource.data.x + 3.5
-        && request.resource.data.y >= resource.data.y - 3.5
-        && request.resource.data.y <= resource.data.y + 3.5
-        && request.resource.data.wanderStep == resource.data.get('wanderStep',0) + 1
+        && request.resource.data.wanderStep == resource.data.wanderStep + 1
+        && globalEnemyAtExpectedPosition(request.resource.data)
         && resource.data.lastWanderAt is timestamp
         && request.resource.data.lastWanderAt == request.time
+        && request.resource.data.updatedAt == request.time
         && request.time >= resource.data.lastWanderAt + duration.value(12, 's');
     }
     function validGlobalEnemyWanderMigration() {
-      return resource.data.alive == request.resource.data.alive
-        && resource.data.hp == request.resource.data.hp
-        && resource.data.x == request.resource.data.x
-        && resource.data.y == request.resource.data.y
-        && resource.data.respawnTurn == request.resource.data.respawnTurn
-        && resource.data.lastHitActionId == request.resource.data.lastHitActionId
-        && resource.data.lastHitByProfileId == request.resource.data.lastHitByProfileId
-        && resource.data.lastKillActionId == request.resource.data.lastKillActionId
-        && resource.data.killerProfileId == request.resource.data.killerProfileId
-        && request.resource.data.wanderStep == 0
-        && request.resource.data.lastWanderAt is timestamp;
+      // One-way hardening migration from pre-v1.2 random slime coordinates to
+      // the deterministic server-verifiable square for the existing wanderStep.
+      return request.resource.data.alive == resource.data.alive
+        && request.resource.data.hp == resource.data.hp
+        && request.resource.data.respawnTurn == resource.data.respawnTurn
+        && request.resource.data.lastHitActionId == resource.data.lastHitActionId
+        && request.resource.data.lastHitByProfileId == resource.data.lastHitByProfileId
+        && request.resource.data.lastKillActionId == resource.data.lastKillActionId
+        && request.resource.data.killerProfileId == resource.data.killerProfileId
+        && request.resource.data.wanderStep == resource.data.get('wanderStep',0)
+        && globalEnemyAtExpectedPosition(request.resource.data)
+        && request.resource.data.lastWanderAt == request.time
+        && request.resource.data.updatedAt == request.time;
     }
     function validGlobalEnemyHpMigration() {
       return resource.data.worldId == 'global'
@@ -2102,12 +2503,13 @@ service cloud.firestore {
         && request.resource.data.lastKillActionId == resource.data.lastKillActionId
         && request.resource.data.killerProfileId == resource.data.killerProfileId
         && request.resource.data.wanderStep == resource.data.get('wanderStep',0)
-        && request.resource.data.lastWanderAt is timestamp;
+        && request.resource.data.lastWanderAt == request.time
+        && request.resource.data.updatedAt == request.time;
     }
     function callerInHostedLobby(lobbyId) {
       return callerCanContribute()
         && lobbyId is string && lobbyId.size() > 0 && lobbyId.size() <= 120
-        && exists(/databases/$(database)/documents/gameLobbies/$(lobbyId)/members/$(callerProfileId()));
+        && memberHasLiveAccess(lobbyId, callerProfileId());
     }
 
 
@@ -2187,13 +2589,17 @@ service cloud.firestore {
             && request.resource.data.lastHitByProfileId == ''
             && request.resource.data.lastKillActionId == ''
             && request.resource.data.killerProfileId == ''
-            && request.resource.data.wanderStep == 0)
+            && request.resource.data.wanderStep == 0
+            && request.resource.data.lastWanderAt == request.time
+            && request.resource.data.updatedAt == request.time)
           || (validHostedGameEnemy(request.resource.data)
             && callerInHostedLobby(request.resource.data.lobbyId)
             && enemyId == request.resource.data.worldId + '__' + request.resource.data.enemyKey
             && request.resource.data.hp == request.resource.data.maxHp
             && request.resource.data.alive == true
-            && request.resource.data.respawnTurn == 0));
+            && request.resource.data.respawnTurn == 0
+            && request.resource.data.lastWanderAt == request.time
+            && request.resource.data.updatedAt == request.time));
       allow update: if callerCanContribute()
         && ((validGlobalGameEnemy(request.resource.data)
             && request.resource.data.worldId == resource.data.worldId
@@ -2209,7 +2615,8 @@ service cloud.firestore {
             && request.resource.data.lobbyId == resource.data.lobbyId
             && request.resource.data.enemyKey == resource.data.enemyKey
             && request.resource.data.mobId == resource.data.mobId
-            && enemyId == request.resource.data.worldId + '__' + request.resource.data.enemyKey));
+            && enemyId == request.resource.data.worldId + '__' + request.resource.data.enemyKey
+            && request.resource.data.updatedAt == request.time));
       allow delete: if resource.data.get('type','') == 'custom'
         && callerInHostedLobby(resource.data.get('lobbyId',''));
     }
@@ -2230,8 +2637,10 @@ service cloud.firestore {
         && validPublicId(data.actorProfileId) && profileExists(data.actorProfileId)
         && validGameActionType(data.actionType)
         && validGameActionTargetType(data.targetType)
+        && ((data.actionType == 'attack' && data.targetType in ['profile','enemy'])
+          || (data.actionType == 'interact' && data.targetType == 'object'))
         && data.targetId is string && data.targetId.size() > 0 && data.targetId.size() <= 180
-        && (data.targetType != 'profile' || (validPublicId(data.targetId) && profileExists(data.targetId)))
+        && (data.targetType != 'profile' || (validPublicId(data.targetId) && profileExists(data.targetId) && data.targetId != data.actorProfileId))
         && (data.targetType != 'enemy' || (exists(/databases/$(database)/documents/gameEnemies/$(data.targetId)) && get(/databases/$(database)/documents/gameEnemies/$(data.targetId)).data.worldId == data.worldId))
         && data.targetLabel is string && data.targetLabel.size() > 0 && data.targetLabel.size() <= 80
         && data.declaredTurn is int && data.declaredTurn >= 1
@@ -2245,6 +2654,87 @@ service cloud.firestore {
         && validOptionalTimestamp(data.resolvedAt)
         && ((data.status == 'resolved' && data.resolvedAt != null) || (data.status != 'resolved' && data.resolvedAt == null));
     }
+    function validGlobalActionQueue(actionId, data) {
+      let presencePath = /databases/$(database)/documents/gamePresence/$(data.actorProfileId + '__global');
+      let rewardPath = /databases/$(database)/documents/globalRewardReceipts/$(actionId);
+      return data.worldId == 'global'
+        && data.declaredTurn == globalTurnNow()
+        && data.resolveTurn == globalTurnNow() + 1
+        && data.createdAt == request.time && data.updatedAt == request.time
+        && !exists(rewardPath)
+        && exists(presencePath) && existsAfter(presencePath)
+        && get(presencePath).data.worldId == 'global'
+        && get(presencePath).data.turnNumber == globalTurnNow()
+        && get(presencePath).data.energy >= 1
+        && get(presencePath).data.restedTurn != globalTurnNow()
+        && get(presencePath).data.actionTurn != globalTurnNow()
+        && getAfter(presencePath).data.energy == get(presencePath).data.energy - 1
+        && getAfter(presencePath).data.actionTurn == globalTurnNow()
+        && getAfter(presencePath).data.lastActionEventId == actionId
+        && getAfter(presencePath).data.updatedAt == request.time
+        && (data.targetType != 'enemy' || get(/databases/$(database)/documents/gameEnemies/$(data.targetId)).data.alive == true);
+    }
+    function validGlobalActionCancel(actionId, data) {
+      let presencePath = /databases/$(database)/documents/gamePresence/$(resource.data.actorProfileId + '__global');
+      return resource.data.worldId == 'global'
+        && globalTurnNow() == resource.data.declaredTurn
+        && data.status == 'cancelled' && data.outcome == 'cancelled' && data.resolvedAt == null
+        && data.updatedAt == request.time
+        && exists(presencePath) && existsAfter(presencePath)
+        && getAfter(presencePath).data.lastActionEventId == actionId
+        && getAfter(presencePath).data.energy == get(presencePath).data.energy + 1
+        && getAfter(presencePath).data.energy <= getAfter(presencePath).data.maxEnergy
+        && getAfter(presencePath).data.actionTurn == 0
+        && getAfter(presencePath).data.updatedAt == request.time;
+    }
+    function globalEnemyActionSettlement(actionId, data) {
+      let enemyPath = /databases/$(database)/documents/gameEnemies/$(data.targetId);
+      let rewardPath = /databases/$(database)/documents/globalRewardReceipts/$(actionId);
+      return data.targetType == 'enemy'
+        && existsAfter(enemyPath)
+        && getAfter(enemyPath).data.worldId == 'global'
+        && getAfter(enemyPath).data.lastHitActionId == actionId
+        && getAfter(enemyPath).data.lastHitByProfileId == data.actorProfileId
+        && ((data.outcome == 'hit'
+            && getAfter(enemyPath).data.alive == true
+            && getAfter(enemyPath).data.lastKillActionId != actionId)
+          || (data.outcome == 'kill'
+            && getAfter(enemyPath).data.alive == false
+            && getAfter(enemyPath).data.lastKillActionId == actionId
+            && getAfter(enemyPath).data.killerProfileId == data.actorProfileId
+            && !exists(rewardPath) && existsAfter(rewardPath)
+            && getAfter(rewardPath).data.actorProfileId == data.actorProfileId
+            && getAfter(rewardPath).data.enemyId == data.targetId
+            && getAfter(rewardPath).data.rewardCredits == 1));
+    }
+    function globalProfileActionSettlement(actionId, data) {
+      let targetPath = /databases/$(database)/documents/gamePresence/$(data.targetId + '__global');
+      return data.targetType == 'profile'
+        && existsAfter(targetPath)
+        && getAfter(targetPath).data.worldId == 'global'
+        && getAfter(targetPath).data.profileId == data.targetId
+        && getAfter(targetPath).data.lastPvpEventId == actionId
+        && ((data.outcome == 'hit' && getAfter(targetPath).data.hp > 0)
+          || (data.outcome == 'kill' && getAfter(targetPath).data.lastDeathEventId == 'pvp_' + actionId));
+    }
+    function validGlobalActionResolution(actionId, data) {
+      return resource.data.worldId == 'global'
+        && data.updatedAt == request.time && data.resolvedAt == request.time
+        && globalTurnNow() >= resource.data.resolveTurn
+        && (
+          // Stale or out-of-range declarations may only settle as a miss.
+          data.outcome == 'miss'
+          // Object interactions have no economic authority. They still resolve
+          // only at/after the server marker and cannot impersonate attacks.
+          || (resource.data.actionType == 'interact' && data.outcome == 'interact')
+          // Hits/kills are accepted only at the exact shared server turn and
+          // must atomically prove the target state transition.
+          || (globalTurnNow() == resource.data.resolveTurn
+            && resource.data.actionType == 'attack'
+            && ((data.outcome in ['hit','kill'] && resource.data.targetType == 'enemy' && globalEnemyActionSettlement(actionId, data))
+              || (data.outcome in ['hit','kill'] && resource.data.targetType == 'profile' && globalProfileActionSettlement(actionId, data))))
+        );
+    }
     match /gameActions/{actionId} {
       allow read: if signedIn();
       allow create: if callerCanContribute()
@@ -2252,7 +2742,11 @@ service cloud.firestore {
         && request.resource.data.status == 'queued'
         && request.resource.data.get('outcome','') == ''
         && request.resource.data.resolvedAt == null
-        && validGameAction(request.resource.data);
+        && validGameAction(request.resource.data)
+        && ((request.resource.data.worldId == 'global' && validGlobalActionQueue(actionId, request.resource.data))
+          || (request.resource.data.worldId != 'global'
+            && request.resource.data.createdAt == request.time
+            && request.resource.data.updatedAt == request.time));
       allow update: if callerCanContribute()
         && isCallerProfile(resource.data.actorProfileId)
         && request.resource.data.worldId == resource.data.worldId
@@ -2266,12 +2760,18 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && resource.data.status == 'queued'
         && request.resource.data.status in ['cancelled','resolved']
-        && validGameAction(request.resource.data);
-      // Action documents double as the rolling game log. Actors may remove
-      // their own declarations at any time. Any contributing signed-in player
-      // may prune declarations after ten minutes so active worlds never grow
-      // an unbounded action-history collection.
-      allow delete: if isCallerProfile(resource.data.actorProfileId)
+        && validGameAction(request.resource.data)
+        && ((resource.data.worldId == 'global'
+            && ((request.resource.data.status == 'cancelled' && validGlobalActionCancel(actionId, request.resource.data))
+              || (request.resource.data.status == 'resolved' && validGlobalActionResolution(actionId, request.resource.data))))
+          || (resource.data.worldId != 'global'
+            && request.resource.data.updatedAt == request.time
+            && (request.resource.data.status != 'resolved' || request.resource.data.resolvedAt == request.time)));
+      // Global queued declarations must be cancelled so their authoritative
+      // energy reservation is refunded. Resolved/cancelled logs can be removed;
+      // permanent reward receipts prevent economic replay after pruning.
+      allow delete: if (isCallerProfile(resource.data.actorProfileId)
+          && (resource.data.worldId != 'global' || resource.data.status != 'queued'))
         || (callerCanContribute()
           && resource.data.createdAt is timestamp
           && resource.data.createdAt < request.time - duration.value(10, 'm'));

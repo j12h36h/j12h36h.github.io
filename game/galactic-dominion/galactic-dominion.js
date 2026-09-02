@@ -1,4 +1,5 @@
 import { db, fs, watchIdentity, safeText } from '/game/assets/js/eras-data.js';
+import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join.js?v=1.2.0';
 import {
   GALACTIC_MODE_ID,
   GALACTIC_BOARD,
@@ -17,7 +18,7 @@ import {
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
 const lobbyId = String(params.get('lobby') || '').trim();
-const state = { identity: null, lobby: null, game: null, gameUnsub: null, lobbyUnsub: null, heartbeat: null, joining: null, busy: false };
+const state = { identity: null, lobby: null, game: null, gameUnsub: null, lobbyUnsub: null, heartbeat: null, accessLeaseStop: null, joining: null, busy: false };
 const gameRef = () => fs.doc(db, 'galacticDominionGames', lobbyId);
 const lobbyRef = () => fs.doc(db, 'gameLobbies', lobbyId);
 const memberRef = profileId => fs.doc(db, 'gameLobbies', lobbyId, 'members', profileId);
@@ -221,15 +222,17 @@ async function ensureLobbyMembership() {
   const profileId = state.identity?.profileId;
   if (!profileId || !state.lobby) throw new Error('Identity or lobby unavailable.');
   const existing = await fs.getDoc(memberRef(profileId));
-  if (existing.exists()) return;
-  if (state.lobby.status !== 'open') throw new Error('This match has already started.');
-  const members = await fs.getDocs(fs.collection(db, 'gameLobbies', lobbyId, 'members'));
-  if (members.size >= Number(state.lobby.maxPlayers || 8)) throw new Error('This lobby is full.');
-  await fs.setDoc(memberRef(profileId), {
-    profileId,
-    role: state.lobby.hostProfileId === profileId ? 'host' : 'player',
-    joinedAt: fs.serverTimestamp(),
-    lastSeenAt: fs.serverTimestamp()
+  if (!existing.exists() && state.lobby.status !== 'open') throw new Error('This match has already started.');
+  if (!existing.exists()) {
+    const members = await fs.getDocs(fs.collection(db, 'gameLobbies', lobbyId, 'members'));
+    if (members.size >= Number(state.lobby.maxPlayers || 8)) throw new Error('This lobby is full.');
+  }
+  const entitlementId = await obtainLobbyEntitlement(state.lobby, profileId);
+  await createLobbyMembership(state.lobby, profileId, entitlementId);
+  state.accessLeaseStop?.();
+  state.accessLeaseStop = maintainLobbyMembership(state.lobby, profileId, {
+    onExpired: () => { say('HOSTED ACCESS EXPIRED. RETURNING TO JOIN.', 'error'); setTimeout(() => location.replace(`/game/join/?code=${encodeURIComponent(state.lobby?.code || '')}`), 500); },
+    onError: error => console.debug('Galactic access lease', error?.code || error)
   });
 }
 
@@ -584,3 +587,5 @@ else {
 
 
 document.addEventListener('eras-hosted-asset-change', () => { renderBoard(); });
+
+window.addEventListener('pagehide', () => { state.accessLeaseStop?.(); clearInterval(state.heartbeat); });

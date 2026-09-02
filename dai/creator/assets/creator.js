@@ -2081,16 +2081,19 @@ async function publicBaseRegistryLoad(){
   publicBaseRegistry=await response.json();return publicBaseRegistry;
 }
 function selectedPublicPack(){const id=$("#publicBasePack")?.value||"";return (publicBaseRegistry?.packs||[]).find(x=>x.id===id)||null;}
+function safeExternalHttpUrl(value){
+  try{const u=new URL(String(value||""),location.href);return (u.protocol==="https:"||u.protocol==="http:")?u.href:"";}catch{return "";}
+}
 function publicBaseComponentUrl(component){
   if(!component)return "";
-  return String(component.source_url||component.github_raw_url||component.download_url||forgeCdnUrl(component.curseforge_file_id,component.file_name)||"");
+  return safeExternalHttpUrl(component.source_url||component.github_raw_url||component.download_url||forgeCdnUrl(component.curseforge_file_id,component.file_name)||"");
 }
 function renderPublicBaseComponents(){
   const pack=selectedPublicPack(),sel=$("#publicBaseComponent"),summary=$("#publicBaseSummary"),link=$("#publicBaseDownload");if(!sel)return;
   const components=pack?.components||[];sel.innerHTML=components.map((c,i)=>`<option value="${i}">${esc(c.type||"datapack")} · ${esc(c.file_name||c.id||`component ${i+1}`)}</option>`).join("");
   const chosen=components[Number(sel.value||0)]||components[0];
   if(summary)summary.textContent=pack?`${pack.name}\n${pack.summary||""}\nVersion: ${pack.version||"?"} · ${components.length} component(s)`:'No public pack selected.';
-  const url=publicBaseComponentUrl(chosen);if(link){link.hidden=!url;if(url){link.href=chosen?.source_page||url;link.textContent=(chosen?.source==="github"||String(url).includes("github"))?"Open GitHub source":"Open source ZIP";}}
+  const url=publicBaseComponentUrl(chosen);if(link){link.hidden=!url;if(url){link.href=safeExternalHttpUrl(chosen?.source_page)||url;link.textContent=(chosen?.source==="github"||String(url).includes("github"))?"Open GitHub source":"Open source ZIP";}}
 }
 async function openPublicBaseModal(){
   const modal=$("#publicBaseModal");if(!modal)return;modal.hidden=false;document.body.style.overflow="hidden";publicBaseStatus("Loading public registry…","warn");

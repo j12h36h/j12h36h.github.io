@@ -172,6 +172,29 @@ export function slimeDropsForAction(actionId = '') {
   return fieldDrops;
 }
 
+
+// Security-authoritative Global loot schedule. The official Global economy never
+// derives rewards from a client-selected UUID/random seed. Firestore mirrors this
+// exact schedule against the server-validated lifetime kill counter.
+export function slimeDropsForKillNumber(killNumber = 0) {
+  const n = Math.max(0, Math.floor(Number(killNumber) || 0));
+  const fieldDrops = {};
+  for (const itemId of ITEM_IDS) fieldDrops[GAME_ITEMS[itemId].inventoryField] = 0;
+  if (n > 0 && n % 20 === 0) fieldDrops.slimeJuice = 1;
+  if (n > 0 && n % 100 === 0) fieldDrops.healthPotion = 1;
+  if (n > 0 && n % 1000 === 0) fieldDrops.handWraps = 1;
+  return fieldDrops;
+}
+
+// Global weapon variance is tied to the trusted shared turn, not an attacker-
+// selectable action id. Hand Wraps are always 2; Stick alternates 1/2 by turn.
+export function attackDamageForTurn(turnNumber = 0, inventory = {}) {
+  const range = damageRange(inventory);
+  if (range.max <= range.min) return range.min;
+  if (inventory?.equippedWeapon === 'stick') return Math.max(1, Math.floor(Number(turnNumber) || 0)) % 2 === 0 ? 2 : 1;
+  return range.min;
+}
+
 export function attackDamageForAction(actionId = '', inventory = {}) {
   const range = damageRange(inventory);
   if (range.max <= range.min) return range.min;

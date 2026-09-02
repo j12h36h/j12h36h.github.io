@@ -114,29 +114,7 @@ async function selectConnection(profileId) {
   toast(`${profile.displayName||'Connection'} selected`);
 }
 
-async function migrateLegacyInventory() {
-  if(!state.identity?.profileId) return;
-  try {
-    const legacy=await fs.getDocs(fs.collection(db,'assetInventory',state.identity.profileId,'items'));
-    if(legacy.empty)return;
-    for(const d of legacy.docs){
-      const item=d.data();
-      const holdingRef=fs.doc(db,'assetHoldings',`legacy_${state.identity.profileId}_${d.id}`);
-      const existing=await fs.getDoc(holdingRef);
-      if(existing.exists())continue;
-      await fs.setDoc(holdingRef,{
-        ownerProfileId:state.identity.profileId,
-        assetId:item.assetId,
-        tint:item.tint||'#ffffff',
-        acquiredAt:item.acquiredAt||fs.serverTimestamp(),
-        updatedAt:fs.serverTimestamp(),
-        lastEventId:'legacy-migration',
-        lastEventType:'migration'
-      });
-    }
-  } catch(error) { console.debug('Legacy inventory migration',error?.code||error); }
-}
-
+// Legacy assetInventory migration is intentionally closed after security hardening.
 function watchHoldings() {
   state.holdingsUnsub?.(); state.holdings=[]; renderInventory(); refreshAssetSelects();
   if(!state.identity?.profileId)return;
@@ -145,7 +123,6 @@ function watchHoldings() {
     state.holdings=s.docs.map(d=>({id:d.id,...d.data()}));
     renderInventory(); refreshAssetSelects(); renderTradeBook();
   },e=>console.error('Trade holdings',e));
-  migrateLegacyInventory().catch(console.debug);
 }
 
 function holdingOption(h) { const meta=assetMeta(h.assetId); return `<option value="${escapeHtml(h.id)}">${escapeHtml(meta.name)} // ${escapeHtml(h.tint||'#ffffff')}</option>`; }

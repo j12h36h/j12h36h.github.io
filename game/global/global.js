@@ -1,10 +1,11 @@
 import { db, fs, watchIdentity, profileById, avatarSvg } from '/game/assets/js/eras-data.js?v=1.7.3';
 import { ensureCreditWallet, watchCreditWallet, formatCredits } from '/assets/js/credit-system.js?v=1.7.3';
 import { runTransaction as firestoreRunTransaction, orderBy as firestoreOrderBy, limit as firestoreLimit, getDocFromServer, getDocsFromServer } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
-import { createGameInventoryController, ensureGameInventory, gameInventoryRef } from '/game/inventory/inventory.js?v=2.1.0';
-import { normalizeGameInventory, slimeDropsForAction, describeDrops, attackDamageForAction, damageRange } from '/game/inventory/items.js?v=2.1.0';
+import { createGameInventoryController, ensureGameInventory, gameInventoryRef } from '/game/inventory/inventory.js?v=2.2.0';
+import { normalizeGameInventory, slimeDropsForKillNumber, describeDrops, attackDamageForTurn, damageRange } from '/game/inventory/items.js?v=2.2.0';
 import { GLOBAL_WORLD_SETTINGS, normalizeWorldSettings, expandedMobSpawns, mobById, terminalById, rollMobDrops } from '/game/config/world-settings.js?v=2.2.0';
 import { createWorldInventoryController, ensureWorldInventory, worldInventoryRef, normalizeWorldInventory, worldAttackDamage } from '/game/inventory/world-inventory.js?v=2.1.0';
+import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join.js?v=1.2.0';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
@@ -59,6 +60,7 @@ const state = {
   restedTurn: 0,
   movedTurn: 0,
   actionTurn: 0,
+  lastActionEventId: '',
   lastPvpEventId: '',
   turnNumber: 0,
   lastFrame: performance.now(),
@@ -105,7 +107,8 @@ const state = {
   cameraInitialized: false,
   worldSettings: GLOBAL_WORLD_SETTINGS,
   hostedWorld: false,
-  hostedInventory: null
+  hostedInventory: null,
+  accessLeaseStop: null
 };
 
 const message = text => {
@@ -150,7 +153,7 @@ function currentDamageRange() {
 }
 
 function currentAttackDamage(actionId = '') {
-  return state.hostedWorld && state.hostedInventory ? state.hostedInventory.attackDamage(actionId) : attackDamageForAction(actionId, state.gameInventory);
+  return state.hostedWorld && state.hostedInventory ? state.hostedInventory.attackDamage(actionId) : attackDamageForTurn(turnInfo().turnNumber + 1, state.gameInventory);
 }
 
 function clockNow() {
@@ -268,7 +271,7 @@ async function loadWorldName() {
   try {
     const snap = await fs.getDoc(fs.doc(db, 'gameLobbies', lobbyId));
     if (!snap.exists()) throw new Error('Hosted world not found.');
-    const lobby = snap.data();
+    const lobby = { id: snap.id, ...snap.data() };
     if (lobby.gameStyle === 'galactic-dominion') {
       location.replace(`/game/galactic-dominion/?lobby=${encodeURIComponent(lobbyId)}`);
       return;
@@ -284,11 +287,12 @@ async function loadWorldName() {
     $('#worldName').textContent = lobby.name || 'HOSTED GAME';
     const member = state.identity?.profileId;
     if (member) {
-      await fs.setDoc(fs.doc(db, 'gameLobbies', lobbyId, 'members', member), {
-        profileId: member,
-        role: lobby.hostProfileId === member ? 'host' : 'player',
-        joinedAt: fs.serverTimestamp(),
-        lastSeenAt: fs.serverTimestamp()
+      const entitlementId = await obtainLobbyEntitlement(lobby, member);
+      await createLobbyMembership(lobby, member, entitlementId);
+      state.accessLeaseStop?.();
+      state.accessLeaseStop = maintainLobbyMembership(lobby, member, {
+        onExpired: () => { message('HOSTED ACCESS EXPIRED // RETURNING TO JOIN.'); setTimeout(() => location.replace(`/game/join/?code=${encodeURIComponent(lobby.code || '')}`), 500); },
+        onError: error => console.debug('Hosted access lease', error?.code || error)
       });
       state.hostedInventory?.destroy?.();
       state.hostedInventory = createWorldInventoryController({
@@ -762,7 +766,7 @@ async function respawnDeadSlimes(currentTurn) {
         const live = snap.data();
         if (live.alive || Number(live.respawnTurn || 0) > currentTurn) return;
         const def = slimeDefinitionByDocId(enemy.id);
-        const spawn = def ? slimeSpawnPoint(def, currentTurn, 'respawn') : { x: Number(live.x || 83), y: Number(live.y || 76) };
+        const spawn = !state.hostedWorld ? globalSlimePosition(live.enemyKey, live.wanderStep) : (def ? slimeSpawnPoint(def, currentTurn, 'respawn') : { x: Number(live.x || 83), y: Number(live.y || 76) });
         tx.update(ref, {
           x: spawn.x,
           y: spawn.y,
@@ -825,7 +829,22 @@ function playerSpawnPoint(seed = '') {
   return pointInBounds(NORTH_PLATFORM_SPAWN, seed);
 }
 
+const GLOBAL_SLIME_BASES = Object.freeze({
+  'cache-slime-a': Object.freeze({ x:79, y:72 }),
+  'cache-slime-b': Object.freeze({ x:84, y:76 }),
+  'cache-slime-c': Object.freeze({ x:89, y:81 })
+});
+const GLOBAL_SLIME_OFFSETS = Object.freeze([
+  Object.freeze({ x:0, y:0 }), Object.freeze({ x:2, y:0 }),
+  Object.freeze({ x:2, y:2 }), Object.freeze({ x:0, y:2 })
+]);
+function globalSlimePosition(key, step = 0) {
+  const base = GLOBAL_SLIME_BASES[key] || GLOBAL_SLIME_BASES['cache-slime-b'];
+  const offset = GLOBAL_SLIME_OFFSETS[Math.max(0, Math.floor(Number(step) || 0)) % GLOBAL_SLIME_OFFSETS.length];
+  return { x: base.x + offset.x, y: base.y + offset.y };
+}
 function slimeSpawnPoint(def, turn, phase = 'spawn') {
+  if (!state.hostedWorld && worldId === 'global') return globalSlimePosition(def.key, 0);
   return pointInBounds(def, `${worldId}:${def.key}:${phase}:${turn}`);
 }
 
@@ -860,21 +879,27 @@ async function advanceSlimeWander() {
         const last = live.lastWanderAt?.toMillis?.() || 0;
         if (clockNow() - last < SLIME_WANDER_INTERVAL_MS) return;
         const step = Math.max(0, Number(live.wanderStep || 0));
-        const target = wanderDestination(def, step);
-        const fallbackX = (def.minX + def.maxX) / 2;
-        const fallbackY = (def.minY + def.maxY) / 2;
-        const dx = target.x - Number(live.x ?? fallbackX);
-        const dy = target.y - Number(live.y ?? fallbackY);
-        const distance = Math.hypot(dx, dy);
-        let nx = Number(live.x ?? fallbackX);
-        let ny = Number(live.y ?? fallbackY);
-        if (distance > .08) {
-          const stride = Math.min(SLIME_WANDER_STEP, distance);
-          nx += dx / distance * stride;
-          ny += dy / distance * stride;
+        let nx, ny;
+        if (!state.hostedWorld && worldId === 'global') {
+          const next = globalSlimePosition(def.key, step + 1);
+          nx = next.x; ny = next.y;
+        } else {
+          const target = wanderDestination(def, step);
+          const fallbackX = (def.minX + def.maxX) / 2;
+          const fallbackY = (def.minY + def.maxY) / 2;
+          const dx = target.x - Number(live.x ?? fallbackX);
+          const dy = target.y - Number(live.y ?? fallbackY);
+          const distance = Math.hypot(dx, dy);
+          nx = Number(live.x ?? fallbackX);
+          ny = Number(live.y ?? fallbackY);
+          if (distance > .08) {
+            const stride = Math.min(SLIME_WANDER_STEP, distance);
+            nx += dx / distance * stride;
+            ny += dy / distance * stride;
+          }
+          nx = Math.max(def.minX, Math.min(def.maxX, nx));
+          ny = Math.max(def.minY, Math.min(def.maxY, ny));
         }
-        nx = Math.max(def.minX, Math.min(def.maxX, nx));
-        ny = Math.max(def.minY, Math.min(def.maxY, ny));
         tx.update(ref, {
           x: nx,
           y: ny,
@@ -940,6 +965,7 @@ function reconcileOwnPresence(data, hasPendingWrites) {
   state.restedTurn = Math.max(0, Number(data.restedTurn || state.restedTurn || 0));
   state.movedTurn = Math.max(0, Number(data.movedTurn || state.movedTurn || 0));
   state.actionTurn = Math.max(0, Number(data.actionTurn || state.actionTurn || 0));
+  state.lastActionEventId = String(data.lastActionEventId || state.lastActionEventId || '');
 
   if (wasKnockout) {
     state.x = Number(data.x ?? 21.5);
@@ -1018,6 +1044,7 @@ async function restorePosition() {
       state.restedTurn = Math.max(0, Number(snap.data().restedTurn || 0));
       state.movedTurn = Math.max(0, Number(snap.data().movedTurn || 0));
       state.actionTurn = Math.max(0, Number(snap.data().actionTurn || 0));
+      state.lastActionEventId = String(snap.data().lastActionEventId || '');
       state.lastPvpEventId = String(snap.data().lastPvpEventId || '');
     } else {
       const spawn = playerSpawnPoint();
@@ -1070,6 +1097,7 @@ async function flushPresence(force = false) {
       restedTurn: state.restedTurn,
       movedTurn: state.movedTurn,
       actionTurn: state.actionTurn,
+      lastActionEventId: state.lastActionEventId,
       lastPvpEventId: state.lastPvpEventId,
       updatedAt: fs.serverTimestamp()
     });
@@ -1352,7 +1380,7 @@ async function pruneOldActions(force = false) {
   }
 }
 
-function applyTurnChange(nextTurn) {
+async function applyTurnChange(nextTurn) {
   const previous = state.turnNumber;
   state.turnNumber = nextTurn;
   state.moveUsed = 0;
@@ -1362,14 +1390,14 @@ function applyTurnChange(nextTurn) {
   syncVelocity();
   state.dirty = true;
   state.velocityDirty = true;
-  flushPresence(true);
+  await flushPresence(true);
   if (previous) message('GLOBAL MARKER // MOVEMENT + ENERGY REFRESHED.');
   renderGameLog();
   renderPvpRecord();
   renderActionPanel();
   renderMovementHud();
   pruneOldActions(true);
-  runCombatMarker(nextTurn).catch(error => {
+  await runCombatMarker(nextTurn).catch(error => {
     console.error('Combat marker', error);
     message(`COMBAT MARKER ERROR: ${error.code || error.message}`);
   });
@@ -1465,12 +1493,34 @@ async function queueAction(actionType) {
   const id = crypto.randomUUID();
   const payload = actionDocPayload(actionType);
   try {
-    await fs.setDoc(fs.doc(db, 'gameActions', id), payload);
+    // Publish any legitimate movement first, then atomically reserve the action's
+    // energy on the authoritative presence document. Security Rules require the
+    // gameAction and this energy reservation to arrive together on Global.
+    await flushPresence(true);
+    const presenceRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
+    const actionRef = fs.doc(db, 'gameActions', id);
+    const result = await firestoreRunTransaction(db, async tx => {
+      const presenceSnap = await tx.get(presenceRef);
+      if (!presenceSnap.exists()) throw new Error('Authoritative presence is unavailable.');
+      const live = presenceSnap.data();
+      const liveEnergy = Math.max(0, Math.floor(Number(live.energy || 0)));
+      if (liveEnergy < 1) throw new Error('No server-authoritative energy remains this turn.');
+      if (Number(live.restedTurn || 0) === payload.declaredTurn) throw new Error('This turn was already rested.');
+      if (Number(live.actionTurn || 0) === payload.declaredTurn) throw new Error('An action was already committed this turn.');
+      tx.set(actionRef, payload);
+      tx.update(presenceRef, {
+        energy: liveEnergy - 1,
+        actionTurn: payload.declaredTurn,
+        lastActionEventId: id,
+        updatedAt: fs.serverTimestamp()
+      });
+      return { energy: liveEnergy - 1, actionTurn: payload.declaredTurn };
+    });
     state.ownQueuedActionId = id;
-    state.energy = Math.max(0, state.energy - 1);
-    state.actionTurn = turnInfo().turnNumber;
-    state.dirty = true;
-    flushPresence(true);
+    state.energy = result.energy;
+    state.actionTurn = result.actionTurn;
+    state.lastActionEventId = id;
+    state.dirty = false;
     message(`${actionType} declared. It resolves at the next global turn marker and may be cancelled until then.`);
     renderActionPanel();
     renderMovementHud();
@@ -1489,18 +1539,38 @@ async function cancelQueuedAction() {
     return;
   }
   try {
-    await fs.updateDoc(fs.doc(db, 'gameActions', id), {
-      status: 'cancelled',
-      outcome: 'cancelled',
-      updatedAt: fs.serverTimestamp(),
-      resolvedAt: null
+    const actionRef = fs.doc(db, 'gameActions', id);
+    const presenceRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
+    const result = await firestoreRunTransaction(db, async tx => {
+      const [actionSnap, presenceSnap] = await Promise.all([tx.get(actionRef), tx.get(presenceRef)]);
+      if (!actionSnap.exists() || !presenceSnap.exists()) throw new Error('Action state is no longer available.');
+      const liveAction = actionSnap.data();
+      const livePresence = presenceSnap.data();
+      if (liveAction.status !== 'queued') throw new Error('Action has already resolved.');
+      if (turnInfo().turnNumber >= Number(liveAction.resolveTurn || 0)) throw new Error('Action has reached its marker.');
+      tx.update(actionRef, {
+        status: 'cancelled',
+        outcome: 'cancelled',
+        updatedAt: fs.serverTimestamp(),
+        resolvedAt: null
+      });
+      const refunded = Math.min(Math.max(1, Number(livePresence.maxEnergy || state.maxEnergy)), Math.max(0, Number(livePresence.energy || 0)) + 1);
+      tx.update(presenceRef, {
+        energy: refunded,
+        actionTurn: Number(livePresence.actionTurn || 0) === Number(liveAction.declaredTurn || 0) ? 0 : Number(livePresence.actionTurn || 0),
+        lastActionEventId: id,
+        updatedAt: fs.serverTimestamp()
+      });
+      return { energy: refunded, actionTurn: Number(livePresence.actionTurn || 0) === Number(liveAction.declaredTurn || 0) ? 0 : Number(livePresence.actionTurn || 0) };
     });
     state.ownQueuedActionId = '';
-    state.energy = Math.min(state.maxEnergy, state.energy + 1);
-    state.dirty = true;
-    flushPresence(true);
+    state.energy = result.energy;
+    state.actionTurn = result.actionTurn;
+    state.lastActionEventId = id;
+    state.dirty = false;
     message('Declared action cancelled // ENERGY REFUNDED.');
     renderActionPanel();
+    renderMovementHud();
   } catch (error) {
     console.error(error);
     message(`CANCEL FAILED: ${error.code || error.message}`);
@@ -1579,13 +1649,13 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
     const walletRef = fs.doc(db, 'creditWallets', state.identity.profileId);
     const inventoryRef = gameInventoryRef(db, fs, state.identity.profileId);
     const statsRef = statsDocRef(state.identity.profileId);
-    const dropRoll = slimeDropsForAction(id);
+    const rewardRef = fs.doc(db, 'globalRewardReceipts', id);
 
     const result = await firestoreRunTransaction(db, async tx => {
       const [actionSnap, enemySnap, presenceSnap, walletSnap, inventorySnap, statsSnap] = await Promise.all([
         tx.get(actionRef), tx.get(enemyRef), tx.get(presenceRef), tx.get(walletRef), tx.get(inventoryRef), tx.get(statsRef)
       ]);
-      if (!actionSnap.exists() || !enemySnap.exists() || !presenceSnap.exists() || !walletSnap.exists() || !inventorySnap.exists()) return { skipped: true };
+      if (!actionSnap.exists() || !enemySnap.exists() || !presenceSnap.exists() || !walletSnap.exists() || !inventorySnap.exists() || !statsSnap.exists()) return { skipped: true };
       const liveAction = actionSnap.data();
       const enemy = enemySnap.data();
       const presence = presenceSnap.data();
@@ -1600,9 +1670,12 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
         return { miss: true, label: enemy.label || action.targetLabel || 'SLIME' };
       }
 
-      const attackDamage = attackDamageForAction(id, inventory);
+      const attackDamage = attackDamageForTurn(Number(liveAction.resolveTurn || currentTurn), inventory);
       const nextHp = Math.max(0, Number(enemy.hp || 0) - attackDamage);
       const killed = nextHp <= 0;
+      const stats = statsSnap.data();
+      const nextKillNumber = Math.max(0, Number(stats.pveKills || 0)) + (killed ? 1 : 0);
+      const dropRoll = killed ? slimeDropsForKillNumber(nextKillNumber) : null;
       const enemyPatch = {
         hp: nextHp,
         alive: !killed,
@@ -1620,6 +1693,14 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
         status: 'resolved', outcome: killed ? 'kill' : 'hit', updatedAt: fs.serverTimestamp(), resolvedAt: fs.serverTimestamp()
       });
       if (killed) {
+        tx.set(rewardRef, {
+          actionId: id,
+          actorProfileId: state.identity.profileId,
+          enemyId: action.targetId,
+          rewardCredits: 1,
+          killNumber: nextKillNumber,
+          createdAt: fs.serverTimestamp()
+        });
         const wallet = walletSnap.data();
         tx.update(walletRef, {
           balance: Math.max(0, Number(wallet.balance || 0)) + 1,
@@ -1640,8 +1721,7 @@ async function resolveOwnEnemyAttack(id, action, currentTurn) {
             updatedAt: fs.serverTimestamp()
           });
         }
-        if (worldId === 'global' && statsSnap.exists()) {
-          const stats = statsSnap.data();
+        if (worldId === 'global') {
           tx.update(statsRef, {
             pveKills: Math.max(0, Number(stats.pveKills || 0)) + 1,
             pvpKills: Math.max(0, Number(stats.pvpKills || 0)),
@@ -1719,7 +1799,7 @@ async function resolveOwnPlayerAttack(id, action, currentTurn) {
         tx.update(actionRef, { status: 'resolved', outcome: 'miss', updatedAt: fs.serverTimestamp(), resolvedAt: fs.serverTimestamp() });
         return { miss: true };
       }
-      const attackDamage = attackDamageForAction(id, inventory);
+      const attackDamage = attackDamageForTurn(Number(liveAction.resolveTurn || currentTurn), inventory);
       const hpBefore = Math.max(1, Number(target.hp ?? PLAYER_MAX_HP));
       const hpAfter = hpBefore - attackDamage;
       const killed = hpAfter <= 0;
@@ -1868,9 +1948,9 @@ async function autoRestCompletedTurn(completedTurn, resolveTurn, markerAttackers
         maxEnergy: state.maxEnergy,
         vx: 0,
         vy: 0,
-        // Security rules validate a rest against the turn that was actually
-        // rested. The next presence heartbeat immediately advances turnNumber.
-        turnNumber: completedTurn,
+        // Keep the presence on the trusted current marker while recording which
+        // completed turn earned the automatic rest.
+        turnNumber: resolveTurn,
         restedTurn: completedTurn,
         updatedAt: fs.serverTimestamp()
       });
@@ -2303,6 +2383,7 @@ document.addEventListener('visibilitychange', () => {
   else syncServerClock(true).catch(() => {});
 });
 window.addEventListener('pagehide', () => {
+  state.accessLeaseStop?.();
   if (state.identity?.profileId) fs.deleteDoc(fs.doc(db, 'gamePresence', presenceId(state.identity.profileId))).catch(() => {});
 });
 

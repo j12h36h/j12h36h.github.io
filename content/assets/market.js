@@ -56,11 +56,9 @@ function inventoryPreview(asset,tint){
   return wrap;
 }
 
-async function migrateLegacyInventory(){
-  if(!state.identity?.profileId)return;
-  try{const legacy=await fs.getDocs(fs.collection(db,'assetInventory',state.identity.profileId,'items'));for(const d of legacy.docs){const item=d.data(),holdingRef=fs.doc(db,'assetHoldings',`legacy_${state.identity.profileId}_${d.id}`),existing=await fs.getDoc(holdingRef);if(existing.exists())continue;await fs.setDoc(holdingRef,{ownerProfileId:state.identity.profileId,assetId:item.assetId,tint:item.tint||'#ffffff',acquiredAt:item.acquiredAt||fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastEventId:'legacy-migration',lastEventType:'migration'});}}catch(error){console.debug('Legacy asset migration',error?.code||error);}
-}
-
+// Legacy per-profile assetInventory documents are read-only after the zero-trust
+// hardening pass. Existing migrated holdings remain valid; official free assets
+// can be reacquired through the authoritative deterministic claim id below.
 function watchInventory(){
   state.inventoryUnsub?.(); const list=$('#inventoryList'); state.holdings=[];
   if(!state.identity?.profileId){list.innerHTML='<p class="inventory-empty">SIGN IN TO LOAD YOUR ASSETS.</p>';$('#ownedCount').textContent='00';$('#obtainAsset').disabled=true;say('Sign in to save ownership to your profile.');return;}
@@ -82,7 +80,6 @@ function watchInventory(){
     }
     renderSelectedAsset().catch(console.error);
   },error=>{console.error('Inventory subscription',error);list.innerHTML='<p class="inventory-empty">INVENTORY COULD NOT BE LOADED.</p>';say(`Inventory error: ${error.code||error.message}`,'error');});
-  migrateLegacyInventory().catch(console.debug);
 }
 
 function watchCredits(){state.creditUnsub?.();state.creditBalance=0;const el=$('#marketCreditBalance');if(!state.identity?.profileId){if(el)el.textContent='00';return;}state.creditUnsub=watchCreditWallet(db,fs,state.identity.profileId,balance=>{state.creditBalance=balance;if(el)el.textContent=formatCredits(balance);},error=>console.debug('Marketplace credit wallet',error?.code||error));}
@@ -91,7 +88,7 @@ async function obtainAsset(){
   if(!state.identity?.profileId||!auth.currentUser)return say('Sign in with Google first.','error'); const asset=state.asset;if(!asset)return;
   if(assetPriceCredits(asset)>0)return say('Paid catalog pricing is not enabled for this release.','error');
   const tint=assetIsTintable(asset)?$('#assetTint').value:assetDefaultTint(asset);
-  try{const existing=state.holdings.find(item=>item.assetId===asset.id);if(existing){if(assetIsTintable(asset))await fs.updateDoc(fs.doc(db,'assetHoldings',existing.id),{tint,updatedAt:fs.serverTimestamp()});say('Asset already owned.','ok');}else{const holdingRef=fs.doc(db,'assetHoldings',crypto.randomUUID());await fs.setDoc(holdingRef,{ownerProfileId:state.identity.profileId,assetId:asset.id,tint,acquiredAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastEventId:'',lastEventType:'market_acquire'});say(`${asset.name} added to your tradeable asset inventory.`,'ok');}}catch(error){console.error('Obtain asset',error);say(`Could not obtain asset: ${error.code||error.message}`,'error');}
+  try{const existing=state.holdings.find(item=>item.assetId===asset.id);if(existing){if(assetIsTintable(asset))await fs.updateDoc(fs.doc(db,'assetHoldings',existing.id),{tint,updatedAt:fs.serverTimestamp()});say('Asset already owned.','ok');}else{const holdingRef=fs.doc(db,'assetHoldings',`market__${state.identity.profileId}__${asset.id}`);await fs.setDoc(holdingRef,{ownerProfileId:state.identity.profileId,assetId:asset.id,tint,acquiredAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastEventId:'',lastEventType:'market_acquire'});say(`${asset.name} added to your tradeable asset inventory.`,'ok');}}catch(error){console.error('Obtain asset',error);say(`Could not obtain asset: ${error.code||error.message}`,'error');}
 }
 
 $('#chooseAsset')?.addEventListener('click',chooseAsset);
