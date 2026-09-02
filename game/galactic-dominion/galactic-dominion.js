@@ -306,7 +306,7 @@ function watchLobby() {
 function manageHeartbeat() {
   clearInterval(state.heartbeat);
   state.heartbeat = null;
-  if (!state.lobby || state.lobby.hostProfileId !== state.identity?.profileId || state.lobby.status !== 'open') return;
+  if (!state.lobby || state.lobby.hostProfileId !== state.identity?.profileId || state.lobby.status !== 'open' || (state.lobby.sourceType||'hosted')==='published') return;
   state.heartbeat = setInterval(() => {
     fs.updateDoc(lobbyRef(), { lastHeartbeatAt: fs.serverTimestamp(), updatedAt: fs.serverTimestamp() }).catch(() => {});
   }, 20000);
@@ -475,7 +475,7 @@ async function startMatch() {
     game.winnerId = '';
     addLog(game, `MATCH STARTED // ${displayName(order[0], game)} MOVES FIRST`);
   });
-  try { await fs.updateDoc(lobbyRef(), { status: 'playing', updatedAt: fs.serverTimestamp(), lastHeartbeatAt: fs.serverTimestamp() }); } catch (error) { console.warn('Lobby status', error); }
+  if((state.lobby.sourceType||'hosted')!=='published'){try { await fs.updateDoc(lobbyRef(), { status: 'playing', updatedAt: fs.serverTimestamp(), lastHeartbeatAt: fs.serverTimestamp() }); } catch (error) { console.warn('Lobby status', error); }}
 }
 
 async function rollTurn() {
@@ -563,7 +563,7 @@ async function resetMatch() {
     game.log = []; game.actionSeq = 0;
     addLog(game, 'HOST RESET GALACTIC DOMINION');
   });
-  try { await fs.updateDoc(lobbyRef(), { status: 'open', updatedAt: fs.serverTimestamp(), lastHeartbeatAt: fs.serverTimestamp() }); } catch (error) { console.warn('Lobby reset', error); }
+  if((state.lobby.sourceType||'hosted')!=='published'){try { await fs.updateDoc(lobbyRef(), { status: 'open', updatedAt: fs.serverTimestamp(), lastHeartbeatAt: fs.serverTimestamp() }); } catch (error) { console.warn('Lobby reset', error); }}
 }
 
 $('#startButton')?.addEventListener('click', startMatch);

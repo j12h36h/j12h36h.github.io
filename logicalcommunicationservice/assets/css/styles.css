@@ -180,3 +180,12 @@ form[aria-busy="true"]{pointer-events:none;opacity:.82}
 @media(max-width:760px){.person-trade-row{grid-template-columns:1fr}.person-trade-row>.profile-trade-actions{padding:0 4px 4px}.person-trade-row>.profile-trade-actions a,.person-trade-row>.profile-trade-actions button{flex:1 1 0;min-height:40px}.search-profile-result{grid-template-columns:1fr}.search-profile-result>.profile-trade-actions{padding:0 8px 6px}.search-profile-result>.profile-trade-actions a,.search-profile-result>.profile-trade-actions button{flex:1 1 0;min-height:38px}.search-profile-result>.profile-trade-actions a span,.search-profile-result>.profile-trade-actions button span{display:inline}}
 
 .profile-trade-actions button{font-family:inherit;margin:0;cursor:pointer}
+
+
+/* v1.4.0 community moderation / participants */
+.community-participants-panel,.community-manager-panel{margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:18px;background:rgba(13,10,24,.55)}
+.community-manager-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.community-manager-heading h3{margin:2px 0 0}
+.community-participant-list,.community-channel-manager-list{display:grid;gap:9px}.community-participant-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+.community-participant-row .identity-button{min-width:0;flex:1}.community-participant-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.community-channel-edit{display:grid;gap:10px;padding:13px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}.community-channel-edit-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,.45fr);gap:10px}
+@media(max-width:720px){.community-participant-row{align-items:flex-start;flex-direction:column}.community-participant-actions{width:100%;justify-content:flex-start}.community-channel-edit-grid{grid-template-columns:1fr}}

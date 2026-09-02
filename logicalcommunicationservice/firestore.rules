@@ -51,6 +51,18 @@ service cloud.firestore {
     }
     function callerCanContribute() { return hasPrivateAccount() && !callerIsTimedOutGlobal(); }
     function callerModerationEnabled() { return callerIsFounder() || (callerIsGlobalModerator() && !callerIsTimedOutGlobal()); }
+    function communityMemberId(spaceId, profileId) { return spaceId + '__' + profileId; }
+    function callerOwnsCommunity(spaceId) {
+      let p = /databases/$(database)/documents/publicSpaces/$(spaceId);
+      return hasPrivateAccount() && exists(p) && get(p).data.ownerProfileId == callerProfileId();
+    }
+    function callerCommunityRole(spaceId) {
+      let p = /databases/$(database)/documents/publicCommunityMembers/$(communityMemberId(spaceId, callerProfileId()));
+      return hasPrivateAccount() && exists(p) ? get(p).data.role : '';
+    }
+    function callerModeratesCommunity(spaceId) {
+      return callerModerationEnabled() || callerOwnsCommunity(spaceId) || (hasPrivateAccount() && !callerIsTimedOutGlobal() && callerCommunityRole(spaceId) in ['owner','moderator']);
+    }
     function callerOwnsProject(projectId) {
       let path = /databases/$(database)/documents/publicObjects/$(projectId);
       return hasPrivateAccount()
@@ -85,10 +97,16 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/publicObjects/$(targetId))
         && get(/databases/$(database)/documents/publicObjects/$(targetId)).data.kind == 'project'
         && callerModeratesScope('project', targetId);
-      return callerModeratesScope(scopeType, targetId) || projectModerator;
+      let communityModerator = (targetType == 'post'
+          && exists(/databases/$(database)/documents/publicPosts/$(targetId))
+          && callerModeratesCommunity(get(/databases/$(database)/documents/publicPosts/$(targetId)).data.spaceId))
+        || (targetType == 'object'
+          && exists(/databases/$(database)/documents/publicObjects/$(targetId))
+          && callerModeratesCommunity(get(/databases/$(database)/documents/publicObjects/$(targetId)).data.spaceId));
+      return callerModeratesScope(scopeType, targetId) || projectModerator || communityModerator;
     }
     function callerModeratesObject(objectId, data) {
-      return callerModerationEnabled() || (data.kind == 'project' && callerModeratesProject(objectId));
+      return callerModerationEnabled() || callerModeratesCommunity(data.spaceId) || (data.kind == 'project' && callerModeratesProject(objectId));
     }
 
     function canPublishToChannel(data) {
@@ -96,6 +114,7 @@ service cloud.firestore {
       return data.spaceId == 'open-commons'
         || (exists(channelPath)
           && get(channelPath).data.spaceId == data.spaceId
+          && get(channelPath).data.get('deleted', false) == false
           && (get(channelPath).data.type != 'announcements'
             || get(channelPath).data.ownerProfileId == callerProfileId()
             || callerModerationEnabled()));
@@ -383,12 +402,53 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    function validCommunityRole(role) { return role in ['owner','moderator','member']; }
+    function validCommunityMember(data) {
+      return data.keys().hasOnly(['spaceId','profileId','role','joinedAt','updatedAt'])
+        && data.spaceId is string && data.spaceId.size() > 0 && data.spaceId.size() <= 128
+        && validPublicId(data.profileId) && profileExists(data.profileId)
+        && validCommunityRole(data.role)
+        && data.joinedAt is timestamp && data.updatedAt is timestamp;
+    }
+    match /publicCommunityMembers/{memberId} {
+      allow read: if true;
+      allow create: if callerCanContribute()
+        && exists(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId))
+        && memberId == communityMemberId(request.resource.data.spaceId, request.resource.data.profileId)
+        && validCommunityMember(request.resource.data)
+        && request.resource.data.joinedAt == request.time && request.resource.data.updatedAt == request.time
+        && ((isCallerProfile(request.resource.data.profileId)
+              && request.resource.data.role == 'member')
+          || (isCallerProfile(request.resource.data.profileId)
+              && get(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId)).data.ownerProfileId == callerProfileId()
+              && request.resource.data.role == 'owner'));
+      allow update: if callerCanContribute()
+        && validCommunityMember(request.resource.data)
+        && request.resource.data.spaceId == resource.data.spaceId
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.joinedAt == resource.data.joinedAt
+        && request.resource.data.updatedAt == request.time
+        && resource.data.role != 'owner'
+        && request.resource.data.role in ['member','moderator']
+        && (callerOwnsCommunity(resource.data.spaceId) || callerIsFounder());
+      allow delete: if callerCanContribute()
+        && resource.data.role != 'owner'
+        && (isCallerProfile(resource.data.profileId)
+          || callerOwnsCommunity(resource.data.spaceId)
+          || callerIsFounder()
+          || (callerCommunityRole(resource.data.spaceId) == 'moderator' && resource.data.role == 'member'));
+    }
+
     function validChannel(data) {
-      return data.keys().hasOnly(['spaceId','name','description','type','ownerProfileId','createdAt','updatedAt'])
+      return data.keys().hasOnly(['spaceId','name','description','type','ownerProfileId','deleted','deletedAt','deletedByProfileId','createdAt','updatedAt'])
         && data.spaceId is string && data.spaceId.size() > 0 && data.spaceId.size() <= 128
         && data.name is string && data.name.size() >= 2 && data.name.size() <= 40
         && data.description is string && data.description.size() <= 240
         && validChannelType(data.type) && validPublicId(data.ownerProfileId)
+        && data.get('deleted', false) is bool
+        && validOptionalTimestamp(data.get('deletedAt', null))
+        && data.get('deletedByProfileId','') is string
+        && (data.get('deletedByProfileId','') == '' || validPublicId(data.get('deletedByProfileId','')))
         && data.createdAt is timestamp && data.updatedAt is timestamp;
     }
     match /publicChannels/{channelId} {
@@ -396,13 +456,25 @@ service cloud.firestore {
       allow create: if callerCanContribute()
         && exists(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId))
         && get(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId)).data.ownerProfileId == request.resource.data.ownerProfileId
-        && (isCallerProfile(request.resource.data.ownerProfileId) || callerIsFounder())
+        && callerModeratesCommunity(request.resource.data.spaceId)
+        && request.resource.data.get('deleted', false) == false
+        && request.resource.data.get('deletedAt', null) == null
+        && request.resource.data.get('deletedByProfileId','') == ''
         && validChannel(request.resource.data);
       allow update: if callerCanContribute()
-        && (isCallerProfile(resource.data.ownerProfileId) || callerIsFounder())
+        && callerModeratesCommunity(resource.data.spaceId)
         && request.resource.data.ownerProfileId == resource.data.ownerProfileId
         && request.resource.data.spaceId == resource.data.spaceId
-        && request.resource.data.createdAt == resource.data.createdAt && validChannel(request.resource.data);
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && validChannel(request.resource.data)
+        && ((request.resource.data.get('deleted',false) == resource.data.get('deleted',false)
+              && request.resource.data.get('deletedAt',null) == resource.data.get('deletedAt',null)
+              && request.resource.data.get('deletedByProfileId','') == resource.data.get('deletedByProfileId',''))
+          || (resource.data.get('deleted',false) == false
+              && request.resource.data.get('deleted',false) == true
+              && request.resource.data.get('deletedAt',null) == request.time
+              && request.resource.data.get('deletedByProfileId','') == callerProfileId()));
       allow delete: if false;
     }
 
@@ -1227,50 +1299,20 @@ service cloud.firestore {
     // change owner without copying/deleting per-user inventory documents.
     // ============================================================
     function validAssetHoldingEventType(value) { return value in ['market_acquire','migration','trade']; }
-    function marketplaceVariantAssetId(id) {
-      // Add future marketplace assets here when their tint/property selection is
-      // part of the immutable holding identity rather than a post-purchase edit.
-      return id in ['eras:slime_monochrome','eras:health_potion'];
-    }
-    function marketplaceHoldingIdMatches(holdingId, data) {
-      let baseId = 'market__' + callerProfileId() + '__' + data.assetId;
-      return (marketplaceVariantAssetId(data.assetId) && holdingId == baseId + '__' + data.tint)
-        || (!marketplaceVariantAssetId(data.assetId) && holdingId == baseId);
-    }
     function validAssetHolding(data) {
-      return data.keys().hasOnly(['ownerProfileId','assetId','tint','acquiredAt','updatedAt','lastEventId','lastEventType','archived','archivedAt'])
+      return data.keys().hasOnly(['ownerProfileId','assetId','tint','acquiredAt','updatedAt','lastEventId','lastEventType'])
         && validPublicId(data.ownerProfileId) && profileExists(data.ownerProfileId)
         && validErasAssetId(data.assetId)
         && validAssetTint(data.tint)
         && data.acquiredAt is timestamp && data.updatedAt is timestamp
         && data.lastEventId is string && data.lastEventId.size() <= 180
-        && validAssetHoldingEventType(data.lastEventType)
-        && data.get('archived', false) is bool
-        && validOptionalTimestamp(data.get('archivedAt', null))
-        && ((data.get('archived', false) == true && data.get('archivedAt', null) is timestamp)
-          || (data.get('archived', false) == false && data.get('archivedAt', null) == null));
-    }
-    function validHoldingArchiveUpdate(data) {
-      return resource.data.ownerProfileId == callerProfileId()
-        && data.ownerProfileId == resource.data.ownerProfileId
-        && data.assetId == resource.data.assetId
-        && data.tint == resource.data.tint
-        && data.acquiredAt == resource.data.acquiredAt
-        && data.lastEventId == resource.data.lastEventId
-        && data.lastEventType == resource.data.lastEventType
-        && data.diff(resource.data).affectedKeys().hasOnly(['archived','archivedAt','updatedAt'])
-        && data.get('archived', false) != resource.data.get('archived', false)
-        && ((data.get('archived', false) == true && data.get('archivedAt', null) == request.time)
-          || (data.get('archived', false) == false && data.get('archivedAt', null) == null));
+        && validAssetHoldingEventType(data.lastEventType);
     }
     function validHoldingTradeUpdate(holdingId, data) {
       let settlementPath = /databases/$(database)/documents/tradeSettlements/$(data.lastEventId);
       return data.lastEventType == 'trade'
         && !exists(settlementPath) && existsAfter(settlementPath)
         && getAfter(settlementPath).data.initiatorProfileId == callerProfileId()
-        && resource.data.get('archived', false) == false
-        && data.get('archived', false) == false
-        && data.get('archivedAt', null) == resource.data.get('archivedAt', null)
         && data.assetId == resource.data.assetId
         && data.tint == resource.data.tint
         && data.acquiredAt == resource.data.acquiredAt
@@ -1290,18 +1332,20 @@ service cloud.firestore {
       allow create: if callerCanContribute()
         && request.resource.data.ownerProfileId == callerProfileId()
         && validAssetHolding(request.resource.data)
-        && request.resource.data.keys().hasAll(['archived','archivedAt'])
         && request.resource.data.lastEventType == 'market_acquire'
         && request.resource.data.lastEventId == ''
         && freeMarketplaceAssetId(request.resource.data.assetId)
-        && marketplaceHoldingIdMatches(holdingId, request.resource.data)
-        && request.resource.data.archived == false
-        && request.resource.data.archivedAt == null
+        && holdingId == 'market__' + callerProfileId() + '__' + request.resource.data.assetId
         && request.resource.data.acquiredAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow update: if validAssetHolding(request.resource.data)
         && request.resource.data.updatedAt == request.time
-        && (validHoldingArchiveUpdate(request.resource.data)
+        && ((resource.data.ownerProfileId == callerProfileId()
+            && request.resource.data.ownerProfileId == resource.data.ownerProfileId
+            && request.resource.data.assetId == resource.data.assetId
+            && request.resource.data.acquiredAt == resource.data.acquiredAt
+            && request.resource.data.lastEventId == resource.data.lastEventId
+            && request.resource.data.lastEventType == resource.data.lastEventType)
           || validHoldingTradeUpdate(holdingId, request.resource.data));
       allow delete: if false;
     }
@@ -1337,7 +1381,6 @@ service cloud.firestore {
       return holdingId == ''
         || (exists(holdingPath)
           && get(holdingPath).data.ownerProfileId == profileId
-          && get(holdingPath).data.get('archived', false) == false
           && get(holdingPath).data.assetId == assetId
           && get(holdingPath).data.tint == tint);
     }
@@ -1362,11 +1405,8 @@ service cloud.firestore {
       let path = /databases/$(database)/documents/assetHoldings/$(safeId);
       return holdingId == '' || (exists(path) && existsAfter(path)
         && get(path).data.ownerProfileId == ownerBefore
-        && get(path).data.get('archived', false) == false
         && get(path).data.assetId == assetId && get(path).data.tint == tint
         && getAfter(path).data.ownerProfileId == ownerAfter
-        && getAfter(path).data.get('archived', false) == false
-        && getAfter(path).data.get('archivedAt', null) == get(path).data.get('archivedAt', null)
         && getAfter(path).data.assetId == assetId && getAfter(path).data.tint == tint
         && getAfter(path).data.lastEventId == tradeId && getAfter(path).data.lastEventType == 'trade');
     }
@@ -1471,8 +1511,7 @@ service cloud.firestore {
     function offerHoldingOwned(holdingId, sellerProfileId) {
       let p = /databases/$(database)/documents/assetHoldings/$(holdingId);
       return holdingId is string && holdingId.size() >= 8 && holdingId.size() <= 180
-        && exists(p) && get(p).data.ownerProfileId == sellerProfileId
-        && get(p).data.get('archived', false) == false;
+        && exists(p) && get(p).data.ownerProfileId == sellerProfileId;
     }
     function validOfferHoldingIds(ids, sellerProfileId) {
       return ids is list && ids.size() <= 4
@@ -1527,10 +1566,7 @@ service cloud.firestore {
         && request.resource.data.offerType == resource.data.offerType
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time
-        && (validHostedOffer(request.resource.data)
-          || (resource.data.active == true
-            && request.resource.data.active == false
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['active','updatedAt'])));
+        && validHostedOffer(request.resource.data);
       allow delete: if false;
     }
     function purchaseMatchesOffer(data, offer) {
@@ -1619,20 +1655,42 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+
+    // ============================================================
+    // E.R.A.S. DESKTOP DELTA-SYNC VERSION VECTORS
+    // Written only by trusted Cloud Functions. Desktop polls these tiny
+    // documents and fetches full data only for scopes whose revision changed.
+    // ============================================================
+    match /desktopSyncGlobal/{id} {
+      allow read: if signedIn() && id == 'state';
+      allow write: if false;
+    }
+    match /desktopSyncUsers/{profileId} {
+      allow read: if isCallerProfile(profileId);
+      allow write: if false;
+    }
+
+    // Canonical published games are a separate persistence/billing system.
+    // Players discover/join their live projections through gameLobbies, so they
+    // never need to know whether a game is hosted or published.
+    match /publishedGames/{publishedGameId} {
+      allow get, list: if hasPrivateAccount() && (resource.data.ownerProfileId == callerProfileId() || callerIsFounder());
+      allow create, update, delete: if false;
+    }
+
     // ============================================================
     // E.R.A.S. HOST / JOIN LOBBIES
     // Lobby documents are discovery/orchestration data. They contain
     // no private Google identity information.
     // ============================================================
     function validLobbyVisibility(value) { return value in ['public','friends','code']; }
-    function validLobbyStatus(value) { return value in ['open','playing','closed']; }
+    function validLobbyStatus(value) { return value in ['open','playing','closed','timed_out']; }
     function validHostAssetRef(asset, hostProfileId) {
       let p = /databases/$(database)/documents/assetHoldings/$(asset.holdingId);
       return asset is map && asset.keys().hasOnly(['holdingId','assetId','tint'])
         && asset.holdingId is string && asset.holdingId.size() >= 8 && asset.holdingId.size() <= 180
         && asset.assetId is string && validAssetTint(asset.tint)
         && exists(p) && get(p).data.ownerProfileId == hostProfileId
-        && get(p).data.get('archived', false) == false
         && get(p).data.assetId == asset.assetId && get(p).data.tint == asset.tint;
     }
     function validHostAssets(items, hostProfileId) {
@@ -1651,7 +1709,7 @@ service cloud.firestore {
       return offerId == '' || (exists(p) && get(p).data.active == true && get(p).data.offerType == 'game_access' && get(p).data.lobbyId == lobbyId && get(p).data.sellerProfileId == hostProfileId);
     }
     function validGameLobby(data, lobbyId) {
-      return data.keys().hasOnly(['name','code','hostProfileId','visibility','maxPlayers','mapId','gameStyle','description','settings','hostAssets','accessOfferId','status','createdAt','updatedAt','lastHeartbeatAt'])
+      return data.keys().hasOnly(['name','code','hostProfileId','visibility','maxPlayers','mapId','gameStyle','description','settings','hostAssets','accessOfferId','status','sourceType','publishedGameId','createdAt','updatedAt','lastHeartbeatAt'])
         && data.name is string && data.name.size() >= 2 && data.name.size() <= 50
         && data.code is string && data.code.matches('[A-Z2-9]{6}')
         && validPublicId(data.hostProfileId) && profileExists(data.hostProfileId)
@@ -1670,6 +1728,9 @@ service cloud.firestore {
         && data.accessOfferId is string && data.accessOfferId.size() <= 180
         && validLobbyAccessOffer(data.accessOfferId, lobbyId, data.hostProfileId)
         && validLobbyStatus(data.status)
+        && data.get('sourceType','hosted') in ['hosted','published']
+        && data.get('publishedGameId','') is string && data.get('publishedGameId','').size() <= 180
+        && ((data.get('sourceType','hosted') == 'hosted' && data.get('publishedGameId','') == '') || (data.get('sourceType','hosted') == 'published' && data.get('publishedGameId','') == lobbyId))
         && data.createdAt is timestamp && data.updatedAt is timestamp && data.lastHeartbeatAt is timestamp;
     }
     // A paid hosted-game membership is a server-time lease. A stale member
@@ -1705,14 +1766,18 @@ service cloud.firestore {
       allow create: if callerCanContribute()
         && isCallerProfile(request.resource.data.hostProfileId)
         && request.resource.data.status == 'open'
+        && request.resource.data.get('sourceType','hosted') == 'hosted'
+        && request.resource.data.get('publishedGameId','') == ''
         && request.resource.data.accessOfferId == ''
         && validGameLobby(request.resource.data, lobbyId);
       allow update: if callerCanContribute()
+        && resource.data.get('sourceType','hosted') == 'hosted'
+        && request.resource.data.get('sourceType','hosted') == 'hosted'
         && isCallerProfile(resource.data.hostProfileId)
         && request.resource.data.hostProfileId == resource.data.hostProfileId
         && request.resource.data.createdAt == resource.data.createdAt
         && validGameLobby(request.resource.data, lobbyId);
-      allow delete: if isCallerProfile(resource.data.hostProfileId);
+      allow delete: if resource.data.get('sourceType','hosted') == 'hosted' && isCallerProfile(resource.data.hostProfileId);
 
       match /members/{profileId} {
         function parentLobby() {
