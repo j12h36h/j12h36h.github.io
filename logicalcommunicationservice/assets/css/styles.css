@@ -189,3 +189,60 @@ form[aria-busy="true"]{pointer-events:none;opacity:.82}
 .community-participant-row .identity-button{min-width:0;flex:1}.community-participant-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
 .community-channel-edit{display:grid;gap:10px;padding:13px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}.community-channel-edit-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,.45fr);gap:10px}
 @media(max-width:720px){.community-participant-row{align-items:flex-start;flex-direction:column}.community-participant-actions{width:100%;justify-content:flex-start}.community-channel-edit-grid{grid-template-columns:1fr}}
+
+
+/* ============================================================
+   E.R.A.S. DESKTOP EMBEDDED MODE
+   Activated only by ?erasDesktop=1.
+   Desktop owns navigation, search, account and module actions.
+   The WebView supplies only the website content canvas.
+   ============================================================ */
+html.eras-desktop-embedded,
+body.eras-desktop-embedded {
+  min-width:0!important;
+  width:100%!important;
+  max-width:none!important;
+}
+
+body.eras-desktop-embedded .topbar,
+body.eras-desktop-embedded .left-rail,
+body.eras-desktop-embedded .right-rail {
+  display:none!important;
+}
+
+body.eras-desktop-embedded .shell {
+  display:block!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+body.eras-desktop-embedded .content-column {
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0 12px 32px!important;
+}
+
+body.eras-desktop-embedded .view,
+body.eras-desktop-embedded .hero-card,
+body.eras-desktop-embedded .momentum-console,
+body.eras-desktop-embedded .catalog-grid,
+body.eras-desktop-embedded .universe-panel {
+  max-width:none!important;
+}
+
+body.eras-desktop-embedded #searchResultsPanel {
+  position:fixed!important;
+  top:8px!important;
+  left:16px!important;
+  right:16px!important;
+  width:auto!important;
+  max-width:920px!important;
+  z-index:2147483000!important;
+}

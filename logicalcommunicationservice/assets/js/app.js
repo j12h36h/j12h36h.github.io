@@ -1,3 +1,11 @@
+const ERAS_DESKTOP_EMBEDDED = new URLSearchParams(location.search).get('erasDesktop') === '1';
+if (ERAS_DESKTOP_EMBEDDED) {
+  document.documentElement.classList.add('eras-desktop-embedded');
+  const attachDesktopClass = () => document.body?.classList.add('eras-desktop-embedded');
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attachDesktopClass, { once:true });
+  else attachDesktopClass();
+}
+
 import { LCS_CONFIG } from './config.js';
 import { createDirectMessenger } from '/assets/js/direct-messaging.js?v=20260901-dm6';
 import { watchCreditWallet, formatCredits } from '/assets/js/credit-system.js';
@@ -44,8 +52,19 @@ const state = {
   momentumMode: 'explore', networkContext: null, sessionImpact: {}, creditBalance: 0,
   detail: null, connectContext: null, profileSavePending: false, profileSaveStatus: '', accountDirty: false, profileVerified: false,
   createInFlight: false, publishInFlight: false, commentInFlight: false, lfgInFlight: false, spaceInFlight: false, channelInFlight: false, detailCommentUnsub: null,
-  publicUnsubs: [], privateUnsubs: [], ownProfileUnsub: null, legacyMigrationStarted: false, identityLinkPromise: null, profileHydrationPending: new Set()
+  publicUnsubs: [], privateUnsubs: [], ownProfileUnsub: null, legacyMigrationStarted: false, identityLinkPromise: null, profileHydrationPending: new Set(), functionsMod: null, functions: null
 };
+
+async function callErasFunction(name, data = {}) {
+  if (!state.firebaseReady || !state.firebase?.app) throw new Error('Firebase is still connecting.');
+  if (!state.functionsMod) {
+    state.functionsMod = await import('https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js');
+  }
+  if (!state.functions) state.functions = state.functionsMod.getFunctions(state.firebase.app);
+  const callable = state.functionsMod.httpsCallable(state.functions, name);
+  const result = await callable(data);
+  return result?.data || {};
+}
 
 function isFirebaseConfigured() { const c = LCS_CONFIG.firebase || {}; return Boolean(c.apiKey && c.projectId && c.appId && !String(c.apiKey).includes('YOUR_')); }
 function escapeHtml(v = '') { return String(v).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c])); }
@@ -430,8 +449,7 @@ async function ensureWritableChannel(channel) {
   const {db,fsMod}=state.firebase, ref=fsMod.doc(db,'publicChannels',channel.id);
   let snap=await fsMod.getDoc(ref);
   if(!snap.exists()){
-    const payload={spaceId:space.id,name:'general',description:'General public discussion.',type:'discussion',ownerProfileId:space.ownerProfileId,deleted:false,deletedAt:null,deletedByProfileId:'',createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()};
-    await fsMod.setDoc(ref,payload,{merge:false});
+    await callErasFunction('manageCommunity',{action:'create_channel',spaceId:space.id,channelId:channel.id,name:'general',description:'General public discussion.',type:'discussion'});
     snap=await fsMod.getDoc(ref);
   }
   const repaired={id:channel.id,...(snap.exists()?snap.data():{spaceId:space.id,name:'general',description:'General public discussion.',type:'discussion',ownerProfileId:space.ownerProfileId}),virtual:false};
@@ -617,13 +635,22 @@ async function saveCommunityEdit(e){
 async function saveChannelEdit(e){
   e.preventDefault();if(!requireContribution())return;const form=e.currentTarget,id=form.dataset.channelEdit,channel=state.channels.find(c=>c.id===id),space=channel?state.spaces.find(s=>s.id===channel.spaceId):null;if(!channel||!space||!canModerateCommunityClient(space))return toast('You do not have permission to edit this channel.');
   const name=form.querySelector('[data-channel-name]')?.value.trim().replace(/\s+/g,' ')||'',description=form.querySelector('[data-channel-description]')?.value.trim()||'',type=form.querySelector('[data-channel-type]')?.value||'discussion';if(name.length<2)return toast('Channel name must be at least 2 characters.');
-  try{const {db,fsMod}=state.firebase;await fsMod.updateDoc(fsMod.doc(db,'publicChannels',id),{name:name.slice(0,40),description:description.slice(0,240),type,updatedAt:fsMod.serverTimestamp()});toast('Channel updated.');}catch(error){console.error('channel edit failed',error);toast(firestoreErrorText(error,'edit this channel'));}
+  try{await callErasFunction('manageCommunity',{action:'update_channel',spaceId:space.id,channelId:id,name:name.slice(0,40),description:description.slice(0,240),type});toast('Channel updated.');}catch(error){console.error('channel edit failed',error);toast(firestoreErrorText(error,'edit this channel'));}
 }
 async function deleteCommunityChannel(channelId){
   if(!requireContribution())return;const channel=state.channels.find(c=>c.id===channelId),space=channel?state.spaces.find(s=>s.id===channel.spaceId):null;if(!channel||!space||!canModerateCommunityClient(space))return toast('You do not have permission to delete this channel.');
   const active=channelsForSpace(space.id).filter(c=>!c.virtual&&!c.system);if(active.length<=1)return toast('A community must keep at least one channel.');
   if(!confirm(`Delete #${channel.name}? Existing posts remain retained, but the channel will stop accepting new content.`))return;
-  try{const {db,fsMod}=state.firebase;await fsMod.updateDoc(fsMod.doc(db,'publicChannels',channelId),{deleted:true,deletedAt:fsMod.serverTimestamp(),deletedByProfileId:state.profileId,updatedAt:fsMod.serverTimestamp()});if(state.activeChannelId===channelId){state.activeChannelId='all';state.activeSpaceId=space.id;}toast('Channel deleted. Existing content was retained.');}catch(error){console.error('channel delete failed',error);toast(firestoreErrorText(error,'delete this channel'));}
+  try{
+    await callErasFunction('manageCommunity',{action:'delete_channel',spaceId:space.id,channelId});
+    const local=state.channels.find(c=>c.id===channelId);
+    if(local)local.deleted=true;
+    if(state.activeChannelId===channelId){state.activeChannelId='all';state.activeSpaceId=space.id;}
+    renderSpaces();renderCommunities();renderChannelSelects();renderFeed();renderCatalogs();
+    const dialog=$('#communityProfileDialog');
+    if(dialog?.open)openCommunityProfile(space.id);
+    toast('Channel deleted. Existing content was retained.');
+  }catch(error){console.error('channel delete failed',error);toast(firestoreErrorText(error,'delete this channel'));}
 }
 async function joinCommunity(spaceId){
   if(!requireContribution())return;const space=state.spaces.find(s=>s.id===spaceId);if(!space)return;const {db,fsMod}=state.firebase,id=communityMemberId(spaceId,state.profileId);try{await fsMod.setDoc(fsMod.doc(db,'publicCommunityMembers',id),{spaceId,profileId:state.profileId,role:'member',joinedAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()},{merge:false});toast(`Joined ${space.name}.`);}catch(error){console.error('community join failed',error);toast(firestoreErrorText(error,'join this community'));}
@@ -634,12 +661,12 @@ async function leaveCommunity(spaceId){
 }
 async function setCommunityRole(spaceId,profileId,role){
   if(!requireContribution())return;const space=state.spaces.find(s=>s.id===spaceId),member=communityMembersFor(spaceId).find(m=>m.profileId===profileId);if(!space||!member||!canEditCommunityClient(space))return toast('Only the community owner or Founder can change moderator roles.');if(!['member','moderator'].includes(role))return;
-  try{const {db,fsMod}=state.firebase;await fsMod.updateDoc(fsMod.doc(db,'publicCommunityMembers',member.id),{role,updatedAt:fsMod.serverTimestamp()});toast(role==='moderator'?'Community moderator added.':'Community moderator removed.');}catch(error){console.error('community role failed',error);toast(firestoreErrorText(error,'change this community role'));}
+  try{await callErasFunction('manageCommunity',{action:'set_role',spaceId,profileId,role});toast(role==='moderator'?'Community moderator added.':'Community moderator removed.');}catch(error){console.error('community role failed',error);toast(firestoreErrorText(error,'change this community role'));}
 }
 async function removeCommunityParticipant(spaceId,profileId){
   if(!requireContribution())return;const space=state.spaces.find(s=>s.id===spaceId),member=communityMembersFor(spaceId).find(m=>m.profileId===profileId);if(!space||!member||!canModerateCommunityClient(space)||member.role==='owner')return toast('You do not have permission to remove this participant.');
   if(!confirm(`Remove ${identity(profileId).displayName} from this community?`))return;
-  try{const {db,fsMod}=state.firebase;await fsMod.deleteDoc(fsMod.doc(db,'publicCommunityMembers',member.id));toast('Participant removed.');}catch(error){console.error('community participant remove failed',error);toast(firestoreErrorText(error,'remove this participant'));}
+  try{await callErasFunction('manageCommunity',{action:'remove_member',spaceId,profileId});toast('Participant removed.');}catch(error){console.error('community participant remove failed',error);toast(firestoreErrorText(error,'remove this participant'));}
 }
 
 function renderTrends() { const root=$('#trendList'); if(!root)return; const counts={}; state.connections.forEach(c=>counts[c.relation]=(counts[c.relation]||0)+1); const rows=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5); root.innerHTML=rows.length?rows.map(([k,v])=>`<div class="trend-row"><span>${escapeHtml(k)}</span><b>${v}</b></div>`).join(''):'<p class="muted">Relationships will trend as people connect public work.</p>'; }
@@ -942,14 +969,14 @@ async function createSpace(e){
   e.preventDefault();if(state.spaceInFlight||!requireContribution())return;
   const form=e.currentTarget,button=form.querySelector('button[type="submit"]'),old=button?.textContent||'Create community';
   state.spaceInFlight=true;if(button){button.disabled=true;button.textContent='Creating…';}
-  try{const name=$('#spaceName').value.trim(),description=$('#spaceDescription').value.trim();const {db,fsMod}=state.firebase;const ref=await fsMod.addDoc(fsMod.collection(db,'publicSpaces'),{name:name.slice(0,50),description:description.slice(0,240),ownerProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});await fsMod.setDoc(fsMod.doc(db,'publicCommunityMembers',communityMemberId(ref.id,state.profileId)),{spaceId:ref.id,profileId:state.profileId,role:'owner',joinedAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()},{merge:false});await fsMod.addDoc(fsMod.collection(db,'publicChannels'),{spaceId:ref.id,name:'general',description:'General public discussion.',type:'discussion',ownerProfileId:state.profileId,deleted:false,deletedAt:null,deletedByProfileId:'',createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});form.reset();closeDialog(form.closest('dialog'));toast('Community created with #general.');}
+  try{const name=$('#spaceName').value.trim(),description=$('#spaceDescription').value.trim();const {db,fsMod}=state.firebase;const ref=await fsMod.addDoc(fsMod.collection(db,'publicSpaces'),{name:name.slice(0,50),description:description.slice(0,240),ownerProfileId:state.profileId,createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});await fsMod.setDoc(fsMod.doc(db,'publicCommunityMembers',communityMemberId(ref.id,state.profileId)),{spaceId:ref.id,profileId:state.profileId,role:'owner',joinedAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()},{merge:false});await callErasFunction('manageCommunity',{action:'create_channel',spaceId:ref.id,name:'general',description:'General public discussion.',type:'discussion'});form.reset();closeDialog(form.closest('dialog'));toast('Community created with #general.');}
   finally{state.spaceInFlight=false;if(button){button.disabled=false;button.textContent=old;}}
 }
 async function createChannel(e){
   e.preventDefault();if(state.channelInFlight||!requireContribution())return;const form=e.currentTarget,button=form.querySelector('button[type="submit"]'),old=button?.textContent||'Create channel';
   const spaceId=$('#channelCommunity').value;const space=state.spaces.find(s=>s.id===spaceId);if(!space||!canModerateCommunityClient(space)){toast('You can only add channels to communities you moderate.');return;}
   state.channelInFlight=true;if(button){button.disabled=true;button.textContent='Creating…';}
-  try{const {db,fsMod}=state.firebase;await fsMod.addDoc(fsMod.collection(db,'publicChannels'),{spaceId,name:$('#channelName').value.trim().slice(0,40),description:$('#channelDescription').value.trim().slice(0,240),type:$('#channelType').value,ownerProfileId:space.ownerProfileId,deleted:false,deletedAt:null,deletedByProfileId:'',createdAt:fsMod.serverTimestamp(),updatedAt:fsMod.serverTimestamp()});form.reset();closeDialog(form.closest('dialog'));toast('Channel created.');}
+  try{await callErasFunction('manageCommunity',{action:'create_channel',spaceId,name:$('#channelName').value.trim().slice(0,40),description:$('#channelDescription').value.trim().slice(0,240),type:$('#channelType').value});form.reset();closeDialog(form.closest('dialog'));toast('Channel created.');}
   finally{state.channelInFlight=false;if(button){button.disabled=false;button.textContent=old;}}
 }
 async function submitConnection(e){e.preventDefault();if(!state.connectContext||!requireContribution())return;const targetId=$('#connectTargetObject').value,relation=$('#connectRelation').value,{mode,id}=state.connectContext;const {db,fsMod}=state.firebase;if(mode==='post')await fsMod.addDoc(fsMod.collection(db,'publicPostLinks'),{postId:id,objectId:targetId,relation,authorProfileId:state.profileId,createdAt:fsMod.serverTimestamp()});else await fsMod.addDoc(fsMod.collection(db,'publicConnections'),{sourceId:id,targetId,relation,authorProfileId:state.profileId,createdAt:fsMod.serverTimestamp()});closeDialog('#connectDialog');state.connectContext=null;bumpImpact('connected');toast('Connection saved.');}

@@ -51,18 +51,6 @@ service cloud.firestore {
     }
     function callerCanContribute() { return hasPrivateAccount() && !callerIsTimedOutGlobal(); }
     function callerModerationEnabled() { return callerIsFounder() || (callerIsGlobalModerator() && !callerIsTimedOutGlobal()); }
-    function communityMemberId(spaceId, profileId) { return spaceId + '__' + profileId; }
-    function callerOwnsCommunity(spaceId) {
-      let p = /databases/$(database)/documents/publicSpaces/$(spaceId);
-      return hasPrivateAccount() && exists(p) && get(p).data.ownerProfileId == callerProfileId();
-    }
-    function callerCommunityRole(spaceId) {
-      let p = /databases/$(database)/documents/publicCommunityMembers/$(communityMemberId(spaceId, callerProfileId()));
-      return hasPrivateAccount() && exists(p) ? get(p).data.role : '';
-    }
-    function callerModeratesCommunity(spaceId) {
-      return callerModerationEnabled() || callerOwnsCommunity(spaceId) || (hasPrivateAccount() && !callerIsTimedOutGlobal() && callerCommunityRole(spaceId) in ['owner','moderator']);
-    }
     function callerOwnsProject(projectId) {
       let path = /databases/$(database)/documents/publicObjects/$(projectId);
       return hasPrivateAccount()
@@ -97,16 +85,10 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/publicObjects/$(targetId))
         && get(/databases/$(database)/documents/publicObjects/$(targetId)).data.kind == 'project'
         && callerModeratesScope('project', targetId);
-      let communityModerator = (targetType == 'post'
-          && exists(/databases/$(database)/documents/publicPosts/$(targetId))
-          && callerModeratesCommunity(get(/databases/$(database)/documents/publicPosts/$(targetId)).data.spaceId))
-        || (targetType == 'object'
-          && exists(/databases/$(database)/documents/publicObjects/$(targetId))
-          && callerModeratesCommunity(get(/databases/$(database)/documents/publicObjects/$(targetId)).data.spaceId));
-      return callerModeratesScope(scopeType, targetId) || projectModerator || communityModerator;
+      return callerModeratesScope(scopeType, targetId) || projectModerator;
     }
     function callerModeratesObject(objectId, data) {
-      return callerModerationEnabled() || callerModeratesCommunity(data.spaceId) || (data.kind == 'project' && callerModeratesProject(objectId));
+      return callerModerationEnabled() || (data.kind == 'project' && callerModeratesProject(objectId));
     }
 
     function canPublishToChannel(data) {
@@ -402,80 +384,36 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    function validCommunityRole(role) { return role in ['owner','moderator','member']; }
     function validCommunityMember(data) {
       return data.keys().hasOnly(['spaceId','profileId','role','joinedAt','updatedAt'])
         && data.spaceId is string && data.spaceId.size() > 0 && data.spaceId.size() <= 128
         && validPublicId(data.profileId) && profileExists(data.profileId)
-        && validCommunityRole(data.role)
+        && data.role in ['owner','member']
         && data.joinedAt is timestamp && data.updatedAt is timestamp;
     }
+
     match /publicCommunityMembers/{memberId} {
       allow read: if true;
       allow create: if callerCanContribute()
+        && isCallerProfile(request.resource.data.profileId)
         && exists(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId))
-        && memberId == communityMemberId(request.resource.data.spaceId, request.resource.data.profileId)
+        && memberId == request.resource.data.spaceId + '__' + request.resource.data.profileId
         && validCommunityMember(request.resource.data)
-        && request.resource.data.joinedAt == request.time && request.resource.data.updatedAt == request.time
-        && ((isCallerProfile(request.resource.data.profileId)
-              && request.resource.data.role == 'member')
-          || (isCallerProfile(request.resource.data.profileId)
-              && get(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId)).data.ownerProfileId == callerProfileId()
-              && request.resource.data.role == 'owner'));
-      allow update: if callerCanContribute()
-        && validCommunityMember(request.resource.data)
-        && request.resource.data.spaceId == resource.data.spaceId
-        && request.resource.data.profileId == resource.data.profileId
-        && request.resource.data.joinedAt == resource.data.joinedAt
+        && request.resource.data.joinedAt == request.time
         && request.resource.data.updatedAt == request.time
-        && resource.data.role != 'owner'
-        && request.resource.data.role in ['member','moderator']
-        && (callerOwnsCommunity(resource.data.spaceId) || callerIsFounder());
-      allow delete: if callerCanContribute()
-        && resource.data.role != 'owner'
-        && (isCallerProfile(resource.data.profileId)
-          || callerOwnsCommunity(resource.data.spaceId)
-          || callerIsFounder()
-          || (callerCommunityRole(resource.data.spaceId) == 'moderator' && resource.data.role == 'member'));
+        && (request.resource.data.role == 'member'
+          || (request.resource.data.role == 'owner'
+            && get(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId)).data.ownerProfileId == callerProfileId()));
+      allow delete: if hasPrivateAccount()
+        && isCallerProfile(resource.data.profileId)
+        && resource.data.role != 'owner';
+      allow update: if false;
     }
 
-    function validChannel(data) {
-      return data.keys().hasOnly(['spaceId','name','description','type','ownerProfileId','deleted','deletedAt','deletedByProfileId','createdAt','updatedAt'])
-        && data.spaceId is string && data.spaceId.size() > 0 && data.spaceId.size() <= 128
-        && data.name is string && data.name.size() >= 2 && data.name.size() <= 40
-        && data.description is string && data.description.size() <= 240
-        && validChannelType(data.type) && validPublicId(data.ownerProfileId)
-        && data.get('deleted', false) is bool
-        && validOptionalTimestamp(data.get('deletedAt', null))
-        && data.get('deletedByProfileId','') is string
-        && (data.get('deletedByProfileId','') == '' || validPublicId(data.get('deletedByProfileId','')))
-        && data.createdAt is timestamp && data.updatedAt is timestamp;
-    }
+    // Privileged channel administration is server-authoritative.
     match /publicChannels/{channelId} {
       allow read: if true;
-      allow create: if callerCanContribute()
-        && exists(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId))
-        && get(/databases/$(database)/documents/publicSpaces/$(request.resource.data.spaceId)).data.ownerProfileId == request.resource.data.ownerProfileId
-        && callerModeratesCommunity(request.resource.data.spaceId)
-        && request.resource.data.get('deleted', false) == false
-        && request.resource.data.get('deletedAt', null) == null
-        && request.resource.data.get('deletedByProfileId','') == ''
-        && validChannel(request.resource.data);
-      allow update: if callerCanContribute()
-        && callerModeratesCommunity(resource.data.spaceId)
-        && request.resource.data.ownerProfileId == resource.data.ownerProfileId
-        && request.resource.data.spaceId == resource.data.spaceId
-        && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt == request.time
-        && validChannel(request.resource.data)
-        && ((request.resource.data.get('deleted',false) == resource.data.get('deleted',false)
-              && request.resource.data.get('deletedAt',null) == resource.data.get('deletedAt',null)
-              && request.resource.data.get('deletedByProfileId','') == resource.data.get('deletedByProfileId',''))
-          || (resource.data.get('deleted',false) == false
-              && request.resource.data.get('deleted',false) == true
-              && request.resource.data.get('deletedAt',null) == request.time
-              && request.resource.data.get('deletedByProfileId','') == callerProfileId()));
-      allow delete: if false;
+      allow create, update, delete: if false;
     }
 
     function validComment(data) {

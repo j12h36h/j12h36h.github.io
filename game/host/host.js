@@ -10,7 +10,7 @@ import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/
 const $ = s => document.querySelector(s);
 const state = { identity:null,lobby:null,heartbeat:null,content:defaultHostedWorldSettings(),holdings:[],holdingUnsub:null,catalog:{assets:[]},selectedHostAssets:[],bundles:[],offerIds:[],publishedGames:[],publishedUnsub:null };
 const functions=getFunctions(getApp('site-account'));
-const publishGameCall=httpsCallable(functions,'publishGame'), attachPublishedAccessOfferCall=httpsCallable(functions,'attachPublishedAccessOffer'), pausePublishedGameCall=httpsCallable(functions,'pausePublishedGame'), restorePublishedGameCall=httpsCallable(functions,'restorePublishedGame');
+const publishGameCall=httpsCallable(functions,'publishGame'), pausePublishedGameCall=httpsCallable(functions,'pausePublishedGame'), restorePublishedGameCall=httpsCallable(functions,'restorePublishedGame');
 const say=(message,tone='')=>{const el=$('#hostFeedback');if(!el)return;el.textContent=String(message).toUpperCase();el.dataset.tone=tone;};
 const esc=safeText;
 const jsonPretty=value=>{try{return JSON.stringify(typeof value==='string'?JSON.parse(value):value,null,2);}catch(_){return String(value||'');}};
@@ -116,7 +116,32 @@ function render(){const box=$('#lobbyStatus');if(!box)return;if(!state.lobby){bo
 function publishedStatusLabel(game){return game.status==='timed_out'?'TIMED-OUT':game.status==='published'?'PUBLISHED':'PAUSED';}
 function renderPublishedGames(){const root=$('#publishedGameList');if(!root)return;if(!state.identity?.profileId){root.innerHTML='<p class="runtime-list-empty">SIGN IN TO MANAGE PUBLISHED GAMES.</p>';return;}if(!state.publishedGames.length){root.innerHTML='<p class="runtime-list-empty">NO PUBLISHED GAMES YET.</p>';return;}root.innerHTML=state.publishedGames.slice().sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0)).map(g=>`<article class="published-game-row"><div><b>${esc(g.name||'E.R.A.S. Game')}</b><small>${esc(hostedModeLabel(g.gameStyle))} // ${esc(publishedStatusLabel(g))} // ${Number(g.totalMinutesBilled||0)} MIN BILLED</small></div><div class="published-game-actions">${g.status==='published'?`<a class="runtime-secondary" href="${esc(lobbyHref({id:g.lobbyId||g.id,gameStyle:g.gameStyle}))}">ENTER</a><button class="runtime-secondary" data-published-pause="${esc(g.id)}" type="button">PAUSE</button>`:`<button class="runtime-primary" data-published-restore="${esc(g.id)}" type="button">RESTORE PUBLISHING</button>`}</div></article>`).join('');}
 function watchPublishedGames(){state.publishedUnsub?.();state.publishedGames=[];renderPublishedGames();if(!state.identity?.profileId)return;const q=fs.query(fs.collection(db,'publishedGames'),fs.where('ownerProfileId','==',state.identity.profileId),fs.limit(100));state.publishedUnsub=fs.onSnapshot(q,s=>{state.publishedGames=s.docs.map(d=>({id:d.id,...d.data()}));renderPublishedGames();},e=>{console.error('Published games',e);const root=$('#publishedGameList');if(root)root.innerHTML='<p class="runtime-list-empty">PUBLISHED GAMES COULD NOT BE LOADED.</p>';});}
-async function publishGame(){if(!state.identity?.profileId)return say('Sign in with Google first.','error');const mode=currentMode();if(mode.id==='arcade-topdown'){try{syncFromDom();}catch(e){return say(e.message,'error');}}syncBundleInputs();const name=$('#lobbyName').value.trim().slice(0,50)||'E.R.A.S. Game',settings=settingsFromHostForm(document,state.content,mode.id),serialized=JSON.stringify(settings);if(serialized.length>700000)return say('World definition is too large.','error');const maxPlayers=Math.min(mode.maxPlayers,Number($('#maxPlayers').value)||8),mapId=mode.id==='arcade-topdown'?$('#mapId').value:mode.mapId,publishButton=$('#publishGame'),old=publishButton?.textContent||'PUBLISH GAME';if(publishButton){publishButton.disabled=true;publishButton.textContent='PUBLISHING…';}try{say('Publishing game // billing first minute…');const result=(await publishGameCall({name,visibility:$('#visibility').value,maxPlayers,mapId,gameStyle:mode.id,description:$('#description').value.trim().slice(0,240),settings,hostAssets:hostAssetSnapshots()})).data;if(!result?.ok)throw new Error('Publish service did not confirm the game.');const lobbyId=result.lobbyId,publishedGameId=result.publishedGameId;const offers=await createCommerceOffers(lobbyId,name);const access=offers.find(o=>o.offerType==='game_access');if(access)await attachPublishedAccessOfferCall({publishedGameId,accessOfferId:access.id});say(`${mode.name} published. 1 Credit/minute while published. It will time out instead of being deleted if Credits run out.`,'ok');}catch(e){console.error('Publish game',e);say(`Could not publish game: ${e?.message||e?.code||e}`,'error');}finally{if(publishButton){publishButton.disabled=false;publishButton.textContent=old;}}}
+function publishCommercePayload(){
+  syncBundleInputs();
+  const modelPayload=(model,prefix)=>({model,priceCredits:clamp($(`#${prefix}PriceCredits`)?.value,1,1000000,prefix==='asset'?5:10),playCount:model==='per_play'?clamp($(`#${prefix}PlayCount`)?.value,1,9999,1):0,lifeCount:model==='per_life'?clamp($(`#${prefix}LifeCount`)?.value,1,9999,1):0,minutes:model==='playtime'?clamp($(`#${prefix}Minutes`)?.value,1,100000,30):0,permanent:model==='permanent'});
+  return {
+    access:modelPayload($('#accessModel').value,'access'),
+    asset:modelPayload($('#assetAccessModel').value,'asset'),
+    bundles:state.bundles.map(b=>({name:b.name,priceCredits:b.price,playCount:b.plays,lifeCount:b.lives,minutes:b.minutes,permanent:b.permanent,assetHoldingIds:b.assetIds.slice(0,4)}))
+  };
+}
+async function publishGame(){
+  if(!state.identity?.profileId)return say('Sign in with Google first.','error');
+  const mode=currentMode();
+  if(mode.id==='arcade-topdown'){try{syncFromDom();}catch(e){return say(e.message,'error');}}
+  syncBundleInputs();
+  const name=$('#lobbyName').value.trim().slice(0,50)||'E.R.A.S. Game',settings=settingsFromHostForm(document,state.content,mode.id),serialized=JSON.stringify(settings);
+  if(serialized.length>700000)return say('World definition is too large.','error');
+  const maxPlayers=Math.min(mode.maxPlayers,Number($('#maxPlayers').value)||8),mapId=mode.id==='arcade-topdown'?$('#mapId').value:mode.mapId,publishButton=$('#publishGame'),old=publishButton?.textContent||'PUBLISH GAME';
+  if(publishButton){publishButton.disabled=true;publishButton.textContent='PUBLISHING…';}
+  try{
+    say('Publishing game // billing first minute…');
+    const result=(await publishGameCall({name,visibility:$('#visibility').value,maxPlayers,mapId,gameStyle:mode.id,description:$('#description').value.trim().slice(0,240),settings,hostAssets:hostAssetSnapshots(),commerce:publishCommercePayload()})).data;
+    if(!result?.ok)throw new Error('Publish service did not confirm the game.');
+    say(`${mode.name} published. ${result.offerCount||0} commerce offer${Number(result.offerCount||0)===1?'':'s'} active. 1 Credit/minute while published. If Credits run out it becomes Timed-out without losing game state.`,'ok');
+  }catch(e){console.error('Publish game',e);say(`Could not publish game: ${e?.message||e?.code||e}`,'error');}
+  finally{if(publishButton){publishButton.disabled=false;publishButton.textContent=old;}}
+}
 async function pausePublishedGame(id){try{await pausePublishedGameCall({publishedGameId:id});say('Published game paused. Stats and lobby data were retained.','ok');}catch(e){console.error(e);say(`Could not pause published game: ${e?.message||e?.code||e}`,'error');}}
 async function restorePublishedGame(id){try{await restorePublishedGameCall({publishedGameId:id});say('Publishing restored. The first restored minute cost 1 Credit.','ok');}catch(e){console.error(e);say(`Could not restore published game: ${e?.message||e?.code||e}`,'error');}}
 async function closeLobby(){if(!state.lobby||!state.identity)return;try{await fs.updateDoc(fs.doc(db,'gameLobbies',state.lobby.id),{status:'closed',updatedAt:fs.serverTimestamp(),lastHeartbeatAt:fs.serverTimestamp()});for(const id of state.offerIds)deactivateHostedOffer(id,state.identity.profileId).catch(()=>{});clearInterval(state.heartbeat);state.lobby=null;state.offerIds=[];render();say('Lobby closed.','ok');}catch(e){console.error(e);say(`Could not close lobby: ${e.code||e.message}`,'error');}}
