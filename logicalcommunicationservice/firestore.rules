@@ -12,7 +12,6 @@ service cloud.firestore {
     function validTargetType(t) { return t in ['post','object']; }
     function validFollowTargetType(t) { return t in ['object','profile']; }
     function validRelation(r) { return r in ['related to','context for','supports','challenges','solves','depends on','inspired by']; }
-    function validChannelType(t) { return t in ['discussion','ideas','problems','projects','research','releases','announcements']; }
     function validLfgPurpose(p) { return p in ['play','create','share']; }
     function validRequestStatus(s) { return s in ['pending','accepted','declined','cancelled']; }
     function validStatus(s) { return s in ['founder','moderator','member','timeout']; }
@@ -51,13 +50,6 @@ service cloud.firestore {
     }
     function callerCanContribute() { return hasPrivateAccount() && !callerIsTimedOutGlobal(); }
     function callerModerationEnabled() { return callerIsFounder() || (callerIsGlobalModerator() && !callerIsTimedOutGlobal()); }
-    function callerOwnsProject(projectId) {
-      let path = /databases/$(database)/documents/publicObjects/$(projectId);
-      return hasPrivateAccount()
-        && exists(path)
-        && get(path).data.kind == 'project'
-        && get(path).data.authorProfileId == callerProfileId();
-    }
     function callerModeratesProject(projectId) {
       // Project ownership alone is NOT moderation authority. A scoped Moderator
       // Status (or Global Moderator / root Founder authority) is required.
@@ -182,7 +174,7 @@ service cloud.firestore {
         || (status == 'timeout' && (callerModerationEnabled() || callerModeratesScope(scopeType, scopeId)));
     }
     function canChangeStatus(status, scopeType, scopeId) {
-      // Root Founder can clean up any assignment. Project creators/moderators can manage Project Moderator + Timeout inside their project.
+      // Root Founder can clean up any assignment. Explicit Project Moderators can manage scoped Project Moderator/Member/Timeout assignments.
       return callerIsFounder()
         || (status == 'moderator' && scopeType == 'project' && callerModeratesProject(scopeId))
         || (status == 'member' && scopeType == 'project' && callerModeratesProject(scopeId))
