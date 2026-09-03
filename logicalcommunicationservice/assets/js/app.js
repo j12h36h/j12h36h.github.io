@@ -381,19 +381,28 @@ function isStatusActive(row) { return Boolean(row?.active && (!row.expiresAt || 
 function activeStatusesFor(profileId = state.profileId) { return state.statuses.filter(s => s.profileId === profileId && isStatusActive(s)); }
 function hasStatus(status, scopeType = 'global', scopeId = '_', profileId = state.profileId) { return activeStatusesFor(profileId).some(s => s.status === status && s.scopeType === scopeType && s.scopeId === scopeId); }
 function rootFounderProfileId() {
-  if(state.founderAuthorityVerified&&state.profileId)return state.profileId;
+  const ownCaps=currentModerationCapabilities();
+  if(state.profileId&&ownCaps.verified&&ownCaps.founder)return state.profileId;
   const rows=state.statuses.filter(s=>isStatusActive(s)&&s.status==='founder'&&s.scopeType==='global'&&s.scopeId==='_');
   rows.sort((a,b)=>{const at=timeValue(a.createdAt),bt=timeValue(b.createdAt);if(at&&bt&&at!==bt)return at-bt;if(at&&!bt)return -1;if(!at&&bt)return 1;return String(a.id||'').localeCompare(String(b.id||''));});
   return rows[0]?.profileId||'';
 }
 function currentModerationCapabilities(){
   const caps=state.moderationCapabilities||{};
+  // Two independent protected checks can prove the root Founder:
+  // 1) the callable getModerationCapabilities result, or
+  // 2) the Firestore systemAuthority/founderProbe read permitted only to the configured Founder.
+  // Either secure proof is sufficient for the client UI. Firestore rules still enforce every privileged write/read.
+  const probeFounder=Boolean(state.profileId&&state.founderAuthorityVerified===true);
+  const serverVerified=caps.verified===true;
+  const serverFounder=Boolean(serverVerified&&caps.founder===true);
+  const effectiveFounder=Boolean(probeFounder||serverFounder);
   return {
-    verified:caps.verified===true,
-    canAccess:caps.canAccess===true,
-    founder:caps.founder===true,
-    globalModerator:caps.globalModerator===true,
-    timedOutGlobal:caps.timedOutGlobal===true,
+    verified:Boolean(probeFounder||serverVerified),
+    canAccess:Boolean(effectiveFounder||(serverVerified&&caps.canAccess===true)),
+    founder:effectiveFounder,
+    globalModerator:Boolean(effectiveFounder||(serverVerified&&caps.globalModerator===true)),
+    timedOutGlobal:effectiveFounder?false:Boolean(serverVerified&&caps.timedOutGlobal===true),
     scopes:Array.isArray(caps.scopes)?caps.scopes:[]
   };
 }
@@ -439,7 +448,7 @@ function isFounder(profileId = state.profileId) {
   if(!profileId)return false;
   if(profileId===state.profileId){
     const caps=currentModerationCapabilities();
-    return Boolean(state.founderAuthorityVerified&&caps.verified&&caps.founder);
+    return Boolean(caps.verified&&caps.founder);
   }
   return profileId===rootFounderProfileId()&&hasStatus('founder','global','_',profileId);
 }
@@ -1202,7 +1211,8 @@ async function moderateContent(collection,id,restore=false){
 }
 function openModerationContent(collection,id){const item=contentForCollection(collection,id);if(!item)return; if(collection==='publicPosts')return openPostDetail(id);if(collection==='publicObjects')return openObjectDetail(id);if(collection==='publicComments'){const type=item.targetType||'post';type==='post'?openPostDetail(item.targetId):openObjectDetail(item.targetId);return;}if(collection==='publicLfg')openLfg(id);}
 async function ensureCanonicalFounderStatus(){
-  if(!state.profileId||!state.firebaseReady||!state.founderAuthorityVerified)return false;
+  const caps=currentModerationCapabilities();
+  if(!state.profileId||!state.firebaseReady||!(state.founderAuthorityVerified||caps.founder))return false;
   const {db,fsMod}=state.firebase,id=statusDocIdClient('global','_','founder',state.profileId),ref=fsMod.doc(db,'statusAssignments',id);
   const existing=await fsMod.getDoc(ref);if(existing.exists()&&isStatusActive(existing.data()))return true;
   try{
