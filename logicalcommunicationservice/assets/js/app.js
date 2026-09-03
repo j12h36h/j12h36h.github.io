@@ -47,7 +47,7 @@ const state = {
   authUid: null, authReady: false, firebaseReady: false, firebase: null, founderAuthorityVerified: false, founderAuthorityCheckPromise: null,
   profileId: null, publicProfile: null, profiles: {}, posts: [], objects: [], spaces: [], channels: [], communityMembers: [], comments: [], reactions: [], follows: [], connections: [], postLinks: [], lfg: [],
   friendRequests: [], friendships: [], lfgRequests: [], blocks: [],
-  statusPublic: [], statusOwn: [], statusPrivileged: [], statuses: [], moderationLogs: [], moderationPosts: [], moderationObjects: [], moderationComments: [], moderationLfg: [], moderationUnsubs: [], moderationSignature: '',
+  statusPublic: [], statusOwn: [], statusPrivileged: [], statuses: [], moderationLogs: [], moderationPosts: [], moderationObjects: [], moderationComments: [], moderationLfg: [], moderationUnsubs: [], moderationSignature: '', moderationCapabilities: { verified:false, canAccess:false, founder:false, globalModerator:false, timedOutGlobal:false, scopes:[] }, moderationCapabilitiesPromise: null,
   activeType: 'unclassified', activeFilter: 'all', activeView: 'home', activeSpaceId: 'all', activeChannelId: 'all', activeLfgFilter: 'all', mapLayoutSeed: 0, activitySeenAt: 0,
   momentumMode: 'explore', networkContext: null, sessionImpact: {}, creditBalance: 0,
   detail: null, connectContext: null, profileSavePending: false, profileSaveStatus: '', accountDirty: false, profileVerified: false,
@@ -386,23 +386,105 @@ function rootFounderProfileId() {
   rows.sort((a,b)=>{const at=timeValue(a.createdAt),bt=timeValue(b.createdAt);if(at&&bt&&at!==bt)return at-bt;if(at&&!bt)return -1;if(!at&&bt)return 1;return String(a.id||'').localeCompare(String(b.id||''));});
   return rows[0]?.profileId||'';
 }
-function isFounder(profileId = state.profileId) { if(!profileId)return false;if(profileId===state.profileId)return state.founderAuthorityVerified;return profileId===rootFounderProfileId()&&hasStatus('founder','global','_',profileId); }
-function isGlobalModerator(profileId = state.profileId) { return Boolean(profileId && (isFounder(profileId) || hasStatus('moderator','global','_',profileId))); }
+function currentModerationCapabilities(){
+  const caps=state.moderationCapabilities||{};
+  return {
+    verified:caps.verified===true,
+    canAccess:caps.canAccess===true,
+    founder:caps.founder===true,
+    globalModerator:caps.globalModerator===true,
+    timedOutGlobal:caps.timedOutGlobal===true,
+    scopes:Array.isArray(caps.scopes)?caps.scopes:[]
+  };
+}
+function serverModeratesScope(scopeType,scopeId){
+  const caps=currentModerationCapabilities();
+  if(!caps.verified||caps.timedOutGlobal)return false;
+  if(caps.founder||caps.globalModerator)return true;
+  return caps.scopes.some(x=>x?.scopeType===scopeType&&x?.scopeId===scopeId);
+}
+async function refreshModerationCapabilities(force=false){
+  if(!state.profileId||!state.firebaseReady){
+    state.moderationCapabilities={verified:false,canAccess:false,founder:false,globalModerator:false,timedOutGlobal:false,scopes:[]};
+    state.moderationCapabilitiesPromise=null;
+    renderStatusSurfacesNoResub();
+    return state.moderationCapabilities;
+  }
+  if(state.moderationCapabilitiesPromise&&!force)return state.moderationCapabilitiesPromise;
+  state.moderationCapabilitiesPromise=(async()=>{
+    try{
+      const result=await callErasFunction('getModerationCapabilities',{});
+      state.moderationCapabilities={
+        verified:result?.verified===true,
+        canAccess:result?.canAccess===true,
+        founder:result?.founder===true,
+        globalModerator:result?.globalModerator===true,
+        timedOutGlobal:result?.timedOutGlobal===true,
+        scopes:Array.isArray(result?.scopes)?result.scopes.map(x=>({scopeType:String(x.scopeType||''),scopeId:String(x.scopeId||''),source:String(x.source||'status')})):[]
+      };
+    }catch(error){
+      console.debug('Moderation capability verification',error?.code||error?.message||error);
+      // Fail closed. Public badges/local state never become moderation authority.
+      state.moderationCapabilities={verified:false,canAccess:false,founder:false,globalModerator:false,timedOutGlobal:false,scopes:[]};
+    }finally{
+      state.moderationCapabilitiesPromise=null;
+      renderStatusSurfacesNoResub();
+      setupModerationSubscriptions();
+    }
+    return state.moderationCapabilities;
+  })();
+  return state.moderationCapabilitiesPromise;
+}
+function isFounder(profileId = state.profileId) {
+  if(!profileId)return false;
+  if(profileId===state.profileId){
+    const caps=currentModerationCapabilities();
+    return Boolean(state.founderAuthorityVerified&&caps.verified&&caps.founder);
+  }
+  return profileId===rootFounderProfileId()&&hasStatus('founder','global','_',profileId);
+}
+function isGlobalModerator(profileId = state.profileId) {
+  if(!profileId)return false;
+  if(profileId===state.profileId){
+    const caps=currentModerationCapabilities();
+    return Boolean(caps.verified&&!caps.timedOutGlobal&&(caps.founder||caps.globalModerator));
+  }
+  return Boolean(isFounder(profileId)||hasStatus('moderator','global','_',profileId));
+}
 function isProjectOwner(o, profileId=state.profileId){return Boolean(o&&o.kind==='project'&&profileId&&o.authorProfileId===profileId);}
 function projectById(id){return state.objects.find(x=>x.id===id&&x.kind==='project')||state.moderationObjects.find(x=>x.id===id&&x.kind==='project')||null;}
 function canManageProjectClient(projectOrId, profileId=state.profileId){
   const o=typeof projectOrId==='string'?projectById(projectOrId):projectOrId;
-  if(!o||!profileId)return false;
-  if(profileId===state.profileId&&isGlobalTimedOut()&&!isFounder(profileId))return false;
-  return Boolean(isFounder(profileId)||isGlobalModerator(profileId)||isProjectOwner(o,profileId)||hasStatus('moderator','project',o.id,profileId));
+  const id=typeof projectOrId==='string'?projectOrId:o?.id;
+  if(!id||!profileId)return false;
+  if(profileId===state.profileId)return serverModeratesScope('project',id);
+  return Boolean(isFounder(profileId)||isGlobalModerator(profileId)||isProjectOwner(o,profileId)||hasStatus('moderator','project',id,profileId));
 }
-function managedProjectIdsClient(profileId=state.profileId){return state.objects.filter(o=>o.kind==='project'&&!o.deleted&&canManageProjectClient(o,profileId)).map(o=>o.id);}
-function canAccessModerationClient(profileId=state.profileId){return Boolean(profileId&&(isFounder(profileId)||activeStatusesFor(profileId).some(x=>x.status==='moderator')||managedProjectIdsClient(profileId).length));}
-function isGlobalTimedOut(profileId = state.profileId) { return Boolean(profileId && !isFounder(profileId) && hasStatus('timeout','global','_',profileId)); }
+function managedProjectIdsClient(profileId=state.profileId){
+  if(profileId===state.profileId){
+    const caps=currentModerationCapabilities();
+    if(!caps.verified||caps.timedOutGlobal)return [];
+    return [...new Set(caps.scopes.filter(x=>x.scopeType==='project').map(x=>x.scopeId).filter(Boolean))];
+  }
+  return state.objects.filter(o=>o.kind==='project'&&!o.deleted&&canManageProjectClient(o,profileId)).map(o=>o.id);
+}
+function canAccessModerationClient(profileId=state.profileId){
+  if(!profileId)return false;
+  if(profileId===state.profileId){
+    const caps=currentModerationCapabilities();
+    return Boolean(caps.verified&&caps.canAccess&&!caps.timedOutGlobal);
+  }
+  return Boolean(isFounder(profileId)||activeStatusesFor(profileId).some(x=>x.status==='moderator'));
+}
+function isGlobalTimedOut(profileId = state.profileId) {
+  if(!profileId)return false;
+  if(profileId===state.profileId){const caps=currentModerationCapabilities();return Boolean(caps.verified&&caps.timedOutGlobal&&!caps.founder);}
+  return Boolean(!isFounder(profileId)&&hasStatus('timeout','global','_',profileId));
+}
 function statusScopeForDiscussion(type) { return type === 'post' ? 'discussion_post' : 'discussion_object'; }
 function timedOutForDiscussionClient(type,id) { if(isGlobalTimedOut())return true; if(hasStatus('timeout',statusScopeForDiscussion(type),id))return true; const o=type==='object'?state.objects.find(x=>x.id===id):null; return Boolean(o?.kind==='project'&&hasStatus('timeout','project',id)); }
-function canModerateDiscussionClient(type,id) { if(!state.profileId||isGlobalTimedOut())return false; if(isGlobalModerator())return true; if(hasStatus('moderator',statusScopeForDiscussion(type),id))return true; const target=type==='post'?(state.posts.find(x=>x.id===id)||state.moderationPosts.find(x=>x.id===id)):(state.objects.find(x=>x.id===id)||state.moderationObjects.find(x=>x.id===id)); if(target?.spaceId&&canModerateCommunityClient(spaceById(target.spaceId)))return true; return Boolean(target?.kind==='project'&&canManageProjectClient(target)); }
-function canModerateObjectClient(o) { return Boolean(o && state.profileId && !isGlobalTimedOut() && (isGlobalModerator() || (o.spaceId&&canModerateCommunityClient(spaceById(o.spaceId))) || (o.kind==='project' && canManageProjectClient(o)))); }
+function canModerateDiscussionClient(type,id) { if(!state.profileId||isGlobalTimedOut())return false; if(serverModeratesScope(statusScopeForDiscussion(type),id))return true; const target=type==='object'?(state.objects.find(x=>x.id===id)||state.moderationObjects.find(x=>x.id===id)):null; return Boolean(target?.kind==='project'&&serverModeratesScope('project',id)); }
+function canModerateObjectClient(o) { return Boolean(o && state.profileId && !isGlobalTimedOut() && (serverModeratesScope('discussion_object',o.id) || (o.kind==='project' && serverModeratesScope('project',o.id)))); }
 function mergeStatusRows() { const rows=[...state.statusPublic,...state.statusOwn,...state.statusPrivileged]; state.statuses=[...new Map(rows.map(x=>[x.id,x])).values()]; renderStatusSurfaces(); setupModerationSubscriptions(); }
 function statusBadgeMarkup(profileId, scopeType='global', scopeId='_') { return activeStatusesFor(profileId).filter(s=>s.visibility==='public' && (s.status!=='founder'||isFounder(profileId)) && (s.scopeType==='global' || (s.scopeType===scopeType&&s.scopeId===scopeId))).map(s=>`<span class="status-badge status-${escapeHtml(s.status)}">${STATUS_META[s.status]?.symbol||'•'} ${escapeHtml(STATUS_META[s.status]?.label||s.status)}</span>`).join(''); }
 function requireContribution(scopeType='global',scopeId='_'){if(!requireUser())return false;if(isGlobalTimedOut()){toast('Timeout is active. LCS is read-only for this account.');return false;}if(scopeType!=='global'&&hasStatus('timeout',scopeType,scopeId)){toast('Timeout is active for this context. You can still read it.');return false;}return true;}
@@ -1028,7 +1110,7 @@ function renderModeration(){const denied=$('#moderationDenied'),workspace=$('#mo
   const items=[...state.moderationPosts.map(x=>({...x,_collection:'publicPosts',_label:'Post'})),...state.moderationObjects.map(x=>({...x,_collection:'publicObjects',_label:x.kind||'Object'})),...state.moderationComments.map(x=>({...x,_collection:'publicComments',_label:'Response'})),...state.moderationLfg.map(x=>({...x,_collection:'publicLfg',_label:'LFG'}))].sort((a,b)=>timeValue(b.updatedAt||b.createdAt)-timeValue(a.updatedAt||a.createdAt)).slice(0,180);$('#moderationContentList').innerHTML=items.length?items.map(x=>{const text=x.text||x.title||x.description||'Content';return `<div class="moderation-row ${x.deleted?'is-removed':''}"><div><b>${escapeHtml(x._label)} · ${escapeHtml(identity(x.authorProfileId).displayName)}</b><small>${escapeHtml(String(text).slice(0,120))}</small><span>${x.deleted?'Removed':'Visible'} · ${timeAgo(x.updatedAt||x.createdAt)}</span></div><div class="request-actions"><button class="ghost-button" data-open-moderation-content="${escapeHtml(x._collection)}" data-content-id="${escapeHtml(x.id)}" type="button">Review</button>${x.deleted?`<button class="ghost-button" data-content-restore="${escapeHtml(x._collection)}" data-content-id="${escapeHtml(x.id)}" type="button">Restore</button>`:`<button class="ghost-button danger-button" data-content-remove="${escapeHtml(x._collection)}" data-content-id="${escapeHtml(x.id)}" type="button">Remove</button>`}</div></div>`;}).join(''):'<p class="muted">No moderation content loaded for this scope.</p>';
   $('#moderationAuditList').innerHTML=state.moderationLogs.length?state.moderationLogs.slice().sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt)).slice(0,150).map(x=>`<div class="audit-row"><div><b>${escapeHtml(x.action.replaceAll('_',' '))}</b><span>${escapeHtml(identity(x.actorProfileId).displayName)} → ${escapeHtml(identity(x.targetProfileId).displayName||x.targetProfileId||'content')}</span></div><small>${escapeHtml(x.reason||'No reason')} · ${timeAgo(x.createdAt)}</small></div>`).join(''):'<p class="muted">No immutable moderation log entries visible in this scope yet.</p>';
 }
-function canModerateStatusScope(scopeType,scopeId){return !isGlobalTimedOut()&&(isGlobalModerator()||hasStatus('moderator',scopeType,scopeId)||(scopeType==='project'&&canManageProjectClient(scopeId)));}
+function canModerateStatusScope(scopeType,scopeId){return serverModeratesScope(scopeType,scopeId);}
 async function grantStatus(e){
   e.preventDefault();if(!requireUser())return;
   const form=e.currentTarget,button=form.querySelector('button[type="submit"]'),oldLabel=button?.textContent||'Grant Status';
@@ -1047,7 +1129,7 @@ async function grantStatus(e){
     const log={actorProfileId:state.profileId,targetProfileId:target,targetCollection:'statusAssignments',targetId:assignmentId,action:'status_grant',scopeType,scopeId,reason,snapshot:{status,scopeType,scopeId,expiresAt:expiresAt||null},createdAt:fsMod.serverTimestamp()};
     const batch=fsMod.writeBatch(db);batch.set(fsMod.doc(db,'moderationLogs',actionId),log);batch.set(ref,assignment,{merge:false});await batch.commit();
     const verified=await fsMod.getDoc(ref);if(!verified.exists())throw new Error('Status write completed but could not be verified.');
-    const row={id:verified.id,...verified.data()};state.statusPublic=[row,...state.statusPublic.filter(x=>x.id!==row.id)];if(target===state.profileId)state.statusOwn=[row,...state.statusOwn.filter(x=>x.id!==row.id)];mergeStatusRows();
+    const row={id:verified.id,...verified.data()};state.statusPublic=[row,...state.statusPublic.filter(x=>x.id!==row.id)];if(target===state.profileId)state.statusOwn=[row,...state.statusOwn.filter(x=>x.id!==row.id)];mergeStatusRows();refreshModerationCapabilities(true).catch(()=>{});
     form.reset();renderStatusTargetOptions();
     toast(target===state.profileId&&status==='moderator'&&scopeType==='global'&&isFounder()?'Moderator Status added alongside Founder.':`${STATUS_META[status]?.label||status} Status granted.`);
   }catch(error){console.error('grant status failed',error);const msg=error?.code==='permission-denied'&&isFounder()?'Firestore did not recognize this profile as the configured root Founder. Verify systemPrivate/founder.profileId matches your current LCS public profile ID, then publish the v0.9.4+ rules.':firestoreErrorText(error,'grant this Status');toast(msg);}
@@ -1061,7 +1143,7 @@ async function revokeStatus(id){
   const reason=(prompt('Reason for removing this Status?','Status removed')||'Status removed').slice(0,240);const {db,fsMod}=state.firebase;const actionId=crypto.randomUUID(),ref=fsMod.doc(db,'statusAssignments',id),batch=fsMod.writeBatch(db);
   batch.set(fsMod.doc(db,'moderationLogs',actionId),{actorProfileId:state.profileId,targetProfileId:row.profileId,targetCollection:'statusAssignments',targetId:id,action:'status_revoke',scopeType:row.scopeType,scopeId:row.scopeId,reason,snapshot:{status:row.status,scopeType:row.scopeType,scopeId:row.scopeId},createdAt:fsMod.serverTimestamp()});
   batch.update(ref,{active:false,updatedAt:fsMod.serverTimestamp(),revokedAt:fsMod.serverTimestamp(),revokedByProfileId:state.profileId,lastActionId:actionId});
-  try{await batch.commit();const updated={...row,active:false,updatedAt:Date.now(),revokedAt:Date.now(),revokedByProfileId:state.profileId,lastActionId:actionId};state.statusPublic=[updated,...state.statusPublic.filter(x=>x.id!==id)];state.statusOwn=[...state.statusOwn.filter(x=>x.id!==id),...(row.profileId===state.profileId?[updated]:[])];state.statusPrivileged=[updated,...state.statusPrivileged.filter(x=>x.id!==id)];mergeStatusRows();toast(`${STATUS_META[row.status]?.label||row.status} Status removed.`);}catch(error){console.error('remove status failed',error);toast(firestoreErrorText(error,'remove this Status'));}
+  try{await batch.commit();const updated={...row,active:false,updatedAt:Date.now(),revokedAt:Date.now(),revokedByProfileId:state.profileId,lastActionId:actionId};state.statusPublic=[updated,...state.statusPublic.filter(x=>x.id!==id)];state.statusOwn=[...state.statusOwn.filter(x=>x.id!==id),...(row.profileId===state.profileId?[updated]:[])];state.statusPrivileged=[updated,...state.statusPrivileged.filter(x=>x.id!==id)];mergeStatusRows();refreshModerationCapabilities(true).catch(()=>{});toast(`${STATUS_META[row.status]?.label||row.status} Status removed.`);}catch(error){console.error('remove status failed',error);toast(firestoreErrorText(error,'remove this Status'));}
 }
 
 function contentForCollection(collection,id){const map={publicPosts:state.moderationPosts,publicObjects:state.moderationObjects,publicComments:state.moderationComments,publicLfg:state.moderationLfg};return (map[collection]||[]).find(x=>x.id===id)||({publicPosts:state.posts,publicObjects:state.objects,publicComments:state.comments,publicLfg:state.lfg}[collection]||[]).find(x=>x.id===id);}
@@ -1134,7 +1216,48 @@ function stopModerationSubscriptions(){state.moderationUnsubs.splice(0).forEach(
 function moderationSubscribe(q,apply,label){const {fsMod}=state.firebase;const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>console.debug(`moderation ${label}`,e?.code||e));state.moderationUnsubs.push(unsub);}
 function moderationDocSubscribe(ref,apply,label){const {fsMod}=state.firebase;const unsub=fsMod.onSnapshot(ref,s=>apply(s.exists()?{id:s.id,...s.data()}:null),e=>console.debug(`moderation ${label}`,e?.code||e));state.moderationUnsubs.push(unsub);}
 function mergeModerationRows(current,rows){return [...new Map([...current,...rows].filter(Boolean).map(x=>[x.id,x])).values()];}
-function setupModerationSubscriptions(){if(!state.firebaseReady||!state.profileId)return;const explicit=activeStatusesFor().filter(x=>x.status==='moderator');const implicit=state.objects.filter(o=>o.kind==='project'&&!o.deleted&&isProjectOwner(o)).map(o=>({scopeType:'project',scopeId:o.id,_implicitOwner:true}));const scopeRows=[...new Map([...explicit,...implicit].map(x=>[`${x.scopeType}:${x.scopeId}`,x])).values()];const global=isGlobalModerator();const signature=JSON.stringify([global,...scopeRows.map(x=>[x.scopeType,x.scopeId]).sort()]);if(signature===state.moderationSignature)return;stopModerationSubscriptions();state.moderationSignature=signature;if(!global&&!scopeRows.length){renderModeration();return;}const {db,fsMod}=state.firebase;if(global){moderationSubscribe(fsMod.query(fsMod.collection(db,'statusAssignments'),fsMod.limit(2500)),rows=>{state.statusPrivileged=rows;mergeStatusRowsNoResub();},'statuses');moderationSubscribe(fsMod.query(fsMod.collection(db,'moderationLogs'),fsMod.orderBy('createdAt','desc'),fsMod.limit(300)),rows=>{state.moderationLogs=rows;renderModeration();},'logs');moderationSubscribe(fsMod.query(fsMod.collection(db,'publicPosts'),fsMod.orderBy('updatedAt','desc'),fsMod.limit(300)),rows=>{state.moderationPosts=rows;renderModeration();},'posts');moderationSubscribe(fsMod.query(fsMod.collection(db,'publicObjects'),fsMod.orderBy('updatedAt','desc'),fsMod.limit(300)),rows=>{state.moderationObjects=rows;renderModeration();},'objects');moderationSubscribe(fsMod.query(fsMod.collection(db,'publicComments'),fsMod.orderBy('updatedAt','desc'),fsMod.limit(500)),rows=>{state.moderationComments=rows;renderModeration();},'comments');moderationSubscribe(fsMod.query(fsMod.collection(db,'publicLfg'),fsMod.orderBy('updatedAt','desc'),fsMod.limit(200)),rows=>{state.moderationLfg=rows;renderModeration();},'lfg');return;}scopeRows.forEach(row=>{const q=fsMod.query(fsMod.collection(db,'statusAssignments'),fsMod.where('scopeType','==',row.scopeType),fsMod.where('scopeId','==',row.scopeId),fsMod.limit(250));moderationSubscribe(q,rows=>{state.statusPrivileged=mergeModerationRows(state.statusPrivileged,rows);mergeStatusRowsNoResub();},`status ${row.scopeId}`);const lq=fsMod.query(fsMod.collection(db,'moderationLogs'),fsMod.where('scopeType','==',row.scopeType),fsMod.where('scopeId','==',row.scopeId),fsMod.limit(200));moderationSubscribe(lq,rows=>{state.moderationLogs=mergeModerationRows(state.moderationLogs,rows);renderModeration();},`logs ${row.scopeId}`);if(row.scopeType==='discussion_post'){moderationDocSubscribe(fsMod.doc(db,'publicPosts',row.scopeId),doc=>{state.moderationPosts=mergeModerationRows(state.moderationPosts,[doc]);renderModeration();},`post ${row.scopeId}`);const cq=fsMod.query(fsMod.collection(db,'publicComments'),fsMod.where('targetKey','==',`post:${row.scopeId}`),fsMod.limit(500));moderationSubscribe(cq,rows=>{state.moderationComments=mergeModerationRows(state.moderationComments,rows);renderModeration();},`post comments ${row.scopeId}`);}else if(row.scopeType==='discussion_object'||row.scopeType==='project'){moderationDocSubscribe(fsMod.doc(db,'publicObjects',row.scopeId),doc=>{state.moderationObjects=mergeModerationRows(state.moderationObjects,[doc]);renderModeration();},`object ${row.scopeId}`);const cq=fsMod.query(fsMod.collection(db,'publicComments'),fsMod.where('targetKey','==',`object:${row.scopeId}`),fsMod.limit(500));moderationSubscribe(cq,rows=>{state.moderationComments=mergeModerationRows(state.moderationComments,rows);renderModeration();},`object comments ${row.scopeId}`);}});renderModeration();}
+function setupModerationSubscriptions(){
+  if(!state.firebaseReady||!state.profileId)return;
+  const caps=currentModerationCapabilities();
+  if(!caps.verified||!caps.canAccess||caps.timedOutGlobal){stopModerationSubscriptions();renderModeration();return;}
+
+  const scopeRows=caps.scopes.map(x=>({scopeType:x.scopeType,scopeId:x.scopeId,_source:x.source}));
+  const global=Boolean(caps.founder||caps.globalModerator);
+  const signature=JSON.stringify([global,...scopeRows.map(x=>[x.scopeType,x.scopeId]).sort()]);
+  if(signature===state.moderationSignature)return;
+
+  stopModerationSubscriptions();
+  state.moderationSignature=signature;
+  const {db,fsMod}=state.firebase;
+
+  if(global){
+    moderationSubscribe(fsMod.query(fsMod.collection(db,'statusAssignments'),fsMod.limit(2500)),rows=>{state.statusPrivileged=rows;mergeStatusRowsNoResub();},'statuses');
+    moderationSubscribe(fsMod.query(fsMod.collection(db,'moderationLogs'),fsMod.orderBy('createdAt','desc'),fsMod.limit(300)),rows=>{state.moderationLogs=rows;renderModeration();},'logs');
+    moderationSubscribe(fsMod.query(fsMod.collection(db,'publicPosts'),fsMod.orderBy('updatedAt','desc'),fsMod.limit(300)),rows=>{state.moderationPosts=rows;renderModeration();},'posts');
+    moderationSubscribe(fsMod.query(fsMod.collection(db,'publicObjects'),fsMod.orderBy('updatedAt','desc'),fsMod.limit(300)),rows=>{state.moderationObjects=rows;renderModeration();},'objects');
+    moderationSubscribe(fsMod.query(fsMod.collection(db,'publicComments'),fsMod.orderBy('updatedAt','desc'),fsMod.limit(500)),rows=>{state.moderationComments=rows;renderModeration();},'comments');
+    moderationSubscribe(fsMod.query(fsMod.collection(db,'publicLfg'),fsMod.orderBy('updatedAt','desc'),fsMod.limit(200)),rows=>{state.moderationLfg=rows;renderModeration();},'lfg');
+    return;
+  }
+
+  scopeRows.forEach(row=>{
+    const q=fsMod.query(fsMod.collection(db,'statusAssignments'),fsMod.where('scopeType','==',row.scopeType),fsMod.where('scopeId','==',row.scopeId),fsMod.limit(250));
+    moderationSubscribe(q,rows=>{state.statusPrivileged=mergeModerationRows(state.statusPrivileged,rows);mergeStatusRowsNoResub();},`status ${row.scopeId}`);
+    const lq=fsMod.query(fsMod.collection(db,'moderationLogs'),fsMod.where('scopeType','==',row.scopeType),fsMod.where('scopeId','==',row.scopeId),fsMod.limit(200));
+    moderationSubscribe(lq,rows=>{state.moderationLogs=mergeModerationRows(state.moderationLogs,rows);renderModeration();},`logs ${row.scopeId}`);
+
+    if(row.scopeType==='discussion_post'){
+      moderationDocSubscribe(fsMod.doc(db,'publicPosts',row.scopeId),doc=>{state.moderationPosts=mergeModerationRows(state.moderationPosts,[doc]);renderModeration();},`post ${row.scopeId}`);
+      const cq=fsMod.query(fsMod.collection(db,'publicComments'),fsMod.where('targetKey','==',`post:${row.scopeId}`),fsMod.limit(500));
+      moderationSubscribe(cq,rows=>{state.moderationComments=mergeModerationRows(state.moderationComments,rows);renderModeration();},`post comments ${row.scopeId}`);
+    }else if(row.scopeType==='discussion_object'||row.scopeType==='project'){
+      moderationDocSubscribe(fsMod.doc(db,'publicObjects',row.scopeId),doc=>{state.moderationObjects=mergeModerationRows(state.moderationObjects,[doc]);renderModeration();},`object ${row.scopeId}`);
+      const cq=fsMod.query(fsMod.collection(db,'publicComments'),fsMod.where('targetKey','==',`object:${row.scopeId}`),fsMod.limit(500));
+      moderationSubscribe(cq,rows=>{state.moderationComments=mergeModerationRows(state.moderationComments,rows);renderModeration();},`object comments ${row.scopeId}`);
+    }
+  });
+  renderModeration();
+}
 function mergeStatusRowsNoResub(){const rows=[...state.statusPublic,...state.statusOwn,...state.statusPrivileged];state.statuses=[...new Map(rows.map(x=>[x.id,x])).values()];renderStatusSurfacesNoResub();}
 function renderStatusSurfacesNoResub(){const account=$('#accountStatusList');if(account){const rows=activeStatusesFor().filter(x=>x.status!=='founder'||isFounder());account.innerHTML=rows.length?rows.map(x=>`<span class="status-badge status-${escapeHtml(x.status)}">${STATUS_META[x.status]?.symbol||'•'} ${escapeHtml(STATUS_META[x.status]?.label||x.status)}${x.scopeType==='global'?'':` · ${escapeHtml(STATUS_SCOPE_LABELS[x.scopeType]||x.scopeType)}`}</span>`).join(''):'<span class="muted">No assigned Status values.</span>';}const timed=isGlobalTimedOut(),banner=$('#timeoutBanner');if(banner)banner.hidden=!timed;const nav=$('#moderationNav');if(nav)nav.hidden=!canAccessModerationClient();if(state.activeView==='moderation'&&!canAccessModerationClient())setView('home',false);renderModeration();renderActivity();}
 
@@ -1268,7 +1391,7 @@ function publicSubscribe(name,apply,{orderBy='',limit=500,filters=[]}={}){
   start(true);
 }
 function privateQuerySubscribe(name,field,value,apply){const {db,fsMod}=state.firebase;const q=fsMod.query(fsMod.collection(db,name),fsMod.where(field,'==',value),fsMod.limit(250));const unsub=fsMod.onSnapshot(q,s=>apply(s.docs.map(d=>({id:d.id,...d.data()}))),e=>console.error(`private subscription ${name}`,e));state.privateUnsubs.push(unsub);}
-function setupPrivateSubscriptions(){stopPrivateSubscriptions();if(!state.profileId)return;let friendIn=[],friendOut=[],lfgIn=[],lfgOut=[];const merge=(a,b)=>[...new Map([...a,...b].map(x=>[x.id,x])).values()];privateQuerySubscribe('privateFriendRequests','toProfileId',state.profileId,rows=>{friendIn=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();renderActivity();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);});privateQuerySubscribe('privateFriendRequests','fromProfileId',state.profileId,rows=>{friendOut=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();renderActivity();});privateQuerySubscribe('privateLfgRequests','toProfileId',state.profileId,rows=>{lfgIn=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();renderActivity();});privateQuerySubscribe('privateLfgRequests','fromProfileId',state.profileId,rows=>{lfgOut=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();renderActivity();});privateQuerySubscribe('statusAssignments','profileId',state.profileId,rows=>{state.statusOwn=rows;mergeStatusRows();renderAuth();renderAccount();renderDetailThread();renderActivity();});const {db,fsMod}=state.firebase;state.privateUnsubs.push(watchCreditWallet(db,fsMod,state.profileId,balance=>{state.creditBalance=balance;renderAuth();renderAccount();},e=>console.debug('LCS credit wallet',e?.code||e)));const q=fsMod.query(fsMod.collection(db,'privateFriendships'),fsMod.where('members','array-contains',state.profileId),fsMod.limit(250));state.privateUnsubs.push(fsMod.onSnapshot(q,s=>{state.friendships=s.docs.map(d=>({id:d.id,...d.data()}));renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('friendships',e)));const bq=fsMod.query(fsMod.collection(db,'privateBlocks'),fsMod.where('blockerProfileId','==',state.profileId),fsMod.limit(500));state.privateUnsubs.push(fsMod.onSnapshot(bq,s=>{state.blocks=s.docs.map(d=>({id:d.id,...d.data()}));renderFeed();renderCatalogs();renderSearchPanel();renderLfg();renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('blocks',e)));}
+function setupPrivateSubscriptions(){stopPrivateSubscriptions();if(!state.profileId){refreshModerationCapabilities(true).catch(()=>{});return;}refreshModerationCapabilities(true).catch(()=>{});let friendIn=[],friendOut=[],lfgIn=[],lfgOut=[];const merge=(a,b)=>[...new Map([...a,...b].map(x=>[x.id,x])).values()];privateQuerySubscribe('privateFriendRequests','toProfileId',state.profileId,rows=>{friendIn=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();renderActivity();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);});privateQuerySubscribe('privateFriendRequests','fromProfileId',state.profileId,rows=>{friendOut=rows;state.friendRequests=merge(friendIn,friendOut);renderConnections();renderActivity();});privateQuerySubscribe('privateLfgRequests','toProfileId',state.profileId,rows=>{lfgIn=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();renderActivity();});privateQuerySubscribe('privateLfgRequests','fromProfileId',state.profileId,rows=>{lfgOut=rows;state.lfgRequests=merge(lfgIn,lfgOut);renderConnections();renderLfg();renderActivity();});privateQuerySubscribe('statusAssignments','profileId',state.profileId,rows=>{state.statusOwn=rows;mergeStatusRows();renderAuth();renderAccount();renderDetailThread();renderActivity();});const {db,fsMod}=state.firebase;state.privateUnsubs.push(watchCreditWallet(db,fsMod,state.profileId,balance=>{state.creditBalance=balance;renderAuth();renderAccount();},e=>console.debug('LCS credit wallet',e?.code||e)));const q=fsMod.query(fsMod.collection(db,'privateFriendships'),fsMod.where('members','array-contains',state.profileId),fsMod.limit(250));state.privateUnsubs.push(fsMod.onSnapshot(q,s=>{state.friendships=s.docs.map(d=>({id:d.id,...d.data()}));renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('friendships',e)));const bq=fsMod.query(fsMod.collection(db,'privateBlocks'),fsMod.where('blockerProfileId','==',state.profileId),fsMod.limit(500));state.privateUnsubs.push(fsMod.onSnapshot(bq,s=>{state.blocks=s.docs.map(d=>({id:d.id,...d.data()}));renderFeed();renderCatalogs();renderSearchPanel();renderLfg();renderConnections();if(state.detail?.type==='profile')openProfileDetail(state.detail.id);},e=>console.error('blocks',e)));}
 
 async function ensurePrivateIdentityOnce(){
   if(!state.authUid||!state.firebaseReady||!state.firebase?.db)return;

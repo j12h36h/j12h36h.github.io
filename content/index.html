@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
   <link rel="stylesheet" href="./assets/market.css?v=2.2.0">
-  <link rel="stylesheet" href="./assets/market-hotfix.css?v=2.3.0">
+  <link rel="stylesheet" href="./assets/market-hotfix.css?v=2.4.0">
   <link rel="stylesheet" href="/game/assets/css/hosted-option-picker.css?v=1.0.2">
 </head>
 <body class="market-page">
@@ -68,16 +68,8 @@
           <div class="asset-tags" id="assetTags"></div>
         </div>
         <div class="asset-controls">
-          <div id="assetTintControls" class="asset-tint-controls">
-            <label><span>TINT</span><input id="assetTint" type="color" value="#65d67c"></label>
-            <div class="asset-swatches" aria-label="Quick tint choices">
-              <button type="button" data-tint="#65d67c" style="--swatch:#65d67c" aria-label="Green tint"></button>
-              <button type="button" data-tint="#65c8ff" style="--swatch:#65c8ff" aria-label="Blue tint"></button>
-              <button type="button" data-tint="#e07cff" style="--swatch:#e07cff" aria-label="Purple tint"></button>
-              <button type="button" data-tint="#ff8b67" style="--swatch:#ff8b67" aria-label="Orange tint"></button>
-              <button type="button" data-tint="#e8e8e8" style="--swatch:#e8e8e8" aria-label="Neutral tint"></button>
-            </div>
-          </div>
+          <div id="assetVariantControls" class="asset-variant-controls"></div>
+          <div id="assetTestControls" class="asset-test-controls"></div>
           <button class="market-primary" id="obtainAsset" type="button">ADD TO COLLECTION</button>
           <p class="asset-feedback" id="assetFeedback" aria-live="polite">SIGN IN TO SAVE OWNERSHIP TO YOUR PROFILE.</p>
         </div>
@@ -97,6 +89,6 @@
 
   <script src="/game/assets/js/site.js"></script>
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./assets/market.js?v=2.3.0"></script>
+  <script type="module" src="./assets/market.js?v=2.4.0"></script>
 </body>
 </html>

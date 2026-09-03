@@ -482,3 +482,11 @@ exports.billPublishedGames = onSchedule({ schedule: 'every 1 minutes', timeZone:
     for (const result of results) if (result.status === 'rejected') console.error('Published-game billing transaction failed', result.reason);
   }
 });
+
+// E.R.A.S. Asset Library / moderation security callables.
+// These run with Admin SDK authority, but each callable derives the caller from
+// Firebase Auth + privateAccounts and validates all user input server-side.
+const assetLibrarySecurity = require('./asset-library-security.js');
+exports.acquireAssetVariant = assetLibrarySecurity.acquireAssetVariant;
+exports.getModerationCapabilities = assetLibrarySecurity.getModerationCapabilities;
+exports.createModeTestLobby = assetLibrarySecurity.createModeTestLobby;

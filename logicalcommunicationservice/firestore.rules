@@ -59,9 +59,11 @@ service cloud.firestore {
         && get(path).data.authorProfileId == callerProfileId();
     }
     function callerModeratesProject(projectId) {
+      // Project ownership alone is NOT moderation authority. A scoped Moderator
+      // Status (or Global Moderator / root Founder authority) is required.
       return callerModerationEnabled()
         || (hasPrivateAccount() && !callerIsTimedOutGlobal()
-          && (callerOwnsProject(projectId) || hasActiveStatus(callerProfileId(), 'moderator', 'project', projectId)));
+          && hasActiveStatus(callerProfileId(), 'moderator', 'project', projectId));
     }
     function callerModeratesScope(scopeType, scopeId) {
       return callerModerationEnabled()
@@ -1206,46 +1208,85 @@ service cloud.firestore {
         'eras:health_potion',
         'eras:slime_juice',
         'eras:hand_wraps',
+
+        'eras:audio_turn_based_theme',
+        'eras:audio_damaged_hit',
+        'eras:audio_confirm',
+        'eras:audio_heal_chime',
+
         'eras:mode_turn_based_tactical',
         'eras:mode_galactic_dominion',
         'eras:mode_surface_discovery',
         'eras:mode_jeng_stroid',
         'eras:mode_sunball',
         'eras:mode_soldoku',
-        'eras:mode_escape_pod_dash'
+        'eras:mode_escape_pod_dash',
+
+        'eras:world_turn_based_medieval',
+
+        'eras:effect_damaged',
+        'eras:effect_heal_pulse',
+        'eras:effect_spawn_burst',
+        'eras:effect_movement_trail',
+
+        'eras:icon_attack',
+        'eras:icon_defend',
+        'eras:icon_heal',
+        'eras:icon_move',
+        'eras:icon_interact',
+        'eras:icon_objective',
+        'eras:icon_collection',
+        'eras:icon_chat'
       ];
     }
-    function freeMarketplaceAssetId(id) {
-      // These are the only zero-price public catalog claims in this release.
-      // When an asset gets a Credit price, remove it here and require an
-      // immutable paid purchase receipt before allowing acquisition.
-      return validErasAssetId(id);
+
+    // Variant storage stays in the historical `tint` field for compatibility
+    // with trading/hosting records, but it is now a typed canonical variant
+    // string. Clients cannot create holdings directly; acquireAssetVariant
+    // validates and writes them through trusted Admin SDK code.
+    function validAssetVariant(value) {
+      return value is string && value.size() >= 1 && value.size() <= 220
+        && (
+          value.matches('#[0-9a-fA-F]{6}')
+          || value.matches('audio[|]pitch=[a-z0-9._-]{1,80}')
+          || value.matches('audio[|]rate=[0-9.]{1,8}')
+          || value.matches('mode[|]rule=[a-z0-9._-]{1,80}')
+          || value.matches('mode[|]custom_rule=[a-z0-9._-]{1,80}')
+          || value.matches('world[|]skin=[a-z0-9._-]{1,80}')
+          || value.matches('world[|]custom_skin=[a-z0-9._-]{1,80}')
+          || value.matches('effect[|]size=[0-9.]{1,8}[|]brightness=[0-9.]{1,8}[|]tint=#[0-9a-fA-F]{6}')
+          || value.matches('icon[|]primary=#[0-9a-fA-F]{6}[|]secondary=#[0-9a-fA-F]{6}[|]accent=#[0-9a-fA-F]{6}')
+        );
     }
-    function validAssetTint(tint) {
-      return tint is string && tint.matches('#[0-9a-fA-F]{6}');
-    }
+
     match /assetInventory/{profileId}/items/{inventoryId} {
-      // Legacy namespace: retained only so owners can inspect old data. New
-      // authoritative ownership is assetHoldings; legacy client writes are closed.
+      // Legacy namespace: retained only so owners can inspect old data.
       allow read: if isCallerProfile(profileId);
       allow create, update, delete: if false;
     }
 
     // ============================================================
     // UNIVERSAL ASSET HOLDINGS
-    // Tradable ownership lives in a root collection so an atomic trade can
-    // change owner without copying/deleting per-user inventory documents.
+    // New acquisition is SERVER-AUTHORITATIVE. A browser, Desktop app,
+    // modified client, or completely fake client cannot mint a holding by
+    // writing this collection directly.
     // ============================================================
     function validAssetHoldingEventType(value) { return value in ['market_acquire','migration','trade']; }
     function validAssetHolding(data) {
-      return data.keys().hasOnly(['ownerProfileId','assetId','tint','acquiredAt','updatedAt','lastEventId','lastEventType'])
+      return data.keys().hasOnly([
+          'ownerProfileId','assetId','tint','acquiredAt','updatedAt',
+          'lastEventId','lastEventType','archived','archivedAt'
+        ])
         && validPublicId(data.ownerProfileId) && profileExists(data.ownerProfileId)
         && validErasAssetId(data.assetId)
-        && validAssetTint(data.tint)
+        && validAssetVariant(data.tint)
         && data.acquiredAt is timestamp && data.updatedAt is timestamp
         && data.lastEventId is string && data.lastEventId.size() <= 180
-        && validAssetHoldingEventType(data.lastEventType);
+        && validAssetHoldingEventType(data.lastEventType)
+        && data.get('archived', false) is bool
+        && validOptionalTimestamp(data.get('archivedAt', null));
     }
+
     function validHoldingTradeUpdate(holdingId, data) {
       let settlementPath = /databases/$(database)/documents/tradeSettlements/$(data.lastEventId);
       return data.lastEventType == 'trade'
@@ -1254,6 +1295,8 @@ service cloud.firestore {
         && data.assetId == resource.data.assetId
         && data.tint == resource.data.tint
         && data.acquiredAt == resource.data.acquiredAt
+        && data.get('archived', false) == resource.data.get('archived', false)
+        && data.get('archivedAt', null) == resource.data.get('archivedAt', null)
         && ((holdingId == getAfter(settlementPath).data.initiatorHoldingId
             && resource.data.ownerProfileId == getAfter(settlementPath).data.initiatorProfileId
             && data.ownerProfileId == getAfter(settlementPath).data.recipientProfileId
@@ -1265,27 +1308,39 @@ service cloud.firestore {
             && data.assetId == getAfter(settlementPath).data.recipientAssetId
             && data.tint == getAfter(settlementPath).data.recipientAssetTint));
     }
+
+    function validOwnerArchiveUpdate(data) {
+      return resource.data.ownerProfileId == callerProfileId()
+        && data.ownerProfileId == resource.data.ownerProfileId
+        && data.assetId == resource.data.assetId
+        && data.tint == resource.data.tint
+        && data.acquiredAt == resource.data.acquiredAt
+        && data.lastEventId == resource.data.lastEventId
+        && data.lastEventType == resource.data.lastEventType
+        && data.updatedAt == request.time
+        && data.diff(resource.data).affectedKeys().hasOnly(['archived','archivedAt','updatedAt'])
+        && ((data.get('archived', false) == true && data.get('archivedAt', null) == request.time)
+          || (data.get('archived', false) == false && data.get('archivedAt', null) == null));
+    }
+
     match /assetHoldings/{holdingId} {
       allow read: if hasPrivateAccount() && resource.data.ownerProfileId == callerProfileId();
-      allow create: if callerCanContribute()
-        && request.resource.data.ownerProfileId == callerProfileId()
-        && validAssetHolding(request.resource.data)
-        && request.resource.data.lastEventType == 'market_acquire'
-        && request.resource.data.lastEventId == ''
-        && freeMarketplaceAssetId(request.resource.data.assetId)
-        && holdingId == 'market__' + callerProfileId() + '__' + request.resource.data.assetId
-        && request.resource.data.acquiredAt == request.time
-        && request.resource.data.updatedAt == request.time;
+
+      // Trusted Cloud Functions use Admin SDK and bypass this rule. All
+      // untrusted clients are denied direct acquisition, including free assets.
+      allow create: if false;
+
       allow update: if validAssetHolding(request.resource.data)
-        && request.resource.data.updatedAt == request.time
-        && ((resource.data.ownerProfileId == callerProfileId()
-            && request.resource.data.ownerProfileId == resource.data.ownerProfileId
-            && request.resource.data.assetId == resource.data.assetId
-            && request.resource.data.acquiredAt == resource.data.acquiredAt
-            && request.resource.data.lastEventId == resource.data.lastEventId
-            && request.resource.data.lastEventType == resource.data.lastEventType)
+        && (validOwnerArchiveUpdate(request.resource.data)
           || validHoldingTradeUpdate(holdingId, request.resource.data));
+
       allow delete: if false;
+    }
+
+    // Immutable purchase/audit receipts created by acquireAssetVariant.
+    match /assetVariantPurchases/{purchaseId} {
+      allow read: if hasPrivateAccount() && resource.data.profileId == callerProfileId();
+      allow create, update, delete: if false;
     }
 
     // ============================================================
@@ -1297,7 +1352,7 @@ service cloud.firestore {
     function validTradeAssetTuple(holdingId, assetId, tint) {
       return (holdingId == '' && assetId == '' && tint == '')
         || (holdingId is string && holdingId.size() >= 8 && holdingId.size() <= 180
-          && validErasAssetId(assetId) && validAssetTint(tint));
+          && validErasAssetId(assetId) && validAssetVariant(tint));
     }
     function validPlayerTrade(data) {
       return data.keys().hasOnly(['initiatorProfileId','recipientProfileId','initiatorCredits','recipientCredits','initiatorHoldingId','initiatorAssetId','initiatorAssetTint','recipientHoldingId','recipientAssetId','recipientAssetTint','status','createdAt','updatedAt','completedAt'])
@@ -1627,7 +1682,7 @@ service cloud.firestore {
       let p = /databases/$(database)/documents/assetHoldings/$(asset.holdingId);
       return asset is map && asset.keys().hasOnly(['holdingId','assetId','tint'])
         && asset.holdingId is string && asset.holdingId.size() >= 8 && asset.holdingId.size() <= 180
-        && asset.assetId is string && validAssetTint(asset.tint)
+        && asset.assetId is string && validAssetVariant(asset.tint)
         && exists(p) && get(p).data.ownerProfileId == hostProfileId
         && get(p).data.assetId == asset.assetId && get(p).data.tint == asset.tint;
     }

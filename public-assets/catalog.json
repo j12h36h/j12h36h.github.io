@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "updatedAt": "2026-09-03",
   "categories": [
     "Sprite",
@@ -36,7 +36,34 @@
         "sprite",
         "tintable",
         "game"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "tintPresets": [
+          {
+            "name": "Default",
+            "value": "#65d67c"
+          },
+          {
+            "name": "Blue",
+            "value": "#65c8ff"
+          },
+          {
+            "name": "Purple",
+            "value": "#e07cff"
+          },
+          {
+            "name": "Orange",
+            "value": "#ff8b67"
+          },
+          {
+            "name": "Neutral",
+            "value": "#e8e8e8"
+          }
+        ],
+        "allowCustomTint": true
+      }
     },
     {
       "id": "eras:health_potion",
@@ -69,18 +96,49 @@
           "source": "/public-assets/textures/potion_bottle_shell.png",
           "tintable": false
         }
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "tintPresets": [
+          {
+            "name": "Default",
+            "value": "#ff5b67"
+          },
+          {
+            "name": "Green",
+            "value": "#65d67c"
+          },
+          {
+            "name": "Blue",
+            "value": "#65c8ff"
+          },
+          {
+            "name": "Purple",
+            "value": "#e07cff"
+          },
+          {
+            "name": "Orange",
+            "value": "#ff8b67"
+          },
+          {
+            "name": "Neutral",
+            "value": "#e8e8e8"
+          }
+        ],
+        "allowCustomTint": true
+      }
     },
     {
       "id": "eras:slime_juice",
       "name": "Slime Juice",
       "type": "sprite",
       "category": "sprites",
-      "description": "Pixel-art Slime Juice sprite used by the E.R.A.S. game inventory and trade loop.",
-      "source": "/public-assets/textures/slime_juice.png",
+      "description": "Tintable Slime Juice sprite. Preset tints are free; a custom tint creates a 1-Credit immutable Collection variation.",
+      "source": "/public-assets/textures/slime_juice_monochrome.png",
       "thumbnail": "/public-assets/textures/slime_juice_thumb.png",
-      "tintable": false,
-      "defaultTint": "#ffffff",
+      "tintable": true,
+      "defaultTint": "#65d67c",
       "price": 0,
       "priceCredits": 0,
       "currency": "FREE",
@@ -90,18 +148,45 @@
         "material",
         "sprite",
         "game"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "tintPresets": [
+          {
+            "name": "Default",
+            "value": "#65d67c"
+          },
+          {
+            "name": "Blue",
+            "value": "#65c8ff"
+          },
+          {
+            "name": "Purple",
+            "value": "#e07cff"
+          },
+          {
+            "name": "Orange",
+            "value": "#ff8b67"
+          },
+          {
+            "name": "Neutral",
+            "value": "#e8e8e8"
+          }
+        ],
+        "allowCustomTint": true
+      }
     },
     {
       "id": "eras:hand_wraps",
       "name": "Hand Wraps",
       "type": "sprite",
       "category": "sprites",
-      "description": "Pixel-art Hand Wraps equipment sprite used by the E.R.A.S. game equipment system.",
-      "source": "/public-assets/textures/hand_wraps.png",
+      "description": "Tintable Hand Wraps equipment sprite. Preset tints are free; a custom tint creates a 1-Credit immutable Collection variation.",
+      "source": "/public-assets/textures/hand_wraps_monochrome.png",
       "thumbnail": "/public-assets/textures/hand_wraps_thumb.png",
-      "tintable": false,
-      "defaultTint": "#ffffff",
+      "tintable": true,
+      "defaultTint": "#d7c7a2",
       "price": 0,
       "priceCredits": 0,
       "currency": "FREE",
@@ -112,7 +197,38 @@
         "equipment",
         "sprite",
         "game"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "tintPresets": [
+          {
+            "name": "Default",
+            "value": "#d7c7a2"
+          },
+          {
+            "name": "Green",
+            "value": "#65d67c"
+          },
+          {
+            "name": "Blue",
+            "value": "#65c8ff"
+          },
+          {
+            "name": "Purple",
+            "value": "#e07cff"
+          },
+          {
+            "name": "Orange",
+            "value": "#ff8b67"
+          },
+          {
+            "name": "Neutral",
+            "value": "#e8e8e8"
+          }
+        ],
+        "allowCustomTint": true
+      }
     },
     {
       "id": "eras:mode_turn_based_tactical",
@@ -167,7 +283,25 @@
         "mode",
         "game",
         "turn based tactical"
-      ]
+      ],
+      "modeId": "arcade-topdown",
+      "ruleName": "Highest Score",
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "rulePresets": [
+          "Highest Score",
+          "Longest Alive",
+          "Last Alive",
+          "Fastest Finish",
+          "Most Objectives",
+          "First to Target",
+          "Best Accuracy",
+          "Fewest Mistakes"
+        ],
+        "defaultRule": "Highest Score",
+        "allowCustomRule": true
+      }
     },
     {
       "id": "eras:mode_galactic_dominion",
@@ -222,7 +356,25 @@
         "mode",
         "game",
         "galactic dominion"
-      ]
+      ],
+      "modeId": "galactic-dominion",
+      "ruleName": "Highest Score",
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "rulePresets": [
+          "Highest Score",
+          "Longest Alive",
+          "Last Alive",
+          "Fastest Finish",
+          "Most Objectives",
+          "First to Target",
+          "Best Accuracy",
+          "Fewest Mistakes"
+        ],
+        "defaultRule": "Highest Score",
+        "allowCustomRule": true
+      }
     },
     {
       "id": "eras:mode_surface_discovery",
@@ -277,7 +429,25 @@
         "mode",
         "game",
         "surface discovery"
-      ]
+      ],
+      "modeId": "surface-discovery",
+      "ruleName": "Highest Score",
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "rulePresets": [
+          "Highest Score",
+          "Longest Alive",
+          "Last Alive",
+          "Fastest Finish",
+          "Most Objectives",
+          "First to Target",
+          "Best Accuracy",
+          "Fewest Mistakes"
+        ],
+        "defaultRule": "Highest Score",
+        "allowCustomRule": true
+      }
     },
     {
       "id": "eras:mode_jeng_stroid",
@@ -348,7 +518,25 @@
         "mode",
         "game",
         "jeng stroid"
-      ]
+      ],
+      "modeId": "jeng-stroid",
+      "ruleName": "Highest Score",
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "rulePresets": [
+          "Highest Score",
+          "Longest Alive",
+          "Last Alive",
+          "Fastest Finish",
+          "Most Objectives",
+          "First to Target",
+          "Best Accuracy",
+          "Fewest Mistakes"
+        ],
+        "defaultRule": "Highest Score",
+        "allowCustomRule": true
+      }
     },
     {
       "id": "eras:mode_sunball",
@@ -403,7 +591,25 @@
         "mode",
         "game",
         "sunball"
-      ]
+      ],
+      "modeId": "sunball",
+      "ruleName": "Highest Score",
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "rulePresets": [
+          "Highest Score",
+          "Longest Alive",
+          "Last Alive",
+          "Fastest Finish",
+          "Most Objectives",
+          "First to Target",
+          "Best Accuracy",
+          "Fewest Mistakes"
+        ],
+        "defaultRule": "Highest Score",
+        "allowCustomRule": true
+      }
     },
     {
       "id": "eras:mode_soldoku",
@@ -458,7 +664,25 @@
         "mode",
         "game",
         "soldoku"
-      ]
+      ],
+      "modeId": "soldoku",
+      "ruleName": "Highest Score",
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "rulePresets": [
+          "Highest Score",
+          "Longest Alive",
+          "Last Alive",
+          "Fastest Finish",
+          "Most Objectives",
+          "First to Target",
+          "Best Accuracy",
+          "Fewest Mistakes"
+        ],
+        "defaultRule": "Highest Score",
+        "allowCustomRule": true
+      }
     },
     {
       "id": "eras:mode_escape_pod_dash",
@@ -513,7 +737,25 @@
         "mode",
         "game",
         "escape pod dash"
-      ]
+      ],
+      "modeId": "escape-pod-dash",
+      "ruleName": "Highest Score",
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "rulePresets": [
+          "Highest Score",
+          "Longest Alive",
+          "Last Alive",
+          "Fastest Finish",
+          "Most Objectives",
+          "First to Target",
+          "Best Accuracy",
+          "Fewest Mistakes"
+        ],
+        "defaultRule": "Highest Score",
+        "allowCustomRule": true
+      }
     },
     {
       "id": "eras:icon_attack",
@@ -570,7 +812,48 @@
         "game",
         "pre-made",
         "attack"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "colorPresets": [
+          {
+            "name": "Original",
+            "primary": "#ffffff",
+            "secondary": "#925cff",
+            "accent": "#64d9ff"
+          },
+          {
+            "name": "Cyan",
+            "primary": "#dfffff",
+            "secondary": "#64d9ff",
+            "accent": "#0e7f94"
+          },
+          {
+            "name": "Green",
+            "primary": "#e6fff0",
+            "secondary": "#72e0a1",
+            "accent": "#287e4e"
+          },
+          {
+            "name": "Orange",
+            "primary": "#fff3dd",
+            "secondary": "#ffb22e",
+            "accent": "#9c5d00"
+          },
+          {
+            "name": "Purple",
+            "primary": "#f2e8ff",
+            "secondary": "#b98cff",
+            "accent": "#6330a9"
+          }
+        ],
+        "defaultColorPreset": "Original"
+      },
+      "animation": {
+        "type": "static",
+        "durationMs": 900
+      }
     },
     {
       "id": "eras:icon_defend",
@@ -627,7 +910,48 @@
         "game",
         "pre-made",
         "defend"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "colorPresets": [
+          {
+            "name": "Original",
+            "primary": "#ffffff",
+            "secondary": "#925cff",
+            "accent": "#64d9ff"
+          },
+          {
+            "name": "Cyan",
+            "primary": "#dfffff",
+            "secondary": "#64d9ff",
+            "accent": "#0e7f94"
+          },
+          {
+            "name": "Green",
+            "primary": "#e6fff0",
+            "secondary": "#72e0a1",
+            "accent": "#287e4e"
+          },
+          {
+            "name": "Orange",
+            "primary": "#fff3dd",
+            "secondary": "#ffb22e",
+            "accent": "#9c5d00"
+          },
+          {
+            "name": "Purple",
+            "primary": "#f2e8ff",
+            "secondary": "#b98cff",
+            "accent": "#6330a9"
+          }
+        ],
+        "defaultColorPreset": "Original"
+      },
+      "animation": {
+        "type": "static",
+        "durationMs": 900
+      }
     },
     {
       "id": "eras:icon_heal",
@@ -684,7 +1008,48 @@
         "game",
         "pre-made",
         "heal"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "colorPresets": [
+          {
+            "name": "Original",
+            "primary": "#ffffff",
+            "secondary": "#925cff",
+            "accent": "#64d9ff"
+          },
+          {
+            "name": "Cyan",
+            "primary": "#dfffff",
+            "secondary": "#64d9ff",
+            "accent": "#0e7f94"
+          },
+          {
+            "name": "Green",
+            "primary": "#e6fff0",
+            "secondary": "#72e0a1",
+            "accent": "#287e4e"
+          },
+          {
+            "name": "Orange",
+            "primary": "#fff3dd",
+            "secondary": "#ffb22e",
+            "accent": "#9c5d00"
+          },
+          {
+            "name": "Purple",
+            "primary": "#f2e8ff",
+            "secondary": "#b98cff",
+            "accent": "#6330a9"
+          }
+        ],
+        "defaultColorPreset": "Original"
+      },
+      "animation": {
+        "type": "static",
+        "durationMs": 900
+      }
     },
     {
       "id": "eras:icon_move",
@@ -725,7 +1090,48 @@
         "game",
         "pre-made",
         "move"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "colorPresets": [
+          {
+            "name": "Original",
+            "primary": "#ffffff",
+            "secondary": "#925cff",
+            "accent": "#64d9ff"
+          },
+          {
+            "name": "Cyan",
+            "primary": "#dfffff",
+            "secondary": "#64d9ff",
+            "accent": "#0e7f94"
+          },
+          {
+            "name": "Green",
+            "primary": "#e6fff0",
+            "secondary": "#72e0a1",
+            "accent": "#287e4e"
+          },
+          {
+            "name": "Orange",
+            "primary": "#fff3dd",
+            "secondary": "#ffb22e",
+            "accent": "#9c5d00"
+          },
+          {
+            "name": "Purple",
+            "primary": "#f2e8ff",
+            "secondary": "#b98cff",
+            "accent": "#6330a9"
+          }
+        ],
+        "defaultColorPreset": "Original"
+      },
+      "animation": {
+        "type": "static",
+        "durationMs": 900
+      }
     },
     {
       "id": "eras:icon_interact",
@@ -782,7 +1188,48 @@
         "game",
         "pre-made",
         "interact"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "colorPresets": [
+          {
+            "name": "Original",
+            "primary": "#ffffff",
+            "secondary": "#925cff",
+            "accent": "#64d9ff"
+          },
+          {
+            "name": "Cyan",
+            "primary": "#dfffff",
+            "secondary": "#64d9ff",
+            "accent": "#0e7f94"
+          },
+          {
+            "name": "Green",
+            "primary": "#e6fff0",
+            "secondary": "#72e0a1",
+            "accent": "#287e4e"
+          },
+          {
+            "name": "Orange",
+            "primary": "#fff3dd",
+            "secondary": "#ffb22e",
+            "accent": "#9c5d00"
+          },
+          {
+            "name": "Purple",
+            "primary": "#f2e8ff",
+            "secondary": "#b98cff",
+            "accent": "#6330a9"
+          }
+        ],
+        "defaultColorPreset": "Original"
+      },
+      "animation": {
+        "type": "static",
+        "durationMs": 900
+      }
     },
     {
       "id": "eras:icon_objective",
@@ -839,7 +1286,48 @@
         "game",
         "pre-made",
         "objective"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "colorPresets": [
+          {
+            "name": "Original",
+            "primary": "#ffffff",
+            "secondary": "#925cff",
+            "accent": "#64d9ff"
+          },
+          {
+            "name": "Cyan",
+            "primary": "#dfffff",
+            "secondary": "#64d9ff",
+            "accent": "#0e7f94"
+          },
+          {
+            "name": "Green",
+            "primary": "#e6fff0",
+            "secondary": "#72e0a1",
+            "accent": "#287e4e"
+          },
+          {
+            "name": "Orange",
+            "primary": "#fff3dd",
+            "secondary": "#ffb22e",
+            "accent": "#9c5d00"
+          },
+          {
+            "name": "Purple",
+            "primary": "#f2e8ff",
+            "secondary": "#b98cff",
+            "accent": "#6330a9"
+          }
+        ],
+        "defaultColorPreset": "Original"
+      },
+      "animation": {
+        "type": "static",
+        "durationMs": 900
+      }
     },
     {
       "id": "eras:icon_collection",
@@ -896,7 +1384,48 @@
         "game",
         "pre-made",
         "collection"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "colorPresets": [
+          {
+            "name": "Original",
+            "primary": "#ffffff",
+            "secondary": "#925cff",
+            "accent": "#64d9ff"
+          },
+          {
+            "name": "Cyan",
+            "primary": "#dfffff",
+            "secondary": "#64d9ff",
+            "accent": "#0e7f94"
+          },
+          {
+            "name": "Green",
+            "primary": "#e6fff0",
+            "secondary": "#72e0a1",
+            "accent": "#287e4e"
+          },
+          {
+            "name": "Orange",
+            "primary": "#fff3dd",
+            "secondary": "#ffb22e",
+            "accent": "#9c5d00"
+          },
+          {
+            "name": "Purple",
+            "primary": "#f2e8ff",
+            "secondary": "#b98cff",
+            "accent": "#6330a9"
+          }
+        ],
+        "defaultColorPreset": "Original"
+      },
+      "animation": {
+        "type": "static",
+        "durationMs": 900
+      }
     },
     {
       "id": "eras:icon_chat",
@@ -953,7 +1482,48 @@
         "game",
         "pre-made",
         "chat"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "colorPresets": [
+          {
+            "name": "Original",
+            "primary": "#ffffff",
+            "secondary": "#925cff",
+            "accent": "#64d9ff"
+          },
+          {
+            "name": "Cyan",
+            "primary": "#dfffff",
+            "secondary": "#64d9ff",
+            "accent": "#0e7f94"
+          },
+          {
+            "name": "Green",
+            "primary": "#e6fff0",
+            "secondary": "#72e0a1",
+            "accent": "#287e4e"
+          },
+          {
+            "name": "Orange",
+            "primary": "#fff3dd",
+            "secondary": "#ffb22e",
+            "accent": "#9c5d00"
+          },
+          {
+            "name": "Purple",
+            "primary": "#f2e8ff",
+            "secondary": "#b98cff",
+            "accent": "#6330a9"
+          }
+        ],
+        "defaultColorPreset": "Original"
+      },
+      "animation": {
+        "type": "static",
+        "durationMs": 900
+      }
     },
     {
       "id": "eras:world_turn_based_medieval",
@@ -1052,7 +1622,16 @@
         "turn-based",
         "medieval",
         "skin"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "skinPresets": [
+          "Medieval"
+        ],
+        "defaultSkin": "Medieval",
+        "allowCustomSkin": true
+      }
     },
     {
       "id": "eras:effect_damaged",
@@ -1118,7 +1697,20 @@
         "vfx",
         "particle",
         "damaged"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "defaultImpact": {
+          "size": 1.0,
+          "brightness": 1.35,
+          "tint": "#ff5166"
+        },
+        "sizeMin": 0.25,
+        "sizeMax": 3.0,
+        "brightnessMin": 0.0,
+        "brightnessMax": 2.0
+      }
     },
     {
       "id": "eras:effect_heal_pulse",
@@ -1184,7 +1776,20 @@
         "vfx",
         "particle",
         "heal pulse"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "defaultImpact": {
+          "size": 1.0,
+          "brightness": 1.15,
+          "tint": "#72e0a1"
+        },
+        "sizeMin": 0.25,
+        "sizeMax": 3.0,
+        "brightnessMin": 0.0,
+        "brightnessMax": 2.0
+      }
     },
     {
       "id": "eras:effect_spawn_burst",
@@ -1250,7 +1855,20 @@
         "vfx",
         "particle",
         "spawn burst"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "defaultImpact": {
+          "size": 1.1,
+          "brightness": 1.25,
+          "tint": "#b98cff"
+        },
+        "sizeMin": 0.25,
+        "sizeMax": 3.0,
+        "brightnessMin": 0.0,
+        "brightnessMax": 2.0
+      }
     },
     {
       "id": "eras:effect_movement_trail",
@@ -1300,7 +1918,20 @@
         "vfx",
         "particle",
         "movement trail"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "defaultImpact": {
+          "size": 0.8,
+          "brightness": 0.9,
+          "tint": "#64d9ff"
+        },
+        "sizeMin": 0.25,
+        "sizeMax": 3.0,
+        "brightnessMin": 0.0,
+        "brightnessMax": 2.0
+      }
     },
     {
       "id": "eras:audio_turn_based_theme",
@@ -1366,7 +1997,50 @@
         "game",
         "background",
         "turn based theme"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "pitchPresets": [
+          {
+            "name": "Sub Bass",
+            "rate": 0.5
+          },
+          {
+            "name": "Bass",
+            "rate": 0.63
+          },
+          {
+            "name": "Baritone",
+            "rate": 0.75
+          },
+          {
+            "name": "Tenor",
+            "rate": 0.89
+          },
+          {
+            "name": "Alto",
+            "rate": 1.0
+          },
+          {
+            "name": "Mezzo-Soprano",
+            "rate": 1.12
+          },
+          {
+            "name": "Soprano",
+            "rate": 1.26
+          },
+          {
+            "name": "High Soprano",
+            "rate": 1.5
+          }
+        ],
+        "defaultPitchName": "Alto",
+        "defaultPitchRate": 1.0,
+        "minPitchRate": 0.5,
+        "maxPitchRate": 1.5,
+        "step": 0.01
+      }
     },
     {
       "id": "eras:audio_damaged_hit",
@@ -1430,7 +2104,50 @@
         "game",
         "effect",
         "damaged hit"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "pitchPresets": [
+          {
+            "name": "Sub Bass",
+            "rate": 0.5
+          },
+          {
+            "name": "Bass",
+            "rate": 0.63
+          },
+          {
+            "name": "Baritone",
+            "rate": 0.75
+          },
+          {
+            "name": "Tenor",
+            "rate": 0.89
+          },
+          {
+            "name": "Alto",
+            "rate": 1.0
+          },
+          {
+            "name": "Mezzo-Soprano",
+            "rate": 1.12
+          },
+          {
+            "name": "Soprano",
+            "rate": 1.26
+          },
+          {
+            "name": "High Soprano",
+            "rate": 1.5
+          }
+        ],
+        "defaultPitchName": "Baritone",
+        "defaultPitchRate": 0.75,
+        "minPitchRate": 0.5,
+        "maxPitchRate": 1.5,
+        "step": 0.01
+      }
     },
     {
       "id": "eras:audio_confirm",
@@ -1494,7 +2211,50 @@
         "game",
         "effect",
         "confirm"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "pitchPresets": [
+          {
+            "name": "Sub Bass",
+            "rate": 0.5
+          },
+          {
+            "name": "Bass",
+            "rate": 0.63
+          },
+          {
+            "name": "Baritone",
+            "rate": 0.75
+          },
+          {
+            "name": "Tenor",
+            "rate": 0.89
+          },
+          {
+            "name": "Alto",
+            "rate": 1.0
+          },
+          {
+            "name": "Mezzo-Soprano",
+            "rate": 1.12
+          },
+          {
+            "name": "Soprano",
+            "rate": 1.26
+          },
+          {
+            "name": "High Soprano",
+            "rate": 1.5
+          }
+        ],
+        "defaultPitchName": "Soprano",
+        "defaultPitchRate": 1.26,
+        "minPitchRate": 0.5,
+        "maxPitchRate": 1.5,
+        "step": 0.01
+      }
     },
     {
       "id": "eras:audio_heal_chime",
@@ -1558,7 +2318,55 @@
         "game",
         "effect",
         "heal chime"
-      ]
+      ],
+      "variantPolicy": {
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "pitchPresets": [
+          {
+            "name": "Sub Bass",
+            "rate": 0.5
+          },
+          {
+            "name": "Bass",
+            "rate": 0.63
+          },
+          {
+            "name": "Baritone",
+            "rate": 0.75
+          },
+          {
+            "name": "Tenor",
+            "rate": 0.89
+          },
+          {
+            "name": "Alto",
+            "rate": 1.0
+          },
+          {
+            "name": "Mezzo-Soprano",
+            "rate": 1.12
+          },
+          {
+            "name": "Soprano",
+            "rate": 1.26
+          },
+          {
+            "name": "High Soprano",
+            "rate": 1.5
+          }
+        ],
+        "defaultPitchName": "Mezzo-Soprano",
+        "defaultPitchRate": 1.12,
+        "minPitchRate": 0.5,
+        "maxPitchRate": 1.5,
+        "step": 0.01
+      }
     }
-  ]
+  ],
+  "pricing": {
+    "defaultVariationCredits": 0,
+    "customVariationCredits": 1,
+    "note": "Catalog/preset variations are free. User-customized variations cost exactly 1 Credit each."
+  }
 }
