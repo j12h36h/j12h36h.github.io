@@ -14,7 +14,67 @@ const IMAGE_CACHE = new Map();
 const VARIANT_PREVIEW_CACHE = new Map();
 
 export function catalogAsset(catalog, assetId='') {
-  return catalog?.assets?.find?.(asset => asset?.id === assetId) || { ...FALLBACK, id: assetId || FALLBACK.id, name: assetId || FALLBACK.name };
+  return catalog?.assets?.find?.(asset => asset?.id === assetId)
+    || { ...FALLBACK, id: assetId || FALLBACK.id, name: assetId || FALLBACK.name };
+}
+
+export function assetCategory(asset) {
+  const rawType = String(asset?.type || '').trim().toLowerCase();
+  const rawCategory = String(asset?.category || '').trim().toLowerCase();
+  const id = String(asset?.id || '').trim().toLowerCase();
+
+  if (rawCategory === 'game-mode-icons' || id.includes('mode_') || rawType === 'mode') return 'Mode';
+  if (['audio','sound','music'].includes(rawType) || ['audio','sounds','music'].includes(rawCategory)) return 'Audio';
+  if (['world','map'].includes(rawType) || ['world','worlds','maps'].includes(rawCategory)) return 'World';
+  if (['effect','vfx','particle','particles'].includes(rawType) || ['effects','vfx','particles'].includes(rawCategory)) return 'Effect';
+  if (rawType === 'icon' || rawCategory === 'icons') return 'Icon';
+
+  return 'Sprite';
+}
+
+export function assetBaseName(asset) {
+  let name = String(asset?.displayName || asset?.name || asset?.id || 'Asset').trim();
+  if (name.startsWith('Monochrome ')) name = name.slice('Monochrome '.length);
+
+  const kind = assetCategory(asset);
+  if (kind === 'Mode') {
+    for (const suffix of [' Emblem',' Crest',' Scanner',' Stack',' Orb',' Logic Grid',' Icon']) {
+      if (name.endsWith(suffix)) {
+        name = name.slice(0, -suffix.length);
+        break;
+      }
+    }
+  }
+  if (kind === 'Sprite' && name.endsWith(' Texture')) name = name.slice(0, -' Texture'.length);
+  return name.trim() || 'Asset';
+}
+
+export function assetCatalogVariantLabel(asset) {
+  const kind = assetCategory(asset);
+
+  if (kind === 'Sprite' || kind === 'Icon') {
+    const value = String(asset?.colorName || asset?.color || asset?.variantColor || '').trim();
+    return value ? titleWords(value) : 'Undefined';
+  }
+  if (kind === 'Audio') return String(asset?.pitchName || '').trim() || 'Undefined';
+  if (kind === 'Mode') return String(asset?.ruleName || '').trim() || 'Undefined';
+  if (kind === 'World') return String(asset?.skinName || '').trim() || 'Undefined';
+  if (kind === 'Effect') return String(asset?.impactName || '').trim() || 'Undefined';
+  return 'Undefined';
+}
+
+export function assetDisplayLabel(asset, variant='') {
+  const label = String(variant || '').trim() || assetCatalogVariantLabel(asset);
+  return `[${assetCategory(asset)}] ${assetBaseName(asset)} (${label})`;
+}
+
+export function assetCanFillRole(asset, requiredRole='') {
+  const kind = assetCategory(asset);
+  const role = String(requiredRole || '').trim().toLowerCase();
+
+  if (role === 'sprite') return kind === 'Sprite' || kind === 'Icon';
+  if (role === 'icon') return kind === 'Icon';
+  return kind.toLowerCase() === role;
 }
 
 export function assetAvatarJson(asset) {
@@ -81,7 +141,8 @@ async function loadAssetImage(source) {
 
 function drawTintedLayer(ctx, image, tint, width, height) {
   const off = document.createElement('canvas');
-  off.width = width; off.height = height;
+  off.width = width;
+  off.height = height;
   const octx = off.getContext('2d');
   octx.clearRect(0, 0, width, height);
   octx.drawImage(image, 0, 0, width, height);
@@ -101,6 +162,7 @@ export async function renderAssetCanvas(canvas, asset, tint=assetDefaultTint(ass
   const ctx = canvas.getContext('2d');
   const resolvedTint = safeAssetTint(tint, assetDefaultTint(asset));
   ctx.clearRect(0, 0, width, height);
+
   for (const layer of assetLayers(asset)) {
     const image = await loadAssetImage(layer.source);
     if (layer.tintable) drawTintedLayer(ctx, image, resolvedTint, width, height);
@@ -115,16 +177,23 @@ export async function assetVariantPreviewUrl(asset, tint=assetDefaultTint(asset)
   const resolvedTint = safeAssetTint(tint, assetDefaultTint(asset));
   const layerKey = assetLayers(asset).map(layer => `${layer.tintable?'t':'f'}:${layer.source}`).join('|');
   const key = `${asset?.id || ''}|${resolvedTint}|${px}|${layerKey}`;
+
   if (VARIANT_PREVIEW_CACHE.has(key)) return VARIANT_PREVIEW_CACHE.get(key);
+
   const promise = (async () => {
     const canvas = document.createElement('canvas');
-    canvas.width = px; canvas.height = px;
+    canvas.width = px;
+    canvas.height = px;
     await renderAssetCanvas(canvas, asset, resolvedTint);
     return canvas.toDataURL('image/png');
   })();
+
   VARIANT_PREVIEW_CACHE.set(key, promise);
   try { return await promise; }
-  catch (error) { VARIANT_PREVIEW_CACHE.delete(key); throw error; }
+  catch (error) {
+    VARIANT_PREVIEW_CACHE.delete(key);
+    throw error;
+  }
 }
 
 export function hydrateVariantPreviewImage(image, asset, tint=assetDefaultTint(asset), size=128) {
@@ -148,9 +217,15 @@ export function assetIsCurrentlyFree(asset) {
 export function assetOption(asset, extraTags=[]) {
   return {
     id: asset.id,
-    name: asset.name || asset.id,
+    name: assetDisplayLabel(asset),
     description: asset.description || '',
     image: assetPreviewUrl(asset),
-    tags: [...(Array.isArray(asset.tags) ? asset.tags.slice(0, 4) : []), ...extraTags].slice(0, 6)
+    tags: Array.isArray(extraTags) ? extraTags.slice(0, 6) : []
   };
+}
+
+function titleWords(value) {
+  return String(value || '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
 }

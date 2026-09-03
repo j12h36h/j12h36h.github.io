@@ -1,54 +1,65 @@
 {
-  "version": 4,
-  "updatedAt": "2026-09-02",
+  "version": 5,
+  "updatedAt": "2026-09-03",
+  "categories": [
+    "Sprite",
+    "Audio",
+    "Mode",
+    "World",
+    "Effect",
+    "Icon"
+  ],
+  "defaults": {
+    "gameMusicAssetId": "eras:audio_turn_based_theme",
+    "damageEffectAssetId": "eras:effect_damaged",
+    "damageAudioAssetId": "eras:audio_damaged_hit",
+    "turnBasedWorldAssetId": "eras:world_turn_based_medieval"
+  },
   "assets": [
     {
       "id": "eras:slime_monochrome",
-      "name": "Monochrome Slime",
-      "type": "texture",
-      "category": "characters",
-      "description": "A greyscale tint-base slime character texture. The acquired tint becomes an immutable holding variant.",
+      "name": "Slime",
+      "type": "sprite",
+      "category": "sprites",
+      "description": "Greyscale tint-base slime character sprite. Tint becomes an immutable Collection variant.",
       "source": "/public-assets/textures/slime_monochrome.png",
       "thumbnail": "/public-assets/textures/slime_monochrome.png",
       "tintable": true,
       "defaultTint": "#65d67c",
       "price": 0,
+      "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
         "slime",
         "character",
-        "texture",
+        "sprite",
         "tintable",
-        "free"
-      ],
-      "priceCredits": 0
+        "game"
+      ]
     },
     {
       "id": "eras:health_potion",
       "name": "Health Potion",
-      "type": "texture",
-      "category": "items",
-      "description": "Layered health potion asset: greyscale liquid is tintable while the glass bottle and cork remain unchanged. In-game consumable restores 2 HP.",
+      "type": "sprite",
+      "category": "sprites",
+      "description": "Layered health potion sprite. The liquid layer can be tinted while bottle and cork stay unchanged.",
       "source": "/public-assets/textures/health_potion.png",
       "thumbnail": "/public-assets/textures/health_potion_thumb.png",
       "tintable": true,
+      "defaultTint": "#ff5b67",
       "price": 0,
+      "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
         "health potion",
-        "potion",
         "consumable",
-        "item",
-        "texture",
-        "game",
-        "free",
+        "sprite",
         "tintable",
-        "layered"
+        "layered",
+        "game"
       ],
-      "priceCredits": 0,
-      "defaultTint": "#ff5b67",
       "layers": [
         {
           "source": "/public-assets/textures/potion_liquid_monochrome.png",
@@ -63,55 +74,52 @@
     {
       "id": "eras:slime_juice",
       "name": "Slime Juice",
-      "type": "texture",
-      "category": "items",
-      "description": "Pixel-art Slime Juice texture used by the E.R.A.S. game inventory and NORTH TERMINAL trade loop.",
+      "type": "sprite",
+      "category": "sprites",
+      "description": "Pixel-art Slime Juice sprite used by the E.R.A.S. game inventory and trade loop.",
       "source": "/public-assets/textures/slime_juice.png",
       "thumbnail": "/public-assets/textures/slime_juice_thumb.png",
       "tintable": false,
+      "defaultTint": "#ffffff",
       "price": 0,
+      "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
         "slime juice",
-        "slime",
         "material",
-        "item",
-        "texture",
-        "game",
-        "free"
-      ],
-      "priceCredits": 0
+        "sprite",
+        "game"
+      ]
     },
     {
       "id": "eras:hand_wraps",
       "name": "Hand Wraps",
-      "type": "texture",
-      "category": "weapons",
-      "description": "Pixel-art Hand Wraps weapon texture used by the E.R.A.S. game equipment system.",
+      "type": "sprite",
+      "category": "sprites",
+      "description": "Pixel-art Hand Wraps equipment sprite used by the E.R.A.S. game equipment system.",
       "source": "/public-assets/textures/hand_wraps.png",
       "thumbnail": "/public-assets/textures/hand_wraps_thumb.png",
       "tintable": false,
+      "defaultTint": "#ffffff",
       "price": 0,
+      "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
         "hand wraps",
         "weapon",
         "equipment",
-        "item",
-        "texture",
-        "game",
-        "free"
-      ],
-      "priceCredits": 0
+        "sprite",
+        "game"
+      ]
     },
     {
       "id": "eras:mode_turn_based_tactical",
-      "name": "Turn-Based Tactical Emblem",
-      "type": "icon",
-      "category": "game-mode-icons",
-      "description": "Official E.R.A.S. emblem for the Turn-Based Tactical hosted game mode.",
+      "name": "Turn-Based Tactical",
+      "type": "mode",
+      "category": "modes",
+      "description": "Official E.R.A.S. Turn-Based Tactical game Mode. Rules are selectable as minor modes within it.",
       "iconJson": {
         "version": 1,
         "background": "#071416",
@@ -151,25 +159,22 @@
         ]
       },
       "tintable": false,
-      "defaultTint": "#9fe4e3",
       "price": 0,
       "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
-        "turn-based",
-        "tactical",
-        "game mode",
-        "emblem",
-        "free"
+        "mode",
+        "game",
+        "turn based tactical"
       ]
     },
     {
       "id": "eras:mode_galactic_dominion",
-      "name": "Galactic Dominion Crest",
-      "type": "icon",
-      "category": "game-mode-icons",
-      "description": "Official orbital crest for Galactic Dominion hosted matches.",
+      "name": "Galactic Dominion",
+      "type": "mode",
+      "category": "modes",
+      "description": "Official E.R.A.S. Galactic Dominion game Mode. Rules are selectable as minor modes within it.",
       "iconJson": {
         "version": 1,
         "background": "#100d1e",
@@ -209,25 +214,22 @@
         ]
       },
       "tintable": false,
-      "defaultTint": "#d7b7ff",
       "price": 0,
       "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
-        "galactic dominion",
-        "planet",
-        "orbital",
-        "game mode",
-        "free"
+        "mode",
+        "game",
+        "galactic dominion"
       ]
     },
     {
       "id": "eras:mode_surface_discovery",
-      "name": "Surface Discovery Scanner",
-      "type": "icon",
-      "category": "game-mode-icons",
-      "description": "Official scanner icon for Surface Discovery maze expeditions.",
+      "name": "Surface Discovery",
+      "type": "mode",
+      "category": "modes",
+      "description": "Official E.R.A.S. Surface Discovery game Mode. Rules are selectable as minor modes within it.",
       "iconJson": {
         "version": 1,
         "background": "#071512",
@@ -267,25 +269,22 @@
         ]
       },
       "tintable": false,
-      "defaultTint": "#8fe6b1",
       "price": 0,
       "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
-        "surface discovery",
-        "maze",
-        "scanner",
-        "game mode",
-        "free"
+        "mode",
+        "game",
+        "surface discovery"
       ]
     },
     {
       "id": "eras:mode_jeng_stroid",
-      "name": "Jeng-stroid Stack",
-      "type": "icon",
-      "category": "game-mode-icons",
-      "description": "Official structural-stack icon for Jeng-stroid hosted games.",
+      "name": "Jeng-stroid",
+      "type": "mode",
+      "category": "modes",
+      "description": "Official E.R.A.S. Jeng-stroid game Mode. Rules are selectable as minor modes within it.",
       "iconJson": {
         "version": 1,
         "background": "#12100b",
@@ -293,8 +292,8 @@
           {
             "char": "▰",
             "x": 64,
-            "y": 39,
-            "fontSize": 50,
+            "y": 40,
+            "fontSize": 48,
             "color": "#e4b77b",
             "fontFamily": "Arial",
             "fontWeight": 900,
@@ -309,8 +308,8 @@
           {
             "char": "▰",
             "x": 64,
-            "y": 64,
-            "fontSize": 50,
+            "y": 65,
+            "fontSize": 48,
             "color": "#c99557",
             "fontFamily": "Arial",
             "fontWeight": 900,
@@ -325,8 +324,8 @@
           {
             "char": "▰",
             "x": 64,
-            "y": 89,
-            "fontSize": 50,
+            "y": 90,
+            "fontSize": 48,
             "color": "#a9753f",
             "fontFamily": "Arial",
             "fontWeight": 900,
@@ -341,25 +340,22 @@
         ]
       },
       "tintable": false,
-      "defaultTint": "#e4b77b",
       "price": 0,
       "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
-        "jeng-stroid",
-        "stack",
-        "blocks",
-        "game mode",
-        "free"
+        "mode",
+        "game",
+        "jeng stroid"
       ]
     },
     {
       "id": "eras:mode_sunball",
-      "name": "Sunball Orb",
-      "type": "icon",
-      "category": "game-mode-icons",
-      "description": "Official solar orb icon for Sunball arcade tables.",
+      "name": "Sunball",
+      "type": "mode",
+      "category": "modes",
+      "description": "Official E.R.A.S. Sunball game Mode. Rules are selectable as minor modes within it.",
       "iconJson": {
         "version": 1,
         "background": "#171006",
@@ -399,25 +395,22 @@
         ]
       },
       "tintable": false,
-      "defaultTint": "#ffd56f",
       "price": 0,
       "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
-        "sunball",
-        "pinball",
-        "orb",
-        "game mode",
-        "free"
+        "mode",
+        "game",
+        "sunball"
       ]
     },
     {
       "id": "eras:mode_soldoku",
-      "name": "Soldoku Logic Grid",
-      "type": "icon",
-      "category": "game-mode-icons",
-      "description": "Official logic-grid icon for Soldoku puzzle matches.",
+      "name": "Soldoku",
+      "type": "mode",
+      "category": "modes",
+      "description": "Official E.R.A.S. Soldoku game Mode. Rules are selectable as minor modes within it.",
       "iconJson": {
         "version": 1,
         "background": "#071016",
@@ -457,25 +450,22 @@
         ]
       },
       "tintable": false,
-      "defaultTint": "#8cc9ff",
       "price": 0,
       "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
-        "soldoku",
-        "sudoku",
-        "logic",
-        "game mode",
-        "free"
+        "mode",
+        "game",
+        "soldoku"
       ]
     },
     {
       "id": "eras:mode_escape_pod_dash",
-      "name": "Escape Pod Dash Emblem",
-      "type": "icon",
-      "category": "game-mode-icons",
-      "description": "Official high-speed escape-pod icon for Escape Pod Dash runs.",
+      "name": "Escape Pod Dash",
+      "type": "mode",
+      "category": "modes",
+      "description": "Official E.R.A.S. Escape Pod Dash game Mode. Rules are selectable as minor modes within it.",
       "iconJson": {
         "version": 1,
         "background": "#10090c",
@@ -515,17 +505,1059 @@
         ]
       },
       "tintable": false,
-      "defaultTint": "#ff987e",
       "price": 0,
       "priceCredits": 0,
       "currency": "FREE",
       "licenseLabel": "Free E.R.A.S. Asset",
       "tags": [
-        "escape pod dash",
-        "runner",
-        "speed",
-        "game mode",
-        "free"
+        "mode",
+        "game",
+        "escape pod dash"
+      ]
+    },
+    {
+      "id": "eras:icon_attack",
+      "name": "Attack",
+      "type": "icon",
+      "category": "icons",
+      "colorName": "Crimson / White / Black",
+      "description": "Pre-made Attack Icon for E.R.A.S. games. Color combinations are variants; character/layout edits create a separate Icon.",
+      "iconJson": {
+        "version": 1,
+        "background": "#16080a",
+        "layers": [
+          {
+            "char": "⚔",
+            "x": 64,
+            "y": 64,
+            "fontSize": 72,
+            "color": "#ff7e8f",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "•",
+            "x": 64,
+            "y": 64,
+            "fontSize": 17,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "icon",
+        "game",
+        "pre-made",
+        "attack"
+      ]
+    },
+    {
+      "id": "eras:icon_defend",
+      "name": "Defend",
+      "type": "icon",
+      "category": "icons",
+      "colorName": "Blue / White / Navy",
+      "description": "Pre-made Defend Icon for E.R.A.S. games. Color combinations are variants; character/layout edits create a separate Icon.",
+      "iconJson": {
+        "version": 1,
+        "background": "#07111b",
+        "layers": [
+          {
+            "char": "⬡",
+            "x": 64,
+            "y": 64,
+            "fontSize": 76,
+            "color": "#64d9ff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "•",
+            "x": 64,
+            "y": 64,
+            "fontSize": 21,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "icon",
+        "game",
+        "pre-made",
+        "defend"
+      ]
+    },
+    {
+      "id": "eras:icon_heal",
+      "name": "Heal",
+      "type": "icon",
+      "category": "icons",
+      "colorName": "Green / White / Dark",
+      "description": "Pre-made Heal Icon for E.R.A.S. games. Color combinations are variants; character/layout edits create a separate Icon.",
+      "iconJson": {
+        "version": 1,
+        "background": "#07140d",
+        "layers": [
+          {
+            "char": "✚",
+            "x": 64,
+            "y": 64,
+            "fontSize": 72,
+            "color": "#72e0a1",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "•",
+            "x": 64,
+            "y": 64,
+            "fontSize": 17,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "icon",
+        "game",
+        "pre-made",
+        "heal"
+      ]
+    },
+    {
+      "id": "eras:icon_move",
+      "name": "Move",
+      "type": "icon",
+      "category": "icons",
+      "colorName": "Cyan / White / Black",
+      "description": "Pre-made Move Icon for E.R.A.S. games. Color combinations are variants; character/layout edits create a separate Icon.",
+      "iconJson": {
+        "version": 1,
+        "background": "#071416",
+        "layers": [
+          {
+            "char": "➤",
+            "x": 64,
+            "y": 64,
+            "fontSize": 76,
+            "color": "#64d9ff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "icon",
+        "game",
+        "pre-made",
+        "move"
+      ]
+    },
+    {
+      "id": "eras:icon_interact",
+      "name": "Interact",
+      "type": "icon",
+      "category": "icons",
+      "colorName": "Gold / White / Brown",
+      "description": "Pre-made Interact Icon for E.R.A.S. games. Color combinations are variants; character/layout edits create a separate Icon.",
+      "iconJson": {
+        "version": 1,
+        "background": "#151006",
+        "layers": [
+          {
+            "char": "⌁",
+            "x": 64,
+            "y": 64,
+            "fontSize": 78,
+            "color": "#ffcf6e",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "•",
+            "x": 64,
+            "y": 64,
+            "fontSize": 16,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "icon",
+        "game",
+        "pre-made",
+        "interact"
+      ]
+    },
+    {
+      "id": "eras:icon_objective",
+      "name": "Objective",
+      "type": "icon",
+      "category": "icons",
+      "colorName": "Purple / White / Black",
+      "description": "Pre-made Objective Icon for E.R.A.S. games. Color combinations are variants; character/layout edits create a separate Icon.",
+      "iconJson": {
+        "version": 1,
+        "background": "#100b19",
+        "layers": [
+          {
+            "char": "◎",
+            "x": 64,
+            "y": 64,
+            "fontSize": 78,
+            "color": "#b98cff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "✦",
+            "x": 64,
+            "y": 64,
+            "fontSize": 22,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "icon",
+        "game",
+        "pre-made",
+        "objective"
+      ]
+    },
+    {
+      "id": "eras:icon_collection",
+      "name": "Collection",
+      "type": "icon",
+      "category": "icons",
+      "colorName": "Orange / White / Black",
+      "description": "Pre-made Collection Icon for E.R.A.S. games. Color combinations are variants; character/layout edits create a separate Icon.",
+      "iconJson": {
+        "version": 1,
+        "background": "#160f07",
+        "layers": [
+          {
+            "char": "▣",
+            "x": 64,
+            "y": 64,
+            "fontSize": 72,
+            "color": "#ffb22e",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "•",
+            "x": 64,
+            "y": 64,
+            "fontSize": 16,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "icon",
+        "game",
+        "pre-made",
+        "collection"
+      ]
+    },
+    {
+      "id": "eras:icon_chat",
+      "name": "Chat",
+      "type": "icon",
+      "category": "icons",
+      "colorName": "Cyan / White / Navy",
+      "description": "Pre-made Chat Icon for E.R.A.S. games. Color combinations are variants; character/layout edits create a separate Icon.",
+      "iconJson": {
+        "version": 1,
+        "background": "#071319",
+        "layers": [
+          {
+            "char": "◌",
+            "x": 64,
+            "y": 60,
+            "fontSize": 70,
+            "color": "#64d9ff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "…",
+            "x": 64,
+            "y": 70,
+            "fontSize": 28,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "icon",
+        "game",
+        "pre-made",
+        "chat"
+      ]
+    },
+    {
+      "id": "eras:world_turn_based_medieval",
+      "name": "Turn-Based Map",
+      "type": "world",
+      "category": "worlds",
+      "skinName": "Medieval",
+      "description": "Default Turn-Based tactical World skin with a medieval fantasy palette inspired by classic old-school browser/MMO maps.",
+      "iconJson": {
+        "version": 1,
+        "background": "#18200d",
+        "layers": [
+          {
+            "char": "♜",
+            "x": 64,
+            "y": 62,
+            "fontSize": 72,
+            "color": "#d7c28e",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "⌘",
+            "x": 64,
+            "y": 75,
+            "fontSize": 26,
+            "color": "#78a75a",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "worldData": {
+        "gameModes": [
+          "turn_based_tactical"
+        ],
+        "skin": "medieval",
+        "mapSize": {
+          "width": 100,
+          "height": 100
+        },
+        "palette": {
+          "grass": "#516f35",
+          "grassDark": "#2f4725",
+          "dirt": "#806241",
+          "stone": "#77746a",
+          "stoneDark": "#4b4a43",
+          "water": "#385d68",
+          "wood": "#6b4a2d",
+          "gold": "#c8a85b",
+          "parchment": "#cbb987"
+        },
+        "regions": [
+          {
+            "id": "north-platform",
+            "label": "North Platform",
+            "minX": 11,
+            "maxX": 32,
+            "minY": 11,
+            "maxY": 28,
+            "terrain": "stone"
+          },
+          {
+            "id": "slime-yard",
+            "label": "Slime Yard",
+            "minX": 76,
+            "maxX": 91,
+            "minY": 68,
+            "maxY": 84,
+            "terrain": "grass"
+          }
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "world",
+        "map",
+        "turn-based",
+        "medieval",
+        "skin"
+      ]
+    },
+    {
+      "id": "eras:effect_damaged",
+      "name": "Damaged",
+      "type": "effect",
+      "category": "effects",
+      "impactName": "Default Impact",
+      "description": "Default E.R.A.S. Damaged visual/particle Effect.",
+      "iconJson": {
+        "version": 1,
+        "background": "#1a0709",
+        "layers": [
+          {
+            "char": "✦",
+            "x": 64,
+            "y": 64,
+            "fontSize": 82,
+            "color": "#ff5166",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "×",
+            "x": 64,
+            "y": 64,
+            "fontSize": 30,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "effectData": {
+        "size": 1.0,
+        "brightness": 1.35,
+        "tint": "#ff5166",
+        "durationMs": 430,
+        "particles": 18,
+        "shape": "impact-burst",
+        "defaultFor": "damage"
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "effect",
+        "vfx",
+        "particle",
+        "damaged"
+      ]
+    },
+    {
+      "id": "eras:effect_heal_pulse",
+      "name": "Heal Pulse",
+      "type": "effect",
+      "category": "effects",
+      "impactName": "Default Impact",
+      "description": "Default E.R.A.S. Heal Pulse visual/particle Effect.",
+      "iconJson": {
+        "version": 1,
+        "background": "#07170e",
+        "layers": [
+          {
+            "char": "✚",
+            "x": 64,
+            "y": 64,
+            "fontSize": 76,
+            "color": "#72e0a1",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "○",
+            "x": 64,
+            "y": 64,
+            "fontSize": 94,
+            "color": "#dffff0",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "effectData": {
+        "size": 1.0,
+        "brightness": 1.15,
+        "tint": "#72e0a1",
+        "durationMs": 650,
+        "particles": 14,
+        "shape": "pulse-ring",
+        "defaultFor": "heal"
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "effect",
+        "vfx",
+        "particle",
+        "heal pulse"
+      ]
+    },
+    {
+      "id": "eras:effect_spawn_burst",
+      "name": "Spawn Burst",
+      "type": "effect",
+      "category": "effects",
+      "impactName": "Default Impact",
+      "description": "Default E.R.A.S. Spawn Burst visual/particle Effect.",
+      "iconJson": {
+        "version": 1,
+        "background": "#10091c",
+        "layers": [
+          {
+            "char": "✧",
+            "x": 64,
+            "y": 64,
+            "fontSize": 82,
+            "color": "#b98cff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "•",
+            "x": 64,
+            "y": 64,
+            "fontSize": 20,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "effectData": {
+        "size": 1.1,
+        "brightness": 1.25,
+        "tint": "#b98cff",
+        "durationMs": 700,
+        "particles": 22,
+        "shape": "radial-burst",
+        "defaultFor": "spawn"
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "effect",
+        "vfx",
+        "particle",
+        "spawn burst"
+      ]
+    },
+    {
+      "id": "eras:effect_movement_trail",
+      "name": "Movement Trail",
+      "type": "effect",
+      "category": "effects",
+      "impactName": "Default Impact",
+      "description": "Default E.R.A.S. Movement Trail visual/particle Effect.",
+      "iconJson": {
+        "version": 1,
+        "background": "#07161a",
+        "layers": [
+          {
+            "char": "➟",
+            "x": 64,
+            "y": 64,
+            "fontSize": 78,
+            "color": "#64d9ff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "effectData": {
+        "size": 0.8,
+        "brightness": 0.9,
+        "tint": "#64d9ff",
+        "durationMs": 320,
+        "particles": 10,
+        "shape": "trail",
+        "defaultFor": "movement"
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "effect",
+        "vfx",
+        "particle",
+        "movement trail"
+      ]
+    },
+    {
+      "id": "eras:audio_turn_based_theme",
+      "name": "Turn-Based Theme",
+      "type": "audio",
+      "category": "audio",
+      "pitchName": "Alto",
+      "description": "Original looping medieval ambient background track. Used as the default music for all current E.R.A.S. game runtimes.",
+      "source": "/public-assets/audio/turn_based_theme.wav",
+      "iconJson": {
+        "version": 1,
+        "background": "#0a1117",
+        "layers": [
+          {
+            "char": "♪",
+            "x": 64,
+            "y": 62,
+            "fontSize": 82,
+            "color": "#9bcfff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "·",
+            "x": 89,
+            "y": 83,
+            "fontSize": 28,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "audioData": {
+        "role": "background",
+        "loop": true,
+        "pitchDefault": "Alto",
+        "gameModes": [
+          "*"
+        ]
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "audio",
+        "game",
+        "background",
+        "turn based theme"
+      ]
+    },
+    {
+      "id": "eras:audio_damaged_hit",
+      "name": "Damaged Hit",
+      "type": "audio",
+      "category": "audio",
+      "pitchName": "Baritone",
+      "description": "Short impact sound paired with the default Damaged Effect.",
+      "source": "/public-assets/audio/damaged_hit.wav",
+      "iconJson": {
+        "version": 1,
+        "background": "#0a1117",
+        "layers": [
+          {
+            "char": "♪",
+            "x": 64,
+            "y": 62,
+            "fontSize": 82,
+            "color": "#9bcfff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "·",
+            "x": 89,
+            "y": 83,
+            "fontSize": 28,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "audioData": {
+        "role": "effect",
+        "loop": false,
+        "pitchDefault": "Baritone",
+        "defaultFor": "damage"
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "audio",
+        "game",
+        "effect",
+        "damaged hit"
+      ]
+    },
+    {
+      "id": "eras:audio_confirm",
+      "name": "Confirm",
+      "type": "audio",
+      "category": "audio",
+      "pitchName": "Soprano",
+      "description": "Short confirmation sound for game actions and UI acknowledgements.",
+      "source": "/public-assets/audio/confirm.wav",
+      "iconJson": {
+        "version": 1,
+        "background": "#0a1117",
+        "layers": [
+          {
+            "char": "♪",
+            "x": 64,
+            "y": 62,
+            "fontSize": 82,
+            "color": "#9bcfff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "·",
+            "x": 89,
+            "y": 83,
+            "fontSize": 28,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "audioData": {
+        "role": "effect",
+        "loop": false,
+        "pitchDefault": "Soprano",
+        "defaultFor": "confirm"
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "audio",
+        "game",
+        "effect",
+        "confirm"
+      ]
+    },
+    {
+      "id": "eras:audio_heal_chime",
+      "name": "Heal Chime",
+      "type": "audio",
+      "category": "audio",
+      "pitchName": "Mezzo-Soprano",
+      "description": "Short healing chime paired with healing actions.",
+      "source": "/public-assets/audio/heal_chime.wav",
+      "iconJson": {
+        "version": 1,
+        "background": "#0a1117",
+        "layers": [
+          {
+            "char": "♪",
+            "x": 64,
+            "y": 62,
+            "fontSize": 82,
+            "color": "#9bcfff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          },
+          {
+            "char": "·",
+            "x": 89,
+            "y": 83,
+            "fontSize": 28,
+            "color": "#ffffff",
+            "fontFamily": "Arial",
+            "fontWeight": 900,
+            "rotation": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "skewX": 0,
+            "skewY": 0,
+            "opacity": 1,
+            "align": "middle"
+          }
+        ]
+      },
+      "audioData": {
+        "role": "effect",
+        "loop": false,
+        "pitchDefault": "Mezzo-Soprano",
+        "defaultFor": "heal"
+      },
+      "tintable": false,
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Asset",
+      "tags": [
+        "audio",
+        "game",
+        "effect",
+        "heal chime"
       ]
     }
   ]

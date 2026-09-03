@@ -1,0 +1,65 @@
+
+/* Default World asset: [World] Turn-Based Map (Medieval) */
+body.global-page.eras-world-skin-medieval{
+  --eras-medieval-grass:#516f35;
+  --eras-medieval-grass-dark:#2f4725;
+  --eras-medieval-dirt:#806241;
+  --eras-medieval-stone:#77746a;
+  --eras-medieval-stone-dark:#4b4a43;
+  --eras-medieval-water:#385d68;
+  --eras-medieval-wood:#6b4a2d;
+  --eras-medieval-gold:#c8a85b;
+  --eras-medieval-parchment:#cbb987;
+}
+body.global-page.eras-world-skin-medieval .global-map{
+  background:
+    radial-gradient(circle at 23% 20%,rgba(203,185,135,.10),transparent 24%),
+    radial-gradient(circle at 82% 74%,rgba(128,98,65,.20),transparent 22%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 12px),
+    linear-gradient(145deg,var(--eras-medieval-grass-dark),var(--eras-medieval-grass));
+  border-color:rgba(203,185,135,.34);
+}
+body.global-page.eras-world-skin-medieval .battle-zone-north{
+  background:linear-gradient(135deg,rgba(119,116,106,.45),rgba(75,74,67,.25));
+  border-color:rgba(203,185,135,.25);
+}
+body.global-page.eras-world-skin-medieval .battle-zone-south{
+  background:linear-gradient(135deg,rgba(81,111,53,.32),rgba(128,98,65,.22));
+}
+body.global-page.eras-world-skin-medieval .battle-wall,
+body.global-page.eras-world-skin-medieval .battle-cover{
+  background:linear-gradient(180deg,var(--eras-medieval-stone),var(--eras-medieval-stone-dark));
+  border-color:rgba(220,210,181,.22);
+}
+body.global-page.eras-world-skin-medieval .battle-object{
+  filter:saturate(.82) sepia(.18);
+}
+.eras-runtime-damaged-effect{
+  position:absolute;
+  z-index:90;
+  left:50%;
+  top:50%;
+  width:28px;
+  height:28px;
+  pointer-events:none;
+  transform:translate(-50%,-50%);
+}
+.eras-runtime-damaged-effect::before,
+.eras-runtime-damaged-effect::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  border:2px solid #ff5166;
+  box-shadow:0 0 20px rgba(255,81,102,.8);
+  animation:eras-damaged-burst .43s ease-out forwards;
+}
+.eras-runtime-damaged-effect::after{
+  inset:7px;
+  border-color:#fff;
+  animation-delay:.03s;
+}
+@keyframes eras-damaged-burst{
+  0%{opacity:1;transform:scale(.2) rotate(0deg)}
+  100%{opacity:0;transform:scale(4.4) rotate(35deg)}
+}

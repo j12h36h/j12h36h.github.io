@@ -1,0 +1,22 @@
+
+/* v2.3 Asset Library naming + Collection selection */
+.inventory-select{
+  display:block;
+  width:100%;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  font-weight:800;
+  text-align:left;
+  cursor:pointer;
+}
+.inventory-select:hover,
+.inventory-select:focus-visible{
+  color:#64d9ff;
+  outline:none;
+}
+.inventory-item.is-selected{
+  box-shadow:0 0 0 1px rgba(146,92,255,.55),0 0 24px rgba(146,92,255,.12);
+}

@@ -4,11 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#02090b">
-  <meta name="description" content="E.R.A.S. public asset marketplace and personal asset inventory.">
-  <title>Content — E.R.A.S. Asset Marketplace</title>
+  <meta name="description" content="E.R.A.S. public Asset Library and personal asset Collection.">
+  <title>Content — E.R.A.S. Asset Library</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
   <link rel="stylesheet" href="./assets/market.css?v=2.2.0">
+  <link rel="stylesheet" href="./assets/market-hotfix.css?v=2.3.0">
   <link rel="stylesheet" href="/game/assets/css/hosted-option-picker.css?v=1.0.2">
 </head>
 <body class="market-page">
@@ -25,19 +26,30 @@
 
   <main class="market-shell">
     <section class="market-hero">
-      <div><p class="market-kicker">PUBLIC ASSET NETWORK // INVENTORY-LINKED</p><h1>ASSET MARKETPLACE</h1><p>Obtain reusable public assets, customize supported properties before acquisition, and keep immutable variants attached to your shared E.R.A.S./LCS profile inventory.</p></div>
-      <div class="market-stats"><span><b id="catalogCount">01</b> PUBLIC ASSETS</span><span><b id="ownedCount">00</b> IN INVENTORY</span><span class="market-credit-stat"><b id="marketCreditBalance">00</b> CREDITS</span><span><b id="gameAssetCount">00</b> GAME ICON ASSETS</span></div>
+      <div>
+        <p class="market-kicker">PUBLIC ASSET NETWORK // COLLECTION-LINKED</p>
+        <h1>ASSET LIBRARY</h1>
+        <p>Obtain reusable public assets, customize supported variants, and keep immutable variants attached to your shared E.R.A.S./LCS profile Collection.</p>
+      </div>
+      <div class="market-stats">
+        <span><b id="catalogCount">00</b> PUBLIC ASSETS</span>
+        <span><b id="ownedCount">00</b> IN COLLECTION</span>
+        <span class="market-credit-stat"><b id="marketCreditBalance">00</b> CREDITS</span>
+        <span><b id="gameAssetCount">00</b> MODE ASSETS</span>
+      </div>
     </section>
 
     <section class="market-layout">
       <aside class="market-panel market-nav">
         <div class="market-panel-title"><span>01</span><h2>BROWSE</h2></div>
         <button class="market-filter is-active" id="chooseAsset" type="button">SELECT ASSET <b>›</b></button>
-        <button class="market-filter" type="button" disabled>TEXTURES + ICONS <b>LIVE</b></button>
-        <button class="market-filter" type="button" disabled>MODELS <b>00</b></button>
-        <button class="market-filter" type="button" disabled>AUDIO <b>00</b></button>
-        <button class="market-filter" type="button" disabled>GAMEPLAY <b>00</b></button>
-        <div class="market-note"><b>PUBLIC-ASSETS/</b><p>Marketplace files are served from the site’s public asset package. Firestore stores immutable holdings and lifecycle state, not duplicate image files.</p></div>
+        <button class="market-filter" type="button" disabled>SPRITE <b id="spriteAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>AUDIO <b id="audioAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>MODE <b id="modeAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>WORLD <b id="worldAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>EFFECT <b id="effectAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>ICON <b id="iconAssetCount">00</b></button>
+        <div class="market-note"><b>PUBLIC-ASSETS/</b><p>Asset Library files are served from the site’s public asset package. Firestore stores immutable Collection holdings and lifecycle state, not duplicate files.</p></div>
       </aside>
 
       <section class="asset-stage" aria-label="Selected asset">
@@ -48,37 +60,43 @@
           <span class="asset-free-tag" id="assetPriceTag">FREE</span>
         </div>
         <div class="asset-meta">
-          <div><p class="asset-type" id="assetType">ASSET</p><h2 id="assetName">Marketplace Asset</h2><p id="assetDescription">Select a public E.R.A.S. asset.</p></div>
+          <div>
+            <p class="asset-type" id="assetType">ASSET</p>
+            <h2 id="assetName">Asset Library Asset</h2>
+            <p id="assetDescription">Select a public E.R.A.S. asset.</p>
+          </div>
           <div class="asset-tags" id="assetTags"></div>
         </div>
         <div class="asset-controls">
-          <div id="assetTintControls" class="asset-tint-controls"><label><span>TINT</span><input id="assetTint" type="color" value="#65d67c"></label>
-          <div class="asset-swatches" aria-label="Quick tint choices">
-            <button type="button" data-tint="#65d67c" style="--swatch:#65d67c" aria-label="Green tint"></button>
-            <button type="button" data-tint="#65c8ff" style="--swatch:#65c8ff" aria-label="Blue tint"></button>
-            <button type="button" data-tint="#e07cff" style="--swatch:#e07cff" aria-label="Purple tint"></button>
-            <button type="button" data-tint="#ff8b67" style="--swatch:#ff8b67" aria-label="Orange tint"></button>
-            <button type="button" data-tint="#e8e8e8" style="--swatch:#e8e8e8" aria-label="Neutral tint"></button>
-          </div></div>
-          <button class="market-primary" id="obtainAsset" type="button">ADD TO ASSET INVENTORY</button>
+          <div id="assetTintControls" class="asset-tint-controls">
+            <label><span>TINT</span><input id="assetTint" type="color" value="#65d67c"></label>
+            <div class="asset-swatches" aria-label="Quick tint choices">
+              <button type="button" data-tint="#65d67c" style="--swatch:#65d67c" aria-label="Green tint"></button>
+              <button type="button" data-tint="#65c8ff" style="--swatch:#65c8ff" aria-label="Blue tint"></button>
+              <button type="button" data-tint="#e07cff" style="--swatch:#e07cff" aria-label="Purple tint"></button>
+              <button type="button" data-tint="#ff8b67" style="--swatch:#ff8b67" aria-label="Orange tint"></button>
+              <button type="button" data-tint="#e8e8e8" style="--swatch:#e8e8e8" aria-label="Neutral tint"></button>
+            </div>
+          </div>
+          <button class="market-primary" id="obtainAsset" type="button">ADD TO COLLECTION</button>
           <p class="asset-feedback" id="assetFeedback" aria-live="polite">SIGN IN TO SAVE OWNERSHIP TO YOUR PROFILE.</p>
         </div>
       </section>
 
       <aside class="market-panel inventory-panel">
-        <div class="market-panel-title"><span>02</span><h2 id="inventoryPanelTitle">YOUR INVENTORY</h2></div>
+        <div class="market-panel-title"><span>02</span><h2 id="inventoryPanelTitle">YOUR COLLECTION</h2></div>
         <div class="inventory-view-tabs" role="tablist" aria-label="Asset storage">
-          <button id="inventoryViewButton" class="is-active" type="button" role="tab" aria-selected="true">INVENTORY <b id="inventoryViewCount">00</b></button>
+          <button id="inventoryViewButton" class="is-active" type="button" role="tab" aria-selected="true">COLLECTION <b id="inventoryViewCount">00</b></button>
           <button id="archiveViewButton" type="button" role="tab" aria-selected="false">ARCHIVE <b id="archiveCount">00</b></button>
         </div>
         <p class="inventory-archive-note" id="inventoryArchiveNote">ARCHIVING HIDES AN ASSET WITHOUT DESTROYING IT.</p>
-        <div id="inventoryList" class="inventory-list"><p class="inventory-empty">SIGN IN TO LOAD YOUR ASSETS.</p></div>
+        <div id="inventoryList" class="inventory-list"><p class="inventory-empty">SIGN IN TO LOAD YOUR COLLECTION.</p></div>
       </aside>
     </section>
   </main>
 
   <script src="/game/assets/js/site.js"></script>
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./assets/market.js?v=2.2.0"></script>
+  <script type="module" src="./assets/market.js?v=2.3.0"></script>
 </body>
 </html>
