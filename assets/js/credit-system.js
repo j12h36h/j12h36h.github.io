@@ -2,6 +2,25 @@
 // The wallet is keyed by the same random publicProfileId used across the site.
 export const CREDIT_COLLECTION = 'creditWallets';
 
+const FOUNDER_RECOVERY_URL = '/assets/js/founder-status-recovery.js?v=20260903-founder-status-v2';
+const founderRecoveryRuns = new Set();
+
+function isLcsSurface() {
+  return typeof location !== 'undefined'
+    && /^\/(?:logicalcommunicationservice|lcs-mobile)(?:\/|$)/.test(location.pathname);
+}
+
+function startFounderRecovery(db, fs, profileId) {
+  if (!isLcsSurface() || !db || !fs || !profileId || founderRecoveryRuns.has(profileId)) return;
+  founderRecoveryRuns.add(profileId);
+
+  // Founder recovery is deliberately optional and isolated. A failure here can
+  // never stop the wallet, authentication, LCS startup, or Desktop startup.
+  import(FOUNDER_RECOVERY_URL)
+    .then(module => module.recoverFounderStatus?.(db, fs, profileId, { reloadAfterVerify: true }))
+    .catch(error => console.debug('Optional Founder recovery unavailable', error));
+}
+
 export function formatCredits(value) {
   const amount = Math.max(0, Math.floor(Number(value) || 0));
   return amount.toLocaleString();
@@ -37,6 +56,12 @@ export function watchCreditWallet(db, fs, profileId, callback, onError = console
     callback?.(0, null);
     return () => {};
   }
+
+  // LCS is the same web application in a normal browser and in E.R.A.S.
+  // Desktop (?erasDesktop=1), so this repairs both surfaces from the exact
+  // authenticated Firestore context already owned by LCS.
+  startFounderRecovery(db, fs, profileId);
+
   let unsub = () => {};
   let cancelled = false;
   ensureCreditWallet(db, fs, profileId).then(ref => {

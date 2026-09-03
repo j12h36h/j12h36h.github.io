@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "background": "#071416",
+  "layers": [
+    {
+      "id": "core",
+      "char": "◆",
+      "x": 64,
+      "y": 64,
+      "fontSize": 48,
+      "color": "#ffffff",
+      "fontFamily": "Arial",
+      "fontWeight": 900,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "align": "middle"
+    }
+  ],
+  "animation": {
+    "loop": true,
+    "autoplay": true,
+    "frames": [
+      {
+        "durationMs": 250,
+        "changes": [
+          {
+            "id": "core",
+            "x": 52,
+            "rotation": -15
+          }
+        ]
+      },
+      {
+        "durationMs": 250,
+        "changes": [
+          {
+            "id": "core",
+            "x": 76,
+            "rotation": 15
+          }
+        ]
+      },
+      {
+        "durationMs": 250,
+        "changes": [
+          {
+            "id": "core",
+            "char": "✦",
+            "color": "#65d67c"
+          }
+        ]
+      },
+      {
+        "durationMs": 250,
+        "changes": [
+          {
+            "id": "core",
+            "char": "◆",
+            "x": 64,
+            "rotation": 0
+          }
+        ]
+      }
+    ]
+  }
+}

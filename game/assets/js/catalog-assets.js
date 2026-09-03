@@ -112,14 +112,30 @@ export function safeAssetTint(value, fallback='#ffffff') {
 }
 
 export function assetLayers(asset) {
+  // Slime Juice is a single source image, but only the green liquid is tintable.
+  // Use the original colored sprite and a selective liquid tint instead of tinting
+  // the whole monochrome sprite.
+  if (String(asset?.id || '') === 'eras:slime_juice') {
+    return [{
+      source: '/public-assets/textures/slime_juice.png',
+      tintable: true,
+      tintMode: 'green-dominant'
+    }];
+  }
+
   if (Array.isArray(asset?.layers) && asset.layers.length) {
     return asset.layers
       .filter(layer => layer && layer.source)
-      .map(layer => ({ source:String(layer.source), tintable:layer.tintable === true }));
+      .map(layer => ({
+        source:String(layer.source),
+        tintable:layer.tintable === true,
+        tintMode:String(layer.tintMode || 'full')
+      }));
   }
   return [{
     source:String(asset?.source || asset?.thumbnail || FALLBACK.source),
-    tintable:assetIsTintable(asset)
+    tintable:assetIsTintable(asset),
+    tintMode:String(asset?.tintMode || 'full')
   }];
 }
 
@@ -139,6 +155,15 @@ async function loadAssetImage(source) {
   catch (error) { IMAGE_CACHE.delete(src); throw error; }
 }
 
+function tintRgb(hex) {
+  const value = safeAssetTint(hex, '#ffffff').slice(1);
+  return [
+    parseInt(value.slice(0,2), 16),
+    parseInt(value.slice(2,4), 16),
+    parseInt(value.slice(4,6), 16)
+  ];
+}
+
 function drawTintedLayer(ctx, image, tint, width, height) {
   const off = document.createElement('canvas');
   off.width = width;
@@ -155,6 +180,37 @@ function drawTintedLayer(ctx, image, tint, width, height) {
   ctx.drawImage(off, 0, 0);
 }
 
+function drawGreenDominantTint(ctx, image, tint, width, height) {
+  const off = document.createElement('canvas');
+  off.width = width;
+  off.height = height;
+  const octx = off.getContext('2d', { willReadFrequently:true });
+  octx.clearRect(0, 0, width, height);
+  octx.drawImage(image, 0, 0, width, height);
+
+  const pixels = octx.getImageData(0, 0, width, height);
+  const data = pixels.data;
+  const [tr,tg,tb] = tintRgb(tint);
+
+  for (let i=0; i<data.length; i+=4) {
+    const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+    if (!a) continue;
+
+    // Select the actual green juice while protecting the bottle/outline/highlights.
+    const greenLead = g - Math.max(r,b);
+    const saturation = Math.max(r,g,b) - Math.min(r,g,b);
+    if (g > r && g > b && greenLead >= 7 && saturation >= 10) {
+      const brightness = Math.max(0.18, Math.min(1.25, (0.20*r + 0.70*g + 0.10*b) / 185));
+      data[i]   = Math.max(0, Math.min(255, Math.round(tr * brightness)));
+      data[i+1] = Math.max(0, Math.min(255, Math.round(tg * brightness)));
+      data[i+2] = Math.max(0, Math.min(255, Math.round(tb * brightness)));
+    }
+  }
+
+  octx.putImageData(pixels, 0, 0);
+  ctx.drawImage(off, 0, 0);
+}
+
 export async function renderAssetCanvas(canvas, asset, tint=assetDefaultTint(asset)) {
   if (!canvas || !asset) return canvas;
   const width = Math.max(1, Math.floor(Number(canvas.width) || 128));
@@ -165,8 +221,13 @@ export async function renderAssetCanvas(canvas, asset, tint=assetDefaultTint(ass
 
   for (const layer of assetLayers(asset)) {
     const image = await loadAssetImage(layer.source);
-    if (layer.tintable) drawTintedLayer(ctx, image, resolvedTint, width, height);
-    else ctx.drawImage(image, 0, 0, width, height);
+    if (layer.tintable && layer.tintMode === 'green-dominant') {
+      drawGreenDominantTint(ctx, image, resolvedTint, width, height);
+    } else if (layer.tintable) {
+      drawTintedLayer(ctx, image, resolvedTint, width, height);
+    } else {
+      ctx.drawImage(image, 0, 0, width, height);
+    }
   }
   return canvas;
 }
@@ -175,7 +236,7 @@ export async function assetVariantPreviewUrl(asset, tint=assetDefaultTint(asset)
   if (!assetIsTintable(asset) && !Array.isArray(asset?.layers)) return assetPreviewUrl(asset);
   const px = Math.max(32, Math.min(512, Math.floor(Number(size) || 128)));
   const resolvedTint = safeAssetTint(tint, assetDefaultTint(asset));
-  const layerKey = assetLayers(asset).map(layer => `${layer.tintable?'t':'f'}:${layer.source}`).join('|');
+  const layerKey = assetLayers(asset).map(layer => `${layer.tintable?'t':'f'}:${layer.tintMode}:${layer.source}`).join('|');
   const key = `${asset?.id || ''}|${resolvedTint}|${px}|${layerKey}`;
 
   if (VARIANT_PREVIEW_CACHE.has(key)) return VARIANT_PREVIEW_CACHE.get(key);
