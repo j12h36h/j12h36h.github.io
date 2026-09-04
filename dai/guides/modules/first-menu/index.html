@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>One JSON Menu · DAI Module Guide</title><meta content="Make your first visible DAI change by replacing the default System menu with one JSON file." name="description"/><link href="../../../assets/css/site.css" rel="stylesheet"/><link href="../../assets/guides.css" rel="stylesheet"/><link href="../../assets/guide-modes.css" rel="stylesheet"/></head>
+<body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a></div></nav></header>
+<main><div class="guide-shell"><aside class="guide-sidebar"><strong>MODULE GUIDE</strong><a href="../">All Modules</a><a class="current" href="./">One JSON Menu</a><a href="../../menus/">Menus Reference</a><a href="../../actions/">Actions Reference</a><a href="../../conditions/">Conditions Reference</a></aside>
+<article class="guide-content"><section class="guide-hero"><div class="eyebrow">QUICK START · ONE FILE</div><h1>Replace a visible DAI menu with one JSON file.</h1><p>This is the fastest DAI learning loop: create one resource override, reload, press the grave/backtick key, and immediately see your own interface.</p><div class="guide-stats"><div class="guide-stat"><strong>1 JSON</strong>No Java required.</div><div class="guide-stat"><strong>Visible Result</strong>Change text and styling immediately.</div><div class="guide-stat"><strong>Then Grow</strong>Point the button at your own action when ready.</div></div></section>
+<section class="guide-section"><h2>1. Add this path to your datapack</h2><div class="guide-code"><div class="label">Resource override path</div><pre>data/decisions_and_impulses/menus/systems/default.json</pre></div><div class="guide-callout"><strong>Why the DAI namespace?</strong> This particular exercise intentionally overrides DAI's built-in <code>systems/default</code> resource. New actions and original content should normally use your own namespace.</div></section>
+<section class="guide-section"><h2>2. Put this in default.json</h2><div class="guide-code"><div class="label">Your first visible DAI menu</div><pre>{
+  "priority": 100,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "my_first_dai_button",
+      "text": "MY FIRST DAI MENU",
+      "action": "decisions_and_impulses:open_dai_creator",
+      "style": {
+        "background": "#1A0D16",
+        "hover": "#3A1729",
+        "selected": "#59213C",
+        "text": "#FFF2E8",
+        "border": "#FF8A2A"
+      }
+    }
+  ]
+}</pre></div><p>The example deliberately points at an existing DAI action so the one-file experiment is functional immediately. Change the text and colors first. You can replace the action with your own in the next step.</p></section>
+<section class="guide-section"><h2>3. Reload and look at it</h2><ol class="tutorial-steps"><li><strong>Enable the datapack.</strong><span>Use a test world so iteration is disposable.</span></li><li><strong>Run <code>/reload</code>.</strong><span>DAI reloadable data is rebuilt with your overriding menu resource.</span></li><li><strong>Open the DAI menu.</strong><span>Press the grave/backtick key unless your active experience owns that input.</span></li><li><strong>Change one thing.</strong><span>Edit the label or one color, reload again, and verify the difference.</span></li></ol></section>
+<section class="guide-section"><h2>What you just learned</h2><div class="guide-flow"><pre>Your datapack
+   ↓
+DAI resource loading
+   ↓
+menus/systems/default.json
+   ↓
+DAI menu renderer
+   ↓
+button action dispatch</pre></div><p>You already crossed the important boundary: your datapack changed DAI behavior without changing the engine.</p></section>
+<section class="guide-section"><h2>Next: make the button yours</h2><p>Create an action definition under your own namespace, for example:</p><div class="guide-code"><div class="label">data/my_pack/logics/definitions/hello.json</div><pre>{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "run_command",
+      "action": "say Hello from my DAI pack"
+    }
+  ]
+}</pre></div><p>Then change the button to <code>"action": "my_pack:hello"</code>. From there, the Action and Module guides let you replace the demo command with actual gameplay.</p></section>
+<section class="guide-section"><h2>About the other half of the default menu</h2><p>DAI also has <code>menus/actions/default.json</code>. The System and Action definitions are separate resources. You can override either one independently, or both when your interface design needs the entire generic DAI menu replaced.</p></section>
+<div class="guide-pager"><a href="../">← All Modules</a><a href="../../tutorials/create-anything/menus-input/">Menus &amp; Input Module →</a></div></article></div></main><footer class="footer">DAI Engine · one JSON menu quick start</footer><script src="/dai/assets/js/lcs-bridge.js" defer></script></body></html>
