@@ -1,4 +1,17 @@
 (() => {
+  // DAI-wide shared services. Creator, Guides, Packs, Info and every page that
+  // loads the bridge inherit these without each surface maintaining its own copy.
+  const addModule = (src, key) => {
+    if (document.querySelector(`script[data-dai-shared="${key}"]`)) return;
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = src;
+    script.dataset.daiShared = key;
+    document.head.appendChild(script);
+  };
+  addModule('/dai/assets/js/dai-version.js?v=20260904-v35', 'version');
+  addModule('/assets/js/site-presence.js?v=20260904-p1', 'presence');
+
   const path = location.pathname.toLowerCase();
   const title = (document.querySelector('h1')?.textContent || document.title || 'DAI').trim().replace(/\s+/g,' ').slice(0,140);
   const touchMobile = matchMedia('(max-width: 820px)').matches && (navigator.maxTouchPoints || 0) > 0;

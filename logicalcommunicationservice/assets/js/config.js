@@ -7,6 +7,9 @@
 // Do not obfuscate the key to evade secret scanning.
 // Never place service-account keys, OAuth client secrets, or private keys in this file.
 
+// Shared live-presence counter for LCS desktop + mobile.
+import '/assets/js/site-presence.js?v=20260904-p1';
+
 export const LCS_CONFIG = {
   appName: "Logical Communication Service",
   canonicalUrl: "https://j12h36h.github.io/logicalcommunicationservice/",
