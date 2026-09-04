@@ -286,6 +286,12 @@ body.universe-main-page {
     min-height: calc(100svh + 820px);
     overflow: visible;
   }
+  /* Keep the Universe itself centered in the first viewport. The landing
+     becomes taller here to make room for the stacked social panels, so
+     percentage-based top positioning would otherwise push the scene down. */
+  .universe-main-page .system-stage {
+    top: 50svh;
+  }
   .universe-main-page .platform-line {
     top: calc(100svh - 38px);
     bottom: auto;
