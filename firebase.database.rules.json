@@ -8,7 +8,7 @@
           ".read": true,
           "$visitorId": {
             "$connectionId": {
-              ".write": "newData.val() == null || (newData.hasChildren(['module','auth','at']) && newData.child('at').isNumber() && newData.child('at').val() >= now - 60000 && newData.child('at').val() <= now + 10000)",
+              ".write": "newData.val() == null || (newData.hasChildren(['module','auth','at']) && newData.child('at').isNumber() && newData.child('at').val() >= now - 60000 && newData.child('at').val() <= now + 10000 && (!newData.hasChild('profile') || auth != null))",
               ".validate": "newData.val() == null || newData.hasChildren(['module','auth','at'])",
               "module": {
                 ".validate": "newData.isString() && (newData.val() == 'game' || newData.val() == 'lcs' || newData.val() == 'dai' || newData.val() == 'site')"
@@ -18,6 +18,9 @@
               },
               "at": {
                 ".validate": "newData.isNumber()"
+              },
+              "profile": {
+                ".validate": "newData.isString()"
               },
               "$other": {
                 ".validate": false

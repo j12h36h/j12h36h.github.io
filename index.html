@@ -8,8 +8,9 @@
   <title>Project E.R.A.S. : Universe</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="/assets/css/universe-dashboard.css?v=20260905-u1">
 </head>
-<body class="universe-home">
+<body class="universe-home universe-main-page">
   <div class="universe-frame" aria-hidden="true">
     <i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i>
     <i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i>
@@ -73,9 +74,45 @@
     </section>
 
     <p class="platform-line">BROWSER-FIRST&nbsp; // &nbsp;CREATOR-DRIVEN&nbsp; // &nbsp;RUNTIME-INDEPENDENT</p>
+
+    <section class="universe-dashboard" id="universeDashboard" aria-label="E.R.A.S. social overview">
+      <aside class="universe-data-panel friends-panel" aria-labelledby="erasFriendsTitle">
+        <header class="udp-head">
+          <span>NETWORK // 01</span>
+          <div><h2 id="erasFriendsTitle">FRIENDS</h2><b data-friend-count>0</b></div>
+        </header>
+        <div class="udp-list friends-list" data-friends-list>
+          <p class="udp-empty">CONNECTING TO SOCIAL GRAPH…</p>
+        </div>
+        <a class="udp-footer-link" href="/game/social/">OPEN SOCIAL NETWORK →</a>
+      </aside>
+
+      <aside class="universe-data-panel friend-activity-panel" aria-labelledby="erasFriendActivityTitle">
+        <header class="udp-head">
+          <span>NETWORK // 02</span>
+          <div><h2 id="erasFriendActivityTitle">FRIEND ACTIVITY</h2><b data-activity-count>0</b></div>
+        </header>
+        <div class="udp-list activity-list" data-friend-activity>
+          <p class="udp-empty">WAITING FOR ACTIVITY…</p>
+        </div>
+        <a class="udp-footer-link" href="/logicalcommunicationservice/">OPEN LCS →</a>
+      </aside>
+
+      <aside class="universe-data-panel alerts-panel" aria-labelledby="erasAlertsTitle">
+        <header class="udp-head">
+          <span>NETWORK // 03</span>
+          <div><h2 id="erasAlertsTitle">ALERTS</h2><b data-alert-count>0</b></div>
+        </header>
+        <div class="udp-list alerts-list" data-alerts-list>
+          <p class="udp-empty">CHECKING PERSONAL ALERTS…</p>
+        </div>
+        <a class="udp-footer-link" href="/logicalcommunicationservice/">OPEN NOTIFICATIONS →</a>
+      </aside>
+    </section>
   </main>
 
   <script src="/game/assets/js/site.js"></script>
   <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="/assets/js/universe-dashboard.js?v=20260905-u1"></script>
 </body>
 </html>

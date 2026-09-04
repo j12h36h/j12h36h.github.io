@@ -1,0 +1,54 @@
+/* Shared E.R.A.S. module glow.
+   SITE sky blue | DAI orange | LCS purple | GAME green | OPTIONS red */
+
+html[data-eras-module-theme="site"] {
+  --eras-module-accent: #78d6ff;
+  --eras-module-rgb: 120, 214, 255;
+}
+html[data-eras-module-theme="dai"] {
+  --eras-module-accent: #ff9f45;
+  --eras-module-rgb: 255, 159, 69;
+}
+html[data-eras-module-theme="lcs"] {
+  --eras-module-accent: #bd78ff;
+  --eras-module-rgb: 189, 120, 255;
+}
+html[data-eras-module-theme="game"] {
+  --eras-module-accent: #61e68f;
+  --eras-module-rgb: 97, 230, 143;
+}
+html[data-eras-module-theme="options"] {
+  --eras-module-accent: #ff6375;
+  --eras-module-rgb: 255, 99, 117;
+}
+
+#erasModuleGlow {
+  position: fixed;
+  inset: 0;
+  z-index: 2147480000;
+  pointer-events: none;
+  opacity: .78;
+  border: 1px solid rgba(var(--eras-module-rgb, 120,214,255), .12);
+  box-shadow:
+    inset 0 0 18px rgba(var(--eras-module-rgb, 120,214,255), .055),
+    inset 0 0 80px rgba(var(--eras-module-rgb, 120,214,255), .065);
+  background:
+    radial-gradient(ellipse at 50% -12%, rgba(var(--eras-module-rgb, 120,214,255), .11), transparent 40%),
+    radial-gradient(ellipse at 50% 112%, rgba(var(--eras-module-rgb, 120,214,255), .075), transparent 42%),
+    linear-gradient(90deg,
+      rgba(var(--eras-module-rgb, 120,214,255), .045),
+      transparent 7%,
+      transparent 93%,
+      rgba(var(--eras-module-rgb, 120,214,255), .045));
+  mix-blend-mode: screen;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #erasModuleGlow {
+    animation: erasModuleGlowPulse 5.5s ease-in-out infinite alternate;
+  }
+}
+@keyframes erasModuleGlowPulse {
+  from { opacity: .63; }
+  to { opacity: .88; }
+}

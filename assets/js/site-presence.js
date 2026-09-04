@@ -1,3 +1,4 @@
+import './eras-module-theme.js?v=20260905-t1';
 import { SITE_PRESENCE_CONFIG as CONFIG } from './site-presence-config.js';
 
 const MODULES = Object.freeze({
@@ -35,11 +36,13 @@ let panelEl = null;
 let stats = Object.fromEntries(Object.keys(MODULES).map(k => [k, { total: 0, signedIn: 0, guests: 0 }]));
 let connected = false;
 let authType = 'guest';
+let publicProfileId = '';
 let lastWriteAt = 0;
 let heartbeat = null;
 let currentRef = null;
 let db = null;
 let dbMod = null;
+let firestoreMod = null;
 let disposed = false;
 const boundAuthApps = new Map();
 
@@ -75,7 +78,7 @@ function ensureUi() {
       <div class="eras-presence-panel-head"><b>ONLINE NOW</b><span>LIVE PRESENCE</span></div>
       <div class="eras-presence-rows"></div>
       <div class="eras-presence-total"><span>NETWORK TOTAL</span><b>0</b></div>
-      <p class="eras-presence-note">Counts active browser visitors by main module. Signed-in and guest totals are separate; no name, email, profile ID, route history, or message content is stored here.</p>
+      <p class="eras-presence-note">Counts active browser visitors by main module. Signed-in presence also carries the user's public E.R.A.S./LCS profile ID so accepted friends can show online status. No email, private account ID, route history, or message content is stored here.</p>
     </section>`;
   document.body.appendChild(rootEl);
   panelEl = rootEl.querySelector('.eras-presence-panel');
@@ -140,11 +143,33 @@ function summarize(raw) {
 }
 
 function updateAuthType() {
-  const signedIn = [...boundAuthApps.values()].some(entry => Boolean(entry.user));
-  const next = signedIn ? 'signed_in' : 'guest';
-  if (next === authType) return;
-  authType = next;
-  writePresence(true).catch(() => {});
+  const entries = [...boundAuthApps.values()];
+  const signedIn = entries.some(entry => Boolean(entry.user));
+  const nextAuth = signedIn ? 'signed_in' : 'guest';
+  const nextProfile = entries.find(entry => entry.user && entry.profileId)?.profileId || '';
+  const changed = nextAuth !== authType || nextProfile !== publicProfileId;
+  authType = nextAuth;
+  publicProfileId = nextProfile;
+  if (changed) writePresence(true).catch(() => {});
+}
+
+async function resolveProfileId(app, entry, user) {
+  if (!firestoreMod || !user) return;
+  try {
+    const firestore = firestoreMod.getFirestore(app);
+    for (let pass = 0; pass < 7 && entry.user?.uid === user.uid && !entry.profileId; pass++) {
+      try {
+        const snap = await firestoreMod.getDoc(firestoreMod.doc(firestore, 'privateAccounts', user.uid));
+        const pid = snap.exists() ? String(snap.data()?.publicProfileId || '') : '';
+        if (pid) {
+          entry.profileId = pid;
+          updateAuthType();
+          return;
+        }
+      } catch (_) {}
+      await new Promise(resolve => setTimeout(resolve, 550));
+    }
+  } catch (_) {}
 }
 
 function bindAuthApp(app, authMod) {
@@ -152,13 +177,16 @@ function bindAuthApp(app, authMod) {
   try {
     if (app.options?.projectId !== CONFIG.firebase.projectId) return;
     const auth = authMod.getAuth(app);
-    const entry = { auth, user: auth.currentUser || null, unsubscribe: null };
+    const entry = { auth, user: auth.currentUser || null, profileId: '', unsubscribe: null };
     entry.unsubscribe = authMod.onAuthStateChanged(auth, user => {
       entry.user = user || null;
+      entry.profileId = '';
       updateAuthType();
+      if (user) resolveProfileId(app, entry, user).catch(() => {});
     }, () => {});
     boundAuthApps.set(app.name, entry);
     updateAuthType();
+    if (entry.user) resolveProfileId(app, entry, entry.user).catch(() => {});
   } catch (_) {}
 }
 
@@ -169,7 +197,9 @@ async function writePresence(force = false) {
   lastWriteAt = now;
   currentRef = dbMod.ref(db, `${CONFIG.rootPath}/${visitorId}/${connectionId}`);
   try { await dbMod.onDisconnect(currentRef).remove(); } catch (_) {}
-  await dbMod.set(currentRef, { module: moduleId, auth: authType, at: dbMod.serverTimestamp() });
+  const payload = { module: moduleId, auth: authType, at: dbMod.serverTimestamp() };
+  if (authType === 'signed_in' && publicProfileId) payload.profile = publicProfileId;
+  await dbMod.set(currentRef, payload);
 }
 
 async function removePresence() {
@@ -186,18 +216,18 @@ async function init() {
   ensureUi();
   try {
     const v = CONFIG.firebaseVersion;
-    const [appMod, authMod, databaseMod] = await Promise.all([
+    const [appMod, authMod, databaseMod, fsModule] = await Promise.all([
       import(`https://www.gstatic.com/firebasejs/${v}/firebase-app.js`),
       import(`https://www.gstatic.com/firebasejs/${v}/firebase-auth.js`),
-      import(`https://www.gstatic.com/firebasejs/${v}/firebase-database.js`)
+      import(`https://www.gstatic.com/firebasejs/${v}/firebase-database.js`),
+      import(`https://www.gstatic.com/firebasejs/${v}/firebase-firestore.js`)
     ]);
+    firestoreMod = fsModule;
 
     let app = appMod.getApps().find(item => item.name === 'site-account');
     if (!app) app = appMod.initializeApp(CONFIG.firebase, 'site-account');
     bindAuthApp(app, authMod);
 
-    // LCS currently uses the default Firebase app while the rest of the site uses
-    // the named site-account app. Watch both so either authenticated session counts.
     const bindAll = () => appMod.getApps().forEach(candidate => bindAuthApp(candidate, authMod));
     bindAll();
     let bindPasses = 0;
@@ -239,7 +269,6 @@ async function init() {
     window.addEventListener('pagehide', () => {
       disposed = true;
       if (heartbeat) clearInterval(heartbeat);
-      // onDisconnect is authoritative; remove is a best-effort fast path.
       removePresence().catch(() => {});
     }, { once: true });
   } catch (error) {
