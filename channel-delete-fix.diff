@@ -1,0 +1,7 @@
+--- logicalcommunicationservice/assets/js/app.js
++++ logicalcommunicationservice/assets/js/app.js
+@@
+-    const dialog=$('#communityProfileDialog');
+-    if(dialog?.open)openCommunityProfile(space.id);
++    const dialog=$('#communityDetailDialog');
++    if(dialog?.open)openCommunityDetail(space.id);
