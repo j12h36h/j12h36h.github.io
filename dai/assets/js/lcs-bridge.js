@@ -12,6 +12,33 @@
   addModule('/dai/assets/js/dai-version.js?v=20260904-v35', 'version');
   addModule('/assets/js/site-presence.js?v=20260904-p1', 'presence');
 
+  // DAI shell navigation rule:
+  // the top-left DAI brand always returns to the E.R.A.S. network root.
+  // The normal "Home" navigation item remains /dai/.
+  const wireErasHome = () => {
+    document.querySelectorAll('.site-header a.brand').forEach(brand => {
+      brand.href = '/';
+      brand.setAttribute('aria-label', 'Return to E.R.A.S. main page');
+      brand.setAttribute('title', 'Return to E.R.A.S.');
+      brand.dataset.erasHome = '1';
+    });
+  };
+  wireErasHome();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireErasHome, { once: true });
+  }
+
+  // Capture the brand click as a safety net in case another DAI surface
+  // dynamically rebuilds its header after the bridge runs.
+  document.addEventListener('click', event => {
+    const brand = event.target instanceof Element
+      ? event.target.closest('.site-header a.brand')
+      : null;
+    if (!brand) return;
+    event.preventDefault();
+    location.href = '/';
+  }, true);
+
   const path = location.pathname.toLowerCase();
   const title = (document.querySelector('h1')?.textContent || document.title || 'DAI').trim().replace(/\s+/g,' ').slice(0,140);
   const touchMobile = matchMedia('(max-width: 820px)').matches && (navigator.maxTouchPoints || 0) > 0;
