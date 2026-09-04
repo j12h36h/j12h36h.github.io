@@ -34,19 +34,94 @@
     {id:'multiplayer',label:'Multiplayer, Checkpoints & Migrations',guide:'/dai/guides/tutorials/create-anything/multiplayer-migrations/',summary:'Ownership, checkpoints, recovery and version migrations.',patterns:[/migrations?\//,/checkpoints?\//,/player_state/,/multiplayer/]},
     {id:'branding',label:'Branding & Loading',guide:'/dai/guides/tutorials/create-anything/branding-loading/',summary:'Title, loading, application and experience branding.',patterns:[/branding/,/loading/,/title_screens/]}
   ];
+  const DAI_REPO = 'j12h36h/decisions_and_impulses';
+  const DAI_DATA_API = `https://api.github.com/repos/${DAI_REPO}/contents/data?ref=main`;
+  const FRIENDLY_PROJECTS = [
+    ['AutoCraft_MineShaft','AutoCraft MineShaft'],
+    ['Boxhead_Data','Boxhead'],
+    ['ClayGrounds_Data','ClayGrounds'],
+    ['DAI_ComicEffects_Data','DAI Comic Effects'],
+    ['DAI_Damage_Indicators','DAI Damage Indicators'],
+    ['DAI_Fun','DAI Fun Survival'],
+    ['DAI_Kittys_Dagger_Data',"Kitty's Dagger"],
+    ['DAI_Survival_Interface','DAI Survival Interface'],
+    ['DirtBikeLife_Data','DirtBikeLife'],
+    ['EchoTime','Echo Time'],
+    ['HollowSpiral_Data','Hollow Spiral'],
+    ['MineTrigger_Data','MineTrigger'],
+    ['MusashiStory_Data','Musashi Story'],
+    ['Patch_and_Release_DAI','Patch & Release'],
+    ['Space_Between_Blocks_Data','Space Between Blocks'],
+    ['TamaCrafti_Data','TamaCrafti'],
+    ['Tower_of_DLC_Data','Tower of DLC'],
+    ['World_of_Addons_Data','World of Addons']
+  ];
   let registry = null, selectedPack = null, selectedComponent = null, zipEntries = [], detected = [], lastPlanText = '';
 
   function status(msg, level=''){ const el=$('#expandStatus'); el.className=`expand-status ${level}`; el.textContent=msg; }
+  function versionFromFile(name=''){
+    const m=String(name).match(/_v(\d+(?:\.\d+){1,3})(?:_([A-Za-z0-9.-]+))?\.zip$/i);
+    return m ? `${m[1]}${m[2] ? ` ${m[2]}` : ''}` : 'GitHub snapshot';
+  }
+  function friendlyProjectName(fileName=''){
+    const hit=FRIENDLY_PROJECTS.find(([prefix])=>String(fileName).startsWith(prefix));
+    if(hit)return hit[1];
+    return String(fileName).replace(/\.zip$/i,'').replace(/_Data(?=_v|$)/i,'').replace(/_DAI(?=_v|$)/i,'').replace(/_v\d+(?:\.\d+){1,3}.*$/i,'').replace(/^DAI_/,'DAI ').replace(/_/g,' ');
+  }
+  function packIdFor(fileName=''){
+    return `repo:${String(fileName).replace(/\.zip$/i,'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}`;
+  }
+  function githubPackFromFile(file){
+    return {
+      id: packIdFor(file.name),
+      name: friendlyProjectName(file.name),
+      version: versionFromFile(file.name),
+      type: 'datapack',
+      featured: true,
+      summary: `Current public DAI repository snapshot: ${file.name}`,
+      info_url: file.html_url || `https://github.com/${DAI_REPO}/blob/main/data/${encodeURIComponent(file.name)}`,
+      components: [{
+        id: packIdFor(file.name)+':data',
+        type: 'datapack',
+        file_name: file.name,
+        source: 'github',
+        source_url: file.download_url || `https://raw.githubusercontent.com/${DAI_REPO}/main/data/${encodeURIComponent(file.name)}`,
+        source_page: file.html_url || `https://github.com/${DAI_REPO}/blob/main/data/${encodeURIComponent(file.name)}`
+      }]
+    };
+  }
+  async function loadLiveRepoPacks(){
+    const r=await fetch(DAI_DATA_API,{cache:'no-store',headers:{'Accept':'application/vnd.github+json'}});
+    if(!r.ok)throw new Error(`GitHub repository HTTP ${r.status}`);
+    const files=await r.json();
+    if(!Array.isArray(files))throw new Error('GitHub repository listing was not an array.');
+    const packs=files.filter(f=>f?.type==='file' && /\.zip$/i.test(f.name||'')).map(githubPackFromFile)
+      .sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
+    if(!packs.length)throw new Error('No datapack ZIPs were found in the DAI repository data folder.');
+    return {schema:2,source:'github-live',repository:`https://github.com/${DAI_REPO}`,packs};
+  }
+  async function loadStaticGithubFallback(){
+    const r=await fetch('/dai/api/public-bases.json',{cache:'no-store'});
+    if(!r.ok)throw new Error(`fallback registry HTTP ${r.status}`);
+    const data=await r.json();
+    data.packs=(data.packs||[]).map(p=>({...p,components:(p.components||[]).filter(c=>(c.type||'datapack')==='datapack' && /github(?:usercontent)?\.com/i.test(c.source_url||c.github_raw_url||''))})).filter(p=>p.components.length);
+    if(!data.packs.length)throw new Error('The fallback registry contains no GitHub datapack sources.');
+    return data;
+  }
   async function loadRegistry(){
     try{
-      let r=await fetch('/dai/api/public-bases.json',{cache:'no-store'});
-      if(!r.ok) r=await fetch('/dai/api/packs.json',{cache:'no-store'});
-      if(!r.ok) throw new Error(`registry HTTP ${r.status}`);
-      registry=await r.json();
+      try{
+        registry=await loadLiveRepoPacks();
+        status(`Loaded ${registry.packs.length} current datapack ZIPs directly from the DAI GitHub repository. No CurseForge file lookup is used.`,'ok');
+      }catch(liveError){
+        console.warn('Live DAI repository listing failed; using the website GitHub snapshot registry.',liveError);
+        registry=await loadStaticGithubFallback();
+        status(`Live GitHub listing was unavailable (${liveError.message}). Using the website's GitHub-only snapshot registry instead.`,'warn');
+      }
       const packs=(registry.packs||[]).filter(p=>(p.components||[]).some(c=>(c.type||'datapack')==='datapack'));
       $('#expandPack').innerHTML=packs.map((p,i)=>`<option value="${esc(p.id)}"${i===0?' selected':''}>${esc(p.name)} · ${esc(p.version||'')}</option>`).join('');
-      populateComponents(); status(`${packs.length} public datapack source(s) available. Choose one and scan its file tree.`,'ok');
-    }catch(e){ status(`Could not load the public pack registry: ${e.message}`,'error'); }
+      populateComponents();
+    }catch(e){ status(`Could not load DAI repository sources: ${e.message}`,'error'); }
   }
   function populateComponents(){
     selectedPack=(registry?.packs||[]).find(p=>p.id===$('#expandPack').value)||null;
@@ -54,7 +129,7 @@
     $('#expandComponent').innerHTML=comps.map((c,i)=>`<option value="${i}">${esc(c.file_name||c.id||`Datapack ${i+1}`)}</option>`).join('') || '<option>No datapack component</option>';
     selectedComponent=comps[0]||null;
   }
-  function componentUrl(c){ return c?.source_url||c?.github_raw_url||c?.download_url||''; }
+  function componentUrl(c){ return c?.source_url||c?.github_raw_url||''; }
   function readZipNames(buffer){
     const bytes=new Uint8Array(buffer), dv=new DataView(buffer);
     let eocd=-1; for(let i=bytes.length-22;i>=Math.max(0,bytes.length-65557);i--){ if(dv.getUint32(i,true)===0x06054b50){eocd=i;break;} }
@@ -83,12 +158,12 @@
     const comps=(selectedPack?.components||[]).filter(c=>(c.type||'datapack')==='datapack');
     selectedComponent=comps[Number($('#expandComponent').value||0)]||comps[0]||null;
     const url=componentUrl(selectedComponent); if(!url){status('The selected datapack does not have a direct public source URL.','error');return;}
-    status(`Downloading ${selectedComponent.file_name||selectedPack.name} only long enough to inspect its file tree…`);
+    status(`Reading ${selectedComponent.file_name||selectedPack.name} directly from the DAI GitHub repository only long enough to inspect its file tree…`);
     try{
       const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(`source ZIP HTTP ${r.status}`);
       zipEntries=readZipNames(await r.arrayBuffer()); detected=classify(zipEntries); renderDetected();
       status(`Scan complete: ${detected.length} recognizable DAI module types detected. Nothing was copied into your project.`,'ok');
-    }catch(e){ status(`Could not scan this source pack: ${e.message}. The host may be blocking browser access or the registry source may need updating.`,'error'); }
+    }catch(e){ status(`Could not scan this DAI repository snapshot: ${e.message}. Refresh the page to re-read the live GitHub data directory; the scanner does not use CurseForge file URLs.`,'error'); }
   }
   function selectedModules(){ const ids=[...document.querySelectorAll('.module-check:checked')].map(x=>x.value); return detected.filter(m=>ids.includes(m.id)); }
   function buildPlan(){
