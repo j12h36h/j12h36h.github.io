@@ -10,6 +10,9 @@
 // Shared live-presence counter for LCS desktop + mobile.
 import '/assets/js/site-presence.js?v=20260904-p1';
 
+// Channel deletion hotfix. Loaded here so desktop and /lcs-mobile/ both inherit it.
+import './channel-delete-fix.js?v=20260905-delete3';
+
 export const LCS_CONFIG = {
   appName: "Logical Communication Service",
   canonicalUrl: "https://j12h36h.github.io/logicalcommunicationservice/",
