@@ -79,7 +79,7 @@ export function modeDefaults(modeId){
     case 'jeng-stroid': return { layers:18, piecesPerLayer:3, turnSeconds:60, gravity:1, collapseThreshold:65 };
     case 'sunball': return { balls:3, targetScore:25000, gravity:0.22, bumperForce:1.8, multiplayerMode:'alternating' };
     case 'soldoku': return { boardSize:9, difficulty:'normal', hints:3, mistakeLimit:3, playMode:'solo' };
-    case 'escape-pod-dash': return { lanes:3, lives:3, startSpeed:4, acceleration:0.12, targetDistance:2500, obstacleRate:1 };
+    case 'escape-pod-dash': return { lanes:3, lives:1, startSpeed:4, acceleration:0.12, targetDistance:20000, obstacleRate:1 };
     case 'slime-smash': return { startingSeconds:15, timeGainSeconds:0.35, scorePerSlime:100 };
     default: return {};
   }
@@ -93,7 +93,7 @@ export function normalizeModeSettings(modeId,input={}){
     case 'jeng-stroid': return {layers:n(input.layers,d.layers,6,30,true),piecesPerLayer:3,turnSeconds:n(input.turnSeconds,d.turnSeconds,15,180,true),gravity:n(input.gravity,d.gravity,.5,2),collapseThreshold:n(input.collapseThreshold,d.collapseThreshold,35,90,true)};
     case 'sunball': return {balls:n(input.balls,d.balls,1,9,true),targetScore:n(input.targetScore,d.targetScore,1000,1000000,true),gravity:n(input.gravity,d.gravity,.08,.6),bumperForce:n(input.bumperForce,d.bumperForce,1,3),multiplayerMode:['alternating','score_attack'].includes(input.multiplayerMode)?input.multiplayerMode:d.multiplayerMode};
     case 'soldoku': return {boardSize:[4,6,9].includes(Number(input.boardSize))?Number(input.boardSize):d.boardSize,difficulty:['easy','normal','hard'].includes(input.difficulty)?input.difficulty:d.difficulty,hints:n(input.hints,d.hints,0,9,true),mistakeLimit:n(input.mistakeLimit,d.mistakeLimit,0,9,true),playMode:['solo','competitive','cooperative'].includes(input.playMode)?input.playMode:d.playMode};
-    case 'escape-pod-dash': return {lanes:3,lives:n(input.lives,d.lives,1,9,true),startSpeed:n(input.startSpeed,d.startSpeed,2,10),acceleration:n(input.acceleration,d.acceleration,.02,.5),targetDistance:n(input.targetDistance,d.targetDistance,500,20000,true),obstacleRate:n(input.obstacleRate,d.obstacleRate,.4,2.5)};
+    case 'escape-pod-dash': return {lanes:3,lives:1,startSpeed:n(input.startSpeed,d.startSpeed,2,10),acceleration:n(input.acceleration,d.acceleration,.02,.5),targetDistance:20000,obstacleRate:n(input.obstacleRate,d.obstacleRate,.4,2.5)};
     case 'slime-smash': return {startingSeconds:n(input.startingSeconds,d.startingSeconds,3,120),timeGainSeconds:n(input.timeGainSeconds,d.timeGainSeconds,.05,10),scorePerSlime:n(input.scorePerSlime,d.scorePerSlime,1,10000,true)};
     default:return {};
   }
