@@ -107,6 +107,8 @@ function validateProject(p){
   p.sounds=Array.isArray(p.sounds)?p.sounds:[];
   if(p.sounds.length>256)throw new Error('A project may contain up to 256 sound clips.');
   p.clips=p.clips&&typeof p.clips==='object'&&!Array.isArray(p.clips)?p.clips:{};
+  p.timing=p.timing&&typeof p.timing==='object'&&!Array.isArray(p.timing)?p.timing:{};
+  p.timing.objectFps=clamp(finite(p.timing.objectFps,0),0,240);
   p.post=p.post&&typeof p.post==='object'&&!Array.isArray(p.post)?p.post:{};
   p.post={exposure:1,vignette:0,letterbox:0,fade:0,flash:0,grain:0,tint:'#ffffff',tintOpacity:0,...p.post};
   p.lighting=p.lighting&&typeof p.lighting==='object'&&!Array.isArray(p.lighting)?p.lighting:{};
@@ -159,6 +161,14 @@ function interpolateValue(a,b,t,raw=t){
   }
   return raw<1?a:b;
 }
+function parentRef(value){
+  if(value&&typeof value==='object'&&!Array.isArray(value))return String(value.id||'');
+  return value===undefined||value===null?'':String(value);
+}
+function isHoldFrame(frame){
+  const mode=String(frame?.interpolation||frame?.easing||'').toLowerCase();
+  return frame?.hold===true||mode==='hold'||mode==='event';
+}
 function keyframeValue(obj,key,time){
   const frames=Array.isArray(obj?.keyframes)?obj.keyframes.filter(f=>f&&Number.isFinite(Number(f.t))&&Object.prototype.hasOwnProperty.call(f,key)).slice().sort((a,b)=>Number(a.t)-Number(b.t)):[];
   const base=obj&&Object.prototype.hasOwnProperty.call(obj,key)?obj[key]:undefined;
@@ -172,10 +182,18 @@ function keyframeValue(obj,key,time){
   for(let i=0;i<frames.length-1;i++){
     const a=frames[i],b=frames[i+1],at=Number(a.t),bt=Number(b.t);
     if(time<at||time>bt)continue;
-    const raw=(time-at)/Math.max(.000001,bt-at),t=ease(raw,b.easing||a.easing||'linear');
+    const raw=(time-at)/Math.max(.000001,bt-at);
+    if(isHoldFrame(a))return a[key];
+    const easing=b.easing||a.easing||'linear',t=ease(raw,easing);
     return interpolateValue(a[key],b[key],t,raw);
   }
   return base;
+}
+function sampleAnimationTime(obj,time){
+  let t=time-finite(obj?.animationLag,0);
+  const fps=clamp(finite(obj?.animationFps,obj?.holdFps??state.project?.timing?.objectFps??0),0,240);
+  if(fps>0)t=Math.floor(Math.max(0,t)*fps+1e-7)/fps;
+  return t;
 }
 function applyAnimationClip(out,obj,time){
   const name=String(obj?.clip||'');if(!name)return out;
@@ -189,11 +207,14 @@ function applyAnimationClip(out,obj,time){
   return out;
 }
 function resolved(obj,time=state.time){
-  const out={...(obj||{})};
-  const keys=new Set(['x','y','z','width','height','depth','radius','rotation','rotationX','rotationY','rotationZ','scale','scaleX','scaleY','skewX','skewY','pivotX','pivotY','opacity','anchorX','anchorY','frame','intensity','range','fov','shake','zoom','targetX','targetY','targetZ','volume','pan','rate','frequency','exposure','vignette','letterbox','fade','flash','grain','tintOpacity','points']);
-  for(const f of obj?.keyframes||[])for(const k of Object.keys(f||{}))if(k!=='t'&&k!=='easing')keys.add(k);
-  for(const k of keys){const v=keyframeValue(obj,k,time);if(v!==undefined)out[k]=v;}
-  return applyAnimationClip(out,obj,time);
+  const sampleTime=sampleAnimationTime(obj,time),out={...(obj||{})};
+  const keys=new Set(['x','y','z','width','height','depth','radius','rotation','rotationX','rotationY','rotationZ','scale','scaleX','scaleY','skewX','skewY','pivotX','pivotY','opacity','visible','anchorX','anchorY','frame','state','pose','intensity','range','fov','shake','zoom','targetX','targetY','targetZ','volume','pan','rate','frequency','exposure','vignette','letterbox','fade','flash','grain','tintOpacity','points']);
+  for(const f of obj?.keyframes||[])for(const k of Object.keys(f||{}))if(k!=='t'&&k!=='easing'&&k!=='interpolation'&&k!=='hold')keys.add(k);
+  for(const k of keys){const v=keyframeValue(obj,k,sampleTime);if(v!==undefined)out[k]=v;}
+  applyAnimationClip(out,obj,sampleTime);
+  if(Number.isFinite(Number(out.rotation))){out.rotation=clamp(finite(out.rotation),finite(out.minRotation,-1e9),finite(out.maxRotation,1e9));}
+  const ik=state._ikOverrides?.get(String(obj?.id||''));if(ik&&Number.isFinite(Number(ik.rotation)))out.rotation=clamp(finite(ik.rotation),finite(out.minRotation,-1e9),finite(out.maxRotation,1e9));
+  return out;
 }
 
 function assetSource(assetId,asset){
@@ -219,7 +240,7 @@ function resolveWorldObject(raw,map,cache,stack){
   const id=String(raw?.id||'');if(id&&cache.has(id))return cache.get(id);
   if(id&&stack.has(id)){const cycle={...resolved(raw),visible:false,_hierarchyCycle:true};cache.set(id,cycle);return cycle;}
   const next=new Set(stack);if(id)next.add(id);
-  let o=resolved(raw);const parentId=String(o.parent||o.parentId||'');
+  let o=resolved(raw);const parentId=parentRef(o.parent||o.parentId);
   if(parentId&&map.has(parentId)){
     const p=resolveWorldObject(map.get(parentId),map,cache,next);
     if(p?._hierarchyCycle)o={...o,visible:false,_hierarchyCycle:true};
@@ -284,30 +305,55 @@ function paintStyle(value,o,fallback='#ffffff'){
   else g=ctx.createLinearGradient(finite(value.x0,-finite(o.width,100)/2),finite(value.y0,0),finite(value.x1,finite(o.width,100)/2),finite(value.y1,0));
   const stops=Array.isArray(value.stops)?value.stops:[];if(!stops.length){g.addColorStop(0,fallback);g.addColorStop(1,fallback);}else for(const stop of stops)g.addColorStop(clamp(finite(stop.offset,0),0,1),String(stop.color||fallback));return g;
 }
-function local2DChain(raw,map){
+function local2DChain(raw,map,time=state.time){
   const chain=[],seen=new Set();let cur=raw;
   while(cur){
     const id=String(cur?.id||'');if(id&&seen.has(id))return {chain:[],cycle:true};if(id)seen.add(id);
-    chain.unshift(resolved(cur));
-    const parentId=String(cur?.parent||cur?.parentId||'');
+    chain.unshift(resolved(cur,time));
+    const parentId=parentRef(cur?.parent||cur?.parentId);
     cur=parentId&&map.has(parentId)?map.get(parentId):null;
   }
   return {chain,cycle:false};
 }
-function chain2DState(raw,map){
-  const result=local2DChain(raw,map);if(result.cycle)return {...result,visible:false,opacity:0,start:0,end:0};
+function chain2DState(raw,map,time=state.time){
+  const result=local2DChain(raw,map,time);if(result.cycle)return {...result,visible:false,opacity:0,start:0,end:0};
   let visible=true,opacity=1,start=0,end=state.project.duration;
   for(const n of result.chain){
     visible=visible&&n.visible!==false;opacity*=clamp(finite(n.opacity,1),0,1);
     start=Math.max(start,finite(n.start,0));end=Math.min(end,finite(n.end,state.project.duration));
   }
-  visible=visible&&state.time>=start&&state.time<=end;
+  visible=visible&&time>=start&&time<=end;
   return {...result,visible,opacity:clamp(opacity,0,1),start,end};
 }
 function apply2DTransformChain(chain){for(const node of chain)applyObject2DTransform(node);}
-function apply2DMaskRaw(maskRaw,map){
-  if(!maskRaw)return false;const state2D=chain2DState(maskRaw,map);if(!state2D.visible)return false;
-  const local=resolved(maskRaw),base=typeof ctx.getTransform==='function'?ctx.getTransform():null;
+function mat2Mul(a,b){return [a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];}
+function mat2Node(o){
+  const r=rad(o.rotation),c=Math.cos(r),sn=Math.sin(r),sx=finite(o.scaleX,o.scale??1),sy=finite(o.scaleY,o.scale??1),kx=Math.tan(rad(clamp(finite(o.skewX,0),-89,89))),ky=Math.tan(rad(clamp(finite(o.skewY,0),-89,89))),px=finite(o.pivotX,0),py=finite(o.pivotY,0);
+  let m=[1,0,0,1,finite(o.x),finite(o.y)];m=mat2Mul(m,[c,sn,-sn,c,0,0]);m=mat2Mul(m,[1,ky,kx,1,0,0]);m=mat2Mul(m,[sx,0,0,sy,0,0]);m=mat2Mul(m,[1,0,0,1,-px,-py]);return m;
+}
+function mat2Chain(chain){let m=[1,0,0,1,0,0];for(const n of chain)m=mat2Mul(m,mat2Node(n));return m;}
+function mat2Point(m,x=0,y=0){return{x:m[0]*x+m[2]*y+m[4],y:m[1]*x+m[3]*y+m[5]};}
+function drawMotionTrail(raw,map,local){
+  const tr=local.trail;if(!tr||typeof tr!=='object')return;const count=clamp(Math.floor(finite(tr.count,6)),2,64),spacing=Math.max(.001,finite(tr.spacing,.035)),pts=[];
+  for(let i=count-1;i>=0;i--){const t=state.time-i*spacing,cs=chain2DState(raw,map,t);if(!cs.visible)continue;pts.push(mat2Point(mat2Chain(cs.chain)));}
+  if(pts.length<2)return;ctx.save();ctx.lineCap='round';ctx.lineJoin='round';for(let i=1;i<pts.length;i++){const q=i/(pts.length-1);ctx.globalAlpha=clamp(finite(tr.opacity,.35)*q,0,1);ctx.strokeStyle=String(tr.color||local.stroke||local.fill||'#ffffff');ctx.lineWidth=Math.max(.5,finite(tr.width,12)*q);ctx.beginPath();ctx.moveTo(pts[i-1].x,pts[i-1].y);ctx.lineTo(pts[i].x,pts[i].y);ctx.stroke();}ctx.restore();
+}
+function drawAfterimages(raw,map,local){
+  const ai=local.afterimages;if(!ai||typeof ai!=='object'||local.type==='emitter')return;const count=clamp(Math.floor(finite(ai.count,3)),1,12),spacing=Math.max(.001,finite(ai.spacing,.045));
+  for(let i=count;i>=1;i--){const t=state.time-i*spacing,cs=chain2DState(raw,map,t);if(!cs.visible)continue;const hist=resolved(raw,t);ctx.save();apply2DTransformChain(cs.chain);draw2DObject(hist,{transformApplied:true,opacity:cs.opacity*clamp(finite(ai.opacity,.18)*(1-i/(count+1)),0,1),ghost:true});ctx.restore();}
+}
+function build2DIKOverrides(sourceObjects,map){
+  const out=new Map(),previous=state._ikOverrides;state._ikOverrides=null;
+  for(const raw of sourceObjects){if(String(raw?.type||'').toLowerCase()!=='ik')continue;const ik=resolved(raw);if(!objectVisible(ik))continue;const rootId=parentRef(ik.root||ik.rootBone),jointId=parentRef(ik.joint||ik.jointBone);if(!rootId||!jointId||!map.has(rootId)||!map.has(jointId))continue;
+    const root=resolved(map.get(rootId)),joint=resolved(map.get(jointId)),L1=Math.max(.001,finite(ik.upperLength,Math.hypot(finite(joint.x),finite(joint.y))||80)),L2=Math.max(.001,finite(ik.lowerLength,finite(ik.endLength,80))),dx=finite(ik.targetX)-finite(root.x),dy=finite(ik.targetY)-finite(root.y),rawD=Math.hypot(dx,dy),d=clamp(rawD,Math.abs(L1-L2)+.001,L1+L2-.001),bend=finite(ik.bend,1)>=0?1:-1;
+    const base=Math.atan2(-dx,dy),shoulderOff=Math.acos(clamp((L1*L1+d*d-L2*L2)/(2*L1*d),-1,1)),inner=Math.acos(clamp((L1*L1+L2*L2-d*d)/(2*L1*L2),-1,1));
+    const rootRot=(base+bend*shoulderOff)*180/Math.PI,jointRot=-bend*(Math.PI-inner)*180/Math.PI;out.set(rootId,{rotation:rootRot});out.set(jointId,{rotation:jointRot});
+  }
+  state._ikOverrides=previous;return out;
+}
+function apply2DMaskRaw(maskRaw,map,time=state.time){
+  if(!maskRaw)return false;const state2D=chain2DState(maskRaw,map,time);if(!state2D.visible)return false;
+  const local=resolved(maskRaw,time),base=typeof ctx.getTransform==='function'?ctx.getTransform():null;
   apply2DTransformChain(state2D.chain);let traced=false;
   if(local.type==='path'&&local.d&&typeof Path2D!=='undefined'){
     try{const p=new Path2D(local.d);ctx.clip(p,local.fillRule||'nonzero');if(base)ctx.setTransform(base);return true;}catch(_){}
@@ -315,15 +361,18 @@ function apply2DMaskRaw(maskRaw,map){
   traced=tracePrimitivePath(local);if(traced)ctx.clip(local.fillRule||'nonzero');if(base)ctx.setTransform(base);return traced;
 }
 function render2D(){
-  state._frameLights=null;const rawObjects=state.project?.objects||[],map=new Map(rawObjects.map(o=>[String(o.id||''),o])),cam=currentCamera2D();
+  state._frameLights=null;const sourceObjects=state.project?.objects||[],map=new Map(sourceObjects.map(o=>[String(o.id||''),o])),cam=currentCamera2D();
+  state._ikOverrides=build2DIKOverrides(sourceObjects,map);
+  const rawObjects=sourceObjects.map((o,index)=>({o,index,layer:finite(resolved(o).layer,resolved(o).zIndex??0)})).sort((a,b)=>a.layer-b.layer||a.index-b.index).map(r=>r.o);
   ctx.save();apply2DCameraTransform(cam);
   for(const raw of rawObjects){
-    const local=resolved(raw);if(['group','bone'].includes(local.type)||local.maskOnly===true)continue;
+    const local=resolved(raw);if(['group','bone','ik'].includes(local.type)||local.maskOnly===true)continue;
     const chainState=chain2DState(raw,map);if(!chainState.visible)continue;
+    drawMotionTrail(raw,map,local);drawAfterimages(raw,map,local);
     ctx.save();const maskId=String(local.mask||local.clipPath||'');if(maskId&&map.has(maskId))apply2DMaskRaw(map.get(maskId),map);
     apply2DTransformChain(chainState.chain);draw2DObject(local,{transformApplied:true,opacity:chainState.opacity});ctx.restore();
   }
-  apply2DPointLights();ctx.restore();apply2DAmbientLighting();
+  apply2DPointLights();ctx.restore();apply2DAmbientLighting();state._ikOverrides=null;
 }
 function draw2DObject(o,options={}){
   ctx.save();ctx.globalAlpha=clamp(finite(options.opacity,o.opacity??1),0,1);ctx.globalCompositeOperation=o.blend||'source-over';if(options.transformApplied!==true)applyObject2DTransform(o);
@@ -360,7 +409,7 @@ function drawParticleEmitter(o){
   }
 }
 function resolvePointLight2DWorld(raw,map,cache){
-  const l=resolved(raw),parentId=String(l.parent||l.parentId||'');if(!parentId||!map.has(parentId))return l;const p=resolveWorldObject(map.get(parentId),map,cache,new Set()),psx=finite(p.scaleX,p.scale??1),psy=finite(p.scaleY,p.scale??1),pr=rad(p.rotation),lx=(finite(l.x)-finite(p.pivotX,0))*psx,ly=(finite(l.y)-finite(p.pivotY,0))*psy;return {...l,x:finite(p.x)+lx*Math.cos(pr)-ly*Math.sin(pr),y:finite(p.y)+lx*Math.sin(pr)+ly*Math.cos(pr)};
+  const l=resolved(raw),parentId=parentRef(l.parent||l.parentId);if(!parentId||!map.has(parentId))return l;const p=resolveWorldObject(map.get(parentId),map,cache,new Set()),psx=finite(p.scaleX,p.scale??1),psy=finite(p.scaleY,p.scale??1),pr=rad(p.rotation),lx=(finite(l.x)-finite(p.pivotX,0))*psx,ly=(finite(l.y)-finite(p.pivotY,0))*psy;return {...l,x:finite(p.x)+lx*Math.cos(pr)-ly*Math.sin(pr),y:finite(p.y)+lx*Math.sin(pr)+ly*Math.cos(pr)};
 }
 function apply2DPointLights(){
   const lighting=state.project.lighting||{},map=objectMap(),cache=new Map();
@@ -388,7 +437,7 @@ function cameraTrackValue(camera,key,time){
     if(typeof av!=='number'||typeof bv!=='number')return raw<1?av:bv;
     const easing=String(b.easing||a.easing||'').toLowerCase();
     const interpolation=String(b.interpolation||a.interpolation||camera.interpolation||'spline').toLowerCase();
-    if(interpolation==='step'||easing==='step')return av;
+    if(isHoldFrame(a)||interpolation==='step'||interpolation==='hold'||interpolation==='event'||easing==='step'||easing==='hold'||easing==='event')return av;
     if(interpolation==='linear')return lerp(av,bv,ease(raw,easing||'linear'));
     if(['x','y','z','targetX','targetY','targetZ'].includes(key)){
       const p0=i>0&&typeof frames[i-1][key]==='number'?frames[i-1][key]:av;
@@ -422,7 +471,7 @@ function cross(a,b){return{x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x
 function sub(a,b){return{x:a.x-b.x,y:a.y-b.y,z:a.z-b.z};}
 function dot(a,b){return a.x*b.x+a.y*b.y+a.z*b.z;}
 function resolvePointLightWorld(raw,map,cache){
-  const l=resolved(raw),parentId=String(l.parent||l.parentId||'');if(!parentId||!map.has(parentId))return l;
+  const l=resolved(raw),parentId=parentRef(l.parent||l.parentId);if(!parentId||!map.has(parentId))return l;
   const p=resolveWorldObject(map.get(parentId),map,cache,new Set()),ps=finite(p.scale,1),q=rotatePoint({x:finite(l.x)*ps,y:finite(l.y)*ps,z:finite(l.z)*ps},rad(p.rotationX),rad(p.rotationY),rad(p.rotationZ));
   return {...l,x:finite(p.x)+q.x,y:finite(p.y)+q.y,z:finite(p.z)+q.z};
 }
@@ -602,7 +651,7 @@ async function addAudio(files){
 function refreshReference(){
   const mode=state.project?.mode||'2D';const rows=mode==='3D'?
     [['camera','spline keyframes + look-at + near/far clipping + smoothing'],['lighting','spatial ambient/directional/point lights + range/falloff/decay + parent'],['objects[]','group | box | sphere | plane | sprite'],['parent','inherit group/object transforms'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','asset, start/end, volume, pan, rate, keyframes']]:
-    [['camera','2D pan/zoom/rotation/shake with spline keyframes'],['objects[]','group | bone | rect | circle | ellipse | polygon | path | text | sprite | emitter'],['hierarchy','recursive parent chains + pivots/skew'],['mask','mask / clipPath by object id'],['morph','keyframe points[] for vector shape morphing'],['clips','reusable clips{} keyframes via object.clip'],['particles','deterministic emitter rate/burst/life/speed/gravity'],['lighting','ambient + parentable point[] canvas lights'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','audio/tone cues on the timeline']];
+    [['camera','2D pan/zoom/rotation/shake with spline keyframes'],['objects[]','group | bone | ik | rect | circle | ellipse | polygon | path | text | sprite | emitter'],['rigging','recursive bones + two-bone IK + min/max rotation joint limits'],['timing','animationFps / animationLag + project timing.objectFps for on-twos'],['motion','trail{} + afterimages{} for smears and follow-through'],['hierarchy','recursive parent chains + pivots/skew + layer/zIndex'],['mask','mask / clipPath by object id; parent objects normalize by id'],['morph','multi-stage keyframe points[] vector morphing + hold/event segments'],['clips','reusable clips{} keyframes via object.clip'],['particles','deterministic emitter rate/burst/life/speed/gravity'],['lighting','ambient + parentable point[] canvas lights'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','audio/tone cues on the timeline']];
   $('#schemaReference').innerHTML=rows.map(([a,b])=>`<div class="sad-reference-item"><b>${a}</b><small>${b}</small></div>`).join('');
   const entries=[];for(const [id,a] of Object.entries(state.project?.assets||{})){if(a?.type==='sprite'||a?.type==='audio'||a?.type==='tone')entries.push({id,type:a.type});}
   $('#spriteList').innerHTML=entries.length?entries.map(x=>`<div class="sad-reference-item"><b>${x.id}</b><small>${x.type.toUpperCase()} ASSET</small></div>`).join(''):'<p>NO MEDIA ASSETS LOADED.</p>';

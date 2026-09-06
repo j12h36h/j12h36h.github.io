@@ -239,3 +239,11 @@ Supported easing values remain:
 - `ease-in`
 - `ease-out`
 - `ease-in-out`
+
+
+### v1.3.2 cartoon timing / hierarchy rules
+
+- Keyframes may set `hold: true`, `interpolation: "hold"`, or `interpolation: "event"` to preserve the current keyed value until the next keyframe instead of interpolating toward a future event. This is intended for flashes, one-shot state changes, expression swaps, visibility gates, and other event-style tracks.
+- `parent` / `parentId` should normally be a string id. v1.3.2 also tolerates an accidental object reference containing `{ "id": "..." }` and normalizes it to that id at runtime.
+- 2D objects may use numeric `layer` or `zIndex`. Objects are drawn from lower to higher values, with original JSON order preserved when values are equal.
+- Existing `mask` / `clipPath` behavior remains world-space and is compatible with recursively transformed descendants.
