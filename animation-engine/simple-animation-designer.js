@@ -7,7 +7,7 @@ const state={project:null,time:0,playing:false,lastFrame:0,raf:0,speed:1,images:
 const EXAMPLE_2D={
   version:1,
   title:'ORBIT CARTOON',
-  mode:'2d',
+  mode:'2D',
   duration:6,
   loop:true,
   canvas:{width:960,height:540,background:'#06111a'},
@@ -28,7 +28,7 @@ const EXAMPLE_2D={
 const EXAMPLE_3D={
   version:1,
   title:'JSON SPACE SCENE',
-  mode:'3d',
+  mode:'3D',
   duration:8,
   loop:true,
   canvas:{width:960,height:540,background:'#030711'},
@@ -56,14 +56,15 @@ function setStatus(message,tone='ok'){
 }
 function renderStatus(message){$('#renderStatus').textContent=String(message).toUpperCase();}
 function stringifyProject(project){return JSON.stringify(project,null,2);}
-function setExample(mode='2d'){
-  const p=deepCopy(mode==='3d'?EXAMPLE_3D:EXAMPLE_2D);
+function setExample(mode='2D'){
+  const p=deepCopy(String(mode).toUpperCase()==='3D'?EXAMPLE_3D:EXAMPLE_2D);
   editor.value=stringifyProject(p);
   applyEditor();
 }
 function validateProject(p){
   if(!p||typeof p!=='object'||Array.isArray(p))throw new Error('Project JSON must be an object.');
-  if(!['2d','3d'].includes(p.mode))throw new Error('mode must be "2d" or "3d".');
+  p.mode=String(p.mode||'').toUpperCase();
+  if(!['2D','3D'].includes(p.mode))throw new Error('MODE MUST BE "2D" OR "3D".');
   if(!Number.isFinite(Number(p.duration))||Number(p.duration)<=0)throw new Error('duration must be greater than 0.');
   p.canvas=p.canvas||{};
   p.canvas.width=clamp(Math.round(Number(p.canvas.width)||960),64,4096);
@@ -74,7 +75,7 @@ function validateProject(p){
   p.assets=p.assets&&typeof p.assets==='object'&&!Array.isArray(p.assets)?p.assets:{};
   p.objects=Array.isArray(p.objects)?p.objects:[];
   if(p.objects.length>1000)throw new Error('A project may contain up to 1000 objects.');
-  if(p.mode==='3d')p.camera={x:0,y:0,z:-8,rotateX:0,rotateY:0,rotateZ:0,fov:520,...(p.camera||{})};
+  if(p.mode==='3D')p.camera={x:0,y:0,z:-8,rotateX:0,rotateY:0,rotateZ:0,fov:520,...(p.camera||{})};
   return p;
 }
 async function applyEditor(){
@@ -150,7 +151,7 @@ function clearStage(){ctx.save();ctx.globalAlpha=1;ctx.globalCompositeOperation=
 function renderFrame(){
   if(!state.project)return;
   clearStage();
-  if(state.project.mode==='3d')render3D();else render2D();
+  if(state.project.mode==='3D')render3D();else render2D();
   $('#timeReadout').textContent=`${state.time.toFixed(2)} / ${state.project.duration.toFixed(2)}`;
   $('#timeline').value=Math.round(clamp(state.time/state.project.duration,0,1)*1000);
 }
@@ -242,14 +243,14 @@ async function addSprites(files){
   p.assets=p.assets||{};p.objects=p.objects||[];
   let offset=0;
   for(const file of files){if(!file.type.startsWith('image/'))continue;const id=uniqueAssetId(file.name.replace(/\.[^.]+$/,''),p.assets),url=URL.createObjectURL(file);state.localUrls.set(id,url);state.localUrls.set(file.name,url);state.localUrls.set(`./${file.name}`,url);p.assets[id]={type:'sprite',src:`./${file.name}`};
-    if(p.mode==='3d')p.objects.push({id:`${id}-object`,type:'sprite',asset:id,x:(offset-((files.length-1)/2))*1.8,y:0,z:6,width:1.5,height:1.5,keyframes:[{t:0,rotationZ:-6},{t:p.duration/2,rotationZ:6},{t:p.duration,rotationZ:-6}]});
+    if(p.mode==='3D')p.objects.push({id:`${id}-object`,type:'sprite',asset:id,x:(offset-((files.length-1)/2))*1.8,y:0,z:6,width:1.5,height:1.5,keyframes:[{t:0,rotationZ:-6},{t:p.duration/2,rotationZ:6},{t:p.duration,rotationZ:-6}]});
     else p.objects.push({id:`${id}-object`,type:'sprite',asset:id,x:p.canvas.width/2+offset*28,y:p.canvas.height/2,width:128,height:128,anchorX:.5,anchorY:.5,keyframes:[{t:0,rotation:-6},{t:p.duration/2,rotation:6},{t:p.duration,rotation:-6}]});offset++;
   }
   editor.value=stringifyProject(p);await applyEditor();setStatus(`${files.length} SPRITE${files.length===1?'':'S'} ADDED`);
 }
 
 function refreshReference(){
-  const mode=state.project?.mode||'2d';const rows=mode==='3d'?
+  const mode=state.project?.mode||'2D';const rows=mode==='3D'?
     [['camera','x, y, z, rotateX/Y/Z, fov'],['objects[]','box | sphere | plane | sprite'],['3D transform','x, y, z, rotationX/Y/Z, scale, opacity'],['keyframes[]','{ t, property…, easing? }']]:
     [['objects[]','rect | circle | ellipse | text | sprite'],['2D transform','x, y, rotation, scale/X/Y, opacity'],['sprite sheet','frameWidth, frameHeight, frames, fps'],['keyframes[]','{ t, property…, easing? }']];
   $('#schemaReference').innerHTML=rows.map(([a,b])=>`<div class="sad-reference-item"><b>${a}</b><small>${b}</small></div>`).join('');
@@ -261,7 +262,7 @@ function updateCursor(){const pos=editor.selectionStart,before=editor.value.slic
 $('#applyJsonButton').addEventListener('click',applyEditor);$('#formatJsonButton').addEventListener('click',formatEditor);$('#saveJsonButton').addEventListener('click',saveJson);$('#playPauseButton').addEventListener('click',togglePlay);$('#stopButton').addEventListener('click',stop);
 $('#playbackSpeed').addEventListener('change',e=>state.speed=Number(e.target.value)||1);
 $('#timeline').addEventListener('input',e=>{if(!state.project)return;state.time=Number(e.target.value)/1000*state.project.duration;state.lastFrame=0;renderFrame();});
-$('[data-new="2d"]').addEventListener('click',()=>setExample('2d'));$('[data-new="3d"]').addEventListener('click',()=>setExample('3d'));
+$('[data-new="2D"]').addEventListener('click',()=>setExample('2D'));$('[data-new="3D"]').addEventListener('click',()=>setExample('3D'));
 $('#openJsonButton').addEventListener('click',()=>$('#jsonFileInput').click());$('#addSpriteButton').addEventListener('click',()=>$('#spriteFileInput').click());
 $('#jsonFileInput').addEventListener('change',e=>{const f=e.target.files?.[0];if(f)loadJsonFile(f);e.target.value='';});
 $('#spriteFileInput').addEventListener('change',e=>{addSprites([...e.target.files]);e.target.value='';});
@@ -269,4 +270,4 @@ editor.addEventListener('keyup',updateCursor);editor.addEventListener('click',up
 const drop=$('#dropZone');for(const name of ['dragenter','dragover'])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.add('is-dragging');});for(const name of ['dragleave','drop'])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.remove('is-dragging');});drop.addEventListener('drop',e=>{const files=[...e.dataTransfer.files],json=files.find(f=>f.name.toLowerCase().endsWith('.json')),sprites=files.filter(f=>f.type.startsWith('image/'));if(json)loadJsonFile(json);if(sprites.length)addSprites(sprites);});
 window.addEventListener('beforeunload',()=>{for(const url of new Set(state.localUrls.values()))URL.revokeObjectURL(url);});
 
-setExample('2d');
+setExample('2D');
