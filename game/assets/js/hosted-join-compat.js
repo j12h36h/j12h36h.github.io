@@ -15,9 +15,17 @@ export async function createLobbyMembership(lobby,profileId,entitlementId=''){
     await fs.updateDoc(ref,{lastSeenAt:fs.serverTimestamp()});
     return snap.data();
   }
-  const member={profileId,role:lobby.hostProfileId===profileId?'host':'player',accessEntitlementId:'',joinedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()};
-  await fs.setDoc(ref,member);
-  return member;
+  const role=lobby.hostProfileId===profileId?'host':'player';
+  const modernMember={profileId,role,accessEntitlementId:'',accessStartedAt:fs.serverTimestamp(),accessLeaseSeconds:600,joinedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()};
+  try{
+    await fs.setDoc(ref,modernMember);
+    return modernMember;
+  }catch(error){
+    if(error?.code!=='permission-denied')throw error;
+    const legacyMember={profileId,role,accessEntitlementId:'',joinedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()};
+    await fs.setDoc(ref,legacyMember);
+    return legacyMember;
+  }
 }
 
 export function maintainLobbyMembership(lobby,profileId,{onExpired,onError}={}){

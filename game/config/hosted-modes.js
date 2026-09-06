@@ -1,4 +1,4 @@
-import '/game/assets/js/slime-smash-host-compat.js?v=1.0.0';
+import '/game/assets/js/slime-smash-host-compat.js?v=1.1.0';
 
 export const HOSTED_GAME_MODES = Object.freeze({
   'arcade-topdown': Object.freeze({

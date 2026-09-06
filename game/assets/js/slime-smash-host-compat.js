@@ -60,13 +60,28 @@ async function createLegacyCompatibleSlimeLobby(event){
     say('Creating Slime Smash…');
     await fs.setDoc(fs.doc(db,'gameLobbies',lobbyId),lobby);
     created=true;
-    await fs.setDoc(fs.doc(db,'gameLobbies',lobbyId,'members',identity.profileId),{
+    const memberRef=fs.doc(db,'gameLobbies',lobbyId,'members',identity.profileId);
+    const modernMember={
       profileId:identity.profileId,
       role:'host',
       accessEntitlementId:'',
+      accessStartedAt:fs.serverTimestamp(),
+      accessLeaseSeconds:600,
       joinedAt:fs.serverTimestamp(),
       lastSeenAt:fs.serverTimestamp()
-    });
+    };
+    try{
+      await fs.setDoc(memberRef,modernMember);
+    }catch(memberError){
+      if(memberError?.code!=='permission-denied')throw memberError;
+      await fs.setDoc(memberRef,{
+        profileId:identity.profileId,
+        role:'host',
+        accessEntitlementId:'',
+        joinedAt:fs.serverTimestamp(),
+        lastSeenAt:fs.serverTimestamp()
+      });
+    }
     location.href=`/game/slime-smash/?lobby=${encodeURIComponent(lobbyId)}`;
   }catch(error){
     console.error('Slime Smash compatibility host',error);

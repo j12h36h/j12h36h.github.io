@@ -1,6 +1,6 @@
 import { db, fs, watchIdentity, safeText, avatarSvg } from '/game/assets/js/eras-data.js';
 import { defaultHostedWorldSettings, settingsFromHostForm, DEFAULT_ICON_JSON, DEFAULT_SLIME_ICON_JSON } from '/game/config/world-settings.js?v=3.0.0';
-import { HOSTED_GAME_MODES, VISIBILITY_OPTIONS, ACCESS_MODE_OPTIONS, hostedMode, hostedModeLabel, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.0.0';
+import { HOSTED_GAME_MODES, VISIBILITY_OPTIONS, ACCESS_MODE_OPTIONS, hostedMode, hostedModeLabel, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.2.0';
 import { openOptionPicker, optionTriggerMarkup } from '/game/assets/js/hosted-option-picker.js?v=1.0.1';
 import { createHostedOffer, deactivateHostedOffer } from '/game/assets/js/hosted-commerce.js?v=1.0.0';
 import { assetPreviewUrl } from '/game/assets/js/catalog-assets.js?v=1.0.0';
