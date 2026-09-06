@@ -36,6 +36,11 @@ export const HOSTED_GAME_MODES = Object.freeze({
     description:'Blast through a galaxy in a customizable escape pod, moving across a 3 × 3 field of nine positions to dodge planets, asteroids, satellites and stellar hazards.',
     tags:['GALAXY','9-POSITION','DODGE','POD SKINS'], assetId:'eras:mode_escape_pod_dash', runtime:'hosted'
   }),
+  'side-scroller': Object.freeze({
+    id:'side-scroller', name:'Side Scroller', short:'SIDE SCROLLER', icon:'▲', mapId:'runner-strip', maxPlayers:8,
+    description:'Auto-run through a 2D platform course. The entire game has one action: jump.',
+    tags:['2D','PLATFORM','AUTO-RUN','JUMP'], assetId:'', runtime:'side-scroller'
+  }),
   'slime-smash': Object.freeze({
     id:'slime-smash', name:'Slime Smash', short:'SLIME SMASH', icon:'●', mapId:'lily-grid', maxPlayers:8, storageGameStyle:'arcade-topdown', storageMapId:'slime-yard',
     description:'Tap slimes across nine leaf platforms. Each smash scores points and adds time; survive the countdown for the highest score.',
@@ -53,6 +58,7 @@ export const hostedModeRuntimeHref = (lobby, mobile=false) => {
   const id = encodeURIComponent(lobby?.id || '');
   if(mode.runtime === 'galactic') return `/game/galactic-dominion/?lobby=${id}`;
   if(mode.runtime === 'slime-smash') return `/game/slime-smash/?lobby=${id}`;
+  if(mode.runtime === 'side-scroller') return `/game/side-scroller/?lobby=${id}`;
   if(mode.runtime === 'hosted') return `/game/hosted-mode/?lobby=${id}`;
   return mobile ? `/game-mobile/tactical/?lobby=${id}` : `/game/tactical/?lobby=${id}`;
 };
@@ -80,6 +86,7 @@ export function modeDefaults(modeId){
     case 'sunball': return { balls:3, targetScore:25000, gravity:0.22, bumperForce:1.8, multiplayerMode:'alternating' };
     case 'soldoku': return { boardSize:9, difficulty:'normal', hints:3, mistakeLimit:3, playMode:'solo' };
     case 'escape-pod-dash': return { lanes:3, lives:1, startSpeed:4, acceleration:0.12, targetDistance:20000, obstacleRate:1 };
+    case 'side-scroller': return { runSpeed:250, acceleration:3.5, gravity:1750, jumpVelocity:650, obstacleRate:1, targetDistance:0 };
     case 'slime-smash': return { startingSeconds:15, timeGainSeconds:0.35, scorePerSlime:100 };
     default: return {};
   }
@@ -94,6 +101,7 @@ export function normalizeModeSettings(modeId,input={}){
     case 'sunball': return {balls:n(input.balls,d.balls,1,9,true),targetScore:n(input.targetScore,d.targetScore,1000,1000000,true),gravity:n(input.gravity,d.gravity,.08,.6),bumperForce:n(input.bumperForce,d.bumperForce,1,3),multiplayerMode:['alternating','score_attack'].includes(input.multiplayerMode)?input.multiplayerMode:d.multiplayerMode};
     case 'soldoku': return {boardSize:[4,6,9].includes(Number(input.boardSize))?Number(input.boardSize):d.boardSize,difficulty:['easy','normal','hard'].includes(input.difficulty)?input.difficulty:d.difficulty,hints:n(input.hints,d.hints,0,9,true),mistakeLimit:n(input.mistakeLimit,d.mistakeLimit,0,9,true),playMode:['solo','competitive','cooperative'].includes(input.playMode)?input.playMode:d.playMode};
     case 'escape-pod-dash': return {lanes:3,lives:1,startSpeed:n(input.startSpeed,d.startSpeed,2,10),acceleration:n(input.acceleration,d.acceleration,.02,.5),targetDistance:20000,obstacleRate:n(input.obstacleRate,d.obstacleRate,.4,2.5)};
+    case 'side-scroller': return {runSpeed:n(input.runSpeed,d.runSpeed,140,520),acceleration:n(input.acceleration,d.acceleration,0,18),gravity:n(input.gravity,d.gravity,900,2800),jumpVelocity:n(input.jumpVelocity,d.jumpVelocity,420,980),obstacleRate:n(input.obstacleRate,d.obstacleRate,.45,2.5),targetDistance:n(input.targetDistance,d.targetDistance,0,200000,true)};
     case 'slime-smash': return {startingSeconds:n(input.startingSeconds,d.startingSeconds,3,120),timeGainSeconds:n(input.timeGainSeconds,d.timeGainSeconds,.05,10),scorePerSlime:n(input.scorePerSlime,d.scorePerSlime,1,10000,true)};
     default:return {};
   }

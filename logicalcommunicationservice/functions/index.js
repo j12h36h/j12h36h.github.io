@@ -234,7 +234,8 @@ function validateDraft(raw) {
     'jeng-stroid': ['stack-bay'],
     'sunball': ['solar-table'],
     'soldoku': ['logic-grid'],
-    'escape-pod-dash': ['launch-corridor']
+    'escape-pod-dash': ['launch-corridor'],
+    'side-scroller': ['runner-strip']
   };
   if (!allowedMaps[gameStyle]) throw new HttpsError('invalid-argument', 'Unsupported game mode.');
   const mapId = cleanString(raw.mapId, 80);

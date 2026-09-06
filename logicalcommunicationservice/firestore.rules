@@ -1706,7 +1706,8 @@ service cloud.firestore {
           || (data.gameStyle == 'jeng-stroid' && data.mapId == 'stack-bay' && data.maxPlayers <= 8)
           || (data.gameStyle == 'sunball' && data.mapId == 'solar-table' && data.maxPlayers <= 8)
           || (data.gameStyle == 'soldoku' && data.mapId == 'logic-grid' && data.maxPlayers <= 12)
-          || (data.gameStyle == 'escape-pod-dash' && data.mapId == 'launch-corridor' && data.maxPlayers <= 8))
+          || (data.gameStyle == 'escape-pod-dash' && data.mapId == 'launch-corridor' && data.maxPlayers <= 8)
+          || (data.gameStyle == 'side-scroller' && data.mapId == 'runner-strip' && data.maxPlayers <= 8))
         && data.description is string && data.description.size() <= 240
         && data.get('settings', {}) is map
         && validHostAssets(data.hostAssets, data.hostProfileId)
