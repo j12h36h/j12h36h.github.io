@@ -2,7 +2,8 @@ const $=s=>document.querySelector(s);
 const canvas=$('#animationCanvas');
 const ctx=canvas.getContext('2d',{alpha:true});
 const editor=$('#jsonEditor');
-const state={project:null,time:0,playing:false,lastFrame:0,raf:0,speed:1,images:new Map(),localUrls:new Map(),loadToken:0};
+const state={project:null,time:0,playing:false,lastFrame:0,raf:0,speed:1,images:new Map(),localUrls:new Map(),loadToken:0,presets:null};
+const PRESET_MANIFEST_URL='./presets/presets.json';
 
 const EXAMPLE_2D={
   version:1,
@@ -259,6 +260,45 @@ async function loadJsonFromClipboard(){
     setStatus(e.message||'CLIPBOARD LOAD FAILED','error');
   }
 }
+async function loadPresetManifest(){
+  if(Array.isArray(state.presets))return state.presets;
+  const response=await fetch(PRESET_MANIFEST_URL,{cache:'no-store'});
+  if(!response.ok)throw new Error(`Could not load preset list (${response.status}).`);
+  const manifest=await response.json();
+  const presets=Array.isArray(manifest?.presets)?manifest.presets:[];
+  state.presets=presets.filter(p=>p&&p.id&&p.src&&p.title);
+  return state.presets;
+}
+function renderPresetAnimations(presets){
+  const root=$('#presetAnimationsGrid');if(!root)return;
+  if(!presets.length){root.innerHTML='<p class="sad-preset-loading">NO PRESET ANIMATIONS ARE AVAILABLE.</p>';return;}
+  root.innerHTML=presets.map(p=>`<article class="sad-preset-card"><div class="sad-preset-card-head"><span>${String(p.mode||'').toUpperCase()}</span><b>${String(p.title||'UNTITLED')}</b></div><p>${String(p.description||'Editable starter animation.')}</p><button type="button" data-sad-preset="${String(p.id)}">USE PRESET</button></article>`).join('');
+}
+async function openPresetAnimations(){
+  const dialog=$('#presetAnimationsDialog'),root=$('#presetAnimationsGrid');
+  if(!dialog||!root)return;
+  root.innerHTML='<p class="sad-preset-loading">LOADING PRESETS…</p>';
+  if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
+  try{renderPresetAnimations(await loadPresetManifest());}
+  catch(e){root.innerHTML=`<p class="sad-preset-loading is-error">${String(e?.message||'PRESET LIST FAILED')}</p>`;}
+}
+function closePresetAnimations(){const dialog=$('#presetAnimationsDialog');if(!dialog)return;if(typeof dialog.close==='function')dialog.close();else dialog.removeAttribute('open');}
+async function usePresetAnimation(id){
+  try{
+    const presets=await loadPresetManifest(),preset=presets.find(p=>String(p.id)===String(id));
+    if(!preset)throw new Error('Preset animation was not found.');
+    const response=await fetch(preset.src,{cache:'no-store'});
+    if(!response.ok)throw new Error(`Could not load preset (${response.status}).`);
+    const project=validateProject(await response.json());
+    if(!confirm(`REPLACE THE CURRENT ANIMATION WITH PRESET:\n\n${String(preset.title||project.title||'UNTITLED').toUpperCase()}?`))return;
+    editor.value=stringifyProject(project);
+    state.time=0;
+    closePresetAnimations();
+    await applyEditor();
+    setStatus(`PRESET LOADED // ${preset.title}`);
+  }catch(e){setStatus(e?.message||'PRESET LOAD FAILED','error');}
+}
+
 function uniqueAssetId(base,assets){let id=safeId(base),n=2;while(assets[id])id=`${safeId(base)}-${n++}`;return id;}
 async function addSprites(files){
   if(!files?.length)return;let p;try{p=validateProject(JSON.parse(editor.value));}catch(e){setStatus(e.message,'error');return;}
@@ -285,7 +325,7 @@ $('#applyJsonButton').addEventListener('click',applyEditor);$('#formatJsonButton
 $('#playbackSpeed').addEventListener('change',e=>state.speed=Number(e.target.value)||1);
 $('#timeline').addEventListener('input',e=>{if(!state.project)return;state.time=Number(e.target.value)/1000*state.project.duration;state.lastFrame=0;renderFrame();});
 $('[data-new="2D"]').addEventListener('click',()=>setExample('2D'));$('[data-new="3D"]').addEventListener('click',()=>setExample('3D'));
-$('#openJsonButton').addEventListener('click',()=>$('#jsonFileInput').click());$('#clipboardJsonButton').addEventListener('click',loadJsonFromClipboard);$('#addSpriteButton').addEventListener('click',()=>$('#spriteFileInput').click());
+$('#openJsonButton').addEventListener('click',()=>$('#jsonFileInput').click());$('#clipboardJsonButton').addEventListener('click',loadJsonFromClipboard);$('#presetAnimationsButton').addEventListener('click',openPresetAnimations);$('#closePresetAnimationsButton').addEventListener('click',closePresetAnimations);$('#presetAnimationsDialog').addEventListener('click',e=>{if(e.target===e.currentTarget)closePresetAnimations();});$('#presetAnimationsGrid').addEventListener('click',e=>{const button=e.target.closest('[data-sad-preset]');if(button)usePresetAnimation(button.dataset.sadPreset);});$('#addSpriteButton').addEventListener('click',()=>$('#spriteFileInput').click());
 $('#jsonFileInput').addEventListener('change',e=>{const f=e.target.files?.[0];if(f)loadJsonFile(f);e.target.value='';});
 $('#spriteFileInput').addEventListener('change',e=>{addSprites([...e.target.files]);e.target.value='';});
 editor.addEventListener('keyup',updateCursor);editor.addEventListener('click',updateCursor);editor.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();const s=editor.selectionStart,en=editor.selectionEnd;editor.setRangeText('  ',s,en,'end');updateCursor();}if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();applyEditor();}});

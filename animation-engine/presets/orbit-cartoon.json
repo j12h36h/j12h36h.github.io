@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "title": "ORBIT CARTOON",
+  "mode": "2D",
+  "duration": 6,
+  "loop": true,
+  "canvas": {
+    "width": 960,
+    "height": 540,
+    "background": "#06111a"
+  },
+  "assets": {},
+  "objects": [
+    {
+      "id": "planet",
+      "type": "circle",
+      "x": 480,
+      "y": 270,
+      "radius": 92,
+      "fill": "#315d80",
+      "stroke": "#8ad8ff",
+      "lineWidth": 3,
+      "keyframes": [
+        {
+          "t": 0,
+          "scale": 1,
+          "rotation": 0
+        },
+        {
+          "t": 3,
+          "scale": 1.08,
+          "rotation": 180
+        },
+        {
+          "t": 6,
+          "scale": 1,
+          "rotation": 360
+        }
+      ]
+    },
+    {
+      "id": "moon",
+      "type": "circle",
+      "x": 680,
+      "y": 270,
+      "radius": 24,
+      "fill": "#c9d9dd",
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 680,
+          "y": 270
+        },
+        {
+          "t": 1.5,
+          "x": 480,
+          "y": 120
+        },
+        {
+          "t": 3,
+          "x": 280,
+          "y": 270
+        },
+        {
+          "t": 4.5,
+          "x": 480,
+          "y": 420
+        },
+        {
+          "t": 6,
+          "x": 680,
+          "y": 270
+        }
+      ]
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "x": 480,
+      "y": 72,
+      "text": "SIMPLE ANIMATION DESIGNER",
+      "font": "700 28px system-ui",
+      "align": "center",
+      "fill": "#dff7ff",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "y": 58
+        },
+        {
+          "t": 0.6,
+          "opacity": 1,
+          "y": 72
+        },
+        {
+          "t": 5.4,
+          "opacity": 1,
+          "y": 72
+        },
+        {
+          "t": 6,
+          "opacity": 0,
+          "y": 58
+        }
+      ]
+    }
+  ]
+}
