@@ -8,7 +8,7 @@
   <title>Simple Animation Designer — Project E.R.A.S.</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="./simple-animation-designer.css?v=1.0.4">
+  <link rel="stylesheet" href="./simple-animation-designer.css?v=1.1.0">
 </head>
 <body class="sad-page">
   <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
@@ -19,7 +19,7 @@
 
   <main class="sad-shell">
     <section class="sad-titlebar">
-      <div><p>CREATOR NODE // JSON ANIMATION ENGINE</p><h1>Simple Animation Designer</h1><span>Build 2D cartoons, sprite animation, and lightweight 3D scenes from a single JSON document.</span></div>
+      <div><p>CREATOR NODE // JSON ANIMATION ENGINE</p><h1>Simple Animation Designer</h1><span>Build 2D cartoons and cinematic 3D scenes with JSON-defined camera, lighting, sound, sprites, groups, keyframes, and post effects.</span></div>
       <a href="/">BACK TO UNIVERSE</a>
     </section>
 
@@ -30,6 +30,7 @@
       <button type="button" id="clipboardJsonButton">LOAD FROM CLIPBOARD</button>
       <button type="button" id="presetAnimationsButton">PRESET ANIMATIONS</button>
       <button type="button" id="addSpriteButton">ADD SPRITE</button>
+      <button type="button" id="addAudioButton">ADD AUDIO</button>
       <button type="button" id="saveJsonButton">SAVE JSON</button>
       <span class="sad-toolbar-spacer"></span>
       <button type="button" id="formatJsonButton">FORMAT</button>
@@ -47,7 +48,7 @@
         <header><div><span>PREVIEW</span><b id="projectTitle">UNTITLED ANIMATION</b></div><small id="renderStatus">STOPPED</small></header>
         <div class="sad-stage-wrap" id="dropZone">
           <canvas id="animationCanvas" width="960" height="540" aria-label="Animation preview canvas"></canvas>
-          <div class="sad-drop-hint" id="dropHint">DROP JSON OR SPRITES HERE</div>
+          <div class="sad-drop-hint" id="dropHint">DROP JSON, SPRITES, OR AUDIO HERE</div>
         </div>
         <div class="sad-player">
           <button type="button" id="playPauseButton">PLAY</button>
@@ -55,13 +56,15 @@
           <input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Animation timeline">
           <output id="timeReadout">0.00 / 0.00</output>
           <label>SPEED <select id="playbackSpeed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
+          <label>VOLUME <input id="masterVolume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Master audio volume"></label>
+          <button type="button" id="muteAudioButton">MUTE</button>
         </div>
       </section>
 
       <aside class="sad-reference-panel">
         <section><header><span>PROJECT</span><b>SCHEMA</b></header><div class="sad-reference-list" id="schemaReference"></div></section>
-        <section><header><span>LOADED</span><b>SPRITES</b></header><div class="sad-reference-list" id="spriteList"><p>NO LOCAL SPRITES LOADED.</p></div></section>
-        <section><header><span>ENGINE</span><b>INFO</b></header><div class="sad-reference-list"><p>2D: shapes, text, sprites, sprite sheets, transforms, opacity and keyframes.</p><p>3D: box, sphere, plane and sprite billboards with perspective camera projection and keyframes.</p><p>Files stay local to the browser. Exported JSON stores sprite paths, not image data.</p></div></section>
+        <section><header><span>LOADED</span><b>MEDIA</b></header><div class="sad-reference-list" id="spriteList"><p>NO MEDIA ASSETS LOADED.</p></div></section>
+        <section><header><span>ENGINE</span><b>INFO</b></header><div class="sad-reference-list"><p>2D: shapes, text, sprites, groups, point lighting, sound, transforms and keyframes.</p><p>3D: camera keyframes, groups, lit box/sphere/plane geometry, sprite billboards, ambient/directional/point lights and emissive surfaces.</p><p>Cinematic post: exposure, tint, vignette, grain, letterbox, fades, flashes and camera shake.</p><p>Sound: imported audio or procedural tones with timeline start/end, volume, stereo pan, rate and keyframes.</p><p>Files stay local to the browser. Exported JSON stores media paths, not binary media data.</p></div></section>
       </aside>
     </section>
   </main>
@@ -79,7 +82,8 @@
 
   <input id="jsonFileInput" type="file" accept="application/json,.json" hidden>
   <input id="spriteFileInput" type="file" accept="image/*" multiple hidden>
+  <input id="audioFileInput" type="file" accept="audio/*" multiple hidden>
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./simple-animation-designer.js?v=1.0.4"></script>
+  <script type="module" src="./simple-animation-designer.js?v=1.1.0"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "title": "JSON SPACE SCENE",
+  "version": 2,
+  "title": "CINEMATIC SPACE SCENE",
   "mode": "3D",
   "duration": 8,
   "loop": true,
@@ -11,14 +11,79 @@
   },
   "camera": {
     "x": 0,
-    "y": 0,
+    "y": 0.2,
     "z": -8,
     "rotateX": 0,
     "rotateY": 0,
-    "fov": 520
+    "rotateZ": 0,
+    "fov": 520,
+    "shake": 0,
+    "keyframes": [
+      {
+        "t": 0,
+        "x": -0.7,
+        "y": 0.35,
+        "rotateY": -4,
+        "fov": 500
+      },
+      {
+        "t": 4,
+        "x": 0.7,
+        "y": -0.05,
+        "rotateY": 4,
+        "fov": 555,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 8,
+        "x": -0.7,
+        "y": 0.35,
+        "rotateY": -4,
+        "fov": 500,
+        "easing": "ease-in-out"
+      }
+    ]
   },
-  "assets": {},
+  "assets": {
+    "pulse": {
+      "type": "tone",
+      "wave": "sine",
+      "frequency": 92,
+      "duration": 0.35
+    }
+  },
   "objects": [
+    {
+      "id": "rig",
+      "type": "group",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationY": 0
+        },
+        {
+          "t": 8,
+          "rotationY": 40
+        }
+      ]
+    },
+    {
+      "id": "floor",
+      "type": "plane",
+      "x": 0,
+      "y": -2.15,
+      "z": 7.4,
+      "width": 12,
+      "height": 12,
+      "rotationX": 90,
+      "fill": "#111c28",
+      "stroke": "#2e4f64",
+      "lineWidth": 1,
+      "castShadow": false
+    },
     {
       "id": "core",
       "type": "sphere",
@@ -38,7 +103,10 @@
           "t": 8,
           "rotationY": 360
         }
-      ]
+      ],
+      "parent": "rig",
+      "emissive": "#38bff1",
+      "emissiveIntensity": 0.45
     },
     {
       "id": "cube",
@@ -70,7 +138,8 @@
           "rotationX": 360,
           "rotationY": 540
         }
-      ]
+      ],
+      "parent": "rig"
     },
     {
       "id": "panel",
@@ -95,7 +164,79 @@
           "t": 8,
           "rotationY": -30
         }
-      ]
+      ],
+      "parent": "rig"
+    }
+  ],
+  "lighting": {
+    "ambient": {
+      "color": "#8db3d8",
+      "intensity": 0.32
+    },
+    "directional": [
+      {
+        "id": "key",
+        "x": -0.45,
+        "y": 0.7,
+        "z": -0.65,
+        "color": "#cceeff",
+        "intensity": 1.15
+      }
+    ],
+    "point": [
+      {
+        "id": "core-light",
+        "x": 0,
+        "y": 0,
+        "z": 5.8,
+        "color": "#58d7ff",
+        "intensity": 2.2,
+        "range": 7,
+        "keyframes": [
+          {
+            "t": 0,
+            "intensity": 1.4
+          },
+          {
+            "t": 4,
+            "intensity": 2.5
+          },
+          {
+            "t": 8,
+            "intensity": 1.4
+          }
+        ]
+      }
+    ],
+    "shadows": {
+      "enabled": true,
+      "groundY": -2.15,
+      "opacity": 0.24,
+      "softness": 18
+    }
+  },
+  "post": {
+    "exposure": 1.04,
+    "vignette": 0.24,
+    "letterbox": 0.055,
+    "fade": 0,
+    "flash": 0,
+    "grain": 0.025
+  },
+  "sounds": [
+    {
+      "id": "pulse-a",
+      "asset": "pulse",
+      "start": 1.2,
+      "volume": 0.12,
+      "pan": -0.25
+    },
+    {
+      "id": "pulse-b",
+      "asset": "pulse",
+      "start": 5.2,
+      "volume": 0.12,
+      "pan": 0.25
     }
   ]
 }

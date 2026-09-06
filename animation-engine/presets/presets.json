@@ -1,25 +1,25 @@
 {
-  "version": 1,
+  "version": 2,
   "presets": [
     {
       "id": "orbit-cartoon",
       "title": "ORBIT CARTOON",
       "mode": "2D",
-      "description": "A simple planet-and-moon cartoon demonstrating 2D motion, rotation, scale, opacity, and text keyframes.",
+      "description": "2D motion with point lighting, post effects, text keyframes, and a procedural sound cue.",
       "src": "./presets/orbit-cartoon.json"
     },
     {
       "id": "json-space-scene",
-      "title": "JSON SPACE SCENE",
+      "title": "CINEMATIC SPACE SCENE",
       "mode": "3D",
-      "description": "A lightweight 3D starter scene with a sphere, moving box, plane, perspective camera, and 3D rotation keyframes.",
+      "description": "Camera keyframes, grouped transforms, ambient/directional/point lighting, emissive geometry, post effects, and sound cues.",
       "src": "./presets/json-space-scene.json"
     },
     {
       "id": "universe-spiral-collapse",
       "title": "UNIVERSE SPIRAL COLLAPSE",
       "mode": "3D",
-      "description": "Planets spiral inward, collide, throw debris, and collapse into a final singularity using S.A.D.-native keyframes.",
+      "description": "Full cinematic preset: spiraling planets, collisions, debris, moving camera, camera shake, dynamic lights, flashes, letterbox, grain, and procedural sound.",
       "src": "./presets/universe-spiral-collapse.json"
     }
   ]

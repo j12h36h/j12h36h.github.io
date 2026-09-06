@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "title": "UNIVERSE SPIRAL COLLAPSE",
   "mode": "3D",
   "duration": 18,
@@ -11,15 +11,173 @@
   },
   "camera": {
     "x": 0,
-    "y": 0,
-    "z": -11,
+    "y": 0.15,
+    "z": -11.5,
     "rotateX": -4,
     "rotateY": 0,
     "rotateZ": 0,
-    "fov": 520
+    "fov": 520,
+    "shake": 0,
+    "keyframes": [
+      {
+        "t": 0,
+        "x": -1.4,
+        "y": 0.7,
+        "z": -12.5,
+        "rotateX": -6,
+        "rotateY": -5,
+        "fov": 470,
+        "shake": 0
+      },
+      {
+        "t": 4,
+        "x": 0.8,
+        "y": 0.2,
+        "z": -11.5,
+        "rotateX": -3,
+        "rotateY": 3,
+        "fov": 520,
+        "shake": 0,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 8.45,
+        "x": 0.1,
+        "y": 0.1,
+        "z": -10.6,
+        "rotateX": -2,
+        "rotateY": 0,
+        "fov": 545,
+        "shake": 0
+      },
+      {
+        "t": 8.55,
+        "x": 0.12,
+        "y": 0.08,
+        "z": -10.4,
+        "rotateX": -2,
+        "rotateY": 0,
+        "fov": 555,
+        "shake": 1.1,
+        "easing": "step"
+      },
+      {
+        "t": 9.25,
+        "x": 0.4,
+        "y": 0.3,
+        "z": -10.9,
+        "rotateX": -3,
+        "rotateY": 2,
+        "fov": 530,
+        "shake": 0,
+        "easing": "ease-out"
+      },
+      {
+        "t": 12.95,
+        "x": -0.7,
+        "y": 0.1,
+        "z": -10.2,
+        "rotateX": -2,
+        "rotateY": -3,
+        "fov": 560,
+        "shake": 0
+      },
+      {
+        "t": 13.08,
+        "x": -0.65,
+        "y": 0.08,
+        "z": -10.0,
+        "rotateX": -2,
+        "rotateY": -3,
+        "fov": 575,
+        "shake": 1.35,
+        "easing": "step"
+      },
+      {
+        "t": 13.9,
+        "x": 0,
+        "y": 0.45,
+        "z": -11,
+        "rotateX": -5,
+        "rotateY": 0,
+        "fov": 525,
+        "shake": 0,
+        "easing": "ease-out"
+      },
+      {
+        "t": 16.8,
+        "x": 0,
+        "y": 0.1,
+        "z": -9.4,
+        "rotateX": -1,
+        "rotateY": 0,
+        "fov": 590,
+        "shake": 0,
+        "easing": "ease-in"
+      },
+      {
+        "t": 17.35,
+        "x": 0,
+        "y": 0.05,
+        "z": -8.7,
+        "rotateX": 0,
+        "rotateY": 0,
+        "fov": 640,
+        "shake": 0.85,
+        "easing": "ease-in"
+      },
+      {
+        "t": 18,
+        "x": 0,
+        "y": 0,
+        "z": -8.2,
+        "rotateX": 0,
+        "rotateY": 0,
+        "fov": 700,
+        "shake": 0
+      }
+    ]
   },
-  "assets": {},
+  "assets": {
+    "low-rumble": {
+      "type": "tone",
+      "wave": "sine",
+      "frequency": 48,
+      "duration": 18
+    },
+    "impact-boom": {
+      "type": "tone",
+      "wave": "sine",
+      "frequency": 72,
+      "duration": 0.75
+    },
+    "collapse-tone": {
+      "type": "tone",
+      "wave": "sawtooth",
+      "frequency": 120,
+      "duration": 1.1
+    }
+  },
   "objects": [
+    {
+      "id": "star-rig",
+      "type": "group",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationY": 0,
+          "rotationZ": 0
+        },
+        {
+          "t": 18,
+          "rotationY": 80,
+          "rotationZ": 22
+        }
+      ]
+    },
     {
       "id": "core",
       "type": "sphere",
@@ -72,7 +230,9 @@
           "opacity": 0,
           "easing": "ease-in"
         }
-      ]
+      ],
+      "emissive": "#4acfff",
+      "emissiveIntensity": 0.5
     },
     {
       "id": "planet-azure",
@@ -1277,7 +1437,8 @@
           "scale": 0.05,
           "easing": "ease-in"
         }
-      ]
+      ],
+      "parent": "star-rig"
     },
     {
       "id": "star-2",
@@ -1344,7 +1505,8 @@
           "scale": 0.05,
           "easing": "ease-in"
         }
-      ]
+      ],
+      "parent": "star-rig"
     },
     {
       "id": "star-3",
@@ -1411,7 +1573,8 @@
           "scale": 0.05,
           "easing": "ease-in"
         }
-      ]
+      ],
+      "parent": "star-rig"
     },
     {
       "id": "star-4",
@@ -1478,7 +1641,8 @@
           "scale": 0.05,
           "easing": "ease-in"
         }
-      ]
+      ],
+      "parent": "star-rig"
     },
     {
       "id": "star-5",
@@ -1545,7 +1709,8 @@
           "scale": 0.05,
           "easing": "ease-in"
         }
-      ]
+      ],
+      "parent": "star-rig"
     },
     {
       "id": "star-6",
@@ -1612,7 +1777,8 @@
           "scale": 0.05,
           "easing": "ease-in"
         }
-      ]
+      ],
+      "parent": "star-rig"
     },
     {
       "id": "star-7",
@@ -1679,7 +1845,8 @@
           "scale": 0.05,
           "easing": "ease-in"
         }
-      ]
+      ],
+      "parent": "star-rig"
     },
     {
       "id": "star-8",
@@ -1746,7 +1913,8 @@
           "scale": 0.05,
           "easing": "ease-in"
         }
-      ]
+      ],
+      "parent": "star-rig"
     },
     {
       "id": "singularity",
@@ -1787,6 +1955,264 @@
           "opacity": 0.25,
           "scale": 0.1,
           "easing": "ease-in"
+        }
+      ],
+      "emissive": "#f3f8ff",
+      "emissiveIntensity": 1.3
+    }
+  ],
+  "lighting": {
+    "ambient": {
+      "color": "#637ca5",
+      "intensity": 0.18
+    },
+    "directional": [
+      {
+        "id": "cold-key",
+        "x": -0.5,
+        "y": 0.7,
+        "z": -0.55,
+        "color": "#b9dbff",
+        "intensity": 0.8
+      }
+    ],
+    "point": [
+      {
+        "id": "core-light",
+        "x": 0,
+        "y": 0,
+        "z": 7,
+        "color": "#55cfff",
+        "intensity": 2.1,
+        "range": 9,
+        "keyframes": [
+          {
+            "t": 0,
+            "intensity": 1.2
+          },
+          {
+            "t": 8,
+            "intensity": 2.3
+          },
+          {
+            "t": 12.8,
+            "intensity": 2.8
+          },
+          {
+            "t": 16.8,
+            "intensity": 4.5
+          },
+          {
+            "t": 18,
+            "intensity": 0.1
+          }
+        ]
+      },
+      {
+        "id": "impact-a-light",
+        "x": 1.1,
+        "y": 0.35,
+        "z": 6.8,
+        "color": "#fff0a8",
+        "intensity": 0,
+        "range": 5,
+        "keyframes": [
+          {
+            "t": 0,
+            "intensity": 0
+          },
+          {
+            "t": 8.48,
+            "intensity": 0
+          },
+          {
+            "t": 8.55,
+            "intensity": 7,
+            "easing": "step"
+          },
+          {
+            "t": 9.2,
+            "intensity": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      {
+        "id": "impact-b-light",
+        "x": -0.7,
+        "y": -0.2,
+        "z": 6.9,
+        "color": "#ff8dcc",
+        "intensity": 0,
+        "range": 5,
+        "keyframes": [
+          {
+            "t": 0,
+            "intensity": 0
+          },
+          {
+            "t": 12.98,
+            "intensity": 0
+          },
+          {
+            "t": 13.05,
+            "intensity": 8,
+            "easing": "step"
+          },
+          {
+            "t": 13.8,
+            "intensity": 0,
+            "easing": "ease-out"
+          }
+        ]
+      }
+    ]
+  },
+  "post": {
+    "exposure": 1.02,
+    "vignette": 0.28,
+    "letterbox": 0.07,
+    "fade": 0,
+    "flash": 0,
+    "grain": 0.035,
+    "tint": "#6f87c9",
+    "tintOpacity": 0.04,
+    "keyframes": [
+      {
+        "t": 0,
+        "fade": 0.65,
+        "flash": 0,
+        "exposure": 0.82
+      },
+      {
+        "t": 1.2,
+        "fade": 0,
+        "exposure": 1.02,
+        "easing": "ease-out"
+      },
+      {
+        "t": 8.48,
+        "flash": 0,
+        "exposure": 1.02
+      },
+      {
+        "t": 8.55,
+        "flash": 0.88,
+        "exposure": 1.32,
+        "easing": "step"
+      },
+      {
+        "t": 9.1,
+        "flash": 0,
+        "exposure": 1.02,
+        "easing": "ease-out"
+      },
+      {
+        "t": 12.98,
+        "flash": 0
+      },
+      {
+        "t": 13.05,
+        "flash": 1,
+        "exposure": 1.42,
+        "easing": "step"
+      },
+      {
+        "t": 13.7,
+        "flash": 0,
+        "exposure": 1.04,
+        "easing": "ease-out"
+      },
+      {
+        "t": 17.25,
+        "vignette": 0.36,
+        "letterbox": 0.09
+      },
+      {
+        "t": 17.7,
+        "vignette": 0.7,
+        "exposure": 1.35
+      },
+      {
+        "t": 18,
+        "fade": 1,
+        "flash": 0.25,
+        "exposure": 0.7,
+        "easing": "ease-in"
+      }
+    ]
+  },
+  "sounds": [
+    {
+      "id": "rumble",
+      "asset": "low-rumble",
+      "start": 0,
+      "end": 18,
+      "volume": 0.045,
+      "pan": 0,
+      "rate": 1,
+      "loop": true,
+      "keyframes": [
+        {
+          "t": 0,
+          "volume": 0.025,
+          "frequency": 42
+        },
+        {
+          "t": 12,
+          "volume": 0.055,
+          "frequency": 52
+        },
+        {
+          "t": 17.2,
+          "volume": 0.09,
+          "frequency": 64
+        },
+        {
+          "t": 18,
+          "volume": 0.02,
+          "frequency": 36
+        }
+      ]
+    },
+    {
+      "id": "impact-a",
+      "asset": "impact-boom",
+      "start": 8.5,
+      "volume": 0.18,
+      "pan": 0.35,
+      "rate": 0.8
+    },
+    {
+      "id": "impact-b",
+      "asset": "impact-boom",
+      "start": 13.03,
+      "volume": 0.2,
+      "pan": -0.25,
+      "rate": 0.72
+    },
+    {
+      "id": "collapse",
+      "asset": "collapse-tone",
+      "start": 17.1,
+      "volume": 0.08,
+      "pan": 0,
+      "rate": 0.7,
+      "keyframes": [
+        {
+          "t": 17.1,
+          "frequency": 110,
+          "volume": 0.06
+        },
+        {
+          "t": 17.8,
+          "frequency": 52,
+          "volume": 0.12
+        },
+        {
+          "t": 18,
+          "frequency": 28,
+          "volume": 0.02
         }
       ]
     }

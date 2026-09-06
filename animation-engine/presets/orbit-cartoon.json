@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "title": "ORBIT CARTOON",
   "mode": "2D",
   "duration": 6,
@@ -9,7 +9,14 @@
     "height": 540,
     "background": "#06111a"
   },
-  "assets": {},
+  "assets": {
+    "ping": {
+      "type": "tone",
+      "wave": "sine",
+      "frequency": 440,
+      "duration": 0.18
+    }
+  },
   "objects": [
     {
       "id": "planet",
@@ -104,6 +111,40 @@
           "y": 58
         }
       ]
+    }
+  ],
+  "lighting": {
+    "ambient": {
+      "color": "#ffffff",
+      "intensity": 0.92
+    },
+    "point": [
+      {
+        "id": "glow",
+        "x": 480,
+        "y": 230,
+        "color": "#8ad8ff",
+        "intensity": 0.5,
+        "range": 300
+      }
+    ]
+  },
+  "post": {
+    "exposure": 1,
+    "vignette": 0.14,
+    "letterbox": 0,
+    "fade": 0,
+    "flash": 0,
+    "grain": 0.02
+  },
+  "sounds": [
+    {
+      "id": "orbit-ping",
+      "asset": "ping",
+      "start": 0.55,
+      "volume": 0.16,
+      "pan": 0,
+      "rate": 1
     }
   ]
 }
