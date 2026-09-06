@@ -1,6 +1,6 @@
 import { db, fs, watchIdentity, safeText, profileById } from '/game/assets/js/eras-data.js';
-import { hostedMode, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.2.0';
-import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.0.0';
+import { hostedMode, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.3.0';
+import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.1.0';
 
 const $=s=>document.querySelector(s);
 const params=new URLSearchParams(location.search);

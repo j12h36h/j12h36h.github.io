@@ -24,3 +24,5 @@
 .global-game-slime-mark{position:absolute;z-index:1;right:22px;top:54px;width:132px;height:132px;opacity:.13;filter:sepia(1) saturate(4) hue-rotate(68deg) brightness(1.05);pointer-events:none}
 .global-select-note{margin-top:14px;padding:12px 14px;border:1px solid rgba(151,239,241,.08);background:rgba(2,10,12,.58);color:#54777a;font:700 7px/1.5 var(--mono);letter-spacing:.08em}
 @media(max-width:760px){.global-select-shell{width:min(100% - 28px,680px);padding-top:88px}.global-select-heading{grid-template-columns:1fr;gap:12px}.global-select-status{justify-self:start}.global-game-grid{grid-template-columns:1fr}.global-game-card{min-height:255px;padding:18px}.global-game-slime-mark{width:108px;height:108px;right:14px;top:44px}.global-game-card-bottom{align-items:flex-start;flex-direction:column}.global-game-enter{align-self:flex-end}}
+
+.global-game-pod-mark{position:absolute;right:28px;top:58px;font-size:68px;line-height:1;color:rgba(117,239,255,.16);text-shadow:0 0 28px rgba(117,239,255,.18);transform:rotate(-18deg);pointer-events:none}.pod-global:hover .global-game-pod-mark{color:rgba(117,239,255,.28);transform:rotate(-18deg) translateX(4px)}

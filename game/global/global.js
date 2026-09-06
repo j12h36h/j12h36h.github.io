@@ -5,7 +5,7 @@ import { createGameInventoryController, ensureGameInventory, gameInventoryRef } 
 import { normalizeGameInventory, slimeDropsForKillNumber, describeDrops, attackDamageForTurn, damageRange } from '/game/inventory/items.js?v=2.2.0';
 import { GLOBAL_WORLD_SETTINGS, normalizeWorldSettings, expandedMobSpawns, mobById, terminalById, rollMobDrops } from '/game/config/world-settings.js?v=2.2.0';
 import { createWorldInventoryController, ensureWorldInventory, worldInventoryRef, normalizeWorldInventory, worldAttackDamage } from '/game/inventory/world-inventory.js?v=2.1.0';
-import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join.js?v=1.2.0';
+import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.1.0';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
