@@ -226,6 +226,10 @@ Sound properties that can be keyframed: `volume`, `pan`, `rate`, and `frequency`
 
 Objects may use `start`, `end`, and `visible` in addition to normal keyframes.
 
+### v1.3.1 keyframe timing rule
+Before a property reaches its first keyframe timestamp, S.A.D. preserves the property's declared base value. Future keyframes no longer leak backward in time. At the first keyframe timestamp the keyed value takes effect. This applies to object, post-processing, lighting, sound, and camera properties.
+
+
 ## Easing
 
 Supported easing values remain:

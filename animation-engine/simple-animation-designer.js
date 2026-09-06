@@ -163,7 +163,11 @@ function keyframeValue(obj,key,time){
   const frames=Array.isArray(obj?.keyframes)?obj.keyframes.filter(f=>f&&Number.isFinite(Number(f.t))&&Object.prototype.hasOwnProperty.call(f,key)).slice().sort((a,b)=>Number(a.t)-Number(b.t)):[];
   const base=obj&&Object.prototype.hasOwnProperty.call(obj,key)?obj[key]:undefined;
   if(!frames.length)return base;
-  if(time<=Number(frames[0].t))return frames[0][key];
+  const firstT=Number(frames[0].t);
+  // v1.3.1: do not leak a future keyframe backward through the timeline.
+  // Before the first keyed value, preserve the object's declared base value.
+  if(time<firstT)return base;
+  if(time===firstT)return frames[0][key];
   if(time>=Number(frames.at(-1).t))return frames.at(-1)[key];
   for(let i=0;i<frames.length-1;i++){
     const a=frames[i],b=frames[i+1],at=Number(a.t),bt=Number(b.t);
@@ -280,23 +284,53 @@ function paintStyle(value,o,fallback='#ffffff'){
   else g=ctx.createLinearGradient(finite(value.x0,-finite(o.width,100)/2),finite(value.y0,0),finite(value.x1,finite(o.width,100)/2),finite(value.y1,0));
   const stops=Array.isArray(value.stops)?value.stops:[];if(!stops.length){g.addColorStop(0,fallback);g.addColorStop(1,fallback);}else for(const stop of stops)g.addColorStop(clamp(finite(stop.offset,0),0,1),String(stop.color||fallback));return g;
 }
-function apply2DMask(mask){
-  if(!mask)return false;const base=typeof ctx.getTransform==='function'?ctx.getTransform():null;applyObject2DTransform(mask);let traced=false;
-  if(mask.type==='path'&&mask.d&&typeof Path2D!=='undefined'){try{const p=new Path2D(mask.d);ctx.clip(p,mask.fillRule||'nonzero');if(base)ctx.setTransform(base);return true;}catch(_){}}
-  traced=tracePrimitivePath(mask);if(traced)ctx.clip(mask.fillRule||'nonzero');if(base)ctx.setTransform(base);return traced;
+function local2DChain(raw,map){
+  const chain=[],seen=new Set();let cur=raw;
+  while(cur){
+    const id=String(cur?.id||'');if(id&&seen.has(id))return {chain:[],cycle:true};if(id)seen.add(id);
+    chain.unshift(resolved(cur));
+    const parentId=String(cur?.parent||cur?.parentId||'');
+    cur=parentId&&map.has(parentId)?map.get(parentId):null;
+  }
+  return {chain,cycle:false};
+}
+function chain2DState(raw,map){
+  const result=local2DChain(raw,map);if(result.cycle)return {...result,visible:false,opacity:0,start:0,end:0};
+  let visible=true,opacity=1,start=0,end=state.project.duration;
+  for(const n of result.chain){
+    visible=visible&&n.visible!==false;opacity*=clamp(finite(n.opacity,1),0,1);
+    start=Math.max(start,finite(n.start,0));end=Math.min(end,finite(n.end,state.project.duration));
+  }
+  visible=visible&&state.time>=start&&state.time<=end;
+  return {...result,visible,opacity:clamp(opacity,0,1),start,end};
+}
+function apply2DTransformChain(chain){for(const node of chain)applyObject2DTransform(node);}
+function apply2DMaskRaw(maskRaw,map){
+  if(!maskRaw)return false;const state2D=chain2DState(maskRaw,map);if(!state2D.visible)return false;
+  const local=resolved(maskRaw),base=typeof ctx.getTransform==='function'?ctx.getTransform():null;
+  apply2DTransformChain(state2D.chain);let traced=false;
+  if(local.type==='path'&&local.d&&typeof Path2D!=='undefined'){
+    try{const p=new Path2D(local.d);ctx.clip(p,local.fillRule||'nonzero');if(base)ctx.setTransform(base);return true;}catch(_){}
+  }
+  traced=tracePrimitivePath(local);if(traced)ctx.clip(local.fillRule||'nonzero');if(base)ctx.setTransform(base);return traced;
 }
 function render2D(){
-  state._frameLights=null;const objects=sceneObjects().filter(objectVisible),map=new Map(objects.map(o=>[String(o.id||''),o])),cam=currentCamera2D();
+  state._frameLights=null;const rawObjects=state.project?.objects||[],map=new Map(rawObjects.map(o=>[String(o.id||''),o])),cam=currentCamera2D();
   ctx.save();apply2DCameraTransform(cam);
-  for(const o of objects){if(['group','bone'].includes(o.type)||o.maskOnly===true)continue;ctx.save();const maskId=String(o.mask||o.clipPath||'');if(maskId&&map.has(maskId))apply2DMask(map.get(maskId));draw2DObject(o);ctx.restore();}
+  for(const raw of rawObjects){
+    const local=resolved(raw);if(['group','bone'].includes(local.type)||local.maskOnly===true)continue;
+    const chainState=chain2DState(raw,map);if(!chainState.visible)continue;
+    ctx.save();const maskId=String(local.mask||local.clipPath||'');if(maskId&&map.has(maskId))apply2DMaskRaw(map.get(maskId),map);
+    apply2DTransformChain(chainState.chain);draw2DObject(local,{transformApplied:true,opacity:chainState.opacity});ctx.restore();
+  }
   apply2DPointLights();ctx.restore();apply2DAmbientLighting();
 }
-function draw2DObject(o){
-  ctx.save();ctx.globalAlpha=clamp(finite(o.opacity,1),0,1);ctx.globalCompositeOperation=o.blend||'source-over';applyObject2DTransform(o);
+function draw2DObject(o,options={}){
+  ctx.save();ctx.globalAlpha=clamp(finite(options.opacity,o.opacity??1),0,1);ctx.globalCompositeOperation=o.blend||'source-over';if(options.transformApplied!==true)applyObject2DTransform(o);
   if(o.shadow){ctx.shadowColor=normalizeColor(o.shadow,'#000000');ctx.shadowBlur=finite(o.shadowBlur,12);ctx.shadowOffsetX=finite(o.shadowX,0);ctx.shadowOffsetY=finite(o.shadowY,4);}
   if(['rect','circle','ellipse','polygon','path'].includes(o.type)){
     if(o.type==='path'&&o.d&&typeof Path2D!=='undefined'){
-      try{const p=new Path2D(o.d);if(o.fill!==false){ctx.fillStyle=paintStyle(o.fill,o,'#ffffff');ctx.fill(p,o.fillRule||'nonzero');}if(o.stroke){ctx.strokeStyle=paintStyle(o.stroke,o,'#ffffff');ctx.lineWidth=finite(o.lineWidth,1);ctx.stroke(p);}ctx.restore();return;}catch(_){}
+      try{const p=new Path2D(o.d);if(o.fill!==false){ctx.fillStyle=paintStyle(o.fill,o,'#ffffff');ctx.fill(p,o.fillRule||'nonzero');}if(o.stroke){ctx.strokeStyle=paintStyle(o.stroke,o,'#ffffff');ctx.lineWidth=finite(o.lineWidth,1);ctx.lineJoin=o.lineJoin||'round';ctx.lineCap=o.lineCap||'round';ctx.stroke(p);}ctx.restore();return;}catch(_){}
     }
     if(tracePrimitivePath(o)){if(o.fill!==false&&o.fill){ctx.fillStyle=paintStyle(o.fill,o,'#ffffff');ctx.fill(o.fillRule||'nonzero');}if(o.stroke){ctx.strokeStyle=paintStyle(o.stroke,o,'#ffffff');ctx.lineWidth=finite(o.lineWidth,1);ctx.lineJoin=o.lineJoin||'round';ctx.lineCap=o.lineCap||'round';ctx.stroke();}}
   }else if(o.type==='text'){
@@ -344,7 +378,9 @@ function cameraTrackValue(camera,key,time){
   const frames=Array.isArray(camera?.keyframes)?camera.keyframes.filter(f=>f&&Number.isFinite(Number(f.t))&&Object.prototype.hasOwnProperty.call(f,key)).slice().sort((a,b)=>Number(a.t)-Number(b.t)):[];
   const base=Object.prototype.hasOwnProperty.call(camera||{},key)?camera[key]:undefined;
   if(!frames.length)return base;
-  if(time<=Number(frames[0].t))return frames[0][key];
+  const firstT=Number(frames[0].t);
+  if(time<firstT)return base;
+  if(time===firstT)return frames[0][key];
   if(time>=Number(frames.at(-1).t))return frames.at(-1)[key];
   for(let i=0;i<frames.length-1;i++){
     const a=frames[i],b=frames[i+1],at=Number(a.t),bt=Number(b.t);if(time<at||time>bt)continue;
