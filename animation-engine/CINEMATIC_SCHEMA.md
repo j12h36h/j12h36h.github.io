@@ -1,6 +1,6 @@
 # Simple Animation Designer — Cinematic Schema v3
 
-S.A.D. v1.3.0 keeps the v1.2 cinematic/3D renderer and adds the first full cartoon/anime authoring pass. Existing v1/v2 projects remain valid.
+S.A.D. v1.4.1 keeps the v1.2 cinematic/3D renderer and the v1.3/v1.4 cartoon systems, adding endpoint-pinned IK and tapered limb geometry. Existing v1/v2/v1.3/v1.4 projects remain valid.
 
 ### v1.3 cartoon/anime upgrades
 
@@ -247,3 +247,25 @@ Supported easing values remain:
 - `parent` / `parentId` should normally be a string id. v1.3.2 also tolerates an accidental object reference containing `{ "id": "..." }` and normalizes it to that id at runtime.
 - 2D objects may use numeric `layer` or `zIndex`. Objects are drawn from lower to higher values, with original JSON order preserved when values are equal.
 - Existing `mask` / `clipPath` behavior remains world-space and is compatible with recursively transformed descendants.
+
+
+### v1.4.1 IK endpoint / tapered limb rules
+
+- Two-bone `ik` objects now pin the configured `joint` bone to the exact `(0, upperLength)` endpoint of the root bone unless `pinJoint: false` is supplied. This prevents elbow/knee separation when an authored joint drifts from the segment endpoint.
+- Optional `end`, `endBone`, `effector`, or `endEffector` may identify a third bone. When present it is pinned to `(0, lowerLength)` in joint-local space unless `pinEnd: false`.
+- New 2D `limb` primitive draws a tapered segment from its parent bone origin to `length` along local +Y. It supports `widthStart`, `widthEnd`, `fill`, `stroke`, `lineWidth`, and `roundCaps`. This is preferred for arms/legs because the geometry terminates exactly at the child joint.
+- Existing rectangle-based limbs remain valid and unchanged.
+
+Example:
+```json
+{
+  "id": "upper-arm",
+  "type": "limb",
+  "parent": "shoulder",
+  "length": 96,
+  "widthStart": 28,
+  "widthEnd": 22,
+  "roundCaps": true,
+  "fill": "#d84a4a"
+}
+```

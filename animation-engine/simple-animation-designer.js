@@ -213,7 +213,12 @@ function resolved(obj,time=state.time){
   for(const k of keys){const v=keyframeValue(obj,k,sampleTime);if(v!==undefined)out[k]=v;}
   applyAnimationClip(out,obj,sampleTime);
   if(Number.isFinite(Number(out.rotation))){out.rotation=clamp(finite(out.rotation),finite(out.minRotation,-1e9),finite(out.maxRotation,1e9));}
-  const ik=state._ikOverrides?.get(String(obj?.id||''));if(ik&&Number.isFinite(Number(ik.rotation)))out.rotation=clamp(finite(ik.rotation),finite(out.minRotation,-1e9),finite(out.maxRotation,1e9));
+  const ik=state._ikOverrides?.get(String(obj?.id||''));
+  if(ik){
+    if(Number.isFinite(Number(ik.x)))out.x=finite(ik.x,out.x);
+    if(Number.isFinite(Number(ik.y)))out.y=finite(ik.y,out.y);
+    if(Number.isFinite(Number(ik.rotation)))out.rotation=clamp(finite(ik.rotation),finite(out.minRotation,-1e9),finite(out.maxRotation,1e9));
+  }
   return out;
 }
 
@@ -294,6 +299,14 @@ function tracePointPath(points,closed=true,smooth=false){
 }
 function tracePrimitivePath(o){
   if(o.type==='rect'){const w=finite(o.width,100),h=finite(o.height,100),ax=finite(o.anchorX,.5),ay=finite(o.anchorY,.5);ctx.beginPath();ctx.rect(-w*ax,-h*ay,w,h);return true;}
+  if(o.type==='limb'){
+    const len=Math.max(.001,finite(o.length,o.height??80)),ws=Math.max(.001,finite(o.widthStart,o.width??24)),we=Math.max(.001,finite(o.widthEnd,ws*.82)),round=o.roundCaps!==false;
+    ctx.beginPath();ctx.moveTo(-ws/2,0);
+    if(round)ctx.quadraticCurveTo(0,-ws*.42,ws/2,0);else ctx.lineTo(ws/2,0);
+    ctx.lineTo(we/2,len);
+    if(round)ctx.quadraticCurveTo(0,len+we*.42,-we/2,len);else ctx.lineTo(-we/2,len);
+    ctx.closePath();return true;
+  }
   if(o.type==='circle'||o.type==='ellipse'){const rx=finite(o.radiusX,o.radius??50),ry=finite(o.radiusY,o.radius??rx);ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);return true;}
   if(o.type==='polygon'||o.type==='path')return tracePointPath(o.points??o.pathPoints,o.closed!==false,o.smooth===true);
   return false;
@@ -347,7 +360,15 @@ function build2DIKOverrides(sourceObjects,map){
   for(const raw of sourceObjects){if(String(raw?.type||'').toLowerCase()!=='ik')continue;const ik=resolved(raw);if(!objectVisible(ik))continue;const rootId=parentRef(ik.root||ik.rootBone),jointId=parentRef(ik.joint||ik.jointBone);if(!rootId||!jointId||!map.has(rootId)||!map.has(jointId))continue;
     const root=resolved(map.get(rootId)),joint=resolved(map.get(jointId)),L1=Math.max(.001,finite(ik.upperLength,Math.hypot(finite(joint.x),finite(joint.y))||80)),L2=Math.max(.001,finite(ik.lowerLength,finite(ik.endLength,80))),dx=finite(ik.targetX)-finite(root.x),dy=finite(ik.targetY)-finite(root.y),rawD=Math.hypot(dx,dy),d=clamp(rawD,Math.abs(L1-L2)+.001,L1+L2-.001),bend=finite(ik.bend,1)>=0?1:-1;
     const base=Math.atan2(-dx,dy),shoulderOff=Math.acos(clamp((L1*L1+d*d-L2*L2)/(2*L1*d),-1,1)),inner=Math.acos(clamp((L1*L1+L2*L2-d*d)/(2*L1*L2),-1,1));
-    const rootRot=(base+bend*shoulderOff)*180/Math.PI,jointRot=-bend*(Math.PI-inner)*180/Math.PI;out.set(rootId,{rotation:rootRot});out.set(jointId,{rotation:jointRot});
+    const rootRot=(base+bend*shoulderOff)*180/Math.PI,jointRot=-bend*(Math.PI-inner)*180/Math.PI;
+    out.set(rootId,{rotation:rootRot});
+    // v1.4.1: a two-bone IK joint is an endpoint constraint, not just a rotation override.
+    // Pinning it to (0,L1) in the root bone's local space prevents elbow/knee gaps even
+    // when the authored joint position drifted or the parent is animated/scaled.
+    const pinJoint=ik.pinJoint!==false;
+    out.set(jointId,pinJoint?{x:0,y:L1,rotation:jointRot}:{rotation:jointRot});
+    const endId=parentRef(ik.end||ik.endBone||ik.effector||ik.endEffector);
+    if(endId&&map.has(endId)&&ik.pinEnd!==false)out.set(endId,{x:0,y:L2});
   }
   state._ikOverrides=previous;return out;
 }
@@ -377,7 +398,7 @@ function render2D(){
 function draw2DObject(o,options={}){
   ctx.save();ctx.globalAlpha=clamp(finite(options.opacity,o.opacity??1),0,1);ctx.globalCompositeOperation=o.blend||'source-over';if(options.transformApplied!==true)applyObject2DTransform(o);
   if(o.shadow){ctx.shadowColor=normalizeColor(o.shadow,'#000000');ctx.shadowBlur=finite(o.shadowBlur,12);ctx.shadowOffsetX=finite(o.shadowX,0);ctx.shadowOffsetY=finite(o.shadowY,4);}
-  if(['rect','circle','ellipse','polygon','path'].includes(o.type)){
+  if(['rect','limb','circle','ellipse','polygon','path'].includes(o.type)){
     if(o.type==='path'&&o.d&&typeof Path2D!=='undefined'){
       try{const p=new Path2D(o.d);if(o.fill!==false){ctx.fillStyle=paintStyle(o.fill,o,'#ffffff');ctx.fill(p,o.fillRule||'nonzero');}if(o.stroke){ctx.strokeStyle=paintStyle(o.stroke,o,'#ffffff');ctx.lineWidth=finite(o.lineWidth,1);ctx.lineJoin=o.lineJoin||'round';ctx.lineCap=o.lineCap||'round';ctx.stroke(p);}ctx.restore();return;}catch(_){}
     }
@@ -651,7 +672,7 @@ async function addAudio(files){
 function refreshReference(){
   const mode=state.project?.mode||'2D';const rows=mode==='3D'?
     [['camera','spline keyframes + look-at + near/far clipping + smoothing'],['lighting','spatial ambient/directional/point lights + range/falloff/decay + parent'],['objects[]','group | box | sphere | plane | sprite'],['parent','inherit group/object transforms'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','asset, start/end, volume, pan, rate, keyframes']]:
-    [['camera','2D pan/zoom/rotation/shake with spline keyframes'],['objects[]','group | bone | ik | rect | circle | ellipse | polygon | path | text | sprite | emitter'],['rigging','recursive bones + two-bone IK + min/max rotation joint limits'],['timing','animationFps / animationLag + project timing.objectFps for on-twos'],['motion','trail{} + afterimages{} for smears and follow-through'],['hierarchy','recursive parent chains + pivots/skew + layer/zIndex'],['mask','mask / clipPath by object id; parent objects normalize by id'],['morph','multi-stage keyframe points[] vector morphing + hold/event segments'],['clips','reusable clips{} keyframes via object.clip'],['particles','deterministic emitter rate/burst/life/speed/gravity'],['lighting','ambient + parentable point[] canvas lights'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','audio/tone cues on the timeline']];
+    [['camera','2D pan/zoom/rotation/shake with spline keyframes'],['objects[]','group | bone | ik | limb | rect | circle | ellipse | polygon | path | text | sprite | emitter'],['rigging','recursive bones + endpoint-pinned two-bone IK + tapered limb primitive + min/max rotation joint limits'],['timing','animationFps / animationLag + project timing.objectFps for on-twos'],['motion','trail{} + afterimages{} for smears and follow-through'],['hierarchy','recursive parent chains + pivots/skew + layer/zIndex'],['mask','mask / clipPath by object id; parent objects normalize by id'],['morph','multi-stage keyframe points[] vector morphing + hold/event segments'],['clips','reusable clips{} keyframes via object.clip'],['particles','deterministic emitter rate/burst/life/speed/gravity'],['lighting','ambient + parentable point[] canvas lights'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','audio/tone cues on the timeline']];
   $('#schemaReference').innerHTML=rows.map(([a,b])=>`<div class="sad-reference-item"><b>${a}</b><small>${b}</small></div>`).join('');
   const entries=[];for(const [id,a] of Object.entries(state.project?.assets||{})){if(a?.type==='sprite'||a?.type==='audio'||a?.type==='tone')entries.push({id,type:a.type});}
   $('#spriteList').innerHTML=entries.length?entries.map(x=>`<div class="sad-reference-item"><b>${x.id}</b><small>${x.type.toUpperCase()} ASSET</small></div>`).join(''):'<p>NO MEDIA ASSETS LOADED.</p>';
