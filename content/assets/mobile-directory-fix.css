@@ -1,0 +1,44 @@
+/* E.R.A.S. Asset Library — mobile Asset Directory repair.
+   The base market stylesheet hid the entire Browse/Select Asset panel at
+   <=680px, which removed the only entry point to the public asset directory. */
+@media (max-width:680px){
+  .market-nav{
+    display:block !important;
+    margin-bottom:10px;
+  }
+  .market-nav .market-panel-title h2::after{
+    content:' / ASSET DIRECTORY';
+    color:#6fa6aa;
+  }
+  .market-nav #chooseAsset{
+    min-height:48px;
+    border-color:rgba(151,239,241,.34);
+    background:rgba(131,224,227,.08);
+    color:#e8f8f8;
+  }
+  .market-nav #chooseAsset::before{
+    content:'⌕';
+    margin-right:8px;
+    color:#9de9e9;
+  }
+  .market-nav .market-note{
+    margin-top:10px;
+  }
+  /* Let the existing option picker become a practical full-screen mobile
+     directory rather than a cramped desktop modal. */
+  .eras-option-modal{
+    padding:8px !important;
+  }
+  .eras-option-dialog{
+    width:min(100%,720px) !important;
+    max-height:calc(100svh - 16px) !important;
+  }
+  .eras-option-grid{
+    grid-template-columns:1fr !important;
+    overflow:auto;
+    overscroll-behavior:contain;
+  }
+  .eras-option-card{
+    min-height:82px;
+  }
+}
