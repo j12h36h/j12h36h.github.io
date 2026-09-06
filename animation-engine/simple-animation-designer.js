@@ -63,10 +63,16 @@ function setExample(mode='2D'){
 }
 function validateProject(p){
   if(!p||typeof p!=='object'||Array.isArray(p))throw new Error('Project JSON must be an object.');
-  p.mode=String(p.mode||'').toUpperCase();
-  if(!['2D','3D'].includes(p.mode))throw new Error('MODE MUST BE "2D" OR "3D".');
+  const meta=p.meta&&typeof p.meta==='object'&&!Array.isArray(p.meta)?p.meta:{};
+  const modeValue=p.mode??meta.mode??'';
+  p.mode=String(modeValue).trim().toUpperCase();
+  if(!['2D','3D'].includes(p.mode))throw new Error('MODE MUST BE "2D" OR "3D". ROOT mode OR meta.mode IS ACCEPTED.');
+  if((p.title===undefined||p.title===null||p.title==='')&&(meta.title||meta.name))p.title=meta.title||meta.name;
+  if((p.duration===undefined||p.duration===null||p.duration==='')&&meta.duration!==undefined)p.duration=meta.duration;
+  if(p.loop===undefined&&meta.loop!==undefined)p.loop=meta.loop;
   if(!Number.isFinite(Number(p.duration))||Number(p.duration)<=0)throw new Error('duration must be greater than 0.');
-  p.canvas=p.canvas||{};
+  p.canvas=p.canvas&&typeof p.canvas==='object'&&!Array.isArray(p.canvas)?p.canvas:{};
+  if((p.canvas.background===undefined||p.canvas.background===null||p.canvas.background==='')&&meta.background)p.canvas.background=meta.background;
   p.canvas.width=clamp(Math.round(Number(p.canvas.width)||960),64,4096);
   p.canvas.height=clamp(Math.round(Number(p.canvas.height)||540),64,4096);
   p.canvas.background=String(p.canvas.background||'#02090b');
@@ -237,6 +243,22 @@ function saveJson(){
 async function loadJsonFile(file){
   try{editor.value=await file.text();state.time=0;await applyEditor();setStatus(`LOADED ${file.name}`);}catch(e){setStatus(e.message||'LOAD FAILED','error');}
 }
+async function loadJsonFromClipboard(){
+  try{
+    if(!navigator.clipboard?.readText)throw new Error('Clipboard reading is unavailable in this browser or page context.');
+    const text=await navigator.clipboard.readText();
+    if(!String(text||'').trim())throw new Error('Clipboard does not contain JSON text.');
+    const parsed=JSON.parse(text);
+    const project=validateProject(parsed);
+    if(!confirm('REPLACE THE CURRENT ANIMATION WITH JSON FROM YOUR CLIPBOARD?'))return;
+    editor.value=stringifyProject(project);
+    state.time=0;
+    await applyEditor();
+    setStatus('LOADED FROM CLIPBOARD');
+  }catch(e){
+    setStatus(e.message||'CLIPBOARD LOAD FAILED','error');
+  }
+}
 function uniqueAssetId(base,assets){let id=safeId(base),n=2;while(assets[id])id=`${safeId(base)}-${n++}`;return id;}
 async function addSprites(files){
   if(!files?.length)return;let p;try{p=validateProject(JSON.parse(editor.value));}catch(e){setStatus(e.message,'error');return;}
@@ -263,7 +285,7 @@ $('#applyJsonButton').addEventListener('click',applyEditor);$('#formatJsonButton
 $('#playbackSpeed').addEventListener('change',e=>state.speed=Number(e.target.value)||1);
 $('#timeline').addEventListener('input',e=>{if(!state.project)return;state.time=Number(e.target.value)/1000*state.project.duration;state.lastFrame=0;renderFrame();});
 $('[data-new="2D"]').addEventListener('click',()=>setExample('2D'));$('[data-new="3D"]').addEventListener('click',()=>setExample('3D'));
-$('#openJsonButton').addEventListener('click',()=>$('#jsonFileInput').click());$('#addSpriteButton').addEventListener('click',()=>$('#spriteFileInput').click());
+$('#openJsonButton').addEventListener('click',()=>$('#jsonFileInput').click());$('#clipboardJsonButton').addEventListener('click',loadJsonFromClipboard);$('#addSpriteButton').addEventListener('click',()=>$('#spriteFileInput').click());
 $('#jsonFileInput').addEventListener('change',e=>{const f=e.target.files?.[0];if(f)loadJsonFile(f);e.target.value='';});
 $('#spriteFileInput').addEventListener('change',e=>{addSprites([...e.target.files]);e.target.value='';});
 editor.addEventListener('keyup',updateCursor);editor.addEventListener('click',updateCursor);editor.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();const s=editor.selectionStart,en=editor.selectionEnd;editor.setRangeText('  ',s,en,'end');updateCursor();}if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();applyEditor();}});
