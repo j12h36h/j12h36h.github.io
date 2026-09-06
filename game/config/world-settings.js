@@ -1,4 +1,4 @@
-import { normalizeModeSettings } from '/game/config/hosted-modes.js?v=1.2.0';
+import { normalizeModeSettings } from '/game/config/hosted-modes.js?v=1.3.0';
 const ICON_JSON_MAX = 32000;
 const MAX_AREAS = 12;
 const MAX_ITEMS = 32;
@@ -190,7 +190,7 @@ export function settingsFromHostForm(root = document, content = {}, modeId = 'ar
     : modeId === 'jeng-stroid' ? { layers:value('mode_jengLayers'), turnSeconds:value('mode_jengTurnSeconds'), gravity:value('mode_jengGravity'), collapseThreshold:value('mode_jengCollapseThreshold') }
     : modeId === 'sunball' ? { balls:value('mode_sunBalls'), targetScore:value('mode_sunTargetScore'), gravity:value('mode_sunGravity'), bumperForce:value('mode_sunBumperForce'), multiplayerMode:value('mode_sunMultiplayerMode') }
     : modeId === 'soldoku' ? { boardSize:value('mode_soldokuBoardSize'), difficulty:value('mode_soldokuDifficulty'), hints:value('mode_soldokuHints'), mistakeLimit:value('mode_soldokuMistakeLimit'), playMode:value('mode_soldokuPlayMode') }
-    : modeId === 'escape-pod-dash' ? { lanes:value('mode_dashLanes'), lives:value('mode_dashLives'), startSpeed:value('mode_dashStartSpeed'), acceleration:value('mode_dashAcceleration'), targetDistance:value('mode_dashTargetDistance'), obstacleRate:value('mode_dashObstacleRate') } : {};
+    : modeId === 'escape-pod-dash' ? { lanes:3, lives:value('mode_dashLives'), startSpeed:value('mode_dashStartSpeed'), acceleration:value('mode_dashAcceleration'), targetDistance:value('mode_dashTargetDistance'), obstacleRate:value('mode_dashObstacleRate') } : {};
   return normalizeWorldSettings({
     modeId,
     modeSettings,
