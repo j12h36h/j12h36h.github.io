@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
   <link rel="stylesheet" href="/game/assets/css/runtime.css?v=2.1.0">
   <link rel="stylesheet" href="/game/hosted-mode/hosted-mode.css?v=1.2.0">
+  <link rel="stylesheet" href="./global-dash.css?v=1.0.0">
   <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260901-dm6">
 </head>
 <body class="hosted-mode-page global-dash-page">
@@ -21,12 +22,19 @@
       <aside class="hosted-side">
         <section class="runtime-card"><h2>GLOBAL RULES</h2><div id="hostRules" class="runtime-status"></div></section>
         <section class="runtime-card"><h2>POD SYSTEM</h2><p class="runtime-list-empty">YOUR E.R.A.S. ICON RIDES INSIDE THE COCKPIT. POD SKINS ARE COSMETIC ONLY AND CAN BE SWAPPED BEFORE EVERY RUN.</p></section>
-        <section class="runtime-card"><h2>GLOBAL STATUS</h2><div class="runtime-status"><div class="runtime-status-row"><span>HOST</span><b>E.R.A.S. SITE</b></div><div class="runtime-status-row"><span>AVAILABILITY</span><b>24 / 7</b></div><div class="runtime-status-row"><span>MOVEMENT</span><b>3 × 3 / 9 POSITIONS</b></div></div></section>
+        <section class="runtime-card"><h2>GLOBAL STATUS</h2><div class="runtime-status"><div class="runtime-status-row"><span>HOST</span><b>E.R.A.S. SITE</b></div><div class="runtime-status-row"><span>AVAILABILITY</span><b>24 / 7</b></div><div class="runtime-status-row"><span>MOVEMENT</span><b>3 × 3 / 9 POSITIONS</b></div><div class="runtime-status-row"><span>INPUT</span><b>TAP / CLICK ADJACENT SLOT</b></div></div></section>
       </aside>
+    </section>
+    <section class="dash-global-scoreboard" id="dashGlobalScoreboard" aria-label="Escape Pod Dash Global leaderboard">
+      <header><div><span>GLOBAL SCOREBOARD</span><h2>ESCAPE POD DASH</h2></div><div class="dash-global-personal"><span>YOUR BEST DISTANCE</span><b id="dashPersonalBest">—</b></div></header>
+      <div class="dash-global-score-head"><span>RANK</span><span>PLAYER</span><span>MAX SPEED</span><span>DISTANCE</span></div>
+      <ol id="dashLeaderboard"><li class="is-empty">LOADING GLOBAL RUNS…</li></ol>
+      <p id="dashScoreboardStatus">CONNECTING TO GLOBAL SCOREBOARD…</p>
     </section>
   </main>
   <script type="module" src="/account/assets/js/account.js"></script>
   <script type="module" src="/game/hosted-mode/hosted-mode.js?v=1.4.0"></script>
+  <script type="module" src="/game/hosted-mode/escape-pod-dash-enhancements.js?v=1.0.0"></script>
   <script type="module" src="/game/global/messaging.js?v=20260901-dm6"></script>
 </body>
 </html>
