@@ -566,6 +566,159 @@ exports.getGlobalSlimeSmashLeaderboard = onCall(async request => {
   return { ok: true, entries, personalBest };
 });
 
+
+// ============================================================
+// E.R.A.S. GLOBAL ARCADE MILESTONE REWARDS
+// 5,000 = +1 Credit, 10,000 = +2, 15,000 = +3, etc.
+// Each milestone level is claimable exactly once per profile, per Global game.
+// The callable derives the profile from Firebase Auth and verifies the player's
+// deterministic Global leaderboard document before touching the Credit wallet.
+// ============================================================
+const GLOBAL_ARCADE_MILESTONE_STEP = 5000;
+
+function globalArcadeProfileToken(profileId) {
+  return String(profileId || '').replace(/[^0-9a-zA-Z-]/g, '').slice(0, 64);
+}
+
+function globalArcadeScoreRef(gameId, profileId) {
+  const token = globalArcadeProfileToken(profileId);
+  if (gameId === 'slime-smash') return db.doc(`gameActions/slime-smash-best__${token}`);
+  if (gameId === 'escape-pod-dash') return db.doc(`gameActions/escape-pod-dash-best__${token}`);
+  throw new HttpsError('invalid-argument', 'Unsupported Global arcade game.');
+}
+
+function verifiedGlobalArcadeScore(gameId, action, profileId) {
+  if (!action || String(action.actorProfileId || '') !== profileId || action.status !== 'resolved' || action.actionType !== 'interact' || action.targetType !== 'object') {
+    throw new HttpsError('failed-precondition', 'A verified Global score is required before Credits can be awarded.');
+  }
+
+  if (gameId === 'slime-smash') {
+    if (action.worldId !== 'global-slime-smash' || action.targetId !== 'slime-smash-global-score') {
+      throw new HttpsError('failed-precondition', 'The Slime Smash Global score record is invalid.');
+    }
+    const match = String(action.targetLabel || '').match(/^SS:(\d+):(\d+):(\d+):(\d+)$/);
+    if (!match) throw new HttpsError('failed-precondition', 'The Slime Smash Global score payload is invalid.');
+    const score = Number(match[1]);
+    const wave = Number(match[2]);
+    const hits = Number(match[3]);
+    const durationMs = Number(match[4]);
+    if (!Number.isInteger(score) || score < 0 || score > 2000000000 ||
+        !Number.isInteger(hits) || hits < 0 || hits > 20000000 ||
+        !Number.isInteger(wave) || wave !== hits + 1 || wave < 1 || wave > 20000001 ||
+        score !== hits * 100 ||
+        !Number.isInteger(durationMs) || durationMs < 0 || durationMs > 3600000) {
+      throw new HttpsError('failed-precondition', 'The Slime Smash Global score does not match the fixed ruleset.');
+    }
+    return score;
+  }
+
+  if (gameId === 'escape-pod-dash') {
+    if (action.worldId !== 'global-escape-pod-dash' || action.targetId !== 'escape-pod-dash-global-score') {
+      throw new HttpsError('failed-precondition', 'The Escape Pod Dash Global score record is invalid.');
+    }
+    const match = String(action.targetLabel || '').match(/^EPD:(\d+):(\d+)$/);
+    if (!match) throw new HttpsError('failed-precondition', 'The Escape Pod Dash Global score payload is invalid.');
+    const distance = Number(match[1]);
+    const speed100 = Number(match[2]);
+    if (!Number.isInteger(distance) || distance < 0 || distance > 2000000000 ||
+        !Number.isInteger(speed100) || speed100 < 0 || speed100 > 2000000000) {
+      throw new HttpsError('failed-precondition', 'The Escape Pod Dash Global score payload is invalid.');
+    }
+    return distance;
+  }
+
+  throw new HttpsError('invalid-argument', 'Unsupported Global arcade game.');
+}
+
+function globalArcadeMilestoneState(score) {
+  const milestoneLevel = Math.max(0, Math.floor(Number(score || 0) / GLOBAL_ARCADE_MILESTONE_STEP));
+  // Level N grants 1 + 2 + ... + N Credits over the lifetime of this game track.
+  const totalCredits = milestoneLevel * (milestoneLevel + 1) / 2;
+  return {
+    milestoneLevel,
+    milestoneScore: milestoneLevel * GLOBAL_ARCADE_MILESTONE_STEP,
+    totalCredits,
+    nextMilestoneScore: (milestoneLevel + 1) * GLOBAL_ARCADE_MILESTONE_STEP,
+    nextMilestoneReward: milestoneLevel + 1
+  };
+}
+
+exports.claimGlobalArcadeMilestones = onCall(async request => {
+  const profileId = await callerProfileId(request);
+  const gameId = cleanString(request.data?.gameId, 40);
+  if (!['slime-smash','escape-pod-dash'].includes(gameId)) {
+    throw new HttpsError('invalid-argument', 'Unsupported Global arcade game.');
+  }
+
+  const scoreRef = globalArcadeScoreRef(gameId, profileId);
+  const rewardId = `${gameId}__${profileId}`.replace(/[^0-9a-zA-Z_-]/g, '_').slice(0, 180);
+  const rewardRef = db.doc(`globalArcadeRewardClaims/${rewardId}`);
+  const walletRef = db.doc(`creditWallets/${profileId}`);
+  const now = Timestamp.now();
+  let response = null;
+
+  await db.runTransaction(async tx => {
+    const [scoreSnap, rewardSnap, walletSnap] = await Promise.all([
+      tx.get(scoreRef), tx.get(rewardRef), tx.get(walletRef)
+    ]);
+    if (!scoreSnap.exists) {
+      throw new HttpsError('failed-precondition', 'Finish a verified Global run before claiming milestone Credits.');
+    }
+
+    const score = verifiedGlobalArcadeScore(gameId, scoreSnap.data(), profileId);
+    const milestone = globalArcadeMilestoneState(score);
+    const prior = rewardSnap.exists ? rewardSnap.data() : {};
+    const priorLevel = Math.max(0, Math.floor(Number(prior.claimedLevel || 0)));
+    const priorCredits = Math.max(
+      0,
+      Math.floor(Number(prior.totalCreditsGranted || 0)),
+      priorLevel * (priorLevel + 1) / 2
+    );
+    const creditsAwarded = Math.max(0, milestone.totalCredits - priorCredits);
+
+    if (creditsAwarded > 0) {
+      const wallet = walletSnap.exists ? walletSnap.data() : {};
+      tx.set(walletRef, {
+        profileId,
+        balance: Math.max(0, Number(wallet.balance || 0)) + creditsAwarded,
+        totalEarned: Math.max(0, Number(wallet.totalEarned || 0)) + creditsAwarded,
+        totalLost: Math.max(0, Number(wallet.totalLost || 0)),
+        lastEventId: `global_arcade_${gameId}_${milestone.milestoneLevel}`.slice(0, 180),
+        lastEventType: 'global_arcade_milestone',
+        createdAt: walletSnap.exists ? (wallet.createdAt || now) : now,
+        updatedAt: now
+      }, { merge: true });
+    }
+
+    tx.set(rewardRef, {
+      profileId,
+      gameId,
+      milestoneStep: GLOBAL_ARCADE_MILESTONE_STEP,
+      claimedLevel: Math.max(priorLevel, milestone.milestoneLevel),
+      totalCreditsGranted: Math.max(priorCredits, milestone.totalCredits),
+      highestVerifiedScore: Math.max(0, Number(prior.highestVerifiedScore || 0), score),
+      lastAwardCredits: creditsAwarded,
+      lastVerifiedScore: score,
+      createdAt: rewardSnap.exists ? (prior.createdAt || now) : now,
+      updatedAt: now
+    }, { merge: true });
+
+    response = {
+      ok: true,
+      gameId,
+      score,
+      creditsAwarded,
+      milestoneLevel: milestone.milestoneLevel,
+      milestoneScore: milestone.milestoneScore,
+      totalCreditsGranted: Math.max(priorCredits, milestone.totalCredits),
+      nextMilestoneScore: milestone.nextMilestoneScore,
+      nextMilestoneReward: milestone.nextMilestoneReward
+    };
+  });
+
+  return response || { ok:true, gameId, creditsAwarded:0 };
+});
+
 // E.R.A.S. Asset Library / moderation security callables.
 // These run with Admin SDK authority, but each callable derives the caller from
 // Firebase Auth + privateAccounts and validates all user input server-side.

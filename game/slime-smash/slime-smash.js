@@ -1,6 +1,7 @@
 import { db, fs, watchIdentity, safeText, profileById } from '/game/assets/js/eras-data.js';
 import { hostedMode, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.3.0';
 import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.1.0';
+import { claimGlobalArcadeMilestones, milestoneRewardMessage } from '/game/assets/js/global-arcade-rewards.js?v=1.0.0';
 
 const $=s=>document.querySelector(s);
 const params=new URLSearchParams(location.search);
@@ -122,6 +123,20 @@ async function loadGlobalLeaderboard(){
   }
 }
 
+
+async function claimGlobalMilestoneRewards(){
+  if(!globalMode||!state.identity?.profileId)return null;
+  try{
+    const reward=await claimGlobalArcadeMilestones('slime-smash');
+    const text=milestoneRewardMessage(reward,'SCORE');
+    if(text)say(text,'ok');
+    return reward;
+  }catch(error){
+    console.error('Global Slime Smash milestone reward',error);
+    return null;
+  }
+}
+
 async function submitGlobalScore(game){
   if(!globalMode||!state.identity?.profileId||!game)return;
   const encoded=encodeGlobalScore(game);
@@ -132,7 +147,7 @@ async function submitGlobalScore(game){
     const existing=await fs.getDoc(ref);
     if(existing.exists()){
       const prior=decodeGlobalScore(existing.data());
-      if(prior&&prior.bestScore>=encoded.score){await loadGlobalLeaderboard();return;}
+      if(prior&&prior.bestScore>=encoded.score){await loadGlobalLeaderboard();await claimGlobalMilestoneRewards();return;}
       await fs.deleteDoc(ref);
     }
     const turn=Math.max(1,encoded.wave);
@@ -158,6 +173,7 @@ async function submitGlobalScore(game){
       resolvedAt:fs.serverTimestamp()
     });
     await loadGlobalLeaderboard();
+    await claimGlobalMilestoneRewards();
   }catch(error){
     console.error('Global Slime Smash score submit',error);
     say(`Score saved locally // global scoreboard write failed: ${error?.code||error?.message||'unavailable'}`,'error');

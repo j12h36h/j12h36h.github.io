@@ -2058,9 +2058,7 @@ async function applyHostedEnemyRetaliation(currentTurn, markerAttackers = []) {
 async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
   if (state.hostedWorld) return applyHostedEnemyRetaliation(currentTurn, markerAttackers);
   if (!state.identity?.profileId) return;
-  await ensureCreditWallet(db, fs, state.identity.profileId);
   const presenceRef = fs.doc(db, 'gamePresence', presenceId(state.identity.profileId));
-  const walletRef = fs.doc(db, 'creditWallets', state.identity.profileId);
   const statsRef = statsDocRef(state.identity.profileId);
   // Retaliation is captured at the exact global marker before player attacks
   // resolve. That makes the marker simultaneous: a one-HP slime that was alive
@@ -2071,8 +2069,8 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
   const pveRespawn = playerSpawnPoint(`pve:${worldId}:${state.identity.profileId}:${deathEventId}`);
 
   const result = await firestoreRunTransaction(db, async tx => {
-    const [presenceSnap, walletSnap, statsSnap] = await Promise.all([
-      tx.get(presenceRef), tx.get(walletRef), tx.get(statsRef)
+    const [presenceSnap, statsSnap] = await Promise.all([
+      tx.get(presenceRef), tx.get(statsRef)
     ]);
     if (!presenceSnap.exists()) return { skipped: true };
     const presence = presenceSnap.data();
@@ -2094,9 +2092,6 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
     }
 
     const eventId = deathEventId;
-    const wallet = walletSnap.exists() ? walletSnap.data() : { balance: 0, totalEarned: 0, totalLost: 0 };
-    const before = Math.max(0, Number(wallet.balance || 0));
-    const lost = Math.min(10, before);
     tx.update(presenceRef, {
       x: pveRespawn.x, y: pveRespawn.y, vx: 0, vy: 0,
       moveUsed: 0,
@@ -2109,16 +2104,6 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
       lastCombatTurn: currentTurn,
       updatedAt: fs.serverTimestamp()
     });
-    if (walletSnap.exists()) {
-      tx.update(walletRef, {
-        balance: before - lost,
-        totalEarned: Math.max(0, Number(wallet.totalEarned || 0)),
-        totalLost: Math.max(0, Number(wallet.totalLost || 0)) + lost,
-        lastEventId: eventId,
-        lastEventType: 'death',
-        updatedAt: fs.serverTimestamp()
-      });
-    }
     if (worldId === 'global' && statsSnap.exists()) {
       const stats = statsSnap.data();
       tx.update(statsRef, {
@@ -2130,7 +2115,7 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
         updatedAt: fs.serverTimestamp()
       });
     }
-    return { damage, died: true, hp: PLAYER_MAX_HP, deaths: Math.max(0, Number(presence.deaths || 0)) + 1, eventId, lost, balance: before - lost, combatTurn: currentTurn, attackers: attackerIds, spawnX: pveRespawn.x, spawnY: pveRespawn.y };
+    return { damage, died: true, hp: PLAYER_MAX_HP, deaths: Math.max(0, Number(presence.deaths || 0)) + 1, eventId, combatTurn: currentTurn, attackers: attackerIds, spawnX: pveRespawn.x, spawnY: pveRespawn.y };
   });
 
   if (result?.skipped) return;
@@ -2145,7 +2130,7 @@ async function applySlimeRetaliation(currentTurn, markerAttackers = []) {
     if (token) { updateToken(token, state.x, state.y); token.classList.add('player-death-pulse'); setTimeout(() => token.classList.remove('player-death-pulse'), 1200); }
     resetCamera(true);
     activeInventoryController.clearOnDeath(state.lastDeathEventId).catch(() => {});
-    message(`YOU WERE DOWNED BY THE CACHE SLIMES // GAME INVENTORY CLEARED // -${result.lost || 0} CREDITS // RESPAWNED ON NORTH PLATFORM.`);
+    message('YOU WERE DOWNED BY THE CACHE SLIMES // GAME INVENTORY CLEARED // NO CREDITS LOST // RESPAWNED ON NORTH PLATFORM.');
   } else {
     state.hp = Math.max(0, Number(result?.hp ?? state.hp));
     if (result?.damage) message(`CACHE SLIME${result.damage > 1 ? 'S' : ''} STRUCK BACK // -${result.damage} HP.`);

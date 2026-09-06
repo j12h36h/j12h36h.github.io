@@ -29,6 +29,19 @@ const ASSETS = Object.freeze({
   'eras:slime_juice': { kind:'Sprite', defaultTint:'#65d67c' },
   'eras:hand_wraps': { kind:'Sprite', defaultTint:'#d7c7a2' },
 
+  'eras:escape_pod': {
+    kind:'Sprite',
+    variantKind:'style',
+    defaultStyle:'standard',
+    styles:Object.freeze({
+      standard:Object.freeze({name:'Standard Pod',price:0}),
+      comet:Object.freeze({name:'Comet Pod',price:1}),
+      aurora:Object.freeze({name:'Aurora Pod',price:1}),
+      bulwark:Object.freeze({name:'Bulwark Pod',price:1}),
+      nova:Object.freeze({name:'Nova Pod',price:1})
+    })
+  },
+
   'eras:audio_turn_based_theme': { kind:'Audio', defaultPitch:'Alto' },
   'eras:audio_damaged_hit': { kind:'Audio', defaultPitch:'Baritone' },
   'eras:audio_confirm': { kind:'Audio', defaultPitch:'Soprano' },
@@ -120,6 +133,18 @@ function normalizeVariant(assetId, raw={}) {
   if (!asset) throw new HttpsError('invalid-argument','Unknown E.R.A.S. Asset Library asset.');
 
   if (asset.kind === 'Sprite') {
+    if (asset.variantKind === 'style') {
+      const requested = token(raw.style || asset.defaultStyle || 'standard');
+      const style = asset.styles?.[requested];
+      if (!style) throw new HttpsError('invalid-argument','Unknown Escape Pod Style.');
+      return {
+        storage:`sprite|style=${requested}`,
+        custom:Number(style.price||0)>0,
+        price:Math.max(0,Math.floor(Number(style.price)||0)),
+        label:String(style.name||requested),
+        runtime:{style:requested}
+      };
+    }
     const tint = safeHex(raw.tint,asset.defaultTint);
     const presets = new Set([asset.defaultTint.toLowerCase(),...COMMON_TINTS]);
     const custom = !presets.has(tint);

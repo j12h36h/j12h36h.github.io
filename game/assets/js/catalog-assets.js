@@ -52,7 +52,17 @@ export function assetBaseName(asset) {
 export function assetCatalogVariantLabel(asset) {
   const kind = assetCategory(asset);
 
-  if (kind === 'Sprite' || kind === 'Icon') {
+  if (kind === 'Sprite') {
+    const styles = Array.isArray(asset?.variantPolicy?.stylePresets) ? asset.variantPolicy.stylePresets : [];
+    if (styles.length) {
+      const wanted = String(asset?.defaultStyle || asset?.variantPolicy?.defaultStyle || styles[0]?.id || 'standard');
+      const preset = styles.find(item => String(item?.id) === wanted) || styles[0];
+      return String(preset?.name || wanted || 'Default');
+    }
+    const value = String(asset?.colorName || asset?.color || asset?.variantColor || '').trim();
+    return value ? titleWords(value) : 'Undefined';
+  }
+  if (kind === 'Icon') {
     const value = String(asset?.colorName || asset?.color || asset?.variantColor || '').trim();
     return value ? titleWords(value) : 'Undefined';
   }
@@ -111,7 +121,42 @@ export function safeAssetTint(value, fallback='#ffffff') {
   return /^#[0-9a-fA-F]{6}$/.test(text) ? text.toLowerCase() : String(fallback || '#ffffff').toLowerCase();
 }
 
-export function assetLayers(asset) {
+export function assetStyleId(asset, variant='') {
+  const presets = Array.isArray(asset?.variantPolicy?.stylePresets) ? asset.variantPolicy.stylePresets : [];
+  if (!presets.length && !Array.isArray(asset?.styles)) return '';
+  let requested = '';
+  if (variant && typeof variant === 'object') requested = String(variant.style || '');
+  else {
+    const raw = String(variant || '');
+    requested = raw.startsWith('sprite|style=') ? raw.slice('sprite|style='.length) : raw;
+  }
+  const fallback = String(asset?.defaultStyle || asset?.variantPolicy?.defaultStyle || presets[0]?.id || asset?.styles?.[0]?.id || 'standard');
+  const known = new Set([...(presets||[]).map(item=>String(item?.id||'')), ...(asset?.styles||[]).map(item=>String(item?.id||''))]);
+  return known.has(requested) ? requested : fallback;
+}
+
+export function assetStylePreset(asset, variant='') {
+  const id = assetStyleId(asset, variant);
+  const presets = Array.isArray(asset?.variantPolicy?.stylePresets) ? asset.variantPolicy.stylePresets : [];
+  return presets.find(item => String(item?.id) === id) || null;
+}
+
+export function assetLayers(asset, variant='') {
+  const styleId = assetStyleId(asset, variant);
+  if (styleId && Array.isArray(asset?.styles)) {
+    const style = asset.styles.find(item => String(item?.id) === styleId) || asset.styles[0];
+    if (Array.isArray(style?.layers) && style.layers.length) {
+      return style.layers
+        .filter(layer => layer && layer.source)
+        .map(layer => ({
+          source:String(layer.source),
+          tintable:layer.tintable === true,
+          tintMode:String(layer.tintMode || 'full'),
+          tint:layer.tint ? safeAssetTint(layer.tint) : ''
+        }));
+    }
+  }
+
   // Slime Juice is a single source image, but only the green liquid is tintable.
   // Use the original colored sprite and a selective liquid tint instead of tinting
   // the whole monochrome sprite.
@@ -119,7 +164,8 @@ export function assetLayers(asset) {
     return [{
       source: '/public-assets/textures/slime_juice.png',
       tintable: true,
-      tintMode: 'green-dominant'
+      tintMode: 'green-dominant',
+      tint: ''
     }];
   }
 
@@ -129,13 +175,15 @@ export function assetLayers(asset) {
       .map(layer => ({
         source:String(layer.source),
         tintable:layer.tintable === true,
-        tintMode:String(layer.tintMode || 'full')
+        tintMode:String(layer.tintMode || 'full'),
+        tint:layer.tint ? safeAssetTint(layer.tint) : ''
       }));
   }
   return [{
     source:String(asset?.source || asset?.thumbnail || FALLBACK.source),
     tintable:assetIsTintable(asset),
-    tintMode:String(asset?.tintMode || 'full')
+    tintMode:String(asset?.tintMode || 'full'),
+    tint:''
   }];
 }
 
@@ -211,20 +259,22 @@ function drawGreenDominantTint(ctx, image, tint, width, height) {
   ctx.drawImage(off, 0, 0);
 }
 
-export async function renderAssetCanvas(canvas, asset, tint=assetDefaultTint(asset)) {
+export async function renderAssetCanvas(canvas, asset, variant=assetDefaultTint(asset)) {
   if (!canvas || !asset) return canvas;
   const width = Math.max(1, Math.floor(Number(canvas.width) || 128));
   const height = Math.max(1, Math.floor(Number(canvas.height) || width));
   const ctx = canvas.getContext('2d');
-  const resolvedTint = safeAssetTint(tint, assetDefaultTint(asset));
+  const rawTint = variant && typeof variant === 'object' ? variant.tint : variant;
+  const resolvedTint = safeAssetTint(rawTint, assetDefaultTint(asset));
   ctx.clearRect(0, 0, width, height);
 
-  for (const layer of assetLayers(asset)) {
+  for (const layer of assetLayers(asset, variant)) {
     const image = await loadAssetImage(layer.source);
+    const layerTint = safeAssetTint(layer.tint || resolvedTint, resolvedTint);
     if (layer.tintable && layer.tintMode === 'green-dominant') {
-      drawGreenDominantTint(ctx, image, resolvedTint, width, height);
+      drawGreenDominantTint(ctx, image, layerTint, width, height);
     } else if (layer.tintable) {
-      drawTintedLayer(ctx, image, resolvedTint, width, height);
+      drawTintedLayer(ctx, image, layerTint, width, height);
     } else {
       ctx.drawImage(image, 0, 0, width, height);
     }
@@ -232,12 +282,15 @@ export async function renderAssetCanvas(canvas, asset, tint=assetDefaultTint(ass
   return canvas;
 }
 
-export async function assetVariantPreviewUrl(asset, tint=assetDefaultTint(asset), size=128) {
-  if (!assetIsTintable(asset) && !Array.isArray(asset?.layers)) return assetPreviewUrl(asset);
+export async function assetVariantPreviewUrl(asset, variant=assetDefaultTint(asset), size=128) {
+  const hasStyles = Boolean(assetStyleId(asset, variant));
+  if (!hasStyles && !assetIsTintable(asset) && !Array.isArray(asset?.layers)) return assetPreviewUrl(asset);
   const px = Math.max(32, Math.min(512, Math.floor(Number(size) || 128)));
-  const resolvedTint = safeAssetTint(tint, assetDefaultTint(asset));
-  const layerKey = assetLayers(asset).map(layer => `${layer.tintable?'t':'f'}:${layer.tintMode}:${layer.source}`).join('|');
-  const key = `${asset?.id || ''}|${resolvedTint}|${px}|${layerKey}`;
+  const rawTint = variant && typeof variant === 'object' ? variant.tint : variant;
+  const resolvedTint = safeAssetTint(rawTint, assetDefaultTint(asset));
+  const styleId = assetStyleId(asset, variant);
+  const layerKey = assetLayers(asset, variant).map(layer => `${layer.tintable?'t':'f'}:${layer.tintMode}:${layer.tint||''}:${layer.source}`).join('|');
+  const key = `${asset?.id || ''}|${styleId}|${resolvedTint}|${px}|${layerKey}`;
 
   if (VARIANT_PREVIEW_CACHE.has(key)) return VARIANT_PREVIEW_CACHE.get(key);
 
@@ -245,7 +298,7 @@ export async function assetVariantPreviewUrl(asset, tint=assetDefaultTint(asset)
     const canvas = document.createElement('canvas');
     canvas.width = px;
     canvas.height = px;
-    await renderAssetCanvas(canvas, asset, resolvedTint);
+    await renderAssetCanvas(canvas, asset, variant);
     return canvas.toDataURL('image/png');
   })();
 
@@ -257,10 +310,10 @@ export async function assetVariantPreviewUrl(asset, tint=assetDefaultTint(asset)
   }
 }
 
-export function hydrateVariantPreviewImage(image, asset, tint=assetDefaultTint(asset), size=128) {
+export function hydrateVariantPreviewImage(image, asset, variant=assetDefaultTint(asset), size=128) {
   if (!image || !asset) return;
   image.src = assetPreviewUrl(asset);
-  assetVariantPreviewUrl(asset, tint, size).then(url => {
+  assetVariantPreviewUrl(asset, variant, size).then(url => {
     if (image.isConnected) image.src = url;
   }).catch(() => {});
 }

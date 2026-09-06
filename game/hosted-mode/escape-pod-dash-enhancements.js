@@ -1,4 +1,5 @@
 import { db, fs, watchIdentity, profileById, safeText } from '/game/assets/js/eras-data.js';
+import { claimGlobalArcadeMilestones, milestoneRewardMessage } from '/game/assets/js/global-arcade-rewards.js?v=1.0.0';
 
 const $=s=>document.querySelector(s);
 const isGlobalDash=location.pathname.startsWith('/game/global/escape-pod-dash');
@@ -109,8 +110,8 @@ if(stage)new MutationObserver(()=>{if(activeDashCanvas())resetDashInput();}).obs
 
 // ---------------------------------------------------------------------------
 // Escape Pod Dash Global scoreboard
-// Uses the same already-authorized gameActions pattern as Slime Smash Global.
-// No new Firestore collection, rules deployment, or Cloud Function required.
+// The leaderboard keeps using the already-authorized gameActions pattern.
+// Credit milestones are verified/granted by the server-side reward callable.
 // ---------------------------------------------------------------------------
 const SCORE_WORLD='global-escape-pod-dash';
 const SCORE_TARGET='escape-pod-dash-global-score';
@@ -185,6 +186,19 @@ async function loadLeaderboard(){
     scoreboardStatus(error?.code||error?.message||'SCOREBOARD UNAVAILABLE','error');
   }
 }
+
+async function claimDashMilestoneRewards(){
+  if(!isGlobalDash||!scoreState.identity?.profileId)return null;
+  try{
+    const reward=await claimGlobalArcadeMilestones('escape-pod-dash');
+    const text=milestoneRewardMessage(reward,'DISTANCE');
+    if(text)scoreboardStatus(text,'ok');
+    return reward;
+  }catch(error){
+    console.error('Escape Pod Dash milestone reward',error);
+    return null;
+  }
+}
 async function submitScore(distance,maxSpeed){
   if(!isGlobalDash||!scoreState.identity?.profileId)return;
   const encoded=encodeScore(distance,maxSpeed);
@@ -193,7 +207,7 @@ async function submitScore(distance,maxSpeed){
     const existing=await fs.getDoc(ref);
     if(existing.exists()){
       const prior=decodeScore(existing.data());
-      if(prior&&(prior.bestDistance>encoded.distance||(prior.bestDistance===encoded.distance&&prior.maxSpeed>=encoded.speed100/100))){await loadLeaderboard();return;}
+      if(prior&&(prior.bestDistance>encoded.distance||(prior.bestDistance===encoded.distance&&prior.maxSpeed>=encoded.speed100/100))){await loadLeaderboard();await claimDashMilestoneRewards();return;}
       await fs.deleteDoc(ref);
     }
     const turn=Math.max(1,Math.min(1999999998,encoded.distance+1));
@@ -215,6 +229,7 @@ async function submitScore(distance,maxSpeed){
     await fs.updateDoc(ref,{status:'resolved',outcome:'resolved',updatedAt:fs.serverTimestamp(),resolvedAt:fs.serverTimestamp()});
     scoreboardStatus('NEW GLOBAL BEST SAVED','ok');
     await loadLeaderboard();
+    await claimDashMilestoneRewards();
   }catch(error){
     console.error('Escape Pod Dash score submit',error);
     scoreboardStatus(`SCORE SAVED LOCALLY // GLOBAL WRITE FAILED: ${error?.code||error?.message||'UNAVAILABLE'}`,'error');

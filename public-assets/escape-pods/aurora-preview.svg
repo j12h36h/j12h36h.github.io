@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<g style="color:#8c7dff"><path d="M101 191 C113 208 116 235 110 252 C123 239 127 225 128 212 C129 225 133 239 146 252 C140 235 143 208 155 191 Z" fill="currentColor"/></g>
+<g style="color:#8ce7c8"><path d="M128 38 C171 38 190 73 183 123 C177 166 157 194 128 204 C99 194 79 166 73 123 C66 73 85 38 128 38 Z" fill="currentColor"/></g>
+<g style="color:#bb96ff"><path d="M77 132 Q128 177 179 132" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round"/><path d="M88 92 Q128 48 168 92" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><circle cx="77" cy="132" r="7" fill="currentColor"/><circle cx="179" cy="132" r="7" fill="currentColor"/></g>
+<g style="color:#071b20"><ellipse cx="128" cy="104" rx="41" ry="28" fill="currentColor"/></g>
+</svg>

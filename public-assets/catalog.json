@@ -1,6 +1,6 @@
 {
-  "version": 6,
-  "updatedAt": "2026-09-03",
+  "version": 7,
+  "updatedAt": "2026-09-06",
   "categories": [
     "Sprite",
     "Audio",
@@ -231,6 +231,198 @@
       }
     },
     {
+      "id": "eras:escape_pod",
+      "name": "Escape Pod",
+      "type": "sprite",
+      "category": "sprites",
+      "description": "Layered Escape Pod sprite for Escape Pod Dash. Each Style swaps the pod geometry and independently colors body, accent, cockpit, and trail layers instead of tinting the whole sprite.",
+      "source": "/public-assets/escape-pods/standard-preview.svg",
+      "thumbnail": "/public-assets/escape-pods/standard-preview.svg",
+      "tintable": false,
+      "styleable": true,
+      "defaultStyle": "standard",
+      "tags": [
+        "escape pod",
+        "ship",
+        "vehicle",
+        "sprite",
+        "layered",
+        "styleable",
+        "game"
+      ],
+      "styles": [
+        {
+          "id": "standard",
+          "name": "Standard Pod",
+          "priceCredits": 0,
+          "layers": [
+            {
+              "source": "/public-assets/escape-pods/standard-trail.svg",
+              "tintable": true,
+              "tint": "#79efff"
+            },
+            {
+              "source": "/public-assets/escape-pods/standard-body.svg",
+              "tintable": true,
+              "tint": "#9fe4e3"
+            },
+            {
+              "source": "/public-assets/escape-pods/standard-accent.svg",
+              "tintable": true,
+              "tint": "#d7fbff"
+            },
+            {
+              "source": "/public-assets/escape-pods/standard-cockpit.svg",
+              "tintable": true,
+              "tint": "#071b26"
+            }
+          ]
+        },
+        {
+          "id": "comet",
+          "name": "Comet Pod",
+          "priceCredits": 1,
+          "layers": [
+            {
+              "source": "/public-assets/escape-pods/comet-trail.svg",
+              "tintable": true,
+              "tint": "#ffbf57"
+            },
+            {
+              "source": "/public-assets/escape-pods/comet-body.svg",
+              "tintable": true,
+              "tint": "#ff9b72"
+            },
+            {
+              "source": "/public-assets/escape-pods/comet-accent.svg",
+              "tintable": true,
+              "tint": "#ffe7a8"
+            },
+            {
+              "source": "/public-assets/escape-pods/comet-cockpit.svg",
+              "tintable": true,
+              "tint": "#25110d"
+            }
+          ]
+        },
+        {
+          "id": "aurora",
+          "name": "Aurora Pod",
+          "priceCredits": 1,
+          "layers": [
+            {
+              "source": "/public-assets/escape-pods/aurora-trail.svg",
+              "tintable": true,
+              "tint": "#8c7dff"
+            },
+            {
+              "source": "/public-assets/escape-pods/aurora-body.svg",
+              "tintable": true,
+              "tint": "#8ce7c8"
+            },
+            {
+              "source": "/public-assets/escape-pods/aurora-accent.svg",
+              "tintable": true,
+              "tint": "#bb96ff"
+            },
+            {
+              "source": "/public-assets/escape-pods/aurora-cockpit.svg",
+              "tintable": true,
+              "tint": "#071b20"
+            }
+          ]
+        },
+        {
+          "id": "bulwark",
+          "name": "Bulwark Pod",
+          "priceCredits": 1,
+          "layers": [
+            {
+              "source": "/public-assets/escape-pods/bulwark-trail.svg",
+              "tintable": true,
+              "tint": "#ffa845"
+            },
+            {
+              "source": "/public-assets/escape-pods/bulwark-body.svg",
+              "tintable": true,
+              "tint": "#9eaab4"
+            },
+            {
+              "source": "/public-assets/escape-pods/bulwark-accent.svg",
+              "tintable": true,
+              "tint": "#ffcd68"
+            },
+            {
+              "source": "/public-assets/escape-pods/bulwark-cockpit.svg",
+              "tintable": true,
+              "tint": "#10171c"
+            }
+          ]
+        },
+        {
+          "id": "nova",
+          "name": "Nova Pod",
+          "priceCredits": 1,
+          "layers": [
+            {
+              "source": "/public-assets/escape-pods/nova-trail.svg",
+              "tintable": true,
+              "tint": "#ff66da"
+            },
+            {
+              "source": "/public-assets/escape-pods/nova-body.svg",
+              "tintable": true,
+              "tint": "#e8e8f5"
+            },
+            {
+              "source": "/public-assets/escape-pods/nova-accent.svg",
+              "tintable": true,
+              "tint": "#ff74bd"
+            },
+            {
+              "source": "/public-assets/escape-pods/nova-cockpit.svg",
+              "tintable": true,
+              "tint": "#180b1b"
+            }
+          ]
+        }
+      ],
+      "variantPolicy": {
+        "variantMode": "style",
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1,
+        "defaultStyle": "standard",
+        "stylePresets": [
+          {
+            "id": "standard",
+            "name": "Standard Pod",
+            "priceCredits": 0
+          },
+          {
+            "id": "comet",
+            "name": "Comet Pod",
+            "priceCredits": 1
+          },
+          {
+            "id": "aurora",
+            "name": "Aurora Pod",
+            "priceCredits": 1
+          },
+          {
+            "id": "bulwark",
+            "name": "Bulwark Pod",
+            "priceCredits": 1
+          },
+          {
+            "id": "nova",
+            "name": "Nova Pod",
+            "priceCredits": 1
+          }
+        ],
+        "allowCustomStyle": false
+      }
+    },
+    {
       "id": "eras:mode_turn_based_tactical",
       "name": "Turn-Based Tactical",
       "type": "mode",
@@ -241,7 +433,7 @@
         "background": "#071416",
         "layers": [
           {
-            "char": "⌖",
+            "char": "\u2316",
             "x": 64,
             "y": 64,
             "fontSize": 74,
@@ -257,7 +449,7 @@
             "align": "middle"
           },
           {
-            "char": "×",
+            "char": "\u00d7",
             "x": 64,
             "y": 65,
             "fontSize": 32,
@@ -314,7 +506,7 @@
         "background": "#100d1e",
         "layers": [
           {
-            "char": "◉",
+            "char": "\u25c9",
             "x": 64,
             "y": 64,
             "fontSize": 74,
@@ -330,7 +522,7 @@
             "align": "middle"
           },
           {
-            "char": "✦",
+            "char": "\u2726",
             "x": 64,
             "y": 64,
             "fontSize": 30,
@@ -387,7 +579,7 @@
         "background": "#071512",
         "layers": [
           {
-            "char": "▦",
+            "char": "\u25a6",
             "x": 64,
             "y": 64,
             "fontSize": 70,
@@ -403,7 +595,7 @@
             "align": "middle"
           },
           {
-            "char": "•",
+            "char": "\u2022",
             "x": 64,
             "y": 64,
             "fontSize": 24,
@@ -460,7 +652,7 @@
         "background": "#12100b",
         "layers": [
           {
-            "char": "▰",
+            "char": "\u25b0",
             "x": 64,
             "y": 40,
             "fontSize": 48,
@@ -476,7 +668,7 @@
             "align": "middle"
           },
           {
-            "char": "▰",
+            "char": "\u25b0",
             "x": 64,
             "y": 65,
             "fontSize": 48,
@@ -492,7 +684,7 @@
             "align": "middle"
           },
           {
-            "char": "▰",
+            "char": "\u25b0",
             "x": 64,
             "y": 90,
             "fontSize": 48,
@@ -549,7 +741,7 @@
         "background": "#171006",
         "layers": [
           {
-            "char": "☼",
+            "char": "\u263c",
             "x": 64,
             "y": 64,
             "fontSize": 78,
@@ -565,7 +757,7 @@
             "align": "middle"
           },
           {
-            "char": "•",
+            "char": "\u2022",
             "x": 64,
             "y": 64,
             "fontSize": 23,
@@ -622,7 +814,7 @@
         "background": "#071016",
         "layers": [
           {
-            "char": "▦",
+            "char": "\u25a6",
             "x": 64,
             "y": 64,
             "fontSize": 76,
@@ -695,7 +887,7 @@
         "background": "#10090c",
         "layers": [
           {
-            "char": "➤",
+            "char": "\u27a4",
             "x": 61,
             "y": 64,
             "fontSize": 74,
@@ -711,7 +903,7 @@
             "align": "middle"
           },
           {
-            "char": "≡",
+            "char": "\u2261",
             "x": 91,
             "y": 65,
             "fontSize": 26,
@@ -769,7 +961,7 @@
         "background": "#16080a",
         "layers": [
           {
-            "char": "⚔",
+            "char": "\u2694",
             "x": 64,
             "y": 64,
             "fontSize": 72,
@@ -785,7 +977,7 @@
             "align": "middle"
           },
           {
-            "char": "•",
+            "char": "\u2022",
             "x": 64,
             "y": 64,
             "fontSize": 17,
@@ -867,7 +1059,7 @@
         "background": "#07111b",
         "layers": [
           {
-            "char": "⬡",
+            "char": "\u2b21",
             "x": 64,
             "y": 64,
             "fontSize": 76,
@@ -883,7 +1075,7 @@
             "align": "middle"
           },
           {
-            "char": "•",
+            "char": "\u2022",
             "x": 64,
             "y": 64,
             "fontSize": 21,
@@ -965,7 +1157,7 @@
         "background": "#07140d",
         "layers": [
           {
-            "char": "✚",
+            "char": "\u271a",
             "x": 64,
             "y": 64,
             "fontSize": 72,
@@ -981,7 +1173,7 @@
             "align": "middle"
           },
           {
-            "char": "•",
+            "char": "\u2022",
             "x": 64,
             "y": 64,
             "fontSize": 17,
@@ -1063,7 +1255,7 @@
         "background": "#071416",
         "layers": [
           {
-            "char": "➤",
+            "char": "\u27a4",
             "x": 64,
             "y": 64,
             "fontSize": 76,
@@ -1145,7 +1337,7 @@
         "background": "#151006",
         "layers": [
           {
-            "char": "⌁",
+            "char": "\u2301",
             "x": 64,
             "y": 64,
             "fontSize": 78,
@@ -1161,7 +1353,7 @@
             "align": "middle"
           },
           {
-            "char": "•",
+            "char": "\u2022",
             "x": 64,
             "y": 64,
             "fontSize": 16,
@@ -1243,7 +1435,7 @@
         "background": "#100b19",
         "layers": [
           {
-            "char": "◎",
+            "char": "\u25ce",
             "x": 64,
             "y": 64,
             "fontSize": 78,
@@ -1259,7 +1451,7 @@
             "align": "middle"
           },
           {
-            "char": "✦",
+            "char": "\u2726",
             "x": 64,
             "y": 64,
             "fontSize": 22,
@@ -1341,7 +1533,7 @@
         "background": "#160f07",
         "layers": [
           {
-            "char": "▣",
+            "char": "\u25a3",
             "x": 64,
             "y": 64,
             "fontSize": 72,
@@ -1357,7 +1549,7 @@
             "align": "middle"
           },
           {
-            "char": "•",
+            "char": "\u2022",
             "x": 64,
             "y": 64,
             "fontSize": 16,
@@ -1439,7 +1631,7 @@
         "background": "#071319",
         "layers": [
           {
-            "char": "◌",
+            "char": "\u25cc",
             "x": 64,
             "y": 60,
             "fontSize": 70,
@@ -1455,7 +1647,7 @@
             "align": "middle"
           },
           {
-            "char": "…",
+            "char": "\u2026",
             "x": 64,
             "y": 70,
             "fontSize": 28,
@@ -1537,7 +1729,7 @@
         "background": "#18200d",
         "layers": [
           {
-            "char": "♜",
+            "char": "\u265c",
             "x": 64,
             "y": 62,
             "fontSize": 72,
@@ -1553,7 +1745,7 @@
             "align": "middle"
           },
           {
-            "char": "⌘",
+            "char": "\u2318",
             "x": 64,
             "y": 75,
             "fontSize": 26,
@@ -1645,7 +1837,7 @@
         "background": "#1a0709",
         "layers": [
           {
-            "char": "✦",
+            "char": "\u2726",
             "x": 64,
             "y": 64,
             "fontSize": 82,
@@ -1661,7 +1853,7 @@
             "align": "middle"
           },
           {
-            "char": "×",
+            "char": "\u00d7",
             "x": 64,
             "y": 64,
             "fontSize": 30,
@@ -1724,7 +1916,7 @@
         "background": "#07170e",
         "layers": [
           {
-            "char": "✚",
+            "char": "\u271a",
             "x": 64,
             "y": 64,
             "fontSize": 76,
@@ -1740,7 +1932,7 @@
             "align": "middle"
           },
           {
-            "char": "○",
+            "char": "\u25cb",
             "x": 64,
             "y": 64,
             "fontSize": 94,
@@ -1803,7 +1995,7 @@
         "background": "#10091c",
         "layers": [
           {
-            "char": "✧",
+            "char": "\u2727",
             "x": 64,
             "y": 64,
             "fontSize": 82,
@@ -1819,7 +2011,7 @@
             "align": "middle"
           },
           {
-            "char": "•",
+            "char": "\u2022",
             "x": 64,
             "y": 64,
             "fontSize": 20,
@@ -1882,7 +2074,7 @@
         "background": "#07161a",
         "layers": [
           {
-            "char": "➟",
+            "char": "\u279f",
             "x": 64,
             "y": 64,
             "fontSize": 78,
@@ -1946,7 +2138,7 @@
         "background": "#0a1117",
         "layers": [
           {
-            "char": "♪",
+            "char": "\u266a",
             "x": 64,
             "y": 62,
             "fontSize": 82,
@@ -1962,7 +2154,7 @@
             "align": "middle"
           },
           {
-            "char": "·",
+            "char": "\u00b7",
             "x": 89,
             "y": 83,
             "fontSize": 28,
@@ -2055,7 +2247,7 @@
         "background": "#0a1117",
         "layers": [
           {
-            "char": "♪",
+            "char": "\u266a",
             "x": 64,
             "y": 62,
             "fontSize": 82,
@@ -2071,7 +2263,7 @@
             "align": "middle"
           },
           {
-            "char": "·",
+            "char": "\u00b7",
             "x": 89,
             "y": 83,
             "fontSize": 28,
@@ -2162,7 +2354,7 @@
         "background": "#0a1117",
         "layers": [
           {
-            "char": "♪",
+            "char": "\u266a",
             "x": 64,
             "y": 62,
             "fontSize": 82,
@@ -2178,7 +2370,7 @@
             "align": "middle"
           },
           {
-            "char": "·",
+            "char": "\u00b7",
             "x": 89,
             "y": 83,
             "fontSize": 28,
@@ -2269,7 +2461,7 @@
         "background": "#0a1117",
         "layers": [
           {
-            "char": "♪",
+            "char": "\u266a",
             "x": 64,
             "y": 62,
             "fontSize": 82,
@@ -2285,7 +2477,7 @@
             "align": "middle"
           },
           {
-            "char": "·",
+            "char": "\u00b7",
             "x": 89,
             "y": 83,
             "fontSize": 28,

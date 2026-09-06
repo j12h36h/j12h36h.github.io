@@ -9,8 +9,10 @@ import {
   safeAssetTint,
   assetCategory,
   assetDisplayLabel,
-  assetCatalogVariantLabel
-} from '/game/assets/js/catalog-assets.js?v=1.2.0';
+  assetCatalogVariantLabel,
+  assetStylePreset,
+  assetStyleId
+} from '/game/assets/js/catalog-assets.js?v=1.3.0';
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
@@ -63,11 +65,29 @@ function assetKind(asset=state.asset) {
   return assetCategory(asset);
 }
 
+function styleSprite(asset=state.asset) {
+  return assetKind(asset)==='Sprite' && Array.isArray(asset?.variantPolicy?.stylePresets) && asset.variantPolicy.stylePresets.length>0;
+}
+
+function stylePreset(asset, style='') {
+  return assetStylePreset(asset, {style:String(style || asset?.variantPolicy?.defaultStyle || asset?.defaultStyle || '')});
+}
+
+function holdingSpriteVariant(asset, holding) {
+  const stored=String(holding?.tint||'');
+  if (stored.startsWith('sprite|style=')) return {style:stored.slice('sprite|style='.length)};
+  return {tint:safeAssetTint(stored||assetDefaultTint(asset))};
+}
+
 function defaultVariant(asset) {
   const kind = assetKind(asset);
   const p = policy(asset);
 
   if (kind === 'Sprite') {
+    if (Array.isArray(p.stylePresets) && p.stylePresets.length) {
+      const first=p.stylePresets.find(item=>String(item.id)===String(p.defaultStyle||asset.defaultStyle)) || p.stylePresets[0];
+      return { style:String(first?.id || 'standard'), presetName:String(first?.name || 'Standard Pod') };
+    }
     const first = p.tintPresets?.[0];
     return {
       tint: safeAssetTint(first?.value || assetDefaultTint(asset)),
@@ -143,12 +163,21 @@ function variantInfo(asset=state.asset, variant=state.variant) {
   const p = policy(asset);
   let custom = false;
   let label = 'Undefined';
+  let explicitPrice = null;
 
   if (kind === 'Sprite') {
-    const tint = safeAssetTint(variant.tint || assetDefaultTint(asset));
-    const preset = (p.tintPresets || []).find(x => safeAssetTint(x.value) === tint);
-    custom = !preset;
-    label = preset?.name || tint.toUpperCase();
+    if (Array.isArray(p.stylePresets) && p.stylePresets.length) {
+      const style=assetStyleId(asset,variant);
+      const preset=(p.stylePresets||[]).find(x=>String(x.id)===style);
+      custom=!preset;
+      label=String(preset?.name || style || 'Custom Style');
+      explicitPrice=Number(preset?.priceCredits ?? (custom?p.customPriceCredits:p.defaultPriceCredits) ?? 0);
+    } else {
+      const tint = safeAssetTint(variant.tint || assetDefaultTint(asset));
+      const preset = (p.tintPresets || []).find(x => safeAssetTint(x.value) === tint);
+      custom = !preset;
+      label = preset?.name || tint.toUpperCase();
+    }
   }
 
   else if (kind === 'Audio') {
@@ -196,7 +225,7 @@ function variantInfo(asset=state.asset, variant=state.variant) {
     label = preset?.name || `${primary.toUpperCase()} / ${secondary.toUpperCase()} / ${accent.toUpperCase()}`;
   }
 
-  const price = custom ? Number(p.customPriceCredits ?? 1) : Number(p.defaultPriceCredits ?? 0);
+  const price = explicitPrice===null ? (custom ? Number(p.customPriceCredits ?? 1) : Number(p.defaultPriceCredits ?? 0)) : Math.max(0,Number(explicitPrice)||0);
 
   return {
     custom,
@@ -211,6 +240,7 @@ function normalizeVariantPayload(asset, variant) {
   const p = policy(asset);
 
   if (kind === 'Sprite') {
+    if (Array.isArray(p.stylePresets) && p.stylePresets.length) return { style:assetStyleId(asset,variant) };
     return { tint:safeAssetTint(variant.tint || assetDefaultTint(asset)) };
   }
   if (kind === 'Audio') {
@@ -250,6 +280,7 @@ function storagePreview(asset, variant) {
   const p = policy(asset);
 
   if (kind === 'Sprite') {
+    if (Array.isArray(p.stylePresets) && p.stylePresets.length) return `sprite|style=${token(assetStyleId(asset,variant))}`;
     return safeAssetTint(variant.tint || assetDefaultTint(asset));
   }
 
@@ -301,6 +332,7 @@ function holdingVariantLabel(asset, holding) {
   if (!stored) return assetCatalogVariantLabel(asset);
 
   if (stored.startsWith('#')) return stored.toUpperCase();
+  if (stored.startsWith('sprite|style=')) { const id=stored.slice('sprite|style='.length); return String(stylePreset(asset,id)?.name || titleToken(id)); }
   if (stored.startsWith('audio|pitch=')) return titleToken(stored.slice('audio|pitch='.length));
   if (stored.startsWith('audio|rate=')) return `${Number(stored.slice('audio|rate='.length)).toFixed(2)}x CUSTOM`;
   if (stored.startsWith('mode|rule=')) return titleToken(stored.slice('mode|rule='.length));
@@ -409,38 +441,61 @@ function renderVariantEditor() {
   const p=policy(asset);
 
   if (kind==='Sprite') {
-    const row=document.createElement('div');
-    row.className='variant-row';
-    row.innerHTML='<span>PRESET TINTS</span>';
-    const swatches=document.createElement('div');
-    swatches.className='asset-swatches';
-    for (const preset of p.tintPresets||[]) {
-      const button=document.createElement('button');
-      button.type='button';
-      button.style.setProperty('--swatch',safeAssetTint(preset.value));
-      button.title=`${preset.name} — FREE`;
-      button.dataset.tone=safeAssetTint(preset.value);
-      button.addEventListener('click',()=>{
-        state.variant.tint=safeAssetTint(preset.value);
+    if (Array.isArray(p.stylePresets) && p.stylePresets.length) {
+      const select=document.createElement('select');
+      select.className='variant-select';
+      for (const preset of p.stylePresets) {
+        const option=document.createElement('option');
+        option.value=String(preset.id);
+        const cost=Math.max(0,Number(preset.priceCredits)||0);
+        option.textContent=`${preset.name} · ${cost===0?'FREE':`${cost} CREDIT${cost===1?'':'S'}`}`;
+        select.append(option);
+      }
+      select.value=assetStyleId(asset,state.variant);
+      select.addEventListener('change',e=>{
+        state.variant.style=e.target.value;
         syncVariantUI();
       });
-      swatches.append(button);
-    }
-    row.append(swatches);
-    root.append(row);
+      root.append(select);
 
-    const custom=document.createElement('label');
-    custom.className='variant-row';
-    custom.innerHTML='<span>CUSTOM TINT · 1 CREDIT</span>';
-    const color=document.createElement('input');
-    color.type='color';
-    color.value=safeAssetTint(state.variant.tint||assetDefaultTint(asset));
-    color.addEventListener('input',e=>{
-      state.variant.tint=safeAssetTint(e.target.value);
-      syncVariantUI();
-    });
-    custom.append(color);
-    root.append(custom);
+      const note=document.createElement('small');
+      note.className='variant-note';
+      note.textContent='STYLE VARIANTS SWAP INDEPENDENT BODY, ACCENT, COCKPIT, AND TRAIL LAYERS. THE WHOLE SPRITE IS NEVER FLAT-TINTED.';
+      root.append(note);
+    } else {
+      const row=document.createElement('div');
+      row.className='variant-row';
+      row.innerHTML='<span>PRESET TINTS</span>';
+      const swatches=document.createElement('div');
+      swatches.className='asset-swatches';
+      for (const preset of p.tintPresets||[]) {
+        const button=document.createElement('button');
+        button.type='button';
+        button.style.setProperty('--swatch',safeAssetTint(preset.value));
+        button.title=`${preset.name} — FREE`;
+        button.dataset.tone=safeAssetTint(preset.value);
+        button.addEventListener('click',()=>{
+          state.variant.tint=safeAssetTint(preset.value);
+          syncVariantUI();
+        });
+        swatches.append(button);
+      }
+      row.append(swatches);
+      root.append(row);
+
+      const custom=document.createElement('label');
+      custom.className='variant-row';
+      custom.innerHTML='<span>CUSTOM TINT · 1 CREDIT</span>';
+      const color=document.createElement('input');
+      color.type='color';
+      color.value=safeAssetTint(state.variant.tint||assetDefaultTint(asset));
+      color.addEventListener('input',e=>{
+        state.variant.tint=safeAssetTint(e.target.value);
+        syncVariantUI();
+      });
+      custom.append(color);
+      root.append(custom);
+    }
   }
 
   else if (kind==='Audio') {
@@ -683,7 +738,8 @@ function syncVariantUI() {
   });
 
   if (assetKind()==='Sprite') {
-    renderAssetCanvas($('#assetCanvas'),state.asset,safeAssetTint(state.variant.tint||assetDefaultTint(state.asset))).catch(()=>{});
+    const previewVariant=styleSprite(state.asset) ? {style:assetStyleId(state.asset,state.variant)} : safeAssetTint(state.variant.tint||assetDefaultTint(state.asset));
+    renderAssetCanvas($('#assetCanvas'),state.asset,previewVariant).catch(()=>{});
   }
 
   updateObtainState();
@@ -704,10 +760,10 @@ async function renderSelectedAsset() {
   if (kind==='Sprite') {
     canvas.hidden=false;
     image.hidden=true;
-    const tint=state.selectedHolding
-      ? safeAssetTint(state.selectedHolding.tint||assetDefaultTint(state.asset))
-      : safeAssetTint(state.variant.tint||assetDefaultTint(state.asset));
-    await renderAssetCanvas(canvas,state.asset,tint);
+    const spriteVariant=state.selectedHolding
+      ? holdingSpriteVariant(state.asset,state.selectedHolding)
+      : (styleSprite(state.asset) ? {style:assetStyleId(state.asset,state.variant)} : {tint:safeAssetTint(state.variant.tint||assetDefaultTint(state.asset))});
+    await renderAssetCanvas(canvas,state.asset,spriteVariant);
   } else {
     canvas.hidden=true;
     image.hidden=false;
@@ -811,7 +867,7 @@ function collectionPreview(asset,holding) {
     canvas.width=96;
     canvas.height=96;
     wrap.append(canvas);
-    renderAssetCanvas(canvas,asset,safeAssetTint(holding.tint||assetDefaultTint(asset))).catch(()=>{});
+    renderAssetCanvas(canvas,asset,holdingSpriteVariant(asset,holding)).catch(()=>{});
   } else {
     const img=document.createElement('img');
     img.src=assetPreviewUrl(asset);
