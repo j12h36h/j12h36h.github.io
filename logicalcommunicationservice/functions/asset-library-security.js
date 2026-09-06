@@ -234,9 +234,20 @@ exports.acquireAssetVariant = onCall(async request => {
   const holdingRef = db.doc(`assetHoldings/${holdingId}`);
   const receiptRef = db.doc(`assetVariantPurchases/${holdingId}`);
   const walletRef = db.doc(`creditWallets/${profileId}`);
+  const legacyPodStorage = assetId === 'eras:escape_pod' ? ({
+    comet:'mode|custom_rule=comet_pod',
+    aurora:'mode|custom_rule=aurora_pod',
+    bulwark:'mode|custom_rule=bulwark_pod',
+    nova:'mode|custom_rule=nova_pod'
+  })[String(normalized.runtime?.style || '')] : '';
+  const legacyPodHoldingId = legacyPodStorage
+    ? deterministicId(profileId,'eras:mode_escape_pod_dash',legacyPodStorage)
+    : '';
+  const legacyPodHoldingRef = legacyPodHoldingId ? db.doc(`assetHoldings/${legacyPodHoldingId}`) : null;
 
   let charged = 0;
   let duplicate = false;
+  let migrated = false;
 
   await db.runTransaction(async tx => {
     const existing = await tx.get(holdingRef);
@@ -248,7 +259,18 @@ exports.acquireAssetVariant = onCall(async request => {
       return;
     }
 
-    if (normalized.price > 0) {
+    let legacyPodHolding = null;
+    if (legacyPodHoldingRef) {
+      const legacySnap = await tx.get(legacyPodHoldingRef);
+      if (legacySnap.exists
+          && String(legacySnap.data()?.ownerProfileId || '') === profileId
+          && legacySnap.data()?.archived !== true) {
+        legacyPodHolding = legacySnap;
+        migrated = true;
+      }
+    }
+
+    if (normalized.price > 0 && !legacyPodHolding) {
       const wallet = await tx.get(walletRef);
       const balance = Number(wallet.data()?.balance ?? 0);
       if (!wallet.exists || balance < normalized.price) {
@@ -262,6 +284,16 @@ exports.acquireAssetVariant = onCall(async request => {
         lastEventId:holdingId,
         lastEventType:'market_purchase',
         updatedAt:FieldValue.serverTimestamp()
+      });
+    }
+
+    if (legacyPodHolding && legacyPodHoldingRef) {
+      tx.update(legacyPodHoldingRef,{
+        archived:true,
+        archivedAt:FieldValue.serverTimestamp(),
+        updatedAt:FieldValue.serverTimestamp(),
+        lastEventId:holdingId,
+        lastEventType:'escape_pod_asset_migration'
       });
     }
 
@@ -296,7 +328,8 @@ exports.acquireAssetVariant = onCall(async request => {
     variantLabel:normalized.label,
     custom:normalized.custom,
     priceCharged:duplicate?0:charged,
-    duplicate
+    duplicate,
+    migrated
   };
 });
 
