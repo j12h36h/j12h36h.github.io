@@ -1,6 +1,7 @@
 import { db, fs, watchIdentity, safeText, profileById, avatarSvg } from '/game/assets/js/eras-data.js';
 import { hostedMode } from '/game/config/hosted-modes.js?v=1.5.0';
 import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.1.0';
+import { claimGlobalArcadeMilestones, milestoneRewardMessage } from '/game/assets/js/global-arcade-rewards.js?v=1.0.0';
 
 const $=s=>document.querySelector(s), params=new URLSearchParams(location.search);
 const lobbyId=params.get('lobby')||'';
@@ -245,7 +246,39 @@ function frame(ts){const g=state.game;if(!g?.running)return;const dt=Math.min(.0
 function globalDocId(profileId=''){return `side-scroller-best__${String(profileId||'').replace(/[^0-9a-zA-Z-]/g,'').slice(0,64)}`;}
 function encodeScore(score){const distance=Math.max(0,Math.min(2000000000,Math.floor(Number(score)||0)));return{distance,label:`${SCORE_PREFIX}:${distance}`};}
 function decodeScore(action){if(!action||action.worldId!==GLOBAL_WORLD||action.actionType!=='interact'||action.targetType!=='object'||action.targetId!==GLOBAL_TARGET||action.status!=='resolved')return null;const m=String(action.targetLabel||'').match(/^SC:(\d+)$/);if(!m)return null;const distance=Number(m[1]);if(!Number.isInteger(distance)||distance<0||distance>2000000000)return null;return{profileId:String(action.actorProfileId||''),bestDistance:distance};}
-async function submitGlobalScore(score){if(!globalMode||!state.identity?.profileId)return;const encoded=encodeScore(score),ref=fs.doc(db,'gameActions',globalDocId(state.identity.profileId));try{const old=await fs.getDoc(ref);if(old.exists()){const prior=decodeScore(old.data());if(prior&&prior.bestDistance>=encoded.distance){await loadLeaderboard();return;}await fs.deleteDoc(ref);}const turn=Math.max(1,Math.floor(encoded.distance/100)+1);await fs.setDoc(ref,{worldId:GLOBAL_WORLD,actorProfileId:state.identity.profileId,actionType:'interact',targetType:'object',targetId:GLOBAL_TARGET,targetLabel:encoded.label,declaredTurn:turn,resolveTurn:turn+1,status:'queued',outcome:'',createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),resolvedAt:null});await fs.updateDoc(ref,{status:'resolved',outcome:'resolved',updatedAt:fs.serverTimestamp(),resolvedAt:fs.serverTimestamp()});await loadLeaderboard();}catch(e){console.error('Side Scroller global score',e);say(`Best saved locally // global scoreboard unavailable: ${e?.code||e?.message||'error'}`,'error');}}
+async function claimSideScrollerRewards(){
+  try{
+    const reward=await claimGlobalArcadeMilestones('side-scroller');
+    const message=milestoneRewardMessage(reward,'DISTANCE');
+    if(message)say(message,'ok');
+  }catch(e){
+    console.debug('Side Scroller milestone reward',e?.code||e?.message||e);
+  }
+}
+async function submitGlobalScore(score){
+  if(!globalMode||!state.identity?.profileId)return;
+  const encoded=encodeScore(score),ref=fs.doc(db,'gameActions',globalDocId(state.identity.profileId));
+  try{
+    const old=await fs.getDoc(ref);
+    if(old.exists()){
+      const prior=decodeScore(old.data());
+      if(prior&&prior.bestDistance>=encoded.distance){
+        await loadLeaderboard();
+        await claimSideScrollerRewards();
+        return;
+      }
+      await fs.deleteDoc(ref);
+    }
+    const turn=Math.max(1,Math.floor(encoded.distance/100)+1);
+    await fs.setDoc(ref,{worldId:GLOBAL_WORLD,actorProfileId:state.identity.profileId,actionType:'interact',targetType:'object',targetId:GLOBAL_TARGET,targetLabel:encoded.label,declaredTurn:turn,resolveTurn:turn+1,status:'queued',outcome:'',createdAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),resolvedAt:null});
+    await fs.updateDoc(ref,{status:'resolved',outcome:'resolved',updatedAt:fs.serverTimestamp(),resolvedAt:fs.serverTimestamp()});
+    await loadLeaderboard();
+    await claimSideScrollerRewards();
+  }catch(e){
+    console.error('Side Scroller global score',e);
+    say(`Best saved locally // global scoreboard unavailable: ${e?.code||e?.message||'error'}`,'error');
+  }
+}
 async function loadLeaderboard(){if(!globalMode)return;const list=$('#sideLeaderboard');if(!list)return;try{const q=fs.query(fs.collection(db,'gameActions'),fs.where('worldId','==',GLOBAL_WORLD),fs.limit(500));const snap=await fs.getDocs(q),best=new Map();snap.forEach(d=>{const r=decodeScore(d.data());if(!r?.profileId)return;const p=best.get(r.profileId);if(!p||r.bestDistance>p.bestDistance)best.set(r.profileId,r);});const rows=[...best.values()].sort((a,b)=>b.bestDistance-a.bestDistance||a.profileId.localeCompare(b.profileId)).slice(0,20);const entries=await Promise.all(rows.map(async r=>{try{const p=await profileById(r.profileId);return{...r,displayName:p?.displayName||'Member'};}catch(_){return{...r,displayName:'Member'};}}));const personal=best.get(state.identity?.profileId||'')?.bestDistance||0;$('#sidePersonalBest').textContent=Math.max(personal,localBest()).toLocaleString();list.innerHTML=entries.length?entries.map((r,i)=>`<li ${r.profileId===state.identity?.profileId?'class="is-you"':''}><i>${String(i+1).padStart(2,'0')}</i><b>${esc(r.displayName)}</b><strong>${r.bestDistance.toLocaleString()}</strong></li>`).join(''):'<li class="is-empty">NO GLOBAL RUNS YET.</li>';}catch(e){console.error(e);list.innerHTML='<li class="is-empty">GLOBAL SCOREBOARD TEMPORARILY UNAVAILABLE.</li>';}}
 
 function bindIdentity(onReady){watchIdentity(async identity=>{state.identity=identity;if(!identity?.profileId){state.playerImage=null;say('Sign in to play.','error');return;}await loadPlayerImage();$('#sideBest').textContent=localBest().toLocaleString();if(globalMode)$('#sidePersonalBest').textContent=localBest().toLocaleString();try{await onReady?.(identity);draw();say('READY // YOUR E.R.A.S. ICON IS THE RUNNER.','ok');}catch(e){console.error(e);say(e?.message||e?.code||'Could not authorize game.','error');}});}

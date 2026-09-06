@@ -585,6 +585,7 @@ function globalArcadeScoreRef(gameId, profileId) {
   const token = globalArcadeProfileToken(profileId);
   if (gameId === 'slime-smash') return db.doc(`gameActions/slime-smash-best__${token}`);
   if (gameId === 'escape-pod-dash') return db.doc(`gameActions/escape-pod-dash-best__${token}`);
+  if (gameId === 'side-scroller') return db.doc(`gameActions/side-scroller-best__${token}`);
   throw new HttpsError('invalid-argument', 'Unsupported Global arcade game.');
 }
 
@@ -628,6 +629,19 @@ function verifiedGlobalArcadeScore(gameId, action, profileId) {
     return distance;
   }
 
+  if (gameId === 'side-scroller') {
+    if (action.worldId !== 'global-side-scroller' || action.targetId !== 'side-scroller-global-score') {
+      throw new HttpsError('failed-precondition', 'The Side Scroller Global score record is invalid.');
+    }
+    const match = String(action.targetLabel || '').match(/^SC:(\d+)$/);
+    if (!match) throw new HttpsError('failed-precondition', 'The Side Scroller Global score payload is invalid.');
+    const distance = Number(match[1]);
+    if (!Number.isInteger(distance) || distance < 0 || distance > 2000000000) {
+      throw new HttpsError('failed-precondition', 'The Side Scroller Global score payload is invalid.');
+    }
+    return distance;
+  }
+
   throw new HttpsError('invalid-argument', 'Unsupported Global arcade game.');
 }
 
@@ -647,7 +661,7 @@ function globalArcadeMilestoneState(score) {
 exports.claimGlobalArcadeMilestones = onCall(async request => {
   const profileId = await callerProfileId(request);
   const gameId = cleanString(request.data?.gameId, 40);
-  if (!['slime-smash','escape-pod-dash'].includes(gameId)) {
+  if (!['slime-smash','escape-pod-dash','side-scroller'].includes(gameId)) {
     throw new HttpsError('invalid-argument', 'Unsupported Global arcade game.');
   }
 

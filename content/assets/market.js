@@ -835,6 +835,7 @@ async function acquireSelectedAsset() {
   button.textContent='ADDING…';
 
   try {
+    await auth.currentUser.getIdToken(true);
     const result=await acquireAssetVariantCall({
       assetId:state.asset.id,
       variant:info.payload
@@ -850,7 +851,10 @@ async function acquireSelectedAsset() {
     );
   } catch (error) {
     console.error('Acquire asset variant',error);
-    say(`Could not add asset: ${error?.message||error}`,'error');
+    const code=String(error?.code||'').replace(/^functions\//,'').toUpperCase();
+    const stage=String(error?.details?.stage||'');
+    const suffix=[code,stage].filter(Boolean).join(' // ');
+    say(`Could not add asset: ${error?.message||error}${suffix?` [${suffix}]`:''}`,'error');
   } finally {
     button.disabled=false;
     button.textContent=old;

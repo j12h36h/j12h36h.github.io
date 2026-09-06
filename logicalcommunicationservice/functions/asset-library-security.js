@@ -1,7 +1,7 @@
 const crypto = require('node:crypto');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { getApps, initializeApp } = require('firebase-admin/app');
-const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -225,29 +225,130 @@ function deterministicId(profileId,assetId,storage) {
   return `market__${profileId}__${assetId.replace(/[^a-zA-Z0-9_-]/g,'_')}__${digest}`.slice(0,180);
 }
 
+async function acquireEscapePodVariant(profileId, normalized) {
+  const assetId = 'eras:escape_pod';
+  const style = String(normalized.runtime?.style || '');
+  if (!['standard','comet','aurora','bulwark','nova'].includes(style)) {
+    throw new HttpsError('invalid-argument','Unknown Escape Pod Style.');
+  }
+
+  const holdingId = deterministicId(profileId,assetId,normalized.storage);
+  const holdingRef = db.doc(`assetHoldings/${holdingId}`);
+  const receiptRef = db.doc(`assetVariantPurchases/${holdingId}`);
+  const walletRef = db.doc(`creditWallets/${profileId}`);
+  const now = Timestamp.now();
+  let charged = 0;
+  let duplicate = false;
+
+  try {
+    await db.runTransaction(async tx => {
+      // All reads happen before writes. The receipt uses set() rather than create()
+      // so an orphaned/older deterministic receipt cannot crash a retry.
+      const [holdingSnap,walletSnap] = await Promise.all([
+        tx.get(holdingRef),
+        tx.get(walletRef)
+      ]);
+
+      if (holdingSnap.exists) {
+        if (String(holdingSnap.data()?.ownerProfileId || '') !== profileId) {
+          throw new HttpsError('permission-denied','That Escape Pod holding belongs to another profile.');
+        }
+        duplicate = true;
+        return;
+      }
+
+      if (normalized.price > 0) {
+        if (!walletSnap.exists) {
+          throw new HttpsError('failed-precondition','Your E.R.A.S. Credit wallet is not initialized yet.');
+        }
+        const wallet = walletSnap.data() || {};
+        const balance = Math.max(0,Number(wallet.balance || 0));
+        if (balance < normalized.price) {
+          throw new HttpsError('failed-precondition','Not enough Credits for this Escape Pod Style.');
+        }
+        charged = normalized.price;
+        tx.set(walletRef,{
+          profileId,
+          balance:balance-charged,
+          totalEarned:Math.max(0,Number(wallet.totalEarned || 0)),
+          totalLost:Math.max(0,Number(wallet.totalLost || 0))+charged,
+          lastEventId:holdingId,
+          lastEventType:'market_purchase',
+          createdAt:wallet.createdAt || now,
+          updatedAt:now
+        },{merge:true});
+      }
+
+      tx.set(holdingRef,{
+        ownerProfileId:profileId,
+        assetId,
+        tint:normalized.storage,
+        acquiredAt:now,
+        updatedAt:now,
+        lastEventId:holdingId,
+        lastEventType:'market_acquire',
+        archived:false,
+        archivedAt:null
+      });
+
+      tx.set(receiptRef,{
+        profileId,
+        assetId,
+        holdingId,
+        variant:normalized.storage,
+        custom:normalized.custom,
+        priceCredits:normalized.price,
+        chargedCredits:charged,
+        createdAt:now,
+        updatedAt:now
+      },{merge:true});
+    });
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    console.error('Escape Pod purchase transaction failed',{
+      profileId, style, holdingId,
+      code:String(error?.code || ''),
+      message:String(error?.message || error || '')
+    });
+    throw new HttpsError(
+      'aborted',
+      'Escape Pod purchase could not commit. No Credits were charged. Retry once.',
+      { stage:'escape-pod-purchase', style, backendCode:String(error?.code || 'unknown') }
+    );
+  }
+
+  return {
+    ok:true,
+    holdingId,
+    assetId,
+    variant:normalized.storage,
+    variantLabel:normalized.label,
+    custom:normalized.custom,
+    priceCharged:duplicate?0:charged,
+    duplicate,
+    migrated:false
+  };
+}
+
 exports.acquireAssetVariant = onCall(async request => {
   const uid = requireAuth(request);
   const profileId = await callerProfile(uid);
   const assetId = String(request.data?.assetId || '');
   const normalized = normalizeVariant(assetId,request.data?.variant || {});
+
+  // Escape Pods use a dedicated style transaction. This keeps Sprite Style
+  // purchases aligned between Asset Library + Escape Pod Dash and avoids the
+  // old Mode-variant migration path that could surface as INTERNAL [0].
+  if (assetId === 'eras:escape_pod') {
+    return acquireEscapePodVariant(profileId,normalized);
+  }
+
   const holdingId = deterministicId(profileId,assetId,normalized.storage);
   const holdingRef = db.doc(`assetHoldings/${holdingId}`);
   const receiptRef = db.doc(`assetVariantPurchases/${holdingId}`);
   const walletRef = db.doc(`creditWallets/${profileId}`);
-  const legacyPodStorage = assetId === 'eras:escape_pod' ? ({
-    comet:'mode|custom_rule=comet_pod',
-    aurora:'mode|custom_rule=aurora_pod',
-    bulwark:'mode|custom_rule=bulwark_pod',
-    nova:'mode|custom_rule=nova_pod'
-  })[String(normalized.runtime?.style || '')] : '';
-  const legacyPodHoldingId = legacyPodStorage
-    ? deterministicId(profileId,'eras:mode_escape_pod_dash',legacyPodStorage)
-    : '';
-  const legacyPodHoldingRef = legacyPodHoldingId ? db.doc(`assetHoldings/${legacyPodHoldingId}`) : null;
-
   let charged = 0;
   let duplicate = false;
-  let migrated = false;
 
   await db.runTransaction(async tx => {
     const existing = await tx.get(holdingRef);
@@ -259,45 +360,23 @@ exports.acquireAssetVariant = onCall(async request => {
       return;
     }
 
-    let legacyPodHolding = null;
-    if (legacyPodHoldingRef) {
-      const legacySnap = await tx.get(legacyPodHoldingRef);
-      if (legacySnap.exists
-          && String(legacySnap.data()?.ownerProfileId || '') === profileId
-          && legacySnap.data()?.archived !== true) {
-        legacyPodHolding = legacySnap;
-        migrated = true;
-      }
-    }
-
-    if (normalized.price > 0 && !legacyPodHolding) {
+    if (normalized.price > 0) {
       const wallet = await tx.get(walletRef);
       const balance = Number(wallet.data()?.balance ?? 0);
       if (!wallet.exists || balance < normalized.price) {
         throw new HttpsError('failed-precondition','Not enough Credits for this custom variation.');
       }
-
       charged = normalized.price;
       tx.update(walletRef,{
         balance:balance-charged,
-        totalLost:Number(wallet.data()?.totalLost ?? 0),
+        totalLost:Number(wallet.data()?.totalLost ?? 0)+charged,
         lastEventId:holdingId,
         lastEventType:'market_purchase',
         updatedAt:FieldValue.serverTimestamp()
       });
     }
 
-    if (legacyPodHolding && legacyPodHoldingRef) {
-      tx.update(legacyPodHoldingRef,{
-        archived:true,
-        archivedAt:FieldValue.serverTimestamp(),
-        updatedAt:FieldValue.serverTimestamp(),
-        lastEventId:holdingId,
-        lastEventType:'escape_pod_asset_migration'
-      });
-    }
-
-    tx.create(holdingRef,{
+    tx.set(holdingRef,{
       ownerProfileId:profileId,
       assetId,
       tint:normalized.storage,
@@ -309,7 +388,7 @@ exports.acquireAssetVariant = onCall(async request => {
       archivedAt:null
     });
 
-    tx.create(receiptRef,{
+    tx.set(receiptRef,{
       profileId,
       assetId,
       holdingId,
@@ -317,7 +396,7 @@ exports.acquireAssetVariant = onCall(async request => {
       custom:normalized.custom,
       priceCredits:normalized.price,
       createdAt:FieldValue.serverTimestamp()
-    });
+    },{merge:true});
   });
 
   return {
@@ -329,7 +408,7 @@ exports.acquireAssetVariant = onCall(async request => {
     custom:normalized.custom,
     priceCharged:duplicate?0:charged,
     duplicate,
-    migrated
+    migrated:false
   };
 });
 
