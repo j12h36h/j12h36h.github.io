@@ -1,8 +1,6 @@
-import { db, fs, watchIdentity, safeText } from '/game/assets/js/eras-data.js';
+import { db, fs, watchIdentity, safeText, profileById } from '/game/assets/js/eras-data.js';
 import { hostedMode, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.2.0';
 import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.0.0';
-import { getApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
 const $=s=>document.querySelector(s);
 const params=new URLSearchParams(location.search);
@@ -12,13 +10,9 @@ const state={identity:null,lobby:null,mode:null,game:null,raf:0,accessLeaseStop:
 const slimeImage='/public-assets/textures/slime_monochrome.png';
 const esc=safeText;
 const GLOBAL_RULES=Object.freeze({startingSeconds:15,timeGainSeconds:.35,scorePerSlime:100});
-let getGlobalLeaderboardCall=null,submitGlobalScoreCall=null;
-
-if(globalMode){
-  const functions=getFunctions(getApp('site-account'));
-  getGlobalLeaderboardCall=httpsCallable(functions,'getGlobalSlimeSmashLeaderboard');
-  submitGlobalScoreCall=httpsCallable(functions,'submitGlobalSlimeSmashScore');
-}
+const GLOBAL_SCORE_WORLD='global-slime-smash';
+const GLOBAL_SCORE_TARGET='slime-smash-global-score';
+const GLOBAL_SCORE_PREFIX='SS';
 
 function say(message,tone=''){
   const el=$('#gameFeedback');
@@ -76,34 +70,97 @@ function renderLeaderboard(payload={}){
   list.innerHTML=entries.map((entry,index)=>`<li ${entry.profileId===state.identity?.profileId?'class="is-you"':''}><i>${String(index+1).padStart(2,'0')}</i><b>${esc(entry.displayName||'Member')}</b><span>${Math.max(1,Math.floor(Number(entry.bestWave)||1)).toLocaleString()}</span><strong>${Math.max(0,Math.floor(Number(entry.bestScore)||0)).toLocaleString()}</strong></li>`).join('');
 }
 
+function globalScoreDocId(profileId=''){
+  return `slime-smash-best__${String(profileId||'').replace(/[^0-9a-zA-Z-]/g,'').slice(0,64)}`;
+}
+
+function encodeGlobalScore(game){
+  const score=Math.max(0,Math.min(2000000000,Math.floor(Number(game?.score)||0)));
+  const hits=Math.max(0,Math.min(20000000,Math.floor(Number(game?.hits)||0)));
+  const wave=Math.max(1,Math.min(20000001,Math.floor(Number(game?.wave)||1)));
+  const durationMs=Math.max(0,Math.min(3600000,Math.floor(Date.now()-Number(game?.startedAt||Date.now()))));
+  if(wave!==hits+1||score!==hits*100)return null;
+  return {score,hits,wave,durationMs,label:`${GLOBAL_SCORE_PREFIX}:${score}:${wave}:${hits}:${durationMs}`};
+}
+
+function decodeGlobalScore(action){
+  if(!action||action.worldId!==GLOBAL_SCORE_WORLD||action.actionType!=='interact'||action.targetType!=='object'||action.targetId!==GLOBAL_SCORE_TARGET||action.status!=='resolved')return null;
+  const match=String(action.targetLabel||'').match(/^SS:(\d+):(\d+):(\d+):(\d+)$/);
+  if(!match)return null;
+  const score=Number(match[1]),wave=Number(match[2]),hits=Number(match[3]),durationMs=Number(match[4]);
+  if(!Number.isInteger(score)||score<0||score>2000000000)return null;
+  if(!Number.isInteger(hits)||hits<0||hits>20000000)return null;
+  if(!Number.isInteger(wave)||wave!==hits+1||wave<1||wave>20000001)return null;
+  if(score!==hits*100||!Number.isInteger(durationMs)||durationMs<0||durationMs>3600000)return null;
+  return {profileId:String(action.actorProfileId||''),bestScore:score,bestWave:wave,hits,durationMs};
+}
+
 async function loadGlobalLeaderboard(){
-  if(!globalMode||!getGlobalLeaderboardCall)return;
+  if(!globalMode)return;
   try{
-    const result=await getGlobalLeaderboardCall({limit:20});
-    renderLeaderboard(result?.data||{});
+    const q=fs.query(fs.collection(db,'gameActions'),fs.where('worldId','==',GLOBAL_SCORE_WORLD),fs.limit(500));
+    const snap=await fs.getDocs(q);
+    const bestByProfile=new Map();
+    snap.forEach(docSnap=>{
+      const parsed=decodeGlobalScore(docSnap.data());
+      if(!parsed?.profileId)return;
+      const current=bestByProfile.get(parsed.profileId);
+      if(!current||parsed.bestScore>current.bestScore||(parsed.bestScore===current.bestScore&&parsed.bestWave>current.bestWave))bestByProfile.set(parsed.profileId,parsed);
+    });
+    const top=[...bestByProfile.values()].sort((a,b)=>b.bestScore-a.bestScore||b.bestWave-a.bestWave||a.profileId.localeCompare(b.profileId)).slice(0,20);
+    const entries=await Promise.all(top.map(async row=>{
+      try{const profile=await profileById(row.profileId);return {...row,displayName:profile?.displayName||'Member'};}
+      catch(_){return {...row,displayName:'Member'};}
+    }));
+    const personalBest=bestByProfile.get(state.identity?.profileId||'')?.bestScore||0;
+    renderLeaderboard({entries,personalBest});
   }catch(error){
-    console.debug('Global Slime Smash leaderboard',error?.code||error);
+    console.error('Global Slime Smash leaderboard',error);
     const list=$('#slimeLeaderboard');
-    if(list)list.innerHTML='<li class="is-empty">GLOBAL SCOREBOARD UNAVAILABLE // DEPLOY FUNCTIONS-ONLY BACKEND PATCH.</li>';
+    if(list)list.innerHTML='<li class="is-empty">GLOBAL SCOREBOARD TEMPORARILY UNAVAILABLE.</li>';
     const personal=$('#slimePersonalBest');if(personal)personal.textContent=localBest().toLocaleString();
   }
 }
 
 async function submitGlobalScore(game){
-  if(!globalMode||!submitGlobalScoreCall||!state.identity?.profileId||!game)return;
-  const score=Math.max(0,Math.floor(game.score||0));
-  const hits=Math.max(0,Math.floor(game.hits||0));
-  const wave=Math.max(1,Math.floor(game.wave||1));
-  const durationMs=Math.max(0,Math.floor(Date.now()-Number(game.startedAt||Date.now())));
+  if(!globalMode||!state.identity?.profileId||!game)return;
+  const encoded=encodeGlobalScore(game);
+  if(!encoded)return;
+  const id=globalScoreDocId(state.identity.profileId);
+  const ref=fs.doc(db,'gameActions',id);
   try{
-    const result=await submitGlobalScoreCall({score,hits,wave,durationMs});
-    if(result?.data?.personalBest!=null){
-      const personal=$('#slimePersonalBest');if(personal)personal.textContent=Math.max(localBest(),Number(result.data.personalBest)||0).toLocaleString();
+    const existing=await fs.getDoc(ref);
+    if(existing.exists()){
+      const prior=decodeGlobalScore(existing.data());
+      if(prior&&prior.bestScore>=encoded.score){await loadGlobalLeaderboard();return;}
+      await fs.deleteDoc(ref);
     }
+    const turn=Math.max(1,encoded.wave);
+    await fs.setDoc(ref,{
+      worldId:GLOBAL_SCORE_WORLD,
+      actorProfileId:state.identity.profileId,
+      actionType:'interact',
+      targetType:'object',
+      targetId:GLOBAL_SCORE_TARGET,
+      targetLabel:encoded.label,
+      declaredTurn:turn,
+      resolveTurn:turn+1,
+      status:'queued',
+      outcome:'',
+      createdAt:fs.serverTimestamp(),
+      updatedAt:fs.serverTimestamp(),
+      resolvedAt:null
+    });
+    await fs.updateDoc(ref,{
+      status:'resolved',
+      outcome:'resolved',
+      updatedAt:fs.serverTimestamp(),
+      resolvedAt:fs.serverTimestamp()
+    });
     await loadGlobalLeaderboard();
   }catch(error){
     console.error('Global Slime Smash score submit',error);
-    say(`Score saved locally // global submit failed: ${error?.code||error?.message||'backend unavailable'}`,'error');
+    say(`Score saved locally // global scoreboard write failed: ${error?.code||error?.message||'unavailable'}`,'error');
   }
 }
 
