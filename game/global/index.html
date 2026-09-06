@@ -1,94 +1,47 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>const q=new URLSearchParams(location.search);if(q.get("lobby"))location.replace(`/game/tactical/${location.search}${location.hash}`);</script>
   <script src="/game/assets/js/mobile-route.js"></script>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#02090b">
-  <title>Global Tactical Table — E.R.A.S.</title>
+  <meta name="description" content="Choose a persistent site-hosted E.R.A.S. Global game.">
+  <title>Global Games — Project E.R.A.S.</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=1.8.0">
-  <link rel="stylesheet" href="/game/inventory/inventory.css?v=2.1.0">
+  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=2.1.0">
+  <link rel="stylesheet" href="./global-select.css?v=1.0.0">
   <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260901-dm6">
-  <link rel="stylesheet" href="/game/assets/css/hosted-runtime-assets.css?v=1.0.0">
-  <link rel="stylesheet" href="/game/assets/css/default-runtime-assets.css?v=1.0.0">
 </head>
-<body class="global-page tactical-global-page">
+<body class="runtime-page global-select-page">
   <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
   <header class="site-header">
     <a class="brand" href="/game/"><span class="brand-mark"></span><span>PROJECT E.R.A.S. <b>: GLOBAL</b></span></a>
-    <div class="global-header-actions"><button class="eras-dm-launch" type="button" data-eras-messages>CHAT</button><button class="game-inventory-button" id="gameInventoryButton" type="button">INVENTORY [I]</button><a class="game-trade-link" href="/trade/">ASSET TRADE</a><div class="game-credit-header" title="Universal Credits">◈ <b id="creditBalance">0</b> CREDITS</div></div><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
+    <button class="eras-dm-launch" type="button" data-eras-messages>CHAT</button>
+    <div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
   </header>
-
-  <main class="global-shell">
-    <div class="turn-clock" aria-live="polite">
-      <div class="turn-progress" id="turnProgress"><span></span></div>
-      <div class="turn-copy"><small>GLOBAL REFRESH</small><strong id="turnCountdown">01:00</strong><em id="turnState">LIVE DECLARATION WINDOW</em></div>
-    </div>
-
-    <div class="global-hud">
-      <div class="global-hud-box"><b id="worldName">GLOBAL TABLE</b><span id="worldState">CONNECTING TO FIRESTORE WORLD…</span></div>
-      <div class="global-hud-box"><b>MOVEMENT</b><span>WASD / ARROWS // CLICK BOARD TO AUTO-MOVE</span></div>
-    </div>
-
-    <div class="global-map-viewport" id="globalViewport" aria-label="Player-follow tactical camera viewport">
-      <section class="global-map tactical-board" id="globalMap" aria-label="Top-down E.R.A.S. tactical battlefield">
-      <div class="battle-zone battle-zone-north" aria-hidden="true"></div>
-      <div class="battle-zone battle-zone-south" aria-hidden="true"></div>
-      <div class="battle-wall wall-a" aria-hidden="true"></div>
-      <div class="battle-wall wall-b" aria-hidden="true"></div>
-      <div class="battle-cover cover-a" aria-hidden="true"></div>
-      <div class="battle-cover cover-b" aria-hidden="true"></div>
-      <button class="battle-object objective-core" type="button" data-tactical-target="central-relay" data-target-label="CENTRAL RELAY"><i></i><span>CENTRAL RELAY</span></button>
-      <button class="battle-object objective-cache" type="button" data-tactical-target="slime-cache" data-target-label="SLIME CACHE"><i></i><span>SLIME CACHE</span></button>
-      <button class="battle-object objective-terminal" type="button" data-tactical-target="north-terminal" data-target-label="NORTH TERMINAL"><i></i><span>NORTH TERMINAL</span></button>
-      <span class="world-landmark landmark-a">NORTH PLATFORM</span>
-      <span class="world-landmark landmark-b">SLIME YARD</span>
-      </section>
-    </div>
-
-    <section class="left-telemetry-stack" aria-label="Global combat records">
-      <section class="scoreboard-panel" id="scoreboardPanel">
-        <header><b>GLOBAL SCOREBOARD</b><span>ALL-TIME KILLS</span></header>
-        <div class="global-scoreboard" id="globalScoreboard"><div><h3>PVE KILLS</h3><ol><li class="is-empty">LOADING…</li></ol></div><div><h3>PVP KILLS</h3><ol><li class="is-empty">LOADING…</li></ol></div></div>
-      </section>
-      <details class="pvp-record-panel" open>
-        <summary>PVP RECORD <span>ROLLING 10 MARKERS</span></summary>
-        <div class="game-log pvp-record" id="pvpRecord"><section class="game-log-turn is-current"><h3>CURRENT WINDOW</h3><p>NO PVP EVENTS</p></section></div>
-      </details>
-      <details class="game-log-panel" open>
-        <summary>GAME LOG <span>ROLLING 10 MARKERS</span></summary>
-        <div class="game-log" id="gameLog"><section class="game-log-turn is-current"><h3>CURRENT WINDOW</h3><p>NO DECLARATIONS</p></section></div>
-      </details>
+  <main class="global-select-shell">
+    <section class="global-select-heading">
+      <div><p class="runtime-kicker">SITE-HOSTED // PERSISTENT // 24/7</p><h1>GLOBAL GAMES</h1><p>Global is reserved for official E.R.A.S. game worlds operated by the site. Player-hosted games remain exclusively under Join.</p></div>
+      <div class="global-select-status"><b>● ONLINE</b> // 2 GLOBAL GAMES</div>
     </section>
-
-    <aside class="tactical-action-panel">
-      <div class="tactical-stat"><span>MOVE LEFT</span><b id="moveRemaining">50.0 / 50</b><i id="moveBudgetBar"></i><small id="autoMoveState">CLICK / TAP BOARD TO AUTO-MOVE</small></div><div class="tactical-stat"><span>HEALTH</span><b id="playerHealth">5 / 5</b><small id="restState">AUTO REST ARMED // IF IDLE + SAFE AT MARKER</small></div><div class="tactical-stat"><span>ENERGY</span><b id="playerEnergy">1 / 1</b><small>ACTION RESOURCE // REFRESHES EACH TURN + REST</small></div><div class="tactical-stat"><span>ATTACK</span><b id="playerAttack">1–1 // BARE HANDS</b><small>EQUIPMENT SETS DAMAGE RANGE</small></div>
-      <div class="tactical-stat"><span>SELECTED TARGET</span><b id="selectedTarget">NONE</b></div>
-      <div class="tactical-stat"><span>DECLARED ACTION</span><b id="queuedAction">NONE</b></div>
-      <div class="tactical-buttons">
-        <button id="queueAttack" type="button" disabled>QUEUE ATTACK</button>
-        <button id="queueInteract" type="button" disabled>QUEUE INTERACT</button>
-        <button id="cancelAction" class="is-cancel" type="button" disabled>CANCEL ACTION</button>
-        <button id="restAction" class="is-rest" type="button">REST / FULL HEAL</button>
-        <button id="cancelAutoMove" class="is-secondary tactical-button-wide" type="button">STOP AUTO-MOVE</button>
-      </div>
-    </aside>
-
-    <div class="touch-pad" aria-label="Touch movement controls">
-      <button class="touch-up" data-move="up" type="button">▲</button>
-      <button class="touch-left" data-move="left" type="button">◀</button>
-      <button class="touch-right" data-move="right" type="button">▶</button>
-      <button class="touch-down" data-move="down" type="button">▼</button>
-    </div>
-    <div class="global-message" id="globalMessage">SIGN IN TO MATERIALIZE YOUR LCS PROFILE TOKEN IN GLOBAL.</div>
+    <section class="global-game-grid" aria-label="Available E.R.A.S. Global games">
+      <a class="global-game-card" href="/game/global/turn-based/">
+        <div class="global-game-card-top"><span class="global-game-index">GLOBAL // 001</span><span class="global-game-live">24/7</span></div>
+        <div class="global-game-copy"><small>PERSISTENT SHARED WORLD</small><h2>TURN-BASED GLOBAL</h2><p>Enter the existing shared tactical world with movement, combat, inventory, PvE/PvP records, Credits, and the global turn clock.</p></div>
+        <div class="global-game-card-bottom"><div class="global-game-tags"><span>TACTICAL</span><span>PVE</span><span>PVP</span><span>SHARED WORLD</span></div><span class="global-game-enter">ENTER GLOBAL →</span></div>
+      </a>
+      <a class="global-game-card slime-global" href="/game/global/slime-smash/">
+        <img class="global-game-slime-mark" src="/public-assets/textures/slime_monochrome.png" alt="" aria-hidden="true">
+        <div class="global-game-card-top"><span class="global-game-index">GLOBAL // 002</span><span class="global-game-live">24/7</span></div>
+        <div class="global-game-copy"><small>PERSISTENT SCORE ATTACK</small><h2>SLIME SMASH GLOBAL</h2><p>Smash the green slime as it jumps between nine leaves. Every hit adds score and time. Compete on the permanent Global leaderboard.</p></div>
+        <div class="global-game-card-bottom"><div class="global-game-tags"><span>REACTION</span><span>TIMED</span><span>SCORE</span><span>LEADERBOARD</span></div><span class="global-game-enter">ENTER GLOBAL →</span></div>
+      </a>
+    </section>
+    <div class="global-select-note">GLOBAL = SITE-HOSTED 24/7 GAMES // JOIN = PLAYER-HOSTED LOBBIES</div>
   </main>
-
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./global.js?v=2.3.0"></script>
-  <script type="module" src="./messaging.js?v=20260901-dm6"></script>
-  <script type="module" src="/game/assets/js/hosted-runtime-assets.js?v=1.1.0"></script>
-  <script src="/game/assets/js/default-runtime-assets.js?v=1.0.0"></script>
+  <script type="module" src="/game/global/messaging.js?v=20260901-dm6"></script>
 </body>
 </html>

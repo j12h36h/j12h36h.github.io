@@ -1,4 +1,4 @@
-import { normalizeModeSettings } from '/game/config/hosted-modes.js?v=1.0.0';
+import { normalizeModeSettings } from '/game/config/hosted-modes.js?v=1.2.0';
 const ICON_JSON_MAX = 32000;
 const MAX_AREAS = 12;
 const MAX_ITEMS = 32;

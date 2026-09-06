@@ -1,5 +1,5 @@
 import { db, fs, watchIdentity, safeText } from '/game/assets/js/eras-data.js';
-import { hostedMode } from '/game/config/hosted-modes.js?v=1.0.0';
+import { hostedMode } from '/game/config/hosted-modes.js?v=1.2.0';
 import { offersForLobby, purchaseHostedOffer, entitlementUsable } from '/game/assets/js/hosted-commerce.js?v=1.1.0';
 import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join.js?v=1.2.0';
 import { assetPreviewUrl, hydrateVariantPreviewImage } from '/game/assets/js/catalog-assets.js?v=1.1.0';

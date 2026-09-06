@@ -1,13 +1,24 @@
 import { db, fs, watchIdentity, safeText } from '/game/assets/js/eras-data.js';
 import { hostedMode, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.2.0';
-import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.1.0';
+import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.0.0';
+import { getApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
 const $=s=>document.querySelector(s);
 const params=new URLSearchParams(location.search);
 const lobbyId=params.get('lobby')||'';
-const state={identity:null,lobby:null,mode:null,game:null,raf:0,accessLeaseStop:null,hostHeartbeat:0};
+const globalMode=document.body?.dataset?.slimeSmashGlobal==='true';
+const state={identity:null,lobby:null,mode:null,game:null,raf:0,accessLeaseStop:null,hostHeartbeat:0,leaderboardTimer:0};
 const slimeImage='/public-assets/textures/slime_monochrome.png';
 const esc=safeText;
+const GLOBAL_RULES=Object.freeze({startingSeconds:15,timeGainSeconds:.35,scorePerSlime:100});
+let getGlobalLeaderboardCall=null,submitGlobalScoreCall=null;
+
+if(globalMode){
+  const functions=getFunctions(getApp('site-account'));
+  getGlobalLeaderboardCall=httpsCallable(functions,'getGlobalSlimeSmashLeaderboard');
+  submitGlobalScoreCall=httpsCallable(functions,'submitGlobalSlimeSmashScore');
+}
 
 function say(message,tone=''){
   const el=$('#gameFeedback');
@@ -43,13 +54,57 @@ function nextSlot(previous=-1){
   return next;
 }
 
-function scoreKey(){return `eras:slime-smash:best:${lobbyId}:${state.identity?.profileId||'guest'}`;}
+function scoreKey(){return `eras:slime-smash:best:${globalMode?'global':lobbyId}:${state.identity?.profileId||'guest'}`;}
 function localBest(){try{return Math.max(0,Number(localStorage.getItem(scoreKey()))||0);}catch(_){return 0;}}
-function saveRun(status='playing'){
-  if(status!=='finished'||!state.game)return;
+function saveLocalBest(){
+  if(!state.game)return 0;
   const score=Math.max(0,Math.floor(state.game.score||0));
   const best=Math.max(score,localBest());
   try{localStorage.setItem(scoreKey(),String(best));}catch(_){}
+  const personal=$('#slimePersonalBest');if(personal)personal.textContent=best.toLocaleString();
+  return best;
+}
+
+function renderLeaderboard(payload={}){
+  const list=$('#slimeLeaderboard');
+  if(!list)return;
+  const entries=Array.isArray(payload.entries)?payload.entries:[];
+  const serverBest=Math.max(0,Math.floor(Number(payload.personalBest)||0));
+  const best=Math.max(serverBest,localBest());
+  const personal=$('#slimePersonalBest');if(personal)personal.textContent=best.toLocaleString();
+  if(!entries.length){list.innerHTML='<li class="is-empty">NO GLOBAL SCORES YET.</li>';return;}
+  list.innerHTML=entries.map((entry,index)=>`<li ${entry.profileId===state.identity?.profileId?'class="is-you"':''}><i>${String(index+1).padStart(2,'0')}</i><b>${esc(entry.displayName||'Member')}</b><span>${Math.max(1,Math.floor(Number(entry.bestWave)||1)).toLocaleString()}</span><strong>${Math.max(0,Math.floor(Number(entry.bestScore)||0)).toLocaleString()}</strong></li>`).join('');
+}
+
+async function loadGlobalLeaderboard(){
+  if(!globalMode||!getGlobalLeaderboardCall)return;
+  try{
+    const result=await getGlobalLeaderboardCall({limit:20});
+    renderLeaderboard(result?.data||{});
+  }catch(error){
+    console.debug('Global Slime Smash leaderboard',error?.code||error);
+    const list=$('#slimeLeaderboard');
+    if(list)list.innerHTML='<li class="is-empty">GLOBAL SCOREBOARD UNAVAILABLE // DEPLOY FUNCTIONS-ONLY BACKEND PATCH.</li>';
+    const personal=$('#slimePersonalBest');if(personal)personal.textContent=localBest().toLocaleString();
+  }
+}
+
+async function submitGlobalScore(game){
+  if(!globalMode||!submitGlobalScoreCall||!state.identity?.profileId||!game)return;
+  const score=Math.max(0,Math.floor(game.score||0));
+  const hits=Math.max(0,Math.floor(game.hits||0));
+  const wave=Math.max(1,Math.floor(game.wave||1));
+  const durationMs=Math.max(0,Math.floor(Date.now()-Number(game.startedAt||Date.now())));
+  try{
+    const result=await submitGlobalScoreCall({score,hits,wave,durationMs});
+    if(result?.data?.personalBest!=null){
+      const personal=$('#slimePersonalBest');if(personal)personal.textContent=Math.max(localBest(),Number(result.data.personalBest)||0).toLocaleString();
+    }
+    await loadGlobalLeaderboard();
+  }catch(error){
+    console.error('Global Slime Smash score submit',error);
+    say(`Score saved locally // global submit failed: ${error?.code||error?.message||'backend unavailable'}`,'error');
+  }
 }
 
 function finishRun(){
@@ -63,8 +118,9 @@ function finishRun(){
   updateHud();
   $('#startRun').disabled=false;
   $('#startRun').textContent='PLAY AGAIN';
-  saveRun('finished');
-  say(`Time out // final score ${g.score.toLocaleString()} // best ${localBest().toLocaleString()} // wave ${g.wave.toLocaleString()}`,'ok');
+  const best=saveLocalBest();
+  say(`Time out // final score ${g.score.toLocaleString()} // best ${best.toLocaleString()} // wave ${g.wave.toLocaleString()}`,'ok');
+  if(globalMode)submitGlobalScore({...g}).catch(()=>{});
 }
 
 function timerFrame(now){
@@ -82,27 +138,16 @@ function timerFrame(now){
 function startRun(){
   if(!state.identity?.profileId||!state.lobby)return;
   cancelAnimationFrame(state.raf);
-  const cfg=state.lobby.settings?.modeSettings||{};
+  const cfg=state.lobby.settings?.modeSettings||GLOBAL_RULES;
   const startingSeconds=Number(cfg.startingSeconds)||15;
   const timeGainSeconds=Number(cfg.timeGainSeconds)||.35;
   const scorePerSlime=Math.max(1,Math.floor(Number(cfg.scorePerSlime)||100));
-  state.game={
-    running:true,
-    score:0,
-    wave:1,
-    activeSlot:nextSlot(),
-    timeRemaining:startingSeconds,
-    timeGainSeconds,
-    scorePerSlime,
-    hits:0,
-    lastFrame:0
-  };
+  state.game={running:true,score:0,wave:1,activeSlot:nextSlot(),timeRemaining:startingSeconds,timeGainSeconds,scorePerSlime,hits:0,lastFrame:0,startedAt:Date.now()};
   $('#startRun').textContent='RUNNING';
   $('#startRun').disabled=true;
   renderActiveSlot();
   updateHud();
-  say('Smash the slime before the timer reaches zero.','ok');
-  saveRun('playing');
+  say('Smash the green slime before the timer reaches zero.','ok');
   state.raf=requestAnimationFrame(timerFrame);
 }
 
@@ -117,11 +162,10 @@ function smash(slotIndex){
   g.activeSlot=nextSlot(previous);
   renderActiveSlot(previous);
   updateHud();
-  if(g.hits%10===0)saveRun('playing');
 }
 
 function renderLobby(){
-  const cfg=state.lobby.settings?.modeSettings||{};
+  const cfg=state.lobby.settings?.modeSettings||GLOBAL_RULES;
   $('#lobbyTitle').textContent=(state.lobby.name||'SLIME SMASH').toUpperCase();
   $('#lobbyDescription').textContent=state.lobby.description||state.mode.description;
   $('#ruleStart').textContent=`${Number(cfg.startingSeconds||15).toFixed(1)} SEC`;
@@ -129,9 +173,24 @@ function renderLobby(){
   $('#ruleScore').textContent=`+${Math.max(1,Math.floor(Number(cfg.scorePerSlime)||100)).toLocaleString()}`;
 }
 
-async function init(){
-  buildGrid();
-  updateHud();
+function initGlobal(){
+  state.mode=hostedMode('slime-smash');
+  state.lobby={id:'global-slime-smash',name:'Slime Smash Global',description:'Smash the green slime, gain time, and climb the permanent Global leaderboard.',settings:{modeId:'slime-smash',modeSettings:{...GLOBAL_RULES}}};
+  renderLobby();
+  loadGlobalLeaderboard();
+  clearInterval(state.leaderboardTimer);
+  state.leaderboardTimer=setInterval(loadGlobalLeaderboard,30000);
+  watchIdentity(identity=>{
+    state.identity=identity;
+    $('#startRun').disabled=!identity?.profileId;
+    if(!identity?.profileId){say('Sign in to play Slime Smash Global.','error');return;}
+    const personal=$('#slimePersonalBest');if(personal)personal.textContent=localBest().toLocaleString();
+    say(`Global ready // personal best ${localBest().toLocaleString()} // press Start Run.`,'ok');
+    loadGlobalLeaderboard();
+  });
+}
+
+async function initHosted(){
   if(!lobbyId){say('Missing lobby id.','error');return;}
   const snap=await fs.getDoc(fs.doc(db,'gameLobbies',lobbyId));
   if(!snap.exists()){say('Lobby not found.','error');return;}
@@ -151,11 +210,7 @@ async function init(){
       await createLobbyMembership(state.lobby,identity.profileId,entitlementId);
       state.accessLeaseStop?.();
       state.accessLeaseStop=maintainLobbyMembership(state.lobby,identity.profileId,{
-        onExpired:()=>{
-          cancelAnimationFrame(state.raf);
-          say('Hosted access expired. Returning to Join.','error');
-          setTimeout(()=>location.replace(`/game/join/?code=${encodeURIComponent(state.lobby.code||'')}`),500);
-        },
+        onExpired:()=>{cancelAnimationFrame(state.raf);say('Hosted access expired. Returning to Join.','error');setTimeout(()=>location.replace(`/game/join/?code=${encodeURIComponent(state.lobby.code||'')}`),500);},
         onError:e=>console.debug('Slime Smash access lease',e?.code||e)
       });
       if(identity.profileId===state.lobby.hostProfileId){
@@ -170,6 +225,13 @@ async function init(){
       setTimeout(()=>location.replace(`/game/join/?code=${encodeURIComponent(state.lobby.code||'')}`),800);
     }
   });
+}
+
+function init(){
+  buildGrid();
+  updateHud();
+  if(globalMode){initGlobal();return;}
+  initHosted().catch(e=>{console.error(e);say(e?.message||'Could not load Slime Smash.','error');});
 }
 
 document.addEventListener('click',e=>{
@@ -188,6 +250,7 @@ window.addEventListener('pagehide',()=>{
   cancelAnimationFrame(state.raf);
   state.accessLeaseStop?.();
   clearInterval(state.hostHeartbeat);
+  clearInterval(state.leaderboardTimer);
 });
 
-init().catch(e=>{console.error(e);say(e?.message||'Could not load Slime Smash.','error');});
+init();

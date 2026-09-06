@@ -483,6 +483,89 @@ exports.billPublishedGames = onSchedule({ schedule: 'every 1 minutes', timeZone:
   }
 });
 
+
+// ============================================================
+// E.R.A.S. SLIME SMASH GLOBAL SCOREBOARD
+// Admin-SDK callable boundary: browsers never write/read this collection
+// directly, so no Firestore rules expansion is required.
+// ============================================================
+exports.submitGlobalSlimeSmashScore = onCall(async request => {
+  const profileId = await callerProfileId(request);
+  const score = Number(request.data?.score);
+  const hits = Number(request.data?.hits);
+  const wave = Number(request.data?.wave);
+  const durationMs = Number(request.data?.durationMs);
+
+  if (!Number.isInteger(score) || score < 0 || score > 2000000000) {
+    throw new HttpsError('invalid-argument', 'Score is invalid.');
+  }
+  if (!Number.isInteger(hits) || hits < 0 || hits > 20000000) {
+    throw new HttpsError('invalid-argument', 'Hit count is invalid.');
+  }
+  if (!Number.isInteger(wave) || wave !== hits + 1 || wave < 1 || wave > 20000001) {
+    throw new HttpsError('invalid-argument', 'Wave count is invalid.');
+  }
+  // Global Slime Smash uses the fixed 100-point global ruleset.
+  if (score !== hits * 100) {
+    throw new HttpsError('invalid-argument', 'Score does not match the Global ruleset.');
+  }
+  if (!Number.isFinite(durationMs) || durationMs < 0 || durationMs > 60 * 60 * 1000) {
+    throw new HttpsError('invalid-argument', 'Run duration is invalid.');
+  }
+
+  const ref = db.doc(`globalSlimeSmashScores/${profileId}`);
+  const now = Timestamp.now();
+  let personalBest = 0;
+  let bestWave = 1;
+
+  await db.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    const prior = snap.exists ? snap.data() : {};
+    const priorBest = Math.max(0, Number(prior.bestScore || 0));
+    const priorWave = Math.max(1, Number(prior.bestWave || 1));
+    personalBest = Math.max(priorBest, score);
+    bestWave = score > priorBest ? wave : Math.max(priorWave, wave);
+    tx.set(ref, {
+      profileId,
+      bestScore: personalBest,
+      bestWave,
+      bestHits: Math.max(0, bestWave - 1),
+      runs: Math.max(0, Number(prior.runs || 0)) + 1,
+      lastScore: score,
+      lastWave: wave,
+      lastDurationMs: Math.floor(durationMs),
+      createdAt: snap.exists ? prior.createdAt : now,
+      updatedAt: now
+    });
+  });
+
+  return { ok: true, personalBest, bestWave };
+});
+
+exports.getGlobalSlimeSmashLeaderboard = onCall(async request => {
+  const requestedLimit = Number(request.data?.limit || 20);
+  const limitCount = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(50, Math.floor(requestedLimit))) : 20;
+  const scores = await db.collection('globalSlimeSmashScores').orderBy('bestScore', 'desc').limit(limitCount).get();
+  const rows = scores.docs.map(doc => doc.data());
+  const profiles = await Promise.all(rows.map(row => db.doc(`publicProfiles/${row.profileId}`).get()));
+  const entries = rows.map((row, index) => ({
+    profileId: row.profileId,
+    displayName: profiles[index].exists ? cleanString(profiles[index].data()?.displayName || 'Member', 40) : 'Member',
+    bestScore: Math.max(0, Math.floor(Number(row.bestScore || 0))),
+    bestWave: Math.max(1, Math.floor(Number(row.bestWave || 1)))
+  }));
+
+  let personalBest = 0;
+  if (request.auth?.uid) {
+    try {
+      const profileId = await callerProfileId(request);
+      const personal = await db.doc(`globalSlimeSmashScores/${profileId}`).get();
+      if (personal.exists) personalBest = Math.max(0, Math.floor(Number(personal.data()?.bestScore || 0)));
+    } catch (_) {}
+  }
+  return { ok: true, entries, personalBest };
+});
+
 // E.R.A.S. Asset Library / moderation security callables.
 // These run with Admin SDK authority, but each callable derives the caller from
 // Firebase Auth + privateAccounts and validates all user input server-side.

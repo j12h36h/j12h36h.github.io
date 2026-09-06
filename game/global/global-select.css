@@ -1,0 +1,26 @@
+.global-select-page{min-height:100svh;background:radial-gradient(circle at 50% 32%,rgba(45,145,151,.12),transparent 38rem),#02090b}
+.global-select-shell{width:min(1120px,calc(100vw - 48px));margin:0 auto;padding:108px 0 48px}
+.global-select-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:end;margin-bottom:22px}
+.global-select-heading h1{margin:7px 0 8px;color:#e8f5f5;font:500 clamp(32px,5vw,54px)/.96 var(--mono);letter-spacing:.12em}
+.global-select-heading p:not(.runtime-kicker){max-width:680px;margin:0;color:#729497;font:700 9px/1.55 var(--mono);letter-spacing:.07em}
+.global-select-status{align-self:center;padding:9px 12px;border:1px solid rgba(151,239,241,.15);background:rgba(3,14,16,.78);color:#79aaa9;font:800 7px/1 var(--mono);letter-spacing:.11em;white-space:nowrap}
+.global-select-status b{color:#9ff0bb}
+.global-game-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.global-game-card{position:relative;min-height:300px;display:grid;grid-template-rows:auto 1fr auto;gap:18px;padding:22px;border:1px solid rgba(151,239,241,.15);background:linear-gradient(145deg,rgba(8,29,31,.86),rgba(2,10,12,.96) 60%);color:#dff4f4;text-decoration:none;overflow:hidden;box-shadow:0 24px 65px rgba(0,0,0,.3);transition:transform .14s ease,border-color .14s ease,background .14s ease}
+.global-game-card::before{content:"";position:absolute;right:-54px;top:-62px;width:210px;height:210px;border:1px solid rgba(151,239,241,.11);border-radius:50%;box-shadow:0 0 0 28px rgba(151,239,241,.018),0 0 0 64px rgba(151,239,241,.011)}
+.global-game-card::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,rgba(151,239,241,.42),transparent);opacity:.45}
+.global-game-card:hover,.global-game-card:focus-visible{transform:translateY(-3px);border-color:rgba(151,239,241,.38);background:linear-gradient(145deg,rgba(12,39,41,.9),rgba(2,10,12,.97) 64%);outline:none}
+.global-game-card-top{position:relative;z-index:2;display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.global-game-index{color:#52777a;font:800 7px/1 var(--mono);letter-spacing:.13em}
+.global-game-live{display:inline-flex;align-items:center;gap:7px;color:#8eb9ae;font:800 7px/1 var(--mono);letter-spacing:.09em}.global-game-live::before{content:"";width:7px;height:7px;border-radius:50%;background:#76e39b;box-shadow:0 0 10px rgba(118,227,155,.5)}
+.global-game-copy{position:relative;z-index:2;align-self:end}
+.global-game-copy small{display:block;color:#5c8285;font:800 7px/1 var(--mono);letter-spacing:.13em}
+.global-game-copy h2{margin:9px 0 10px;color:#eefafa;font:700 clamp(22px,3.2vw,36px)/1 var(--mono);letter-spacing:.11em}
+.global-game-copy p{max-width:540px;margin:0;color:#76989a;font:700 9px/1.55 var(--mono);letter-spacing:.05em}
+.global-game-card-bottom{position:relative;z-index:2;display:flex;justify-content:space-between;gap:16px;align-items:end;border-top:1px solid rgba(151,239,241,.08);padding-top:14px}
+.global-game-tags{display:flex;flex-wrap:wrap;gap:6px}.global-game-tags span{padding:5px 7px;border:1px solid rgba(151,239,241,.09);color:#64898b;background:rgba(0,8,10,.4);font:800 6px/1 var(--mono);letter-spacing:.08em}
+.global-game-enter{color:#bfe9e8;font:900 8px/1 var(--mono);letter-spacing:.11em;white-space:nowrap}
+.global-game-card.slime-global{background:linear-gradient(145deg,rgba(11,38,25,.9),rgba(2,10,12,.96) 64%)}.global-game-card.slime-global:hover{background:linear-gradient(145deg,rgba(15,49,31,.94),rgba(2,10,12,.97) 64%)}.global-game-card.slime-global::after{background:linear-gradient(90deg,transparent,rgba(105,226,126,.5),transparent)}
+.global-game-slime-mark{position:absolute;z-index:1;right:22px;top:54px;width:132px;height:132px;opacity:.13;filter:sepia(1) saturate(4) hue-rotate(68deg) brightness(1.05);pointer-events:none}
+.global-select-note{margin-top:14px;padding:12px 14px;border:1px solid rgba(151,239,241,.08);background:rgba(2,10,12,.58);color:#54777a;font:700 7px/1.5 var(--mono);letter-spacing:.08em}
+@media(max-width:760px){.global-select-shell{width:min(100% - 28px,680px);padding-top:88px}.global-select-heading{grid-template-columns:1fr;gap:12px}.global-select-status{justify-self:start}.global-game-grid{grid-template-columns:1fr}.global-game-card{min-height:255px;padding:18px}.global-game-slime-mark{width:108px;height:108px;right:14px;top:44px}.global-game-card-bottom{align-items:flex-start;flex-direction:column}.global-game-enter{align-self:flex-end}}

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#02090b">
+  <title>Hosted Tactical — E.R.A.S. Mobile</title>
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="/game-mobile/assets/mobile.css?v=1.8.0">
+  <link rel="stylesheet" href="/game/inventory/inventory.css?v=2.1.0">
+  <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260901-dm6">
+<link rel="stylesheet" href="/game/assets/css/hosted-runtime-assets.css?v=1.0.0">
+</head>
+<body class="mobile-global tactical-mobile-global">
+  <header class="mobile-game-header"><a class="mobile-game-brand" href="/game-mobile/join/"><span>PROJECT E.R.A.S. : HOSTED TACTICAL</span><small>PLAYER-HOSTED LOBBY</small></a><button class="eras-dm-launch" type="button" data-eras-messages>CHAT</button><button class="game-inventory-button" id="gameInventoryButton" type="button">BAG</button><a class="mobile-trade-link" href="/trade/">ASSET</a><div class="mobile-credit-header" title="Universal Credits">◈ <b id="creditBalance">0</b></div><div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">ACCOUNT…</div></div></header>
+  <main class="mobile-global-shell">
+    <div class="turn-clock mobile-turn-clock" aria-live="polite"><div class="turn-progress" id="turnProgress"><span></span></div><div class="turn-copy"><small>GLOBAL REFRESH</small><strong id="turnCountdown">01:00</strong><em id="turnState">LIVE DECLARATION WINDOW</em></div></div>
+    <div class="mobile-global-viewport" id="globalViewport" aria-label="Player-follow tactical camera viewport">
+      <section class="mobile-global-map tactical-board" id="globalMap" aria-label="Top-down E.R.A.S. tactical battlefield">
+      <div class="battle-zone battle-zone-north" aria-hidden="true"></div><div class="battle-zone battle-zone-south" aria-hidden="true"></div><div class="battle-wall wall-a" aria-hidden="true"></div><div class="battle-wall wall-b" aria-hidden="true"></div><div class="battle-cover cover-a" aria-hidden="true"></div><div class="battle-cover cover-b" aria-hidden="true"></div>
+      <button class="battle-object objective-core" type="button" data-tactical-target="central-relay" data-target-label="CENTRAL RELAY"><i></i><span>RELAY</span></button>
+      <button class="battle-object objective-cache" type="button" data-tactical-target="slime-cache" data-target-label="SLIME CACHE"><i></i><span>CACHE</span></button>
+      <button class="battle-object objective-terminal" type="button" data-tactical-target="north-terminal" data-target-label="NORTH TERMINAL"><i></i><span>TERMINAL</span></button>
+      <span class="world-landmark landmark-a">NORTH PLATFORM</span><span class="world-landmark landmark-b">SLIME YARD</span>
+      </section>
+    </div>
+    <div class="mobile-world-hud"><div><b id="worldName">HOSTED TACTICAL</b><span id="worldState">CONNECTING…</span></div></div>
+
+    <section class="mobile-telemetry-stack" aria-label="Global combat records">
+      <details class="scoreboard-panel mobile-scoreboard-panel" id="scoreboardPanel">
+        <summary>GLOBAL SCOREBOARD <span>ALL-TIME</span></summary>
+        <div class="global-scoreboard" id="globalScoreboard"><div><h3>PVE KILLS</h3><ol><li class="is-empty">LOADING…</li></ol></div><div><h3>PVP KILLS</h3><ol><li class="is-empty">LOADING…</li></ol></div></div>
+      </details>
+      <details class="pvp-record-panel mobile-pvp-record">
+        <summary>PVP RECORD <span>10 MARKERS</span></summary>
+        <div class="game-log pvp-record" id="pvpRecord"><section class="game-log-turn is-current"><h3>CURRENT WINDOW</h3><p>NO PVP EVENTS</p></section></div>
+      </details>
+      <details class="game-log-panel mobile-game-log">
+        <summary>GAME LOG <span>10 MARKERS</span></summary>
+        <div class="game-log" id="gameLog"><section class="game-log-turn is-current"><h3>CURRENT WINDOW</h3><p>NO DECLARATIONS</p></section></div>
+      </details>
+    </section>
+    <aside class="tactical-action-panel mobile-tactical-actions"><div class="tactical-stat"><span>MOVE</span><b id="moveRemaining">50.0 / 50</b><i id="moveBudgetBar"></i><small id="autoMoveState">TAP BOARD TO AUTO-MOVE</small></div><div class="tactical-stat compact"><span>HP</span><b id="playerHealth">5 / 5</b><small id="restState">AUTO REST ARMED</small></div><div class="tactical-stat compact"><span>ENERGY</span><b id="playerEnergy">1 / 1</b><small>REFRESHES / REST</small></div><div class="tactical-stat compact"><span>ATK</span><b id="playerAttack">1–1 // BARE HANDS</b></div><div class="tactical-stat compact"><span>TARGET</span><b id="selectedTarget">NONE</b></div><div class="tactical-stat compact"><span>QUEUE</span><b id="queuedAction">NONE</b></div><div class="tactical-buttons"><button id="queueAttack" type="button" disabled>ATTACK</button><button id="queueInteract" type="button" disabled>INTERACT</button><button id="cancelAction" class="is-cancel" type="button" disabled>CANCEL</button><button id="restAction" class="is-rest" type="button">REST</button><button id="cancelAutoMove" class="is-secondary tactical-button-wide" type="button">STOP AUTO</button></div></aside>
+    <div class="mobile-touch-pad"><button class="touch-up" data-move="up" type="button">▲</button><button class="touch-left" data-move="left" type="button">◀</button><button class="touch-right" data-move="right" type="button">▶</button><button class="touch-down" data-move="down" type="button">▼</button></div>
+    <div class="mobile-world-message" id="globalMessage">SIGN IN TO MATERIALIZE YOUR LCS PROFILE TOKEN.</div>
+  </main>
+  <script type="module" src="/account/assets/js/account.js"></script><script type="module" src="/game/global/global.js?v=2.4.0"></script><script type="module" src="/game/global/messaging.js?v=20260901-dm6"></script>
+  <script type="module" src="/game/assets/js/hosted-runtime-assets.js?v=1.1.0"></script>
+</body>
+</html>

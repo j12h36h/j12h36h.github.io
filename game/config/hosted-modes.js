@@ -1,4 +1,4 @@
-import '/game/assets/js/slime-smash-host-compat.js?v=1.1.0';
+import '/game/assets/js/slime-smash-host-compat.js?v=1.0.0';
 
 export const HOSTED_GAME_MODES = Object.freeze({
   'arcade-topdown': Object.freeze({
@@ -54,7 +54,7 @@ export const hostedModeRuntimeHref = (lobby, mobile=false) => {
   if(mode.runtime === 'galactic') return `/game/galactic-dominion/?lobby=${id}`;
   if(mode.runtime === 'slime-smash') return `/game/slime-smash/?lobby=${id}`;
   if(mode.runtime === 'hosted') return `/game/hosted-mode/?lobby=${id}`;
-  return mobile ? `/game-mobile/global/?lobby=${id}` : `/game/global/?lobby=${id}`;
+  return mobile ? `/game-mobile/tactical/?lobby=${id}` : `/game/tactical/?lobby=${id}`;
 };
 
 export const VISIBILITY_OPTIONS = Object.freeze([
