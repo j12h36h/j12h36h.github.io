@@ -1,0 +1,6 @@
+/* Simple Animation Designer orbit node */
+.universe-main-page .node-animation{left:13%;top:18%;}
+.universe-main-page .node-animation b{border-color:#a98dff;background:rgba(169,141,255,.13);box-shadow:0 0 12px rgba(169,141,255,.25)}
+.universe-main-page .node-animation:hover,.universe-main-page .node-animation:focus-visible{color:#c5b5ff;text-shadow:0 0 14px rgba(169,141,255,.35)}
+.universe-main-page .node-animation:hover b,.universe-main-page .node-animation:focus-visible b{background:rgba(169,141,255,.3);box-shadow:0 0 18px rgba(169,141,255,.55)}
+@media(max-width:720px){.universe-main-page .node-animation{left:8%;top:17%;}.universe-main-page .node-animation small{max-width:112px}}

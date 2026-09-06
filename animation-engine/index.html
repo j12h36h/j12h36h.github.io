@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#02090b">
+  <meta name="description" content="Simple Animation Designer — create 2D and 3D E.R.A.S. animations and cartoons with JSON, sprites, shapes, and keyframes.">
+  <title>Simple Animation Designer — Project E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="./simple-animation-designer.css?v=1.0.0">
+</head>
+<body class="sad-page">
+  <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
+  <header class="site-header">
+    <a class="brand" href="/"><span class="brand-mark"></span><span>PROJECT E.R.A.S. <b>: SIMPLE ANIMATION DESIGNER</b></span></a>
+    <div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">ACCOUNT…</div></div>
+  </header>
+
+  <main class="sad-shell">
+    <section class="sad-titlebar">
+      <div><p>CREATOR NODE // JSON ANIMATION ENGINE</p><h1>Simple Animation Designer</h1><span>Build 2D cartoons, sprite animation, and lightweight 3D scenes from a single JSON document.</span></div>
+      <a href="/">BACK TO UNIVERSE</a>
+    </section>
+
+    <section class="sad-toolbar" aria-label="Animation project actions">
+      <button type="button" data-new="2d">NEW 2D</button>
+      <button type="button" data-new="3d">NEW 3D</button>
+      <button type="button" id="openJsonButton">LOAD JSON</button>
+      <button type="button" id="addSpriteButton">ADD SPRITE</button>
+      <button type="button" id="saveJsonButton">SAVE JSON</button>
+      <span class="sad-toolbar-spacer"></span>
+      <button type="button" id="formatJsonButton">FORMAT</button>
+      <button type="button" id="applyJsonButton" class="is-primary">APPLY JSON</button>
+    </section>
+
+    <section class="sad-workspace">
+      <aside class="sad-editor-panel">
+        <header><div><span>SOURCE // JSON</span><b id="projectMode">2D</b></div><small id="jsonStatus">READY</small></header>
+        <textarea id="jsonEditor" spellcheck="false" aria-label="Animation JSON editor"></textarea>
+        <footer><span>CTRL/CMD + ENTER // APPLY</span><span id="cursorInfo">LINE 1 // COL 1</span></footer>
+      </aside>
+
+      <section class="sad-preview-panel">
+        <header><div><span>PREVIEW</span><b id="projectTitle">UNTITLED ANIMATION</b></div><small id="renderStatus">STOPPED</small></header>
+        <div class="sad-stage-wrap" id="dropZone">
+          <canvas id="animationCanvas" width="960" height="540" aria-label="Animation preview canvas"></canvas>
+          <div class="sad-drop-hint" id="dropHint">DROP JSON OR SPRITES HERE</div>
+        </div>
+        <div class="sad-player">
+          <button type="button" id="playPauseButton">PLAY</button>
+          <button type="button" id="stopButton">STOP</button>
+          <input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Animation timeline">
+          <output id="timeReadout">0.00 / 0.00</output>
+          <label>SPEED <select id="playbackSpeed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
+        </div>
+      </section>
+
+      <aside class="sad-reference-panel">
+        <section><header><span>PROJECT</span><b>SCHEMA</b></header><div class="sad-reference-list" id="schemaReference"></div></section>
+        <section><header><span>LOADED</span><b>SPRITES</b></header><div class="sad-reference-list" id="spriteList"><p>NO LOCAL SPRITES LOADED.</p></div></section>
+        <section><header><span>ENGINE</span><b>INFO</b></header><div class="sad-reference-list"><p>2D: shapes, text, sprites, sprite sheets, transforms, opacity and keyframes.</p><p>3D: box, sphere, plane and sprite billboards with perspective camera projection and keyframes.</p><p>Files stay local to the browser. Exported JSON stores sprite paths, not image data.</p></div></section>
+      </aside>
+    </section>
+  </main>
+
+  <input id="jsonFileInput" type="file" accept="application/json,.json" hidden>
+  <input id="spriteFileInput" type="file" accept="image/*" multiple hidden>
+  <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="./simple-animation-designer.js?v=1.0.0"></script>
+</body>
+</html>
