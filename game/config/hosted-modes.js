@@ -1,3 +1,5 @@
+import '/game/assets/js/slime-smash-host-compat.js?v=1.0.0';
+
 export const HOSTED_GAME_MODES = Object.freeze({
   'arcade-topdown': Object.freeze({
     id:'arcade-topdown', name:'Turn-Based Tactical', short:'TACTICAL', icon:'⌖', mapId:'global-plaza', maxPlayers:32,
@@ -35,7 +37,7 @@ export const HOSTED_GAME_MODES = Object.freeze({
     tags:['RUN','DODGE','JUMP','SURVIVE'], assetId:'eras:mode_escape_pod_dash', runtime:'hosted'
   }),
   'slime-smash': Object.freeze({
-    id:'slime-smash', name:'Slime Smash', short:'SLIME SMASH', icon:'●', mapId:'lily-grid', maxPlayers:8,
+    id:'slime-smash', name:'Slime Smash', short:'SLIME SMASH', icon:'●', mapId:'lily-grid', maxPlayers:8, storageGameStyle:'arcade-topdown', storageMapId:'slime-yard',
     description:'Tap slimes across nine leaf platforms. Each smash scores points and adds time; survive the countdown for the highest score.',
     tags:['REACTION','TIMED','SCORE','SLIMES'], assetId:'eras:mode_slime_smash', runtime:'slime-smash'
   })
@@ -44,8 +46,10 @@ export const HOSTED_GAME_MODES = Object.freeze({
 export const HOSTED_MODE_IDS = Object.freeze(Object.keys(HOSTED_GAME_MODES));
 export const hostedMode = id => HOSTED_GAME_MODES[id] || HOSTED_GAME_MODES['arcade-topdown'];
 export const hostedModeLabel = id => hostedMode(id).name.toUpperCase();
+export const hostedLobbyMode = lobby => hostedMode(lobby?.settings?.modeId || lobby?.gameStyle);
+export const hostedLobbyModeLabel = lobby => hostedLobbyMode(lobby).name.toUpperCase();
 export const hostedModeRuntimeHref = (lobby, mobile=false) => {
-  const mode = hostedMode(lobby?.gameStyle);
+  const mode = hostedLobbyMode(lobby);
   const id = encodeURIComponent(lobby?.id || '');
   if(mode.runtime === 'galactic') return `/game/galactic-dominion/?lobby=${id}`;
   if(mode.runtime === 'slime-smash') return `/game/slime-smash/?lobby=${id}`;

@@ -1,11 +1,11 @@
 import { db, fs, watchIdentity, safeText } from '/game/assets/js/eras-data.js';
-import { hostedMode, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.0.0';
-import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join.js?v=1.2.0';
+import { hostedMode, hostedModeRuntimeHref } from '/game/config/hosted-modes.js?v=1.1.0';
+import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.0.0';
 
 const $=s=>document.querySelector(s);
 const params=new URLSearchParams(location.search);
 const lobbyId=params.get('lobby')||'';
-const state={identity:null,lobby:null,mode:null,game:null,raf:0,accessLeaseStop:null};
+const state={identity:null,lobby:null,mode:null,game:null,raf:0,accessLeaseStop:null,hostHeartbeat:0};
 const slimeImage='/public-assets/textures/slime_monochrome.png';
 const esc=safeText;
 
@@ -43,20 +43,13 @@ function nextSlot(previous=-1){
   return next;
 }
 
-async function saveRun(status='playing'){
-  if(!state.identity?.profileId||!lobbyId||!state.game)return;
-  const g=state.game;
-  try{
-    await fs.setDoc(fs.doc(db,'hostedModeRuns',lobbyId,'players',state.identity.profileId),{
-      profileId:state.identity.profileId,
-      modeId:'slime-smash',
-      score:Math.max(0,Math.floor(g.score||0)),
-      status,
-      lives:0,
-      progress:Math.max(0,Math.floor(g.wave||0)),
-      updatedAt:fs.serverTimestamp()
-    },{merge:true});
-  }catch(e){console.debug('Slime Smash score save',e?.code||e);}
+function scoreKey(){return `eras:slime-smash:best:${lobbyId}:${state.identity?.profileId||'guest'}`;}
+function localBest(){try{return Math.max(0,Number(localStorage.getItem(scoreKey()))||0);}catch(_){return 0;}}
+function saveRun(status='playing'){
+  if(status!=='finished'||!state.game)return;
+  const score=Math.max(0,Math.floor(state.game.score||0));
+  const best=Math.max(score,localBest());
+  try{localStorage.setItem(scoreKey(),String(best));}catch(_){}
 }
 
 function finishRun(){
@@ -70,8 +63,8 @@ function finishRun(){
   updateHud();
   $('#startRun').disabled=false;
   $('#startRun').textContent='PLAY AGAIN';
-  say(`Time out // final score ${g.score.toLocaleString()} // wave ${g.wave.toLocaleString()}`,'ok');
   saveRun('finished');
+  say(`Time out // final score ${g.score.toLocaleString()} // best ${localBest().toLocaleString()} // wave ${g.wave.toLocaleString()}`,'ok');
 }
 
 function timerFrame(now){
@@ -143,7 +136,7 @@ async function init(){
   const snap=await fs.getDoc(fs.doc(db,'gameLobbies',lobbyId));
   if(!snap.exists()){say('Lobby not found.','error');return;}
   state.lobby={id:snap.id,...snap.data()};
-  state.mode=hostedMode(state.lobby.gameStyle);
+  state.mode=hostedMode(state.lobby.settings?.modeId||state.lobby.gameStyle);
   if(state.mode.id!=='slime-smash'){
     location.replace(hostedModeRuntimeHref(state.lobby,matchMedia('(max-width: 680px)').matches));
     return;
@@ -165,8 +158,12 @@ async function init(){
         },
         onError:e=>console.debug('Slime Smash access lease',e?.code||e)
       });
+      if(identity.profileId===state.lobby.hostProfileId){
+        clearInterval(state.hostHeartbeat);
+        state.hostHeartbeat=setInterval(()=>fs.updateDoc(fs.doc(db,'gameLobbies',lobbyId),{lastHeartbeatAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp()}).catch(()=>{}),20000);
+      }
       $('#startRun').disabled=false;
-      say('Ready // press Start Run.','ok');
+      say(`Ready // personal best ${localBest().toLocaleString()} // press Start Run.`,'ok');
     }catch(e){
       console.error(e);
       say(e?.message||e?.code||'Could not authorize hosted access.','error');
@@ -190,6 +187,7 @@ document.addEventListener('keydown',e=>{
 window.addEventListener('pagehide',()=>{
   cancelAnimationFrame(state.raf);
   state.accessLeaseStop?.();
+  clearInterval(state.hostHeartbeat);
 });
 
 init().catch(e=>{console.error(e);say(e?.message||'Could not load Slime Smash.','error');});
