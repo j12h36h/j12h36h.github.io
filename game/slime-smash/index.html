@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#02090b">
+  <meta name="description" content="Hosted Slime Smash on Project E.R.A.S.">
+  <title>Slime Smash — Project E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=2.1.0">
+  <link rel="stylesheet" href="./slime-smash.css?v=1.0.0">
+  <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260901-dm6">
+</head>
+<body class="runtime-page slime-smash-page">
+  <div class="universe-frame" aria-hidden="true">
+    <i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i>
+    <span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span>
+    <span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="/game/" aria-label="Back to E.R.A.S. Play"><span class="brand-mark" aria-hidden="true"></span><span>PROJECT E.R.A.S. <b>: SLIME SMASH</b></span></a>
+    <button class="eras-dm-launch" type="button" data-eras-messages>CHAT</button>
+    <div class="portal-auth-area" id="portalAuthArea" aria-live="polite"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
+  </header>
+
+  <main class="slime-smash-shell">
+    <section class="slime-smash-heading">
+      <div>
+        <p class="runtime-kicker">HOSTED MODE // REACTION SCORE ATTACK</p>
+        <h1 id="lobbyTitle">SLIME SMASH</h1>
+        <p id="lobbyDescription">Tap the slime, gain time, and keep the run alive.</p>
+      </div>
+      <a class="runtime-back" href="/game/join/">BACK TO JOIN</a>
+    </section>
+
+    <section class="slime-smash-card" aria-label="Slime Smash game">
+      <div class="slime-smash-hud" aria-live="polite">
+        <div><span>SCORE</span><b id="scoreValue">0</b></div>
+        <div class="timer-stat"><span>TIME</span><b id="timeValue">0.0</b></div>
+        <div><span>WAVE</span><b id="waveValue">0</b></div>
+      </div>
+
+      <div id="slimeGrid" class="slime-grid" aria-label="Nine slime platforms"></div>
+
+      <div class="slime-smash-controls">
+        <button id="startRun" class="runtime-primary" type="button" disabled>START RUN</button>
+        <p id="gameFeedback" class="runtime-feedback" aria-live="polite">LOADING HOSTED GAME…</p>
+      </div>
+    </section>
+
+    <section class="slime-smash-rules" aria-label="Hosted rules">
+      <div><span>START TIME</span><b id="ruleStart">—</b></div>
+      <div><span>TIME / SLIME</span><b id="ruleGain">—</b></div>
+      <div><span>SCORE / SLIME</span><b id="ruleScore">—</b></div>
+    </section>
+  </main>
+
+  <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="/game/global/messaging.js?v=20260901-dm6"></script>
+  <script type="module" src="./slime-smash.js?v=1.0.0"></script>
+</body>
+</html>

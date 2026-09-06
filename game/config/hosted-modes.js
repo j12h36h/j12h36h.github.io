@@ -33,6 +33,11 @@ export const HOSTED_GAME_MODES = Object.freeze({
     id:'escape-pod-dash', name:'Escape Pod Dash', short:'POD DASH', icon:'➤', mapId:'launch-corridor', maxPlayers:8,
     description:'Race an escape pod through an accelerating corridor of lanes, hazards, jumps and pickups.',
     tags:['RUN','DODGE','JUMP','SURVIVE'], assetId:'eras:mode_escape_pod_dash', runtime:'hosted'
+  }),
+  'slime-smash': Object.freeze({
+    id:'slime-smash', name:'Slime Smash', short:'SLIME SMASH', icon:'●', mapId:'lily-grid', maxPlayers:8,
+    description:'Tap slimes across nine leaf platforms. Each smash scores points and adds time; survive the countdown for the highest score.',
+    tags:['REACTION','TIMED','SCORE','SLIMES'], assetId:'eras:mode_slime_smash', runtime:'slime-smash'
   })
 });
 
@@ -43,6 +48,7 @@ export const hostedModeRuntimeHref = (lobby, mobile=false) => {
   const mode = hostedMode(lobby?.gameStyle);
   const id = encodeURIComponent(lobby?.id || '');
   if(mode.runtime === 'galactic') return `/game/galactic-dominion/?lobby=${id}`;
+  if(mode.runtime === 'slime-smash') return `/game/slime-smash/?lobby=${id}`;
   if(mode.runtime === 'hosted') return `/game/hosted-mode/?lobby=${id}`;
   return mobile ? `/game-mobile/global/?lobby=${id}` : `/game/global/?lobby=${id}`;
 };
@@ -70,6 +76,7 @@ export function modeDefaults(modeId){
     case 'sunball': return { balls:3, targetScore:25000, gravity:0.22, bumperForce:1.8, multiplayerMode:'alternating' };
     case 'soldoku': return { boardSize:9, difficulty:'normal', hints:3, mistakeLimit:3, playMode:'solo' };
     case 'escape-pod-dash': return { lanes:3, lives:3, startSpeed:4, acceleration:0.12, targetDistance:2500, obstacleRate:1 };
+    case 'slime-smash': return { startingSeconds:15, timeGainSeconds:0.35, scorePerSlime:100 };
     default: return {};
   }
 }
@@ -83,6 +90,7 @@ export function normalizeModeSettings(modeId,input={}){
     case 'sunball': return {balls:n(input.balls,d.balls,1,9,true),targetScore:n(input.targetScore,d.targetScore,1000,1000000,true),gravity:n(input.gravity,d.gravity,.08,.6),bumperForce:n(input.bumperForce,d.bumperForce,1,3),multiplayerMode:['alternating','score_attack'].includes(input.multiplayerMode)?input.multiplayerMode:d.multiplayerMode};
     case 'soldoku': return {boardSize:[4,6,9].includes(Number(input.boardSize))?Number(input.boardSize):d.boardSize,difficulty:['easy','normal','hard'].includes(input.difficulty)?input.difficulty:d.difficulty,hints:n(input.hints,d.hints,0,9,true),mistakeLimit:n(input.mistakeLimit,d.mistakeLimit,0,9,true),playMode:['solo','competitive','cooperative'].includes(input.playMode)?input.playMode:d.playMode};
     case 'escape-pod-dash': return {lanes:n(input.lanes,d.lanes,3,5,true),lives:n(input.lives,d.lives,1,9,true),startSpeed:n(input.startSpeed,d.startSpeed,2,10),acceleration:n(input.acceleration,d.acceleration,.02,.5),targetDistance:n(input.targetDistance,d.targetDistance,500,20000,true),obstacleRate:n(input.obstacleRate,d.obstacleRate,.4,2.5)};
+    case 'slime-smash': return {startingSeconds:n(input.startingSeconds,d.startingSeconds,3,120),timeGainSeconds:n(input.timeGainSeconds,d.timeGainSeconds,.05,10),scorePerSlime:n(input.scorePerSlime,d.scorePerSlime,1,10000,true)};
     default:return {};
   }
 }
