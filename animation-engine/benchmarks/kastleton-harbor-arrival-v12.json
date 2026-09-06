@@ -1,0 +1,6848 @@
+{
+  "version": 3,
+  "title": "KASTLETON HARBOR ARRIVAL // S.A.D. v1.2 CINEMATIC BENCHMARK",
+  "mode": "3D",
+  "duration": 20,
+  "loop": false,
+  "canvas": {
+    "width": 1280,
+    "height": 720,
+    "background": "#91c9ee"
+  },
+  "camera": {
+    "x": 9.0,
+    "y": 11.0,
+    "z": -10.0,
+    "targetX": 1.5,
+    "targetY": 5.2,
+    "targetZ": 11.0,
+    "fov": 500,
+    "shake": 0,
+    "rotateZ": 0,
+    "near": 0.16,
+    "far": 220,
+    "interpolation": "spline",
+    "smoothing": 0.94,
+    "keyframes": [
+      {
+        "t": 0,
+        "x": 9.0,
+        "y": 11.0,
+        "z": -10.0,
+        "targetX": 1.5,
+        "targetY": 5.2,
+        "targetZ": 11.0,
+        "fov": 500,
+        "rotateZ": 0
+      },
+      {
+        "t": 2.5,
+        "x": 7.2,
+        "y": 9.6,
+        "z": -3.2,
+        "targetX": 1.2,
+        "targetY": 4.7,
+        "targetZ": 15.0,
+        "fov": 515,
+        "rotateZ": -1.0,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 5.0,
+        "x": 1.6,
+        "y": 8.0,
+        "z": 2.3,
+        "targetX": 0.6,
+        "targetY": 3.8,
+        "targetZ": 19.5,
+        "fov": 540,
+        "rotateZ": -2.2,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 7.5,
+        "x": -4.2,
+        "y": 6.8,
+        "z": 7.8,
+        "targetX": 0.4,
+        "targetY": 3.0,
+        "targetZ": 24.2,
+        "fov": 566,
+        "rotateZ": 2.6,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 10.0,
+        "x": -6.2,
+        "y": 5.6,
+        "z": 12.8,
+        "targetX": 1.2,
+        "targetY": 2.2,
+        "targetZ": 28.2,
+        "fov": 582,
+        "rotateZ": 2.0,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 12.5,
+        "x": -4.6,
+        "y": 4.6,
+        "z": 16.7,
+        "targetX": 1.5,
+        "targetY": 1.35,
+        "targetZ": 31.8,
+        "fov": 570,
+        "rotateZ": 0.4,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 15.0,
+        "x": -1.0,
+        "y": 3.65,
+        "z": 20.0,
+        "targetX": 1.3,
+        "targetY": 0.25,
+        "targetZ": 34.6,
+        "fov": 548,
+        "rotateZ": -0.7,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 17.0,
+        "x": 2.0,
+        "y": 3.0,
+        "z": 21.8,
+        "targetX": 1.0,
+        "targetY": -0.55,
+        "targetZ": 36.3,
+        "fov": 528,
+        "rotateZ": -0.25,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 18.2,
+        "x": 3.0,
+        "y": 2.55,
+        "z": 22.5,
+        "targetX": 0.65,
+        "targetY": -1.0,
+        "targetZ": 37.3,
+        "fov": 510,
+        "rotateZ": 0,
+        "shake": 0.16,
+        "easing": "ease-out"
+      },
+      {
+        "t": 19.0,
+        "x": 3.55,
+        "y": 2.35,
+        "z": 22.85,
+        "targetX": 0.45,
+        "targetY": -1.05,
+        "targetZ": 37.8,
+        "fov": 500,
+        "rotateZ": 0,
+        "shake": 0.035,
+        "easing": "ease-out"
+      },
+      {
+        "t": 20.0,
+        "x": 4.0,
+        "y": 2.25,
+        "z": 23.2,
+        "targetX": 0.25,
+        "targetY": -1.0,
+        "targetZ": 38.2,
+        "fov": 492,
+        "rotateZ": 0,
+        "shake": 0,
+        "easing": "ease-out"
+      }
+    ]
+  },
+  "lighting": {
+    "ambient": {
+      "color": "#9bbbd0",
+      "intensity": 0.35,
+      "keyframes": [
+        {
+          "t": 0,
+          "intensity": 0.3
+        },
+        {
+          "t": 7,
+          "intensity": 0.38
+        },
+        {
+          "t": 20,
+          "intensity": 0.42
+        }
+      ]
+    },
+    "directional": [
+      {
+        "id": "sun",
+        "x": -0.45,
+        "y": 0.88,
+        "z": -0.25,
+        "color": "#fff1cf",
+        "intensity": 1.32,
+        "keyframes": [
+          {
+            "t": 0,
+            "intensity": 1.25
+          },
+          {
+            "t": 8,
+            "intensity": 1.5
+          },
+          {
+            "t": 20,
+            "intensity": 1.38
+          }
+        ]
+      },
+      {
+        "id": "sky-fill",
+        "x": 0.4,
+        "y": 0.25,
+        "z": -0.8,
+        "color": "#8ecbff",
+        "intensity": 0.27
+      }
+    ],
+    "point": [
+      {
+        "id": "harbor-warmth",
+        "x": 1.5,
+        "y": 1.0,
+        "z": 34,
+        "color": "#ffd08a",
+        "intensity": 0.24,
+        "range": 17,
+        "keyframes": [
+          {
+            "t": 0,
+            "intensity": 0.05
+          },
+          {
+            "t": 13,
+            "intensity": 0.12
+          },
+          {
+            "t": 20,
+            "intensity": 0.3
+          }
+        ],
+        "falloff": 1.8,
+        "decay": 1.25
+      },
+      {
+        "id": "landing-flash",
+        "x": 0.5,
+        "y": -0.4,
+        "z": 38,
+        "color": "#fff4d6",
+        "intensity": 0,
+        "range": 8.5,
+        "keyframes": [
+          {
+            "t": 0,
+            "intensity": 0
+          },
+          {
+            "t": 18.0,
+            "intensity": 0
+          },
+          {
+            "t": 18.22,
+            "intensity": 2.2,
+            "easing": "step"
+          },
+          {
+            "t": 18.8,
+            "intensity": 0.15,
+            "easing": "ease-out"
+          }
+        ],
+        "falloff": 2.4,
+        "decay": 1.8
+      },
+      {
+        "id": "main-ship-lantern",
+        "parent": "ship-main-rig",
+        "x": 0.2,
+        "y": 1.15,
+        "z": 0.1,
+        "color": "#ffd083",
+        "intensity": 0.82,
+        "range": 5.5,
+        "falloff": 2.1,
+        "decay": 1.55,
+        "keyframes": [
+          {
+            "t": 0,
+            "intensity": 0.72
+          },
+          {
+            "t": 5,
+            "intensity": 0.9
+          },
+          {
+            "t": 10,
+            "intensity": 0.76
+          },
+          {
+            "t": 15,
+            "intensity": 0.92
+          },
+          {
+            "t": 20,
+            "intensity": 0.78
+          }
+        ]
+      },
+      {
+        "id": "left-ship-lantern",
+        "parent": "ship-left-rig",
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0,
+        "color": "#ffc46d",
+        "intensity": 0.55,
+        "range": 4.3,
+        "falloff": 2.0,
+        "decay": 1.6
+      },
+      {
+        "id": "far-ship-lantern",
+        "parent": "ship-far-rig",
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0,
+        "color": "#ffd68c",
+        "intensity": 0.45,
+        "range": 4.0,
+        "falloff": 2.0,
+        "decay": 1.7
+      },
+      {
+        "id": "west-tower-brazier",
+        "parent": "tower-west-rig",
+        "x": 0,
+        "y": 5.4,
+        "z": 0,
+        "color": "#ffb45e",
+        "intensity": 0.72,
+        "range": 5.2,
+        "falloff": 2.2,
+        "decay": 1.5
+      },
+      {
+        "id": "east-tower-brazier",
+        "parent": "tower-east-rig",
+        "x": 0,
+        "y": 5.7,
+        "z": 0,
+        "color": "#ffbd68",
+        "intensity": 0.68,
+        "range": 5.0,
+        "falloff": 2.2,
+        "decay": 1.5
+      },
+      {
+        "id": "glide-rim",
+        "parent": "eagle-rig",
+        "x": 0,
+        "y": 0.2,
+        "z": -0.6,
+        "color": "#bfe9ff",
+        "intensity": 0.28,
+        "range": 4.2,
+        "falloff": 2.4,
+        "decay": 1.8,
+        "keyframes": [
+          {
+            "t": 0,
+            "intensity": 0.34
+          },
+          {
+            "t": 12,
+            "intensity": 0.28
+          },
+          {
+            "t": 18.5,
+            "intensity": 0.08
+          },
+          {
+            "t": 20,
+            "intensity": 0
+          }
+        ]
+      }
+    ],
+    "shadows": {
+      "enabled": true,
+      "groundY": -2.15,
+      "opacity": 0.2,
+      "softness": 18
+    }
+  },
+  "post": {
+    "exposure": 1.03,
+    "vignette": 0.18,
+    "letterbox": 0.055,
+    "fade": 1,
+    "flash": 0,
+    "grain": 0.018,
+    "tint": "#90b9d4",
+    "tintOpacity": 0.028,
+    "keyframes": [
+      {
+        "t": 0,
+        "fade": 1,
+        "exposure": 0.85,
+        "vignette": 0.28,
+        "letterbox": 0.09,
+        "grain": 0.025
+      },
+      {
+        "t": 1.2,
+        "fade": 0,
+        "exposure": 1.04,
+        "easing": "ease-out"
+      },
+      {
+        "t": 6.5,
+        "vignette": 0.14,
+        "letterbox": 0.07
+      },
+      {
+        "t": 12.5,
+        "exposure": 1.08,
+        "tintOpacity": 0.055
+      },
+      {
+        "t": 18.1,
+        "flash": 0.0
+      },
+      {
+        "t": 18.23,
+        "flash": 0.32,
+        "exposure": 1.16,
+        "easing": "step"
+      },
+      {
+        "t": 18.72,
+        "flash": 0.0,
+        "exposure": 1.06,
+        "easing": "ease-out"
+      },
+      {
+        "t": 19.4,
+        "fade": 0,
+        "vignette": 0.22
+      },
+      {
+        "t": 20,
+        "fade": 0.18,
+        "vignette": 0.26
+      }
+    ]
+  },
+  "assets": {
+    "wind-low": {
+      "type": "tone",
+      "wave": "sine",
+      "frequency": 76,
+      "duration": 20
+    },
+    "wind-air": {
+      "type": "tone",
+      "wave": "triangle",
+      "frequency": 168,
+      "duration": 20
+    },
+    "wing": {
+      "type": "tone",
+      "wave": "sine",
+      "frequency": 118,
+      "duration": 0.22
+    },
+    "harbor-bell": {
+      "type": "tone",
+      "wave": "sine",
+      "frequency": 392,
+      "duration": 1.3
+    },
+    "arrival": {
+      "type": "tone",
+      "wave": "triangle",
+      "frequency": 260,
+      "duration": 1.7
+    },
+    "impact-low": {
+      "type": "tone",
+      "wave": "sine",
+      "frequency": 52,
+      "duration": 0.8
+    }
+  },
+  "sounds": [
+    {
+      "id": "wind-bed-low",
+      "asset": "wind-low",
+      "start": 0,
+      "end": 20,
+      "volume": 0.035,
+      "pan": 0,
+      "rate": 1,
+      "keyframes": [
+        {
+          "t": 0,
+          "volume": 0.015
+        },
+        {
+          "t": 5,
+          "volume": 0.04
+        },
+        {
+          "t": 14,
+          "volume": 0.055
+        },
+        {
+          "t": 20,
+          "volume": 0.015
+        }
+      ]
+    },
+    {
+      "id": "wind-bed-air",
+      "asset": "wind-air",
+      "start": 0,
+      "end": 20,
+      "volume": 0.012,
+      "pan": 0.05,
+      "rate": 1,
+      "keyframes": [
+        {
+          "t": 0,
+          "volume": 0.008,
+          "frequency": 145
+        },
+        {
+          "t": 9,
+          "volume": 0.02,
+          "frequency": 205
+        },
+        {
+          "t": 18,
+          "volume": 0.012,
+          "frequency": 165
+        },
+        {
+          "t": 20,
+          "volume": 0.004
+        }
+      ]
+    },
+    {
+      "id": "bell-a",
+      "asset": "harbor-bell",
+      "start": 10.8,
+      "volume": 0.035,
+      "pan": -0.42,
+      "rate": 0.92
+    },
+    {
+      "id": "arrival-sting",
+      "asset": "arrival",
+      "start": 17.8,
+      "volume": 0.045,
+      "pan": 0.1,
+      "rate": 0.82,
+      "keyframes": [
+        {
+          "t": 17.8,
+          "volume": 0.02,
+          "frequency": 220
+        },
+        {
+          "t": 18.3,
+          "volume": 0.055,
+          "frequency": 310
+        },
+        {
+          "t": 19.5,
+          "volume": 0.005,
+          "frequency": 250
+        }
+      ]
+    },
+    {
+      "id": "landing-low",
+      "asset": "impact-low",
+      "start": 18.18,
+      "volume": 0.045,
+      "pan": 0,
+      "rate": 1
+    },
+    {
+      "id": "wing-cue-0",
+      "asset": "wing",
+      "start": 0.55,
+      "volume": 0.012,
+      "pan": -0.12,
+      "rate": 1
+    },
+    {
+      "id": "wing-cue-1",
+      "asset": "wing",
+      "start": 2.0,
+      "volume": 0.012,
+      "pan": 0.12,
+      "rate": 1
+    },
+    {
+      "id": "wing-cue-2",
+      "asset": "wing",
+      "start": 4.9,
+      "volume": 0.012,
+      "pan": -0.12,
+      "rate": 1
+    },
+    {
+      "id": "wing-cue-3",
+      "asset": "wing",
+      "start": 8.9,
+      "volume": 0.012,
+      "pan": 0.12,
+      "rate": 1
+    },
+    {
+      "id": "wing-cue-4",
+      "asset": "wing",
+      "start": 12.9,
+      "volume": 0.018,
+      "pan": -0.12,
+      "rate": 1
+    },
+    {
+      "id": "wing-cue-5",
+      "asset": "wing",
+      "start": 15.45,
+      "volume": 0.018,
+      "pan": 0.12,
+      "rate": 1
+    },
+    {
+      "id": "wing-cue-6",
+      "asset": "wing",
+      "start": 17.45,
+      "volume": 0.018,
+      "pan": -0.12,
+      "rate": 1
+    }
+  ],
+  "objects": [
+    {
+      "id": "sea",
+      "type": "plane",
+      "x": 0,
+      "y": -3.0,
+      "z": 42,
+      "width": 120,
+      "height": 110,
+      "rotationX": 90,
+      "fill": "#2f8bb5",
+      "stroke": "#76c9e8",
+      "lineWidth": 0.25,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationZ": 0
+        },
+        {
+          "t": 10,
+          "rotationZ": 0.7
+        },
+        {
+          "t": 20,
+          "rotationZ": 0
+        }
+      ]
+    },
+    {
+      "id": "water-glint-00",
+      "type": "plane",
+      "x": -19.860573201542117,
+      "y": -2.92,
+      "z": 15.525010755222667,
+      "width": 1.2125439775536788,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.11348161072232342,
+          "x": -20.160573201542118
+        },
+        {
+          "t": 10,
+          "opacity": 0.34202366711608273,
+          "x": -19.410573201542118
+        },
+        {
+          "t": 20,
+          "opacity": 0.19180590773612405,
+          "x": -20.010573201542115
+        }
+      ]
+    },
+    {
+      "id": "water-glint-01",
+      "type": "plane",
+      "x": -13.807820432295154,
+      "y": -2.92,
+      "z": 15.586938832629416,
+      "width": 1.4328827295279056,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.08446958291571055,
+          "x": -14.107820432295155
+        },
+        {
+          "t": 10,
+          "opacity": 0.22810035445679275,
+          "x": -13.357820432295155
+        },
+        {
+          "t": 20,
+          "opacity": 0.16096395185860524,
+          "x": -13.957820432295154
+        }
+      ]
+    },
+    {
+      "id": "water-glint-02",
+      "type": "plane",
+      "x": -8.873464030316137,
+      "y": -2.92,
+      "z": 15.698837650686649,
+      "width": 1.7748266566692847,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.16174122209048253,
+          "x": -9.173464030316138
+        },
+        {
+          "t": 10,
+          "opacity": 0.22849693684895328,
+          "x": -8.423464030316138
+        },
+        {
+          "t": 20,
+          "opacity": 0.17606782309766356,
+          "x": -9.023464030316138
+        }
+      ]
+    },
+    {
+      "id": "water-glint-03",
+      "type": "plane",
+      "x": -2.290569543322175,
+      "y": -2.92,
+      "z": 15.506498759678061,
+      "width": 2.0087288777492116,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.18472090924823403,
+          "x": -2.5905695433221747
+        },
+        {
+          "t": 10,
+          "opacity": 0.2548551136339582,
+          "x": -1.840569543322175
+        },
+        {
+          "t": 20,
+          "opacity": 0.09798630996612068,
+          "x": -2.440569543322175
+        }
+      ]
+    },
+    {
+      "id": "water-glint-04",
+      "type": "plane",
+      "x": 3.6572130722067806,
+      "y": -2.92,
+      "z": 15.836594545112627,
+      "width": 0.9391187650702219,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.0945074565250196,
+          "x": 3.357213072206781
+        },
+        {
+          "t": 10,
+          "opacity": 0.36644876059644116,
+          "x": 4.107213072206781
+        },
+        {
+          "t": 20,
+          "opacity": 0.17867068564604038,
+          "x": 3.5072130722067807
+        }
+      ]
+    },
+    {
+      "id": "water-glint-05",
+      "type": "plane",
+      "x": 9.30712827327438,
+      "y": -2.92,
+      "z": 16.22973178669382,
+      "width": 1.604342137182051,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.22596736459690564,
+          "x": 9.007128273274379
+        },
+        {
+          "t": 10,
+          "opacity": 0.26327756298583777,
+          "x": 9.757128273274379
+        },
+        {
+          "t": 20,
+          "opacity": 0.16936731362918087,
+          "x": 9.15712827327438
+        }
+      ]
+    },
+    {
+      "id": "water-glint-06",
+      "type": "plane",
+      "x": 15.129404664252991,
+      "y": -2.92,
+      "z": 16.118519752364247,
+      "width": 2.0925603504661656,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.16660282178851432,
+          "x": 14.82940466425299
+        },
+        {
+          "t": 10,
+          "opacity": 0.3350058039672832,
+          "x": 15.57940466425299
+        },
+        {
+          "t": 20,
+          "opacity": 0.0782483890580192,
+          "x": 14.979404664252991
+        }
+      ]
+    },
+    {
+      "id": "water-glint-07",
+      "type": "plane",
+      "x": 20.32789827565155,
+      "y": -2.92,
+      "z": 15.789387963602108,
+      "width": 0.9196879653854413,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.11491863295415453,
+          "x": 20.02789827565155
+        },
+        {
+          "t": 10,
+          "opacity": 0.2022203144701404,
+          "x": 20.77789827565155
+        },
+        {
+          "t": 20,
+          "opacity": 0.12003524855981659,
+          "x": 20.17789827565155
+        }
+      ]
+    },
+    {
+      "id": "water-glint-08",
+      "type": "plane",
+      "x": -19.8643155557356,
+      "y": -2.92,
+      "z": 22.364832178970083,
+      "width": 1.3552714506753238,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.11142605461572316,
+          "x": -20.1643155557356
+        },
+        {
+          "t": 10,
+          "opacity": 0.23873512085080495,
+          "x": -19.4143155557356
+        },
+        {
+          "t": 20,
+          "opacity": 0.23859782578824892,
+          "x": -20.0143155557356
+        }
+      ]
+    },
+    {
+      "id": "water-glint-09",
+      "type": "plane",
+      "x": -14.051964614753405,
+      "y": -2.92,
+      "z": 22.60913100566699,
+      "width": 1.0567079722971455,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.18936901969255238,
+          "x": -14.351964614753406
+        },
+        {
+          "t": 10,
+          "opacity": 0.21594854862762425,
+          "x": -13.601964614753406
+        },
+        {
+          "t": 20,
+          "opacity": 0.1383019795163766,
+          "x": -14.201964614753406
+        }
+      ]
+    },
+    {
+      "id": "water-glint-10",
+      "type": "plane",
+      "x": -7.910476649363405,
+      "y": -2.92,
+      "z": 22.639999759854092,
+      "width": 1.6354246156619694,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.1826921376484812,
+          "x": -8.210476649363406
+        },
+        {
+          "t": 10,
+          "opacity": 0.36542742244175813,
+          "x": -7.460476649363405
+        },
+        {
+          "t": 20,
+          "opacity": 0.20967998407832406,
+          "x": -8.060476649363405
+        }
+      ]
+    },
+    {
+      "id": "water-glint-11",
+      "type": "plane",
+      "x": -2.870951928035897,
+      "y": -2.92,
+      "z": 22.032100243904036,
+      "width": 1.273179572088623,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.12016113139635543,
+          "x": -3.1709519280358966
+        },
+        {
+          "t": 10,
+          "opacity": 0.22641622558899183,
+          "x": -2.4209519280358966
+        },
+        {
+          "t": 20,
+          "opacity": 0.2397237485803098,
+          "x": -3.0209519280358967
+        }
+      ]
+    },
+    {
+      "id": "water-glint-12",
+      "type": "plane",
+      "x": 3.5763676264726683,
+      "y": -2.92,
+      "z": 22.314677880798477,
+      "width": 1.78315799794232,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.13934478515909965,
+          "x": 3.2763676264726684
+        },
+        {
+          "t": 10,
+          "opacity": 0.3812004697429196,
+          "x": 4.026367626472668
+        },
+        {
+          "t": 20,
+          "opacity": 0.15259333346573178,
+          "x": 3.4263676264726683
+        }
+      ]
+    },
+    {
+      "id": "water-glint-13",
+      "type": "plane",
+      "x": 8.764880166498052,
+      "y": -2.92,
+      "z": 22.246627507693983,
+      "width": 1.642052201244726,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.1194112412784403,
+          "x": 8.464880166498052
+        },
+        {
+          "t": 10,
+          "opacity": 0.30860891784917893,
+          "x": 9.214880166498052
+        },
+        {
+          "t": 20,
+          "opacity": 0.23160811904844586,
+          "x": 8.614880166498052
+        }
+      ]
+    },
+    {
+      "id": "water-glint-14",
+      "type": "plane",
+      "x": 14.699400505140394,
+      "y": -2.92,
+      "z": 22.219320759157284,
+      "width": 2.296306409742665,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.15642894405146968,
+          "x": 14.399400505140393
+        },
+        {
+          "t": 10,
+          "opacity": 0.20000007067823466,
+          "x": 15.149400505140393
+        },
+        {
+          "t": 20,
+          "opacity": 0.07848094757645223,
+          "x": 14.549400505140394
+        }
+      ]
+    },
+    {
+      "id": "water-glint-15",
+      "type": "plane",
+      "x": 20.20964913035066,
+      "y": -2.92,
+      "z": 22.62744604170309,
+      "width": 1.988119046544446,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.14332399501995263,
+          "x": 19.909649130350658
+        },
+        {
+          "t": 10,
+          "opacity": 0.19397609535343058,
+          "x": 20.659649130350658
+        },
+        {
+          "t": 20,
+          "opacity": 0.13869147157117662,
+          "x": 20.05964913035066
+        }
+      ]
+    },
+    {
+      "id": "water-glint-16",
+      "type": "plane",
+      "x": -19.503878619759902,
+      "y": -2.92,
+      "z": 29.02911434509914,
+      "width": 2.2566175664204273,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.20911695533517471,
+          "x": -19.803878619759903
+        },
+        {
+          "t": 10,
+          "opacity": 0.1825258248274203,
+          "x": -19.053878619759903
+        },
+        {
+          "t": 20,
+          "opacity": 0.19972992748483503,
+          "x": -19.6538786197599
+        }
+      ]
+    },
+    {
+      "id": "water-glint-17",
+      "type": "plane",
+      "x": -14.018289630973424,
+      "y": -2.92,
+      "z": 29.036970330408796,
+      "width": 1.2002377849288142,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.17614426978697123,
+          "x": -14.318289630973425
+        },
+        {
+          "t": 10,
+          "opacity": 0.2045414781910928,
+          "x": -13.568289630973425
+        },
+        {
+          "t": 20,
+          "opacity": 0.1482577451204389,
+          "x": -14.168289630973424
+        }
+      ]
+    },
+    {
+      "id": "water-glint-18",
+      "type": "plane",
+      "x": -8.446276293670794,
+      "y": -2.92,
+      "z": 29.45381592752108,
+      "width": 2.113779410567291,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.11950835761266362,
+          "x": -8.746276293670794
+        },
+        {
+          "t": 10,
+          "opacity": 0.29012894487106566,
+          "x": -7.996276293670793
+        },
+        {
+          "t": 20,
+          "opacity": 0.10215733849542366,
+          "x": -8.596276293670794
+        }
+      ]
+    },
+    {
+      "id": "water-glint-19",
+      "type": "plane",
+      "x": -2.187372160655181,
+      "y": -2.92,
+      "z": 29.37051856983677,
+      "width": 1.2476671871729494,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.1758424242299008,
+          "x": -2.487372160655181
+        },
+        {
+          "t": 10,
+          "opacity": 0.3139734465163979,
+          "x": -1.737372160655181
+        },
+        {
+          "t": 20,
+          "opacity": 0.09751106833893428,
+          "x": -2.337372160655181
+        }
+      ]
+    },
+    {
+      "id": "water-glint-20",
+      "type": "plane",
+      "x": 3.4625108000751506,
+      "y": -2.92,
+      "z": 29.039379030119626,
+      "width": 1.967939717945837,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.15955305082927662,
+          "x": 3.1625108000751507
+        },
+        {
+          "t": 10,
+          "opacity": 0.18012581714814757,
+          "x": 3.9125108000751507
+        },
+        {
+          "t": 20,
+          "opacity": 0.12834809026084115,
+          "x": 3.3125108000751506
+        }
+      ]
+    },
+    {
+      "id": "water-glint-21",
+      "type": "plane",
+      "x": 8.519476742385832,
+      "y": -2.92,
+      "z": 29.429098616264618,
+      "width": 2.118082816734776,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.20474982940417694,
+          "x": 8.219476742385831
+        },
+        {
+          "t": 10,
+          "opacity": 0.2476531075885855,
+          "x": 8.969476742385831
+        },
+        {
+          "t": 20,
+          "opacity": 0.08042652996895376,
+          "x": 8.369476742385832
+        }
+      ]
+    },
+    {
+      "id": "water-glint-22",
+      "type": "plane",
+      "x": 15.178009599204037,
+      "y": -2.92,
+      "z": 29.446949445297996,
+      "width": 0.9284801781018182,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.1528985694974921,
+          "x": 14.878009599204036
+        },
+        {
+          "t": 10,
+          "opacity": 0.19522675406304438,
+          "x": 15.628009599204036
+        },
+        {
+          "t": 20,
+          "opacity": 0.20690838974630169,
+          "x": 15.028009599204037
+        }
+      ]
+    },
+    {
+      "id": "water-glint-23",
+      "type": "plane",
+      "x": 20.86583442930699,
+      "y": -2.92,
+      "z": 28.628391464499764,
+      "width": 1.512923567148097,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.16247053902424158,
+          "x": 20.56583442930699
+        },
+        {
+          "t": 10,
+          "opacity": 0.238312458366813,
+          "x": 21.31583442930699
+        },
+        {
+          "t": 20,
+          "opacity": 0.22703794739534633,
+          "x": 20.71583442930699
+        }
+      ]
+    },
+    {
+      "id": "water-glint-24",
+      "type": "plane",
+      "x": -20.07686205979911,
+      "y": -2.92,
+      "z": 35.21179820544208,
+      "width": 1.6089441331691874,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.18948966036349646,
+          "x": -20.376862059799112
+        },
+        {
+          "t": 10,
+          "opacity": 0.2242532339457331,
+          "x": -19.626862059799112
+        },
+        {
+          "t": 20,
+          "opacity": 0.1261089324341611,
+          "x": -20.22686205979911
+        }
+      ]
+    },
+    {
+      "id": "water-glint-25",
+      "type": "plane",
+      "x": -13.704850643339105,
+      "y": -2.92,
+      "z": 35.649878057639455,
+      "width": 1.457150125871756,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.1576363761553386,
+          "x": -14.004850643339106
+        },
+        {
+          "t": 10,
+          "opacity": 0.20662092309101845,
+          "x": -13.254850643339106
+        },
+        {
+          "t": 20,
+          "opacity": 0.11044552066568034,
+          "x": -13.854850643339105
+        }
+      ]
+    },
+    {
+      "id": "water-glint-26",
+      "type": "plane",
+      "x": -8.561914437852545,
+      "y": -2.92,
+      "z": 35.588308718457235,
+      "width": 1.1451720988948655,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.11303260766773393,
+          "x": -8.861914437852546
+        },
+        {
+          "t": 10,
+          "opacity": 0.19561847892198717,
+          "x": -8.111914437852546
+        },
+        {
+          "t": 20,
+          "opacity": 0.1835985323086178,
+          "x": -8.711914437852545
+        }
+      ]
+    },
+    {
+      "id": "water-glint-27",
+      "type": "plane",
+      "x": -2.871058216188847,
+      "y": -2.92,
+      "z": 35.90542001300613,
+      "width": 2.0894531003806196,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.09062860248329802,
+          "x": -3.1710582161888468
+        },
+        {
+          "t": 10,
+          "opacity": 0.23236101956117894,
+          "x": -2.4210582161888468
+        },
+        {
+          "t": 20,
+          "opacity": 0.1904160000933305,
+          "x": -3.021058216188847
+        }
+      ]
+    },
+    {
+      "id": "water-glint-28",
+      "type": "plane",
+      "x": 2.914236807370438,
+      "y": -2.92,
+      "z": 35.132311848725024,
+      "width": 2.2032713608710064,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.1656564639987927,
+          "x": 2.614236807370438
+        },
+        {
+          "t": 10,
+          "opacity": 0.2839876257885947,
+          "x": 3.364236807370438
+        },
+        {
+          "t": 20,
+          "opacity": 0.2112314963723356,
+          "x": 2.764236807370438
+        }
+      ]
+    },
+    {
+      "id": "water-glint-29",
+      "type": "plane",
+      "x": 9.307496997766643,
+      "y": -2.92,
+      "z": 35.19040991436188,
+      "width": 0.945396221343235,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.14465767736095664,
+          "x": 9.007496997766642
+        },
+        {
+          "t": 10,
+          "opacity": 0.2731872970643826,
+          "x": 9.757496997766642
+        },
+        {
+          "t": 20,
+          "opacity": 0.1540644402466015,
+          "x": 9.157496997766643
+        }
+      ]
+    },
+    {
+      "id": "water-glint-30",
+      "type": "plane",
+      "x": 15.029075849459847,
+      "y": -2.92,
+      "z": 35.6733645472933,
+      "width": 2.276247817048949,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.09476268067279384,
+          "x": 14.729075849459846
+        },
+        {
+          "t": 10,
+          "opacity": 0.26857668206249913,
+          "x": 15.479075849459846
+        },
+        {
+          "t": 20,
+          "opacity": 0.13107446897109337,
+          "x": 14.879075849459847
+        }
+      ]
+    },
+    {
+      "id": "water-glint-31",
+      "type": "plane",
+      "x": 20.961672536352793,
+      "y": -2.92,
+      "z": 35.24865633392029,
+      "width": 1.0853133626612173,
+      "height": 0.04,
+      "rotationX": 90,
+      "fill": "rgba(190,238,255,0.36)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.14729203217496978,
+          "x": 20.661672536352793
+        },
+        {
+          "t": 10,
+          "opacity": 0.2728139607635689,
+          "x": 21.411672536352793
+        },
+        {
+          "t": 20,
+          "opacity": 0.12013812604004928,
+          "x": 20.811672536352795
+        }
+      ]
+    },
+    {
+      "id": "mount-0",
+      "type": "box",
+      "x": -20,
+      "y": 7,
+      "z": 62,
+      "width": 13,
+      "height": 13,
+      "depth": 10,
+      "rotationZ": -2.501935521178995,
+      "fill": "#70899b",
+      "stroke": "#a9c2d0",
+      "lineWidth": 0.35,
+      "castShadow": false
+    },
+    {
+      "id": "mount-cap-0",
+      "type": "plane",
+      "x": -20,
+      "y": 12.98,
+      "z": 60.8,
+      "width": 9.36,
+      "height": 3.25,
+      "rotationZ": 6.772249588416205,
+      "fill": "rgba(205,224,235,0.32)",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "mount-1",
+      "type": "box",
+      "x": -10,
+      "y": 9,
+      "z": 67,
+      "width": 16,
+      "height": 17,
+      "depth": 12,
+      "rotationZ": -0.56869254946543,
+      "fill": "#70899b",
+      "stroke": "#a9c2d0",
+      "lineWidth": 0.35,
+      "castShadow": false
+    },
+    {
+      "id": "mount-cap-1",
+      "type": "plane",
+      "x": -10,
+      "y": 16.82,
+      "z": 65.56,
+      "width": 11.52,
+      "height": 4.25,
+      "rotationZ": 5.781585676189289,
+      "fill": "rgba(205,224,235,0.32)",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "mount-2",
+      "type": "box",
+      "x": 1,
+      "y": 10,
+      "z": 70,
+      "width": 20,
+      "height": 20,
+      "depth": 14,
+      "rotationZ": 0.5032531244984808,
+      "fill": "#70899b",
+      "stroke": "#a9c2d0",
+      "lineWidth": 0.35,
+      "castShadow": false
+    },
+    {
+      "id": "mount-cap-2",
+      "type": "plane",
+      "x": 1,
+      "y": 19.200000000000003,
+      "z": 68.32,
+      "width": 14.399999999999999,
+      "height": 5.0,
+      "rotationZ": -7.1905867276019,
+      "fill": "rgba(205,224,235,0.32)",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "mount-3",
+      "type": "box",
+      "x": 14,
+      "y": 8,
+      "z": 65,
+      "width": 16,
+      "height": 14,
+      "depth": 12,
+      "rotationZ": 4.992824684127266,
+      "fill": "#70899b",
+      "stroke": "#a9c2d0",
+      "lineWidth": 0.35,
+      "castShadow": false
+    },
+    {
+      "id": "mount-cap-3",
+      "type": "plane",
+      "x": 14,
+      "y": 14.440000000000001,
+      "z": 63.56,
+      "width": 11.52,
+      "height": 3.5,
+      "rotationZ": 5.37644136127923,
+      "fill": "rgba(205,224,235,0.32)",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "mount-4",
+      "type": "box",
+      "x": 25,
+      "y": 6,
+      "z": 60,
+      "width": 12,
+      "height": 11,
+      "depth": 9,
+      "rotationZ": 4.689962572847513,
+      "fill": "#70899b",
+      "stroke": "#a9c2d0",
+      "lineWidth": 0.35,
+      "castShadow": false
+    },
+    {
+      "id": "mount-cap-4",
+      "type": "plane",
+      "x": 25,
+      "y": 11.06,
+      "z": 58.92,
+      "width": 8.64,
+      "height": 2.75,
+      "rotationZ": 6.821871728130041,
+      "fill": "rgba(205,224,235,0.32)",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "cliff-0",
+      "type": "box",
+      "x": -10,
+      "y": -0.2,
+      "z": 34,
+      "width": 8,
+      "height": 6,
+      "depth": 8,
+      "rotationY": 5.579131750628887,
+      "fill": "#6f7778",
+      "stroke": "#a5afb0",
+      "lineWidth": 0.35,
+      "castShadow": true
+    },
+    {
+      "id": "grass-0",
+      "type": "plane",
+      "x": -10,
+      "y": 2.84,
+      "z": 34,
+      "width": 7.52,
+      "height": 7.52,
+      "rotationX": 90,
+      "fill": "#708956",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "cliff-1",
+      "type": "box",
+      "x": -6,
+      "y": 0.2,
+      "z": 35.5,
+      "width": 7,
+      "height": 7,
+      "depth": 8,
+      "rotationY": -5.339022230337376,
+      "fill": "#6f7778",
+      "stroke": "#a5afb0",
+      "lineWidth": 0.35,
+      "castShadow": true
+    },
+    {
+      "id": "grass-1",
+      "type": "plane",
+      "x": -6,
+      "y": 3.74,
+      "z": 35.5,
+      "width": 6.58,
+      "height": 7.52,
+      "rotationX": 90,
+      "fill": "#708956",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "cliff-2",
+      "type": "box",
+      "x": -1,
+      "y": 0.6,
+      "z": 37,
+      "width": 8,
+      "height": 7.8,
+      "depth": 8,
+      "rotationY": -0.2297419927885045,
+      "fill": "#6f7778",
+      "stroke": "#a5afb0",
+      "lineWidth": 0.35,
+      "castShadow": true
+    },
+    {
+      "id": "grass-2",
+      "type": "plane",
+      "x": -1,
+      "y": 4.54,
+      "z": 37,
+      "width": 7.52,
+      "height": 7.52,
+      "rotationX": 90,
+      "fill": "#708956",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "cliff-3",
+      "type": "box",
+      "x": 5,
+      "y": 0.2,
+      "z": 37.5,
+      "width": 9,
+      "height": 7,
+      "depth": 9,
+      "rotationY": -4.580043212813093,
+      "fill": "#6f7778",
+      "stroke": "#a5afb0",
+      "lineWidth": 0.35,
+      "castShadow": true
+    },
+    {
+      "id": "grass-3",
+      "type": "plane",
+      "x": 5,
+      "y": 3.74,
+      "z": 37.5,
+      "width": 8.459999999999999,
+      "height": 8.459999999999999,
+      "rotationX": 90,
+      "fill": "#708956",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "cliff-4",
+      "type": "box",
+      "x": 10,
+      "y": -0.3,
+      "z": 36,
+      "width": 7,
+      "height": 5.5,
+      "depth": 7,
+      "rotationY": -1.5833553192087582,
+      "fill": "#6f7778",
+      "stroke": "#a5afb0",
+      "lineWidth": 0.35,
+      "castShadow": true
+    },
+    {
+      "id": "grass-4",
+      "type": "plane",
+      "x": 10,
+      "y": 2.49,
+      "z": 36,
+      "width": 6.58,
+      "height": 6.58,
+      "rotationX": 90,
+      "fill": "#708956",
+      "stroke": false,
+      "castShadow": false
+    },
+    {
+      "id": "fort-rig",
+      "type": "group",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    {
+      "id": "wall-0",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": -7.4,
+      "y": 1.65,
+      "z": 32.6,
+      "width": 5.5,
+      "height": 2.8,
+      "depth": 1.0,
+      "fill": "#9e9b91",
+      "stroke": "#d7d2c5",
+      "lineWidth": 0.3
+    },
+    {
+      "id": "wall-1",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.7,
+      "z": 33.5,
+      "width": 8.0,
+      "height": 3.0,
+      "depth": 1.1,
+      "fill": "#9e9b91",
+      "stroke": "#d7d2c5",
+      "lineWidth": 0.3
+    },
+    {
+      "id": "wall-2",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": 7.2,
+      "y": 1.6,
+      "z": 33.0,
+      "width": 5.4,
+      "height": 2.8,
+      "depth": 1.0,
+      "fill": "#9e9b91",
+      "stroke": "#d7d2c5",
+      "lineWidth": 0.3
+    },
+    {
+      "id": "wall-3",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": -10.0,
+      "y": 1.2,
+      "z": 35.5,
+      "width": 1.2,
+      "height": 2.3,
+      "depth": 5.8,
+      "fill": "#9e9b91",
+      "stroke": "#d7d2c5",
+      "lineWidth": 0.3
+    },
+    {
+      "id": "wall-4",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": 10.0,
+      "y": 1.3,
+      "z": 35.8,
+      "width": 1.2,
+      "height": 2.5,
+      "depth": 5.8,
+      "fill": "#9e9b91",
+      "stroke": "#d7d2c5",
+      "lineWidth": 0.3
+    },
+    {
+      "id": "battlement-0",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": -0.0,
+      "y": 3.55,
+      "z": 32.95,
+      "width": 0.72,
+      "height": 0.75,
+      "depth": 1.25,
+      "fill": "#aaa79c",
+      "stroke": "#ddd8cc",
+      "lineWidth": 0.22
+    },
+    {
+      "id": "battlement-1",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": -2,
+      "y": 3.55,
+      "z": 32.95,
+      "width": 0.72,
+      "height": 0.75,
+      "depth": 1.25,
+      "fill": "#aaa79c",
+      "stroke": "#ddd8cc",
+      "lineWidth": 0.22
+    },
+    {
+      "id": "battlement-2",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": 2,
+      "y": 3.55,
+      "z": 32.95,
+      "width": 0.72,
+      "height": 0.75,
+      "depth": 1.25,
+      "fill": "#aaa79c",
+      "stroke": "#ddd8cc",
+      "lineWidth": 0.22
+    },
+    {
+      "id": "battlement-3",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": -4,
+      "y": 3.55,
+      "z": 32.95,
+      "width": 0.72,
+      "height": 0.75,
+      "depth": 1.25,
+      "fill": "#aaa79c",
+      "stroke": "#ddd8cc",
+      "lineWidth": 0.22
+    },
+    {
+      "id": "battlement-4",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": 4,
+      "y": 3.55,
+      "z": 32.95,
+      "width": 0.72,
+      "height": 0.75,
+      "depth": 1.25,
+      "fill": "#aaa79c",
+      "stroke": "#ddd8cc",
+      "lineWidth": 0.22
+    },
+    {
+      "id": "battlement-5",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": -6,
+      "y": 3.55,
+      "z": 32.95,
+      "width": 0.72,
+      "height": 0.75,
+      "depth": 1.25,
+      "fill": "#aaa79c",
+      "stroke": "#ddd8cc",
+      "lineWidth": 0.22
+    },
+    {
+      "id": "battlement-6",
+      "parent": "fort-rig",
+      "type": "box",
+      "x": 6,
+      "y": 3.55,
+      "z": 32.95,
+      "width": 0.72,
+      "height": 0.75,
+      "depth": 1.25,
+      "fill": "#aaa79c",
+      "stroke": "#ddd8cc",
+      "lineWidth": 0.22
+    },
+    {
+      "id": "tower-west-rig",
+      "type": "group",
+      "x": -7.8,
+      "y": 0,
+      "z": 31.9
+    },
+    {
+      "id": "tower-west-base",
+      "parent": "tower-west-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.0,
+      "z": 0,
+      "width": 2.3,
+      "height": 2.2,
+      "depth": 2.3,
+      "fill": "#9a978d",
+      "stroke": "#ded9ca",
+      "lineWidth": 0.35
+    },
+    {
+      "id": "tower-west-shaft",
+      "parent": "tower-west-rig",
+      "type": "box",
+      "x": 0,
+      "y": 4.309,
+      "z": 0,
+      "width": 1.55,
+      "height": 4.964,
+      "depth": 1.55,
+      "fill": "#a5a297",
+      "stroke": "#e0dbcf",
+      "lineWidth": 0.32
+    },
+    {
+      "id": "tower-west-cap",
+      "parent": "tower-west-rig",
+      "type": "sphere",
+      "x": 0,
+      "y": 7.071999999999999,
+      "z": 0,
+      "radius": 1.05,
+      "fill": "#8b5545",
+      "stroke": "#d7a28e",
+      "lineWidth": 0.3,
+      "castShadow": true
+    },
+    {
+      "id": "tower-west-window-0",
+      "parent": "tower-west-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 2.1,
+      "z": -0.8,
+      "width": 0.5,
+      "height": 0.68,
+      "fill": "#24313b",
+      "stroke": false,
+      "emissive": "#ffd596",
+      "emissiveIntensity": 0.05,
+      "castShadow": false
+    },
+    {
+      "id": "tower-west-window-1",
+      "parent": "tower-west-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 3.35,
+      "z": -0.8,
+      "width": 0.5,
+      "height": 0.68,
+      "fill": "#24313b",
+      "stroke": false,
+      "emissive": "#ffd596",
+      "emissiveIntensity": 0.05,
+      "castShadow": false
+    },
+    {
+      "id": "tower-west-window-2",
+      "parent": "tower-west-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 4.6,
+      "z": -0.8,
+      "width": 0.5,
+      "height": 0.68,
+      "fill": "#24313b",
+      "stroke": false,
+      "emissive": "#ffd596",
+      "emissiveIntensity": 0.05,
+      "castShadow": false
+    },
+    {
+      "id": "tower-east-rig",
+      "type": "group",
+      "x": 7.7,
+      "y": 0,
+      "z": 32.2
+    },
+    {
+      "id": "tower-east-base",
+      "parent": "tower-east-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.0,
+      "z": 0,
+      "width": 2.3,
+      "height": 2.2,
+      "depth": 2.3,
+      "fill": "#9a978d",
+      "stroke": "#ded9ca",
+      "lineWidth": 0.35
+    },
+    {
+      "id": "tower-east-shaft",
+      "parent": "tower-east-rig",
+      "type": "box",
+      "x": 0,
+      "y": 4.474,
+      "z": 0,
+      "width": 1.55,
+      "height": 5.304,
+      "depth": 1.55,
+      "fill": "#a5a297",
+      "stroke": "#e0dbcf",
+      "lineWidth": 0.32
+    },
+    {
+      "id": "tower-east-cap",
+      "parent": "tower-east-rig",
+      "type": "sphere",
+      "x": 0,
+      "y": 7.3919999999999995,
+      "z": 0,
+      "radius": 1.05,
+      "fill": "#8b5545",
+      "stroke": "#d7a28e",
+      "lineWidth": 0.3,
+      "castShadow": true
+    },
+    {
+      "id": "tower-east-window-0",
+      "parent": "tower-east-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 2.1,
+      "z": -0.8,
+      "width": 0.5,
+      "height": 0.68,
+      "fill": "#24313b",
+      "stroke": false,
+      "emissive": "#ffd596",
+      "emissiveIntensity": 0.05,
+      "castShadow": false
+    },
+    {
+      "id": "tower-east-window-1",
+      "parent": "tower-east-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 3.35,
+      "z": -0.8,
+      "width": 0.5,
+      "height": 0.68,
+      "fill": "#24313b",
+      "stroke": false,
+      "emissive": "#ffd596",
+      "emissiveIntensity": 0.05,
+      "castShadow": false
+    },
+    {
+      "id": "tower-east-window-2",
+      "parent": "tower-east-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 4.6,
+      "z": -0.8,
+      "width": 0.5,
+      "height": 0.68,
+      "fill": "#24313b",
+      "stroke": false,
+      "emissive": "#ffd596",
+      "emissiveIntensity": 0.05,
+      "castShadow": false
+    },
+    {
+      "id": "harbor-light-rig",
+      "type": "group",
+      "x": -4.7,
+      "y": 0,
+      "z": 27.2
+    },
+    {
+      "id": "harbor-light-base",
+      "parent": "harbor-light-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.0,
+      "z": 0,
+      "width": 2.3,
+      "height": 2.2,
+      "depth": 2.3,
+      "fill": "#9a978d",
+      "stroke": "#ded9ca",
+      "lineWidth": 0.35
+    },
+    {
+      "id": "harbor-light-shaft",
+      "parent": "harbor-light-rig",
+      "type": "box",
+      "x": 0,
+      "y": 4.672000000000001,
+      "z": 0,
+      "width": 1.55,
+      "height": 5.712000000000001,
+      "depth": 1.55,
+      "fill": "#a5a297",
+      "stroke": "#e0dbcf",
+      "lineWidth": 0.32
+    },
+    {
+      "id": "harbor-light-cap",
+      "parent": "harbor-light-rig",
+      "type": "sphere",
+      "x": 0,
+      "y": 7.776,
+      "z": 0,
+      "radius": 1.05,
+      "fill": "#8b5545",
+      "stroke": "#d7a28e",
+      "lineWidth": 0.3,
+      "castShadow": true
+    },
+    {
+      "id": "harbor-light-window-0",
+      "parent": "harbor-light-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 2.1,
+      "z": -0.8,
+      "width": 0.5,
+      "height": 0.68,
+      "fill": "#24313b",
+      "stroke": false,
+      "emissive": "#ffd596",
+      "emissiveIntensity": 0.05,
+      "castShadow": false
+    },
+    {
+      "id": "harbor-light-window-1",
+      "parent": "harbor-light-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 3.35,
+      "z": -0.8,
+      "width": 0.5,
+      "height": 0.68,
+      "fill": "#24313b",
+      "stroke": false,
+      "emissive": "#ffd596",
+      "emissiveIntensity": 0.05,
+      "castShadow": false
+    },
+    {
+      "id": "harbor-light-window-2",
+      "parent": "harbor-light-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 4.6,
+      "z": -0.8,
+      "width": 0.5,
+      "height": 0.68,
+      "fill": "#24313b",
+      "stroke": false,
+      "emissive": "#ffd596",
+      "emissiveIntensity": 0.05,
+      "castShadow": false
+    },
+    {
+      "id": "dock-0",
+      "type": "box",
+      "x": -5.5,
+      "y": -2.25,
+      "z": 27.8,
+      "width": 4.5,
+      "height": 0.45,
+      "depth": 8,
+      "rotationY": 0,
+      "fill": "#775336",
+      "stroke": "#b78a5b",
+      "lineWidth": 0.28
+    },
+    {
+      "id": "dock-0-post-0",
+      "type": "box",
+      "x": -7.39,
+      "y": -2.95,
+      "z": 24.44,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-0-post-1",
+      "type": "box",
+      "x": -3.61,
+      "y": -2.95,
+      "z": 26.68,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-0-post-2",
+      "type": "box",
+      "x": -7.39,
+      "y": -2.95,
+      "z": 28.92,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-0-post-3",
+      "type": "box",
+      "x": -3.61,
+      "y": -2.95,
+      "z": 31.16,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-1",
+      "type": "box",
+      "x": 1.2,
+      "y": -2.25,
+      "z": 28.4,
+      "width": 4.0,
+      "height": 0.45,
+      "depth": 9.5,
+      "rotationY": 0,
+      "fill": "#775336",
+      "stroke": "#b78a5b",
+      "lineWidth": 0.28
+    },
+    {
+      "id": "dock-1-post-0",
+      "type": "box",
+      "x": -0.48,
+      "y": -2.95,
+      "z": 24.41,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-1-post-1",
+      "type": "box",
+      "x": 2.88,
+      "y": -2.95,
+      "z": 26.405,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-1-post-2",
+      "type": "box",
+      "x": -0.48,
+      "y": -2.95,
+      "z": 28.4,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-1-post-3",
+      "type": "box",
+      "x": 2.88,
+      "y": -2.95,
+      "z": 30.395,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-1-post-4",
+      "type": "box",
+      "x": -0.48,
+      "y": -2.95,
+      "z": 32.39,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-2",
+      "type": "box",
+      "x": 6.0,
+      "y": -2.25,
+      "z": 28.0,
+      "width": 3.3,
+      "height": 0.45,
+      "depth": 7.0,
+      "rotationY": 0,
+      "fill": "#775336",
+      "stroke": "#b78a5b",
+      "lineWidth": 0.28
+    },
+    {
+      "id": "dock-2-post-0",
+      "type": "box",
+      "x": 4.614,
+      "y": -2.95,
+      "z": 25.06,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-2-post-1",
+      "type": "box",
+      "x": 7.385999999999999,
+      "y": -2.95,
+      "z": 27.02,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-2-post-2",
+      "type": "box",
+      "x": 4.614,
+      "y": -2.95,
+      "z": 28.979999999999997,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-2-post-3",
+      "type": "box",
+      "x": 7.385999999999999,
+      "y": -2.95,
+      "z": 30.939999999999998,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-3",
+      "type": "box",
+      "x": -1.2,
+      "y": -2.25,
+      "z": 23.5,
+      "width": 3.0,
+      "height": 0.45,
+      "depth": 5.5,
+      "rotationY": 0,
+      "fill": "#775336",
+      "stroke": "#b78a5b",
+      "lineWidth": 0.28
+    },
+    {
+      "id": "dock-3-post-0",
+      "type": "box",
+      "x": -2.46,
+      "y": -2.95,
+      "z": 21.19,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-3-post-1",
+      "type": "box",
+      "x": 0.06000000000000005,
+      "y": -2.95,
+      "z": 23.5,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "dock-3-post-2",
+      "type": "box",
+      "x": -2.46,
+      "y": -2.95,
+      "z": 25.810000000000002,
+      "width": 0.18,
+      "height": 1.7,
+      "depth": 0.18,
+      "fill": "#604229",
+      "stroke": false
+    },
+    {
+      "id": "ship-main-rig",
+      "type": "group",
+      "x": 5.2,
+      "y": -1.45,
+      "z": 26.2,
+      "rotationY": -12,
+      "scale": 1.15,
+      "keyframes": [
+        {
+          "t": 0,
+          "y": -1.45,
+          "rotationZ": -0.4
+        },
+        {
+          "t": 5,
+          "y": -1.35,
+          "rotationZ": 0.45
+        },
+        {
+          "t": 10,
+          "y": -1.47,
+          "rotationZ": -0.25
+        },
+        {
+          "t": 15,
+          "y": -1.36,
+          "rotationZ": 0.35
+        },
+        {
+          "t": 20,
+          "y": -1.45,
+          "rotationZ": -0.4
+        }
+      ]
+    },
+    {
+      "id": "ship-main-hull",
+      "parent": "ship-main-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "width": 2.4,
+      "height": 0.75,
+      "depth": 5.5,
+      "fill": "#6a4027",
+      "stroke": "#a46f48",
+      "lineWidth": 0.28
+    },
+    {
+      "id": "ship-main-deck",
+      "parent": "ship-main-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.47,
+      "z": -0.1,
+      "width": 2.15,
+      "height": 0.18,
+      "depth": 4.7,
+      "fill": "#9b714c",
+      "stroke": "#c49a6d",
+      "lineWidth": 0.2
+    },
+    {
+      "id": "ship-main-mast-0",
+      "parent": "ship-main-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.15,
+      "z": -1.25,
+      "width": 0.15,
+      "height": 3.7,
+      "depth": 0.15,
+      "fill": "#5f432d",
+      "stroke": false
+    },
+    {
+      "id": "ship-main-sail-0",
+      "parent": "ship-main-rig",
+      "type": "plane",
+      "x": 0.12,
+      "y": 2.4,
+      "z": -1.25,
+      "width": 2.1,
+      "height": 2.25,
+      "rotationY": 0,
+      "fill": "#e9e5da",
+      "stroke": "#cfc8b8",
+      "lineWidth": 0.18,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationZ": -2
+        },
+        {
+          "t": 4,
+          "rotationZ": 2.5
+        },
+        {
+          "t": 8,
+          "rotationZ": -1.5
+        },
+        {
+          "t": 12,
+          "rotationZ": 2
+        },
+        {
+          "t": 16,
+          "rotationZ": -2.5
+        },
+        {
+          "t": 20,
+          "rotationZ": -2
+        }
+      ]
+    },
+    {
+      "id": "ship-main-mast-1",
+      "parent": "ship-main-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.15,
+      "z": 1.15,
+      "width": 0.15,
+      "height": 3.7,
+      "depth": 0.15,
+      "fill": "#5f432d",
+      "stroke": false
+    },
+    {
+      "id": "ship-main-sail-1",
+      "parent": "ship-main-rig",
+      "type": "plane",
+      "x": 0.12,
+      "y": 2.4,
+      "z": 1.15,
+      "width": 2.1,
+      "height": 2.25,
+      "rotationY": 0,
+      "fill": "#e9e5da",
+      "stroke": "#cfc8b8",
+      "lineWidth": 0.18,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationZ": -2
+        },
+        {
+          "t": 4,
+          "rotationZ": 2.5
+        },
+        {
+          "t": 8,
+          "rotationZ": -1.5
+        },
+        {
+          "t": 12,
+          "rotationZ": 2
+        },
+        {
+          "t": 16,
+          "rotationZ": -2.5
+        },
+        {
+          "t": 20,
+          "rotationZ": -2
+        }
+      ]
+    },
+    {
+      "id": "ship-main-bow",
+      "parent": "ship-main-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.15,
+      "z": -3.05,
+      "width": 1.6,
+      "height": 0.55,
+      "depth": 0.85,
+      "rotationX": -14,
+      "fill": "#6a4027",
+      "stroke": "#a46f48",
+      "lineWidth": 0.2
+    },
+    {
+      "id": "ship-left-rig",
+      "type": "group",
+      "x": -8.0,
+      "y": -1.45,
+      "z": 25.1,
+      "rotationY": 16,
+      "scale": 0.82,
+      "keyframes": [
+        {
+          "t": 0,
+          "y": -1.45,
+          "rotationZ": -0.4
+        },
+        {
+          "t": 5,
+          "y": -1.35,
+          "rotationZ": 0.45
+        },
+        {
+          "t": 10,
+          "y": -1.47,
+          "rotationZ": -0.25
+        },
+        {
+          "t": 15,
+          "y": -1.36,
+          "rotationZ": 0.35
+        },
+        {
+          "t": 20,
+          "y": -1.45,
+          "rotationZ": -0.4
+        }
+      ]
+    },
+    {
+      "id": "ship-left-hull",
+      "parent": "ship-left-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "width": 2.4,
+      "height": 0.75,
+      "depth": 5.5,
+      "fill": "#6a4027",
+      "stroke": "#a46f48",
+      "lineWidth": 0.28
+    },
+    {
+      "id": "ship-left-deck",
+      "parent": "ship-left-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.47,
+      "z": -0.1,
+      "width": 2.15,
+      "height": 0.18,
+      "depth": 4.7,
+      "fill": "#9b714c",
+      "stroke": "#c49a6d",
+      "lineWidth": 0.2
+    },
+    {
+      "id": "ship-left-mast-0",
+      "parent": "ship-left-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.15,
+      "z": -1.25,
+      "width": 0.15,
+      "height": 3.7,
+      "depth": 0.15,
+      "fill": "#5f432d",
+      "stroke": false
+    },
+    {
+      "id": "ship-left-sail-0",
+      "parent": "ship-left-rig",
+      "type": "plane",
+      "x": 0.12,
+      "y": 2.4,
+      "z": -1.25,
+      "width": 2.1,
+      "height": 2.25,
+      "rotationY": 0,
+      "fill": "#e9e5da",
+      "stroke": "#cfc8b8",
+      "lineWidth": 0.18,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationZ": -2
+        },
+        {
+          "t": 4,
+          "rotationZ": 2.5
+        },
+        {
+          "t": 8,
+          "rotationZ": -1.5
+        },
+        {
+          "t": 12,
+          "rotationZ": 2
+        },
+        {
+          "t": 16,
+          "rotationZ": -2.5
+        },
+        {
+          "t": 20,
+          "rotationZ": -2
+        }
+      ]
+    },
+    {
+      "id": "ship-left-mast-1",
+      "parent": "ship-left-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.15,
+      "z": 1.15,
+      "width": 0.15,
+      "height": 3.7,
+      "depth": 0.15,
+      "fill": "#5f432d",
+      "stroke": false
+    },
+    {
+      "id": "ship-left-sail-1",
+      "parent": "ship-left-rig",
+      "type": "plane",
+      "x": 0.12,
+      "y": 2.4,
+      "z": 1.15,
+      "width": 2.1,
+      "height": 2.25,
+      "rotationY": 0,
+      "fill": "#e9e5da",
+      "stroke": "#cfc8b8",
+      "lineWidth": 0.18,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationZ": -2
+        },
+        {
+          "t": 4,
+          "rotationZ": 2.5
+        },
+        {
+          "t": 8,
+          "rotationZ": -1.5
+        },
+        {
+          "t": 12,
+          "rotationZ": 2
+        },
+        {
+          "t": 16,
+          "rotationZ": -2.5
+        },
+        {
+          "t": 20,
+          "rotationZ": -2
+        }
+      ]
+    },
+    {
+      "id": "ship-left-bow",
+      "parent": "ship-left-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.15,
+      "z": -3.05,
+      "width": 1.6,
+      "height": 0.55,
+      "depth": 0.85,
+      "rotationX": -14,
+      "fill": "#6a4027",
+      "stroke": "#a46f48",
+      "lineWidth": 0.2
+    },
+    {
+      "id": "ship-far-rig",
+      "type": "group",
+      "x": 10.5,
+      "y": -1.45,
+      "z": 34.0,
+      "rotationY": -25,
+      "scale": 0.72,
+      "keyframes": [
+        {
+          "t": 0,
+          "y": -1.45,
+          "rotationZ": -0.4
+        },
+        {
+          "t": 5,
+          "y": -1.35,
+          "rotationZ": 0.45
+        },
+        {
+          "t": 10,
+          "y": -1.47,
+          "rotationZ": -0.25
+        },
+        {
+          "t": 15,
+          "y": -1.36,
+          "rotationZ": 0.35
+        },
+        {
+          "t": 20,
+          "y": -1.45,
+          "rotationZ": -0.4
+        }
+      ]
+    },
+    {
+      "id": "ship-far-hull",
+      "parent": "ship-far-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "width": 2.4,
+      "height": 0.75,
+      "depth": 5.5,
+      "fill": "#6a4027",
+      "stroke": "#a46f48",
+      "lineWidth": 0.28
+    },
+    {
+      "id": "ship-far-deck",
+      "parent": "ship-far-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.47,
+      "z": -0.1,
+      "width": 2.15,
+      "height": 0.18,
+      "depth": 4.7,
+      "fill": "#9b714c",
+      "stroke": "#c49a6d",
+      "lineWidth": 0.2
+    },
+    {
+      "id": "ship-far-mast-0",
+      "parent": "ship-far-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.15,
+      "z": -1.25,
+      "width": 0.15,
+      "height": 3.7,
+      "depth": 0.15,
+      "fill": "#5f432d",
+      "stroke": false
+    },
+    {
+      "id": "ship-far-sail-0",
+      "parent": "ship-far-rig",
+      "type": "plane",
+      "x": 0.12,
+      "y": 2.4,
+      "z": -1.25,
+      "width": 2.1,
+      "height": 2.25,
+      "rotationY": 0,
+      "fill": "#e9e5da",
+      "stroke": "#cfc8b8",
+      "lineWidth": 0.18,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationZ": -2
+        },
+        {
+          "t": 4,
+          "rotationZ": 2.5
+        },
+        {
+          "t": 8,
+          "rotationZ": -1.5
+        },
+        {
+          "t": 12,
+          "rotationZ": 2
+        },
+        {
+          "t": 16,
+          "rotationZ": -2.5
+        },
+        {
+          "t": 20,
+          "rotationZ": -2
+        }
+      ]
+    },
+    {
+      "id": "ship-far-mast-1",
+      "parent": "ship-far-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.15,
+      "z": 1.15,
+      "width": 0.15,
+      "height": 3.7,
+      "depth": 0.15,
+      "fill": "#5f432d",
+      "stroke": false
+    },
+    {
+      "id": "ship-far-sail-1",
+      "parent": "ship-far-rig",
+      "type": "plane",
+      "x": 0.12,
+      "y": 2.4,
+      "z": 1.15,
+      "width": 2.1,
+      "height": 2.25,
+      "rotationY": 0,
+      "fill": "#e9e5da",
+      "stroke": "#cfc8b8",
+      "lineWidth": 0.18,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationZ": -2
+        },
+        {
+          "t": 4,
+          "rotationZ": 2.5
+        },
+        {
+          "t": 8,
+          "rotationZ": -1.5
+        },
+        {
+          "t": 12,
+          "rotationZ": 2
+        },
+        {
+          "t": 16,
+          "rotationZ": -2.5
+        },
+        {
+          "t": 20,
+          "rotationZ": -2
+        }
+      ]
+    },
+    {
+      "id": "ship-far-bow",
+      "parent": "ship-far-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.15,
+      "z": -3.05,
+      "width": 1.6,
+      "height": 0.55,
+      "depth": 0.85,
+      "rotationX": -14,
+      "fill": "#6a4027",
+      "stroke": "#a46f48",
+      "lineWidth": 0.2
+    },
+    {
+      "id": "house-0-rig",
+      "type": "group",
+      "x": -5.663222040598246,
+      "y": 0,
+      "z": 36.33564214072051,
+      "rotationY": 0.24723215864346315
+    },
+    {
+      "id": "house-0-body",
+      "parent": "house-0-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.1653082345891792,
+      "z": 0,
+      "width": 1.9556635417537125,
+      "height": 2.9306164691783585,
+      "depth": 1.759507530605229,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-0-roof",
+      "parent": "house-0-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.9306164691783585,
+      "z": 0,
+      "width": 2.3076829792693805,
+      "height": 0.38,
+      "depth": 2.07621888611417,
+      "rotationZ": 0.7976451345947746,
+      "fill": "#a35b42",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-0-window",
+      "parent": "house-0-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.30669590520561196,
+      "z": -0.8885513029556407,
+      "width": 0.5475857916910396,
+      "height": 0.6447356232192388,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-1-rig",
+      "type": "group",
+      "x": -3.3541195794565573,
+      "y": 0,
+      "z": 36.53903782638393,
+      "rotationY": -2.6369879134431855
+    },
+    {
+      "id": "house-1-body",
+      "parent": "house-1-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.02637860804402048,
+      "z": 0,
+      "width": 1.8965674477666934,
+      "height": 2.652757216088041,
+      "depth": 1.4893171427466578,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-1-roof",
+      "parent": "house-1-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.652757216088041,
+      "z": 0,
+      "width": 2.2379495883646983,
+      "height": 0.38,
+      "depth": 1.7573942284410562,
+      "rotationZ": 1.9105407872199853,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-1-window",
+      "parent": "house-1-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.1733234637222596,
+      "z": -0.7521051570870622,
+      "width": 0.5310388853746743,
+      "height": 0.583606587539369,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-2-rig",
+      "type": "group",
+      "x": -1.1287377382653694,
+      "y": 0,
+      "z": 36.52953664096199,
+      "rotationY": 4.0182102006517155
+    },
+    {
+      "id": "house-2-body",
+      "parent": "house-2-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.3425953539048685,
+      "z": 0,
+      "width": 1.9231780043411577,
+      "height": 3.285190707809737,
+      "depth": 1.4014487456167348,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-2-roof",
+      "parent": "house-2-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.285190707809737,
+      "z": 0,
+      "width": 2.269350045122566,
+      "height": 0.38,
+      "depth": 1.653709519827747,
+      "rotationZ": 1.0367740233430025,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-2-window",
+      "parent": "house-2-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.4768915397486737,
+      "z": -0.7077316165364511,
+      "width": 0.5384898412155242,
+      "height": 0.7227419557181421,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-3-rig",
+      "type": "group",
+      "x": 1.7174479028434568,
+      "y": 0,
+      "z": 36.26020290955764,
+      "rotationY": -4.405749344043388
+    },
+    {
+      "id": "house-3-body",
+      "parent": "house-3-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.09559254292120456,
+      "z": 0,
+      "width": 2.1147010129470054,
+      "height": 2.408814914157591,
+      "depth": 1.4221003187165282,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-3-roof",
+      "parent": "house-3-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.408814914157591,
+      "z": 0,
+      "width": 2.4953471952774664,
+      "height": 0.38,
+      "depth": 1.6780783760855031,
+      "rotationZ": -1.8052204036405401,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-3-window",
+      "parent": "house-3-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.05623115879564344,
+      "z": -0.7181606609518467,
+      "width": 0.5921162836251616,
+      "height": 0.52993928111467,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-4-rig",
+      "type": "group",
+      "x": 4.157691298243681,
+      "y": 0,
+      "z": 36.31464272650065,
+      "rotationY": -7.6091937963707785
+    },
+    {
+      "id": "house-4-body",
+      "parent": "house-4-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.029163117432512653,
+      "z": 0,
+      "width": 1.3578979525524117,
+      "height": 2.541673765134975,
+      "depth": 2.1512585827164936,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-4-roof",
+      "parent": "house-4-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.5416737651349748,
+      "z": 0,
+      "width": 1.6023195840118458,
+      "height": 0.38,
+      "depth": 2.5384851276054623,
+      "rotationZ": -1.530944735529899,
+      "fill": "#a35b42",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-4-window",
+      "parent": "house-4-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.12000340726478775,
+      "z": -1.0863855842718293,
+      "width": 0.38021142671467534,
+      "height": 0.5591682283296945,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-5-rig",
+      "type": "group",
+      "x": 6.607443359298893,
+      "y": 0,
+      "z": 36.44345744073511,
+      "rotationY": -0.39781849249911794
+    },
+    {
+      "id": "house-5-body",
+      "parent": "house-5-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.7281768835100697,
+      "z": 0,
+      "width": 1.7753050603621023,
+      "height": 4.0563537670201395,
+      "depth": 1.820504443978763,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-5-roof",
+      "parent": "house-5-rig",
+      "type": "box",
+      "x": 0,
+      "y": 3.0563537670201395,
+      "z": 0,
+      "width": 2.094859971227281,
+      "height": 0.38,
+      "depth": 2.14819524389494,
+      "rotationZ": 2.098426167748391,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-5-window",
+      "parent": "house-5-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.8470498081696669,
+      "z": -0.9193547442092753,
+      "width": 0.4970854169013887,
+      "height": 0.8923978287444307,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-6-rig",
+      "type": "group",
+      "x": 8.894572620710473,
+      "y": 0,
+      "z": 36.31708016683109,
+      "rotationY": -6.834748333046894
+    },
+    {
+      "id": "house-6-body",
+      "parent": "house-6-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.029996787778638456,
+      "z": 0,
+      "width": 1.606207262112129,
+      "height": 2.659993575557277,
+      "depth": 1.954521200663974,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-6-roof",
+      "parent": "house-6-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.659993575557277,
+      "z": 0,
+      "width": 1.8953245692923122,
+      "height": 0.38,
+      "depth": 2.306335016783489,
+      "rotationZ": -0.5133539340136837,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-6-window",
+      "parent": "house-6-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.17679691626749272,
+      "z": -0.9870332063353069,
+      "width": 0.4497380333913962,
+      "height": 0.5851985866226009,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-7-rig",
+      "type": "group",
+      "x": -8.273321956827038,
+      "y": 0,
+      "z": 38.90078018014521,
+      "rotationY": 2.0762460918034193
+    },
+    {
+      "id": "house-7-body",
+      "parent": "house-7-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.7957060926406039,
+      "z": 0,
+      "width": 1.6624569703567276,
+      "height": 4.191412185281208,
+      "depth": 2.248608996768998,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-7-roof",
+      "parent": "house-7-rig",
+      "type": "box",
+      "x": 0,
+      "y": 3.191412185281208,
+      "z": 0,
+      "width": 1.9616992250209384,
+      "height": 0.38,
+      "depth": 2.6533586161874174,
+      "rotationZ": -1.8333885795617442,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-7-window",
+      "parent": "house-7-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.9118778489349797,
+      "z": -1.135547543368344,
+      "width": 0.4654879516998838,
+      "height": 0.9221106807618658,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-8-rig",
+      "type": "group",
+      "x": -4.011319626724639,
+      "y": 0,
+      "z": 39.503281564595596,
+      "rotationY": 3.1416680078480788
+    },
+    {
+      "id": "house-8-body",
+      "parent": "house-8-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.10647979761277226,
+      "z": 0,
+      "width": 2.0427777563177956,
+      "height": 2.8129595952255446,
+      "depth": 2.1413432182360888,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-8-roof",
+      "parent": "house-8-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.8129595952255446,
+      "z": 0,
+      "width": 2.4104777524549985,
+      "height": 0.38,
+      "depth": 2.5267849975185848,
+      "rotationZ": -0.03373698593737817,
+      "fill": "#a35b42",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-8-window",
+      "parent": "house-8-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.2502206057082612,
+      "z": -1.0813783252092248,
+      "width": 0.5719777717689828,
+      "height": 0.6188511109496199,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-9-rig",
+      "type": "group",
+      "x": 1.5831859325786337,
+      "y": 0,
+      "z": 39.278174436008165,
+      "rotationY": -4.096248966744978
+    },
+    {
+      "id": "house-9-body",
+      "parent": "house-9-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.29139458213262626,
+      "z": 0,
+      "width": 2.138509757268354,
+      "height": 2.0172108357347476,
+      "depth": 1.9385786859396594,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-9-roof",
+      "parent": "house-9-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.0172108357347476,
+      "z": 0,
+      "width": 2.5234415135766572,
+      "height": 0.38,
+      "depth": 2.287522849408798,
+      "rotationZ": 0.9363480666707042,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-9-window",
+      "parent": "house-9-rig",
+      "type": "plane",
+      "x": 0,
+      "y": -0.13173879884732131,
+      "z": -0.978982236399528,
+      "width": 0.5987827320351391,
+      "height": 0.4437863838616445,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-10-rig",
+      "type": "group",
+      "x": 3.81944087697998,
+      "y": 0,
+      "z": 39.314372100476255,
+      "rotationY": -7.911282909791492
+    },
+    {
+      "id": "house-10-body",
+      "parent": "house-10-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.17302846253898752,
+      "z": 0,
+      "width": 2.0950370035343937,
+      "height": 2.253943074922025,
+      "depth": 1.4708620029540311,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-10-roof",
+      "parent": "house-10-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.253943074922025,
+      "z": 0,
+      "width": 2.4721436641705843,
+      "height": 0.38,
+      "depth": 1.7356171634857567,
+      "rotationZ": 1.5057868597108373,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-10-window",
+      "parent": "house-10-rig",
+      "type": "plane",
+      "x": 0,
+      "y": -0.018107324037428096,
+      "z": -0.7427853114917857,
+      "width": 0.5866103609896303,
+      "height": 0.4958674764828455,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-11-rig",
+      "type": "group",
+      "x": 8.495113391083335,
+      "y": 0,
+      "z": 39.27338087892116,
+      "rotationY": 4.320739017184401
+    },
+    {
+      "id": "house-11-body",
+      "parent": "house-11-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.3976617547735877,
+      "z": 0,
+      "width": 1.895850968424918,
+      "height": 3.3953235095471754,
+      "depth": 1.5332375810947076,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-11-roof",
+      "parent": "house-11-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.3953235095471754,
+      "z": 0,
+      "width": 2.237104142741403,
+      "height": 0.38,
+      "depth": 1.8092203456917548,
+      "rotationZ": -2.360476220618766,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-11-window",
+      "parent": "house-11-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.5297552845826441,
+      "z": -0.7742849784528274,
+      "width": 0.5308382711589771,
+      "height": 0.7469711721003786,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-12-rig",
+      "type": "group",
+      "x": -8.51032133306556,
+      "y": 0,
+      "z": 42.283735543755526,
+      "rotationY": -1.197660896916254
+    },
+    {
+      "id": "house-12-body",
+      "parent": "house-12-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.165933349820099,
+      "z": 0,
+      "width": 2.01149334196537,
+      "height": 2.931866699640198,
+      "depth": 1.4330686209414603,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-12-roof",
+      "parent": "house-12-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.931866699640198,
+      "z": 0,
+      "width": 2.3735621435191363,
+      "height": 0.38,
+      "depth": 1.691020972710923,
+      "rotationZ": -1.94467990976081,
+      "fill": "#a35b42",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-12-window",
+      "parent": "house-12-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.30729601582729504,
+      "z": -0.7236996535754374,
+      "width": 0.5632181357503037,
+      "height": 0.6450106739208435,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-13-rig",
+      "type": "group",
+      "x": -6.546808879820995,
+      "y": 0,
+      "z": 42.18978345611374,
+      "rotationY": 7.327456676472636
+    },
+    {
+      "id": "house-13-body",
+      "parent": "house-13-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.5153539991827241,
+      "z": 0,
+      "width": 1.8234020395712416,
+      "height": 3.630707998365448,
+      "depth": 1.5857597361909135,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-13-roof",
+      "parent": "house-13-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.630707998365448,
+      "z": 0,
+      "width": 2.151614406694065,
+      "height": 0.38,
+      "depth": 1.8711964887052779,
+      "rotationZ": 0.10774650266244468,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-13-window",
+      "parent": "house-13-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.6427398392154149,
+      "z": -0.8008086667764113,
+      "width": 0.5105525710799477,
+      "height": 0.7987557596403986,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-14-rig",
+      "type": "group",
+      "x": -3.8650817729173883,
+      "y": 0,
+      "z": 41.65676878972584,
+      "rotationY": -7.196505837749745
+    },
+    {
+      "id": "house-14-body",
+      "parent": "house-14-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.6943214287158825,
+      "z": 0,
+      "width": 1.3177194740663905,
+      "height": 3.988642857431765,
+      "depth": 2.144795753970129,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-14-roof",
+      "parent": "house-14-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.988642857431765,
+      "z": 0,
+      "width": 1.5549089793983406,
+      "height": 0.38,
+      "depth": 2.5308589896847518,
+      "rotationZ": -1.50481032204017,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-14-window",
+      "parent": "house-14-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.8145485715672471,
+      "z": -1.0831218557549152,
+      "width": 0.3689614527385894,
+      "height": 0.8775014286349884,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-15-rig",
+      "type": "group",
+      "x": -0.8988644821025848,
+      "y": 0,
+      "z": 42.05775669654285,
+      "rotationY": 5.573381557626556
+    },
+    {
+      "id": "house-15-body",
+      "parent": "house-15-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.039084184923147136,
+      "z": 0,
+      "width": 1.3832844070107344,
+      "height": 2.6781683698462944,
+      "depth": 1.464700967353925,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-15-roof",
+      "parent": "house-15-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.6781683698462944,
+      "z": 0,
+      "width": 1.6322756002726666,
+      "height": 0.38,
+      "depth": 1.7283471414776315,
+      "rotationZ": -0.2612290471789649,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-15-window",
+      "parent": "house-15-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.18552081752622107,
+      "z": -0.7396739885137321,
+      "width": 0.38731963396300567,
+      "height": 0.5891970413661848,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-16-rig",
+      "type": "group",
+      "x": 1.6665100743992374,
+      "y": 0,
+      "z": 42.25249180740063,
+      "rotationY": 4.822665627556232
+    },
+    {
+      "id": "house-16-body",
+      "parent": "house-16-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.02551728685478305,
+      "z": 0,
+      "width": 2.059032172873827,
+      "height": 2.548965426290434,
+      "depth": 1.5390688845057787,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-16-roof",
+      "parent": "house-16-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.548965426290434,
+      "z": 0,
+      "width": 2.4296579639911156,
+      "height": 0.38,
+      "depth": 1.816101283716819,
+      "rotationZ": 1.005466395518119,
+      "fill": "#a35b42",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-16-window",
+      "parent": "house-16-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.12350340461940812,
+      "z": -0.7772297866754183,
+      "width": 0.5765290084046716,
+      "height": 0.5607723937838954,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-17-rig",
+      "type": "group",
+      "x": 6.845721231305908,
+      "y": 0,
+      "z": 41.93446417288248,
+      "rotationY": 7.806279249063168
+    },
+    {
+      "id": "house-17-body",
+      "parent": "house-17-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.7228691172630419,
+      "z": 0,
+      "width": 1.8085953591356416,
+      "height": 4.045738234526084,
+      "depth": 1.4890980044989843,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-17-roof",
+      "parent": "house-17-rig",
+      "type": "box",
+      "x": 0,
+      "y": 3.045738234526084,
+      "z": 0,
+      "width": 2.134142523780057,
+      "height": 0.38,
+      "depth": 1.7571356453088014,
+      "rotationZ": 0.5727139108165185,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-17-window",
+      "parent": "house-17-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.8419543525725202,
+      "z": -0.7519944922719871,
+      "width": 0.5064067005579796,
+      "height": 0.8900624115957385,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-18-rig",
+      "type": "group",
+      "x": 9.128585429637866,
+      "y": 0,
+      "z": 42.21754020395828,
+      "rotationY": 7.200633735090495
+    },
+    {
+      "id": "house-18-body",
+      "parent": "house-18-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.5102209189305904,
+      "z": 0,
+      "width": 2.043274584196992,
+      "height": 3.620441837861181,
+      "depth": 1.37230772570837,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-18-roof",
+      "parent": "house-18-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.620441837861181,
+      "z": 0,
+      "width": 2.4110640093524505,
+      "height": 0.38,
+      "depth": 1.6193231163358766,
+      "rotationZ": 2.348555554862622,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-18-window",
+      "parent": "house-18-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.6378120821733666,
+      "z": -0.6930154014827269,
+      "width": 0.5721168835751578,
+      "height": 0.7964972043294598,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-19-rig",
+      "type": "group",
+      "x": -8.112265702556506,
+      "y": 0,
+      "z": 45.011564597256,
+      "rotationY": 1.8024371641882055
+    },
+    {
+      "id": "house-19-body",
+      "parent": "house-19-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.006513719446080701,
+      "z": 0,
+      "width": 2.0276576255377514,
+      "height": 2.5869725611078387,
+      "depth": 2.07967438491695,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-19-roof",
+      "parent": "house-19-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.5869725611078387,
+      "z": 0,
+      "width": 2.3926359981345464,
+      "height": 0.38,
+      "depth": 2.454015774202001,
+      "rotationZ": 1.3156437676558026,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-19-window",
+      "parent": "house-19-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.14174682933176252,
+      "z": -1.0502355643830599,
+      "width": 0.5677441351505704,
+      "height": 0.5691339634437245,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-20-rig",
+      "type": "group",
+      "x": -6.4527139362373385,
+      "y": 0,
+      "z": 45.06051674803426,
+      "rotationY": 0.07645063719043144
+    },
+    {
+      "id": "house-20-body",
+      "parent": "house-20-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.5982452661566218,
+      "z": 0,
+      "width": 2.0227339262040034,
+      "height": 3.7964905323132436,
+      "depth": 1.5501903457910982,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-20-roof",
+      "parent": "house-20-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.7964905323132436,
+      "z": 0,
+      "width": 2.386826032920724,
+      "height": 0.38,
+      "depth": 1.8292246080334957,
+      "rotationZ": 1.9834150183284898,
+      "fill": "#a35b42",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-20-window",
+      "parent": "house-20-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.7223154555103568,
+      "z": -0.7828461246245045,
+      "width": 0.566365499337121,
+      "height": 0.8352279171089136,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-21-rig",
+      "type": "group",
+      "x": -3.9753282193952595,
+      "y": 0,
+      "z": 45.006741849407,
+      "rotationY": 0.7659512097732541
+    },
+    {
+      "id": "house-21-body",
+      "parent": "house-21-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.08755723283952044,
+      "z": 0,
+      "width": 1.4548359386669933,
+      "height": 2.424885534320959,
+      "depth": 1.3712979912313064,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-21-roof",
+      "parent": "house-21-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.4248855343209592,
+      "z": 0,
+      "width": 1.716706407627052,
+      "height": 0.38,
+      "depth": 1.6181316296529413,
+      "rotationZ": 2.3832486193995734,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-21-window",
+      "parent": "house-21-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.06394505647406024,
+      "z": -0.6925054855718097,
+      "width": 0.4073540628267582,
+      "height": 0.533474817550611,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-22-rig",
+      "type": "group",
+      "x": -0.8720823521727423,
+      "y": 0,
+      "z": 45.12682237283385,
+      "rotationY": 3.8984870745533584
+    },
+    {
+      "id": "house-22-body",
+      "parent": "house-22-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.13964622279606687,
+      "z": 0,
+      "width": 1.5012124934496842,
+      "height": 2.879292445592134,
+      "depth": 1.9273335647468648,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-22-roof",
+      "parent": "house-22-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.8792924455921338,
+      "z": 0,
+      "width": 1.7714307422706272,
+      "height": 0.38,
+      "depth": 2.2742536064013,
+      "rotationZ": -0.15195337906168005,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-22-window",
+      "parent": "house-22-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.282060373884224,
+      "z": -0.9733034501971667,
+      "width": 0.4203394981659116,
+      "height": 0.6334443380302694,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-23-rig",
+      "type": "group",
+      "x": 1.4325941592308495,
+      "y": 0,
+      "z": 45.1074659982273,
+      "rotationY": -3.8529352245596904
+    },
+    {
+      "id": "house-23-body",
+      "parent": "house-23-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.10357540221028994,
+      "z": 0,
+      "width": 1.3538075766662847,
+      "height": 2.39284919557942,
+      "depth": 2.223360549920005,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-23-roof",
+      "parent": "house-23-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.3928491955794202,
+      "z": 0,
+      "width": 1.597492940466216,
+      "height": 0.38,
+      "depth": 2.6235654489056057,
+      "rotationZ": -1.5165615749420427,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-23-window",
+      "parent": "house-23-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.048567613878121474,
+      "z": -1.1227970777096026,
+      "width": 0.37906612146655977,
+      "height": 0.5264268230274725,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-24-rig",
+      "type": "group",
+      "x": 3.788919726270672,
+      "y": 0,
+      "z": 44.525881783050295,
+      "rotationY": 2.2025829884185004
+    },
+    {
+      "id": "house-24-body",
+      "parent": "house-24-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.04504504561449041,
+      "z": 0,
+      "width": 1.64110738270818,
+      "height": 2.690090091228981,
+      "depth": 2.005690554587434,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-24-roof",
+      "parent": "house-24-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.690090091228981,
+      "z": 0,
+      "width": 1.9365067115956522,
+      "height": 0.38,
+      "depth": 2.366714854413172,
+      "rotationZ": 1.5948821057829932,
+      "fill": "#a35b42",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-24-window",
+      "parent": "house-24-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.19124324378991076,
+      "z": -1.0128737300666544,
+      "width": 0.4595100671582904,
+      "height": 0.5918198200703758,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-25-rig",
+      "type": "group",
+      "x": 6.5102807537025305,
+      "y": 0,
+      "z": 44.71963680334131,
+      "rotationY": 0.3407970052477136
+    },
+    {
+      "id": "house-25-body",
+      "parent": "house-25-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.4796638122175876,
+      "z": 0,
+      "width": 1.7689292391469396,
+      "height": 3.5593276244351753,
+      "depth": 1.5792502555247239,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-25-roof",
+      "parent": "house-25-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.5593276244351753,
+      "z": 0,
+      "width": 2.0873365021933887,
+      "height": 0.38,
+      "depth": 1.863515301519174,
+      "rotationZ": 0.7604906218906877,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-25-window",
+      "parent": "house-25-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.6084772597288839,
+      "z": -0.7975213790399855,
+      "width": 0.49530018696114314,
+      "height": 0.7830520773757386,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-26-rig",
+      "type": "group",
+      "x": -8.465393202616488,
+      "y": 0,
+      "z": 47.65360099940139,
+      "rotationY": -3.6064408493193874
+    },
+    {
+      "id": "house-26-body",
+      "parent": "house-26-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.10064361895939067,
+      "z": 0,
+      "width": 1.9177550700555288,
+      "height": 2.8012872379187814,
+      "depth": 1.9535656539896995,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-26-roof",
+      "parent": "house-26-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.8012872379187814,
+      "z": 0,
+      "width": 2.262950982665524,
+      "height": 0.38,
+      "depth": 2.3052074717078455,
+      "rotationZ": -2.535099876811585,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-26-window",
+      "parent": "house-26-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.244617874201015,
+      "z": -0.9865506552647982,
+      "width": 0.5369714196155482,
+      "height": 0.6162831923421319,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-27-rig",
+      "type": "group",
+      "x": -3.952819967561663,
+      "y": 0,
+      "z": 47.369740951540855,
+      "rotationY": -3.42834958618956
+    },
+    {
+      "id": "house-27-body",
+      "parent": "house-27-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.030354495032390627,
+      "z": 0,
+      "width": 2.0132137515557016,
+      "height": 2.6607089900647813,
+      "depth": 1.997778836712555,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-27-roof",
+      "parent": "house-27-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.6607089900647813,
+      "z": 0,
+      "width": 2.3755922268357277,
+      "height": 0.38,
+      "depth": 2.357379027320815,
+      "rotationZ": -1.3697093575068924,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-27-window",
+      "parent": "house-27-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.17714031523109486,
+      "z": -1.0088783125398404,
+      "width": 0.5636998504355965,
+      "height": 0.5853559778142519,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-28-rig",
+      "type": "group",
+      "x": -1.2824463822427048,
+      "y": 0,
+      "z": 47.431680270940404,
+      "rotationY": -2.884646905299803
+    },
+    {
+      "id": "house-28-body",
+      "parent": "house-28-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.16249096715019906,
+      "z": 0,
+      "width": 1.5160896822733523,
+      "height": 2.924981934300398,
+      "depth": 1.464559019153238,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-28-roof",
+      "parent": "house-28-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.9249819343003982,
+      "z": 0,
+      "width": 1.7889858250825557,
+      "height": 0.38,
+      "depth": 1.728179642600821,
+      "rotationZ": 0.2409133351107382,
+      "fill": "#a35b42",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-28-window",
+      "parent": "house-28-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.3039913284641911,
+      "z": -0.7396023046723852,
+      "width": 0.42450511103653865,
+      "height": 0.6434960255460876,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-29-rig",
+      "type": "group",
+      "x": 1.5595861507454596,
+      "y": 0,
+      "z": 47.78196388201281,
+      "rotationY": -5.7860150157415084
+    },
+    {
+      "id": "house-29-body",
+      "parent": "house-29-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.3027309344492679,
+      "z": 0,
+      "width": 1.8039634243562426,
+      "height": 3.205461868898536,
+      "depth": 1.620854887109009,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-29-roof",
+      "parent": "house-29-rig",
+      "type": "box",
+      "x": 0,
+      "y": 2.205461868898536,
+      "z": 0,
+      "width": 2.1286768407403662,
+      "height": 0.38,
+      "depth": 1.9126087667886305,
+      "rotationZ": -1.6124311216308793,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-29-window",
+      "parent": "house-29-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.43862169707129706,
+      "z": -0.8185317179900495,
+      "width": 0.505109758819748,
+      "height": 0.7052016111576779,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-30-rig",
+      "type": "group",
+      "x": 6.436899334990851,
+      "y": 0,
+      "z": 47.55598934683698,
+      "rotationY": 3.1031969967848365
+    },
+    {
+      "id": "house-30-body",
+      "parent": "house-30-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.18637577923528803,
+      "z": 0,
+      "width": 1.8392350613327644,
+      "height": 2.972751558470576,
+      "depth": 1.7684893712223129,
+      "fill": "#938876",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-30-roof",
+      "parent": "house-30-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.9727515584705761,
+      "z": 0,
+      "width": 2.1702973723726617,
+      "height": 0.38,
+      "depth": 2.086817458042329,
+      "rotationZ": 1.2385148501673129,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-30-window",
+      "parent": "house-30-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.32692074806587645,
+      "z": -0.893087132467268,
+      "width": 0.514985817173174,
+      "height": 0.6540053428635267,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "house-31-rig",
+      "type": "group",
+      "x": 8.675867567318393,
+      "y": 0,
+      "z": 47.780826578079775,
+      "rotationY": -6.972338388577951
+    },
+    {
+      "id": "house-31-body",
+      "parent": "house-31-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.206724909602366,
+      "z": 0,
+      "width": 1.9664222841141021,
+      "height": 2.186550180795268,
+      "depth": 1.5027222565782494,
+      "fill": "#a49a86",
+      "stroke": "#d3c9b4",
+      "lineWidth": 0.18
+    },
+    {
+      "id": "house-31-roof",
+      "parent": "house-31-rig",
+      "type": "box",
+      "x": 0,
+      "y": 1.186550180795268,
+      "z": 0,
+      "width": 2.3203782952546406,
+      "height": 0.38,
+      "depth": 1.7732122627623341,
+      "rotationZ": -0.5544037820004797,
+      "fill": "#8f4d3b",
+      "stroke": "#c98268",
+      "lineWidth": 0.16
+    },
+    {
+      "id": "house-31-window",
+      "parent": "house-31-rig",
+      "type": "plane",
+      "x": 0,
+      "y": -0.050455913218271364,
+      "z": -0.758874739572016,
+      "width": 0.5505982395519486,
+      "height": 0.481041039774959,
+      "fill": "#2c3840",
+      "stroke": false,
+      "emissive": "#ffd28a",
+      "emissiveIntensity": 0.035,
+      "castShadow": false
+    },
+    {
+      "id": "plaza",
+      "type": "plane",
+      "x": 0,
+      "y": -1.25,
+      "z": 40,
+      "width": 9,
+      "height": 7,
+      "rotationX": 90,
+      "fill": "#b8aa90",
+      "stroke": "#d4c7ad",
+      "lineWidth": 0.2,
+      "castShadow": false
+    },
+    {
+      "id": "market-awning-0",
+      "type": "plane",
+      "x": -3.2,
+      "y": 0.25,
+      "z": 39.099999999999994,
+      "width": 1.3,
+      "height": 0.8,
+      "rotationX": 28,
+      "fill": "#d7c08b",
+      "stroke": false
+    },
+    {
+      "id": "market-awning-1",
+      "type": "plane",
+      "x": -1.6,
+      "y": 0.25,
+      "z": 39.599999999999994,
+      "width": 1.3,
+      "height": 0.8,
+      "rotationX": 28,
+      "fill": "#9f5746",
+      "stroke": false
+    },
+    {
+      "id": "market-awning-2",
+      "type": "plane",
+      "x": 0,
+      "y": 0.25,
+      "z": 39.099999999999994,
+      "width": 1.3,
+      "height": 0.8,
+      "rotationX": 28,
+      "fill": "#d7c08b",
+      "stroke": false
+    },
+    {
+      "id": "market-awning-3",
+      "type": "plane",
+      "x": 1.7,
+      "y": 0.25,
+      "z": 39.599999999999994,
+      "width": 1.3,
+      "height": 0.8,
+      "rotationX": 28,
+      "fill": "#9f5746",
+      "stroke": false
+    },
+    {
+      "id": "market-awning-4",
+      "type": "plane",
+      "x": 3.3,
+      "y": 0.25,
+      "z": 39.099999999999994,
+      "width": 1.3,
+      "height": 0.8,
+      "rotationX": 28,
+      "fill": "#d7c08b",
+      "stroke": false
+    },
+    {
+      "id": "tree-0-trunk",
+      "type": "box",
+      "x": 9.465924303351152,
+      "y": 1.2164455846702438,
+      "z": 31.996251369337365,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-0-crown",
+      "type": "sphere",
+      "x": 9.465924303351152,
+      "y": 2.416445584670244,
+      "z": 31.996251369337365,
+      "radius": 0.7168430438000823,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-1-trunk",
+      "type": "box",
+      "x": 9.9460620335901,
+      "y": 1.2403283363789117,
+      "z": 31.312511307803632,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-1-crown",
+      "type": "sphere",
+      "x": 9.9460620335901,
+      "y": 2.440328336378912,
+      "z": 31.312511307803632,
+      "radius": 0.7727071040430241,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-2-trunk",
+      "type": "box",
+      "x": 7.305896083583993,
+      "y": 1.176737562529693,
+      "z": 36.6281408427492,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-2-crown",
+      "type": "sphere",
+      "x": 7.305896083583993,
+      "y": 2.376737562529693,
+      "z": 36.6281408427492,
+      "radius": 0.8560343851707314,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-3-trunk",
+      "type": "box",
+      "x": 7.8382205676102314,
+      "y": 1.199934085470634,
+      "z": 42.75414497210173,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-3-crown",
+      "type": "sphere",
+      "x": 7.8382205676102314,
+      "y": 2.399934085470634,
+      "z": 42.75414497210173,
+      "radius": 0.8693434042197585,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-4-trunk",
+      "type": "box",
+      "x": 7.519421634621436,
+      "y": 0.8145124099733576,
+      "z": 37.97337561674618,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-4-crown",
+      "type": "sphere",
+      "x": 7.519421634621436,
+      "y": 2.014512409973358,
+      "z": 37.97337561674618,
+      "radius": 0.7008388631095147,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-5-trunk",
+      "type": "box",
+      "x": 11.298142324420189,
+      "y": 1.2202528315312793,
+      "z": 42.58690204203662,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-5-crown",
+      "type": "sphere",
+      "x": 11.298142324420189,
+      "y": 2.4202528315312795,
+      "z": 42.58690204203662,
+      "radius": 0.8758624862006927,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-6-trunk",
+      "type": "box",
+      "x": 9.534123629532504,
+      "y": 1.0959463878139555,
+      "z": 45.510861801388295,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-6-crown",
+      "type": "sphere",
+      "x": 9.534123629532504,
+      "y": 2.2959463878139554,
+      "z": 45.510861801388295,
+      "radius": 0.7988999270508483,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-7-trunk",
+      "type": "box",
+      "x": -10.857250351990665,
+      "y": 1.030849222025756,
+      "z": 33.171191795689026,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-7-crown",
+      "type": "sphere",
+      "x": -10.857250351990665,
+      "y": 2.230849222025756,
+      "z": 33.171191795689026,
+      "radius": 0.6150853900465882,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-8-trunk",
+      "type": "box",
+      "x": 7.627352666941734,
+      "y": 0.9687502740369354,
+      "z": 38.27518920026371,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-8-crown",
+      "type": "sphere",
+      "x": 7.627352666941734,
+      "y": 2.1687502740369355,
+      "z": 38.27518920026371,
+      "radius": 0.8638919958005686,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-9-trunk",
+      "type": "box",
+      "x": -7.2479901764452155,
+      "y": 0.9261357658911903,
+      "z": 44.31078856248436,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-9-crown",
+      "type": "sphere",
+      "x": -7.2479901764452155,
+      "y": 2.1261357658911906,
+      "z": 44.31078856248436,
+      "radius": 0.6245718698284928,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-10-trunk",
+      "type": "box",
+      "x": -10.75097573891715,
+      "y": 1.2759598461909605,
+      "z": 31.833369731892088,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-10-crown",
+      "type": "sphere",
+      "x": -10.75097573891715,
+      "y": 2.4759598461909604,
+      "z": 31.833369731892088,
+      "radius": 0.6672666497159244,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-11-trunk",
+      "type": "box",
+      "x": -10.718766950389105,
+      "y": 1.1771166020297632,
+      "z": 41.42807448390223,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-11-crown",
+      "type": "sphere",
+      "x": -10.718766950389105,
+      "y": 2.3771166020297634,
+      "z": 41.42807448390223,
+      "radius": 0.8848835198147966,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-12-trunk",
+      "type": "box",
+      "x": -9.160771153715402,
+      "y": 0.9192724709444529,
+      "z": 40.94137050537853,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-12-crown",
+      "type": "sphere",
+      "x": -9.160771153715402,
+      "y": 2.1192724709444533,
+      "z": 40.94137050537853,
+      "radius": 0.7420683182838383,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-13-trunk",
+      "type": "box",
+      "x": -10.936030418069981,
+      "y": 1.1497324856230753,
+      "z": 34.48743265450406,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-13-crown",
+      "type": "sphere",
+      "x": -10.936030418069981,
+      "y": 2.3497324856230755,
+      "z": 34.48743265450406,
+      "radius": 0.8300694295068722,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-14-trunk",
+      "type": "box",
+      "x": -9.394107307439688,
+      "y": 1.159178614298004,
+      "z": 46.41975590561934,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-14-crown",
+      "type": "sphere",
+      "x": -9.394107307439688,
+      "y": 2.3591786142980045,
+      "z": 46.41975590561934,
+      "radius": 0.8333375658526299,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-15-trunk",
+      "type": "box",
+      "x": -9.035279226965912,
+      "y": 0.8128392127487329,
+      "z": 32.72957999452171,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-15-crown",
+      "type": "sphere",
+      "x": -9.035279226965912,
+      "y": 2.0128392127487333,
+      "z": 32.72957999452171,
+      "radius": 0.6935871733184086,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-16-trunk",
+      "type": "box",
+      "x": 11.408026151047444,
+      "y": 1.2707352992706549,
+      "z": 37.004911350805095,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-16-crown",
+      "type": "sphere",
+      "x": 11.408026151047444,
+      "y": 2.470735299270655,
+      "z": 37.004911350805095,
+      "radius": 0.6594989331275146,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-17-trunk",
+      "type": "box",
+      "x": 9.69061441593298,
+      "y": 0.8509506527229882,
+      "z": 41.03587832961671,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-17-crown",
+      "type": "sphere",
+      "x": 9.69061441593298,
+      "y": 2.0509506527229884,
+      "z": 41.03587832961671,
+      "radius": 0.8317442654853673,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-18-trunk",
+      "type": "box",
+      "x": 11.100411614816844,
+      "y": 1.2919221757573356,
+      "z": 32.936881041077044,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-18-crown",
+      "type": "sphere",
+      "x": 11.100411614816844,
+      "y": 2.491922175757336,
+      "z": 32.936881041077044,
+      "radius": 0.834790603908306,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-19-trunk",
+      "type": "box",
+      "x": -7.4672547546895,
+      "y": 0.8344783682598202,
+      "z": 41.5843414509977,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-19-crown",
+      "type": "sphere",
+      "x": -7.4672547546895,
+      "y": 2.0344783682598204,
+      "z": 41.5843414509977,
+      "radius": 0.7942629762170416,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-20-trunk",
+      "type": "box",
+      "x": -10.650424373000423,
+      "y": 0.8527694353219992,
+      "z": 44.15729468944093,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-20-crown",
+      "type": "sphere",
+      "x": -10.650424373000423,
+      "y": 2.0527694353219994,
+      "z": 44.15729468944093,
+      "radius": 0.8882362701643736,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "tree-21-trunk",
+      "type": "box",
+      "x": 11.391575014805102,
+      "y": 0.87649557454693,
+      "z": 38.35582956162794,
+      "width": 0.22,
+      "height": 2.1,
+      "depth": 0.22,
+      "fill": "#6d4d34",
+      "stroke": false
+    },
+    {
+      "id": "tree-21-crown",
+      "type": "sphere",
+      "x": 11.391575014805102,
+      "y": 2.07649557454693,
+      "z": 38.35582956162794,
+      "radius": 0.6528410883258178,
+      "fill": "#55754d",
+      "stroke": "#78966c",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "lantern-0",
+      "type": "sphere",
+      "x": -5,
+      "y": 0.55,
+      "z": 31,
+      "radius": 0.12,
+      "fill": "#f8c76c",
+      "stroke": false,
+      "emissive": "#ffc866",
+      "emissiveIntensity": 0.8,
+      "castShadow": false
+    },
+    {
+      "id": "lantern-1",
+      "type": "sphere",
+      "x": -2,
+      "y": 0.55,
+      "z": 30,
+      "radius": 0.12,
+      "fill": "#f8c76c",
+      "stroke": false,
+      "emissive": "#ffc866",
+      "emissiveIntensity": 0.8,
+      "castShadow": false
+    },
+    {
+      "id": "lantern-2",
+      "type": "sphere",
+      "x": 2,
+      "y": 0.55,
+      "z": 30,
+      "radius": 0.12,
+      "fill": "#f8c76c",
+      "stroke": false,
+      "emissive": "#ffc866",
+      "emissiveIntensity": 0.8,
+      "castShadow": false
+    },
+    {
+      "id": "lantern-3",
+      "type": "sphere",
+      "x": 5,
+      "y": 0.55,
+      "z": 31,
+      "radius": 0.12,
+      "fill": "#f8c76c",
+      "stroke": false,
+      "emissive": "#ffc866",
+      "emissiveIntensity": 0.8,
+      "castShadow": false
+    },
+    {
+      "id": "lantern-4",
+      "type": "sphere",
+      "x": -3,
+      "y": 0.55,
+      "z": 35,
+      "radius": 0.12,
+      "fill": "#f8c76c",
+      "stroke": false,
+      "emissive": "#ffc866",
+      "emissiveIntensity": 0.8,
+      "castShadow": false
+    },
+    {
+      "id": "lantern-5",
+      "type": "sphere",
+      "x": 3,
+      "y": 0.55,
+      "z": 35,
+      "radius": 0.12,
+      "fill": "#f8c76c",
+      "stroke": false,
+      "emissive": "#ffc866",
+      "emissiveIntensity": 0.8,
+      "castShadow": false
+    },
+    {
+      "id": "cloud-0",
+      "type": "plane",
+      "x": 0.7828828897852773,
+      "y": 10.902744484100449,
+      "z": 52.781896497285224,
+      "width": 8.598088284513835,
+      "height": 1.5746414503715747,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -0.2171171102147227,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": 1.3828828897852774,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": 2.3828828897852774,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "cloud-1",
+      "type": "plane",
+      "x": -1.264544221157717,
+      "y": 11.954407590524534,
+      "z": 52.219390857528836,
+      "width": 5.611522914905591,
+      "height": 1.045495169093691,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -2.264544221157717,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": -0.6645442211577169,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": 0.33545577884228317,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "cloud-2",
+      "type": "plane",
+      "x": 15.646387630104002,
+      "y": 8.67356949515482,
+      "z": 48.81924800465049,
+      "width": 7.752381409135031,
+      "height": 1.3698496446783222,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 14.646387630104002,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": 16.246387630104003,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": 17.246387630104003,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "cloud-3",
+      "type": "plane",
+      "x": 6.05478493603777,
+      "y": 9.018379719348252,
+      "z": 49.863356086782126,
+      "width": 5.625070839443797,
+      "height": 1.2875499323913444,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 5.05478493603777,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": 6.654784936037769,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": 7.654784936037769,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "cloud-4",
+      "type": "plane",
+      "x": -5.22630121766057,
+      "y": 8.550114453152068,
+      "z": 44.71180371290206,
+      "width": 6.980775039687147,
+      "height": 1.6801073452552302,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -6.22630121766057,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": -4.62630121766057,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": -3.62630121766057,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "cloud-5",
+      "type": "plane",
+      "x": 2.008477005105018,
+      "y": 10.099763510289606,
+      "z": 42.58535416465037,
+      "width": 5.2067802518634,
+      "height": 1.2064281246705193,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 1.0084770051050178,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": 2.608477005105018,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": 3.608477005105018,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "cloud-6",
+      "type": "plane",
+      "x": 1.9863436169469892,
+      "y": 8.441943616745293,
+      "z": 49.42623465881995,
+      "width": 7.559212032363614,
+      "height": 1.2481745495865708,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 0.9863436169469892,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": 2.5863436169469893,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": 3.5863436169469893,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "cloud-7",
+      "type": "plane",
+      "x": -17.379242663458584,
+      "y": 8.765413487922984,
+      "z": 47.705627088270276,
+      "width": 5.216525819383786,
+      "height": 1.463960021596816,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -18.379242663458584,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": -16.779242663458582,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": -15.779242663458584,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "cloud-8",
+      "type": "plane",
+      "x": -4.71526377620267,
+      "y": 10.320837730061498,
+      "z": 46.25017745950886,
+      "width": 8.98315731979666,
+      "height": 1.3503884727566786,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -5.71526377620267,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": -4.115263776202671,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": -3.1152637762026703,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "cloud-9",
+      "type": "plane",
+      "x": -5.334821005889941,
+      "y": 9.722471577119071,
+      "z": 45.35895179237193,
+      "width": 5.152690206492538,
+      "height": 1.5212843313260698,
+      "fill": "rgba(243,248,251,0.26)",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -6.334821005889941,
+          "opacity": 0.12
+        },
+        {
+          "t": 10,
+          "x": -4.734821005889941,
+          "opacity": 0.25
+        },
+        {
+          "t": 20,
+          "x": -3.7348210058899407,
+          "opacity": 0.16
+        }
+      ]
+    },
+    {
+      "id": "eagle-rig",
+      "type": "group",
+      "x": 1.8,
+      "y": 5.0,
+      "z": 10.5,
+      "rotationX": -5,
+      "rotationY": 0,
+      "rotationZ": -4,
+      "scale": 1,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 1.8,
+          "y": 5.3,
+          "z": 10.5,
+          "rotationX": -7,
+          "rotationY": -8,
+          "rotationZ": -5,
+          "scale": 1.04
+        },
+        {
+          "t": 3,
+          "x": 1.0,
+          "y": 4.5,
+          "z": 16.2,
+          "rotationX": -4,
+          "rotationY": -2,
+          "rotationZ": 4,
+          "scale": 1.02,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 6,
+          "x": 0.0,
+          "y": 3.6,
+          "z": 22.0,
+          "rotationX": -1,
+          "rotationY": 7,
+          "rotationZ": 9,
+          "scale": 1,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 9,
+          "x": 1.7,
+          "y": 2.7,
+          "z": 27.4,
+          "rotationX": 4,
+          "rotationY": 3,
+          "rotationZ": -5,
+          "scale": 0.96,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 12,
+          "x": 1.6,
+          "y": 1.65,
+          "z": 31.2,
+          "rotationX": 8,
+          "rotationY": 0,
+          "rotationZ": -1,
+          "scale": 0.91,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 15,
+          "x": 1.3,
+          "y": 0.45,
+          "z": 34.7,
+          "rotationX": 13,
+          "rotationY": -2,
+          "rotationZ": 1,
+          "scale": 0.84,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 17.4,
+          "x": 0.9,
+          "y": -0.6,
+          "z": 36.7,
+          "rotationX": 17,
+          "rotationY": 0,
+          "rotationZ": 0,
+          "scale": 0.73,
+          "opacity": 1,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 18.2,
+          "x": 0.6,
+          "y": -1.1,
+          "z": 37.5,
+          "rotationX": 22,
+          "scale": 0.56,
+          "opacity": 0.8,
+          "easing": "ease-in"
+        },
+        {
+          "t": 18.6,
+          "x": 0.5,
+          "y": -1.3,
+          "z": 37.8,
+          "rotationX": 25,
+          "scale": 0.35,
+          "opacity": 0,
+          "easing": "ease-out"
+        },
+        {
+          "t": 20,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "eagle-body",
+      "parent": "eagle-rig",
+      "type": "sphere",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "radius": 0.52,
+      "fill": "#242526",
+      "stroke": "#4d4f51",
+      "lineWidth": 0.2
+    },
+    {
+      "id": "eagle-chest",
+      "parent": "eagle-rig",
+      "type": "sphere",
+      "x": 0,
+      "y": -0.12,
+      "z": -0.24,
+      "radius": 0.34,
+      "fill": "#f1f0ea",
+      "stroke": false
+    },
+    {
+      "id": "eagle-head",
+      "parent": "eagle-rig",
+      "type": "sphere",
+      "x": 0,
+      "y": 0.05,
+      "z": -0.58,
+      "radius": 0.28,
+      "fill": "#f3f1e9",
+      "stroke": "#d7d3c8",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "eagle-beak",
+      "parent": "eagle-rig",
+      "type": "box",
+      "x": 0,
+      "y": -0.02,
+      "z": -0.9,
+      "width": 0.18,
+      "height": 0.12,
+      "depth": 0.34,
+      "rotationX": -5,
+      "fill": "#d6a52d",
+      "stroke": false
+    },
+    {
+      "id": "wing-L-rig",
+      "parent": "eagle-rig",
+      "type": "group",
+      "x": -0.28,
+      "y": 0.05,
+      "z": -0.02,
+      "rotationZ": -4,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationZ": -8,
+          "rotationX": -6
+        },
+        {
+          "t": 0.6,
+          "rotationZ": -20,
+          "rotationX": 8,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 1.2,
+          "rotationZ": -6,
+          "rotationX": -5,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 2.1,
+          "rotationZ": -17,
+          "rotationX": 7
+        },
+        {
+          "t": 3.0,
+          "rotationZ": -5,
+          "rotationX": -4
+        },
+        {
+          "t": 5.0,
+          "rotationZ": -12,
+          "rotationX": 2
+        },
+        {
+          "t": 7.0,
+          "rotationZ": -5,
+          "rotationX": -4
+        },
+        {
+          "t": 9.0,
+          "rotationZ": -13,
+          "rotationX": 4
+        },
+        {
+          "t": 11.0,
+          "rotationZ": -6,
+          "rotationX": -3
+        },
+        {
+          "t": 13.0,
+          "rotationZ": -18,
+          "rotationX": 7
+        },
+        {
+          "t": 14.2,
+          "rotationZ": -7,
+          "rotationX": -4
+        },
+        {
+          "t": 15.5,
+          "rotationZ": -24,
+          "rotationX": 10
+        },
+        {
+          "t": 16.5,
+          "rotationZ": -9,
+          "rotationX": -3
+        },
+        {
+          "t": 17.5,
+          "rotationZ": -30,
+          "rotationX": 13
+        },
+        {
+          "t": 18.4,
+          "rotationZ": -12,
+          "rotationX": 0
+        }
+      ]
+    },
+    {
+      "id": "wing-L-feather-0",
+      "parent": "wing-L-rig",
+      "type": "plane",
+      "x": -0.55,
+      "y": 0,
+      "z": 0.05,
+      "width": 0.62,
+      "height": 1.25,
+      "rotationZ": -76,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "wing-L-feather-1",
+      "parent": "wing-L-rig",
+      "type": "plane",
+      "x": -0.97,
+      "y": 0,
+      "z": 0.11,
+      "width": 0.62,
+      "height": 1.17,
+      "rotationZ": -71,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "wing-L-feather-2",
+      "parent": "wing-L-rig",
+      "type": "plane",
+      "x": -1.3900000000000001,
+      "y": 0,
+      "z": 0.16999999999999998,
+      "width": 0.62,
+      "height": 1.09,
+      "rotationZ": -66,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "wing-L-feather-3",
+      "parent": "wing-L-rig",
+      "type": "plane",
+      "x": -1.81,
+      "y": 0,
+      "z": 0.22999999999999998,
+      "width": 0.62,
+      "height": 1.01,
+      "rotationZ": -61,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "wing-L-feather-4",
+      "parent": "wing-L-rig",
+      "type": "plane",
+      "x": -2.23,
+      "y": 0,
+      "z": 0.29,
+      "width": 0.62,
+      "height": 0.9299999999999999,
+      "rotationZ": -56,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "wing-R-rig",
+      "parent": "eagle-rig",
+      "type": "group",
+      "x": 0.28,
+      "y": 0.05,
+      "z": -0.02,
+      "rotationZ": 4,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotationZ": 8,
+          "rotationX": -6
+        },
+        {
+          "t": 0.6,
+          "rotationZ": 20,
+          "rotationX": 8,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 1.2,
+          "rotationZ": 6,
+          "rotationX": -5,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 2.1,
+          "rotationZ": 17,
+          "rotationX": 7
+        },
+        {
+          "t": 3.0,
+          "rotationZ": 5,
+          "rotationX": -4
+        },
+        {
+          "t": 5.0,
+          "rotationZ": 12,
+          "rotationX": 2
+        },
+        {
+          "t": 7.0,
+          "rotationZ": 5,
+          "rotationX": -4
+        },
+        {
+          "t": 9.0,
+          "rotationZ": 13,
+          "rotationX": 4
+        },
+        {
+          "t": 11.0,
+          "rotationZ": 6,
+          "rotationX": -3
+        },
+        {
+          "t": 13.0,
+          "rotationZ": 18,
+          "rotationX": 7
+        },
+        {
+          "t": 14.2,
+          "rotationZ": 7,
+          "rotationX": -4
+        },
+        {
+          "t": 15.5,
+          "rotationZ": 24,
+          "rotationX": 10
+        },
+        {
+          "t": 16.5,
+          "rotationZ": 9,
+          "rotationX": -3
+        },
+        {
+          "t": 17.5,
+          "rotationZ": 30,
+          "rotationX": 13
+        },
+        {
+          "t": 18.4,
+          "rotationZ": 12,
+          "rotationX": 0
+        }
+      ]
+    },
+    {
+      "id": "wing-R-feather-0",
+      "parent": "wing-R-rig",
+      "type": "plane",
+      "x": 0.55,
+      "y": 0,
+      "z": 0.05,
+      "width": 0.62,
+      "height": 1.25,
+      "rotationZ": 76,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "wing-R-feather-1",
+      "parent": "wing-R-rig",
+      "type": "plane",
+      "x": 0.97,
+      "y": 0,
+      "z": 0.11,
+      "width": 0.62,
+      "height": 1.17,
+      "rotationZ": 71,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "wing-R-feather-2",
+      "parent": "wing-R-rig",
+      "type": "plane",
+      "x": 1.3900000000000001,
+      "y": 0,
+      "z": 0.16999999999999998,
+      "width": 0.62,
+      "height": 1.09,
+      "rotationZ": 66,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "wing-R-feather-3",
+      "parent": "wing-R-rig",
+      "type": "plane",
+      "x": 1.81,
+      "y": 0,
+      "z": 0.22999999999999998,
+      "width": 0.62,
+      "height": 1.01,
+      "rotationZ": 61,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "wing-R-feather-4",
+      "parent": "wing-R-rig",
+      "type": "plane",
+      "x": 2.23,
+      "y": 0,
+      "z": 0.29,
+      "width": 0.62,
+      "height": 0.9299999999999999,
+      "rotationZ": 56,
+      "fill": "#252729",
+      "stroke": "#4b4f52",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "tail-0",
+      "parent": "eagle-rig",
+      "type": "plane",
+      "x": -0.18,
+      "y": -0.05,
+      "z": 0.75,
+      "width": 0.28,
+      "height": 0.95,
+      "rotationZ": -11,
+      "fill": "#f0eee5",
+      "stroke": "#d0ccc0",
+      "lineWidth": 0.1
+    },
+    {
+      "id": "tail-1",
+      "parent": "eagle-rig",
+      "type": "plane",
+      "x": 0.0,
+      "y": -0.05,
+      "z": 0.75,
+      "width": 0.28,
+      "height": 0.95,
+      "rotationZ": 0,
+      "fill": "#f0eee5",
+      "stroke": "#d0ccc0",
+      "lineWidth": 0.1
+    },
+    {
+      "id": "tail-2",
+      "parent": "eagle-rig",
+      "type": "plane",
+      "x": 0.18,
+      "y": -0.05,
+      "z": 0.75,
+      "width": 0.28,
+      "height": 0.95,
+      "rotationZ": 11,
+      "fill": "#f0eee5",
+      "stroke": "#d0ccc0",
+      "lineWidth": 0.1
+    },
+    {
+      "id": "traveler-rig",
+      "type": "group",
+      "x": 0.5,
+      "y": -1.4,
+      "z": 37.9,
+      "scale": 0.9,
+      "opacity": 0,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0
+        },
+        {
+          "t": 18.25,
+          "opacity": 0,
+          "scale": 0.65
+        },
+        {
+          "t": 18.65,
+          "opacity": 1,
+          "scale": 0.9,
+          "easing": "ease-out"
+        },
+        {
+          "t": 20,
+          "opacity": 1,
+          "scale": 0.9
+        }
+      ]
+    },
+    {
+      "id": "traveler-body",
+      "parent": "traveler-rig",
+      "type": "box",
+      "x": 0,
+      "y": 0.9,
+      "z": 0,
+      "width": 0.55,
+      "height": 1.35,
+      "depth": 0.38,
+      "fill": "#3d4b55",
+      "stroke": "#71838f",
+      "lineWidth": 0.15
+    },
+    {
+      "id": "traveler-head",
+      "parent": "traveler-rig",
+      "type": "sphere",
+      "x": 0,
+      "y": 1.75,
+      "z": 0,
+      "radius": 0.28,
+      "fill": "#c9ad96",
+      "stroke": "#e0c5ad",
+      "lineWidth": 0.12
+    },
+    {
+      "id": "traveler-cloak",
+      "parent": "traveler-rig",
+      "type": "plane",
+      "x": 0,
+      "y": 0.9,
+      "z": 0.23,
+      "width": 0.9,
+      "height": 1.45,
+      "fill": "#5e6f79",
+      "stroke": "#859aa5",
+      "lineWidth": 0.12,
+      "keyframes": [
+        {
+          "t": 18.25,
+          "rotationZ": -8
+        },
+        {
+          "t": 18.8,
+          "rotationZ": 7
+        },
+        {
+          "t": 19.5,
+          "rotationZ": -3
+        },
+        {
+          "t": 20,
+          "rotationZ": 0
+        }
+      ]
+    },
+    {
+      "id": "bird-0",
+      "type": "plane",
+      "x": -2.5823287839161893,
+      "y": 7.328726913654176,
+      "z": 29.214040966294956,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -3.7823287839161894,
+          "y": 7.528726913654176,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": -2.0823287839161893,
+          "y": 7.178726913654176,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": -0.7823287839161892,
+          "y": 7.428726913654176,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-1",
+      "type": "plane",
+      "x": 2.6622897579677236,
+      "y": 3.7450163245685406,
+      "z": 25.81767445614321,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 1.4622897579677236,
+          "y": 3.945016324568541,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": 3.1622897579677236,
+          "y": 3.5950163245685407,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": 4.462289757967723,
+          "y": 3.8450163245685407,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-2",
+      "type": "plane",
+      "x": -3.1290052224383507,
+      "y": 6.332314888745141,
+      "z": 26.163326325969322,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -4.329005222438351,
+          "y": 6.532314888745141,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": -2.6290052224383507,
+          "y": 6.1823148887451405,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": -1.3290052224383506,
+          "y": 6.4323148887451405,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-3",
+      "type": "plane",
+      "x": 1.3550703671722246,
+      "y": 8.873319098006334,
+      "z": 27.322053813233087,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 0.15507036717222467,
+          "y": 9.073319098006333,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": 1.8550703671722246,
+          "y": 8.723319098006334,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": 3.1550703671722244,
+          "y": 8.973319098006334,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-4",
+      "type": "plane",
+      "x": -2.8525495142879773,
+      "y": 4.845726949471012,
+      "z": 18.83628142048697,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -4.0525495142879775,
+          "y": 5.045726949471012,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": -2.3525495142879773,
+          "y": 4.695726949471012,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": -1.0525495142879773,
+          "y": 4.945726949471012,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-5",
+      "type": "plane",
+      "x": 2.9122587999544383,
+      "y": 3.3227892390118807,
+      "z": 14.728251215731493,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 1.7122587999544383,
+          "y": 3.522789239011881,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": 3.4122587999544383,
+          "y": 3.172789239011881,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": 4.712258799954438,
+          "y": 3.422789239011881,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-6",
+      "type": "plane",
+      "x": -6.236635716654171,
+      "y": 4.398888189593054,
+      "z": 29.105433836731848,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -7.4366357166541714,
+          "y": 4.598888189593054,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": -5.736635716654171,
+          "y": 4.248888189593053,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": -4.4366357166541714,
+          "y": 4.498888189593053,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-7",
+      "type": "plane",
+      "x": 1.9301751714829862,
+      "y": 7.39314914264315,
+      "z": 15.64140234860417,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 0.7301751714829863,
+          "y": 7.59314914264315,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": 2.4301751714829862,
+          "y": 7.24314914264315,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": 3.730175171482986,
+          "y": 7.49314914264315,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-8",
+      "type": "plane",
+      "x": -6.828284352742888,
+      "y": 4.348205626391471,
+      "z": 21.65942733770237,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -8.028284352742888,
+          "y": 4.548205626391471,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": -6.328284352742888,
+          "y": 4.198205626391471,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": -5.028284352742888,
+          "y": 4.448205626391471,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-9",
+      "type": "plane",
+      "x": -2.230116944155907,
+      "y": 8.775734680398916,
+      "z": 18.03965424788756,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -3.430116944155907,
+          "y": 8.975734680398915,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": -1.730116944155907,
+          "y": 8.625734680398915,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": -0.43011694415590696,
+          "y": 8.875734680398915,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-10",
+      "type": "plane",
+      "x": 5.064121504785184,
+      "y": 3.2415664147120093,
+      "z": 15.04549496182292,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": 3.8641215047851842,
+          "y": 3.4415664147120095,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": 5.564121504785184,
+          "y": 3.0915664147120094,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": 6.864121504785184,
+          "y": 3.3415664147120094,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-11",
+      "type": "plane",
+      "x": -0.11554815592504752,
+      "y": 6.2506375170603174,
+      "z": 24.983216292096266,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -1.3155481559250475,
+          "y": 6.450637517060318,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": 0.3844518440749525,
+          "y": 6.100637517060317,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": 1.6844518440749525,
+          "y": 6.350637517060317,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-12",
+      "type": "plane",
+      "x": -4.87582190268661,
+      "y": 7.772423495787809,
+      "z": 29.1860102777285,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -6.07582190268661,
+          "y": 7.972423495787809,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": -4.37582190268661,
+          "y": 7.6224234957878085,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": -3.0758219026866103,
+          "y": 7.8724234957878085,
+          "rotationZ": -3
+        }
+      ]
+    },
+    {
+      "id": "bird-13",
+      "type": "plane",
+      "x": -5.807467282452779,
+      "y": 4.113241208865755,
+      "z": 22.929168553882057,
+      "width": 0.24,
+      "height": 0.08,
+      "fill": "#27333b",
+      "stroke": false,
+      "castShadow": false,
+      "keyframes": [
+        {
+          "t": 0,
+          "x": -7.0074672824527795,
+          "y": 4.3132412088657555,
+          "rotationZ": -5
+        },
+        {
+          "t": 10,
+          "x": -5.307467282452779,
+          "y": 3.9632412088657554,
+          "rotationZ": 5
+        },
+        {
+          "t": 20,
+          "x": -4.0074672824527795,
+          "y": 4.213241208865755,
+          "rotationZ": -3
+        }
+      ]
+    }
+  ],
+  "benchmark": {
+    "target": "Throne & Liberty-style Kastleton harbor arrival blockout",
+    "engine": "Simple Animation Designer v1.2+",
+    "purpose": "Stress test spline camera, clipping, depth sorting, spatial lighting, parent rigs, sound and post effects."
+  }
+}
