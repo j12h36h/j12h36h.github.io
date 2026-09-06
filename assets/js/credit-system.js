@@ -1,3 +1,5 @@
+import '/assets/js/accessibility.js?v=20260906-a11y1';
+
 // Shared E.R.A.S. / LCS credit wallet surface.
 // The wallet is keyed by the same random publicProfileId used across the site.
 export const CREDIT_COLLECTION = 'creditWallets';

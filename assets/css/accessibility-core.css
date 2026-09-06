@@ -1,0 +1,175 @@
+/* Project E.R.A.S. accessibility foundation — 2026-09-06
+   WCAG 2.2 AA-oriented shared safeguards for keyboard, touch, motion,
+   contrast, zoom/reflow and forced-colors users. */
+
+:root {
+  --eras-a11y-focus-light: #ffffff;
+  --eras-a11y-focus-dark: #061013;
+  --eras-a11y-readable-muted: #83a6a9;
+}
+
+html[data-eras-a11y="true"] {
+  scroll-padding-block-start: 96px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Keyboard users always get a strong two-tone indicator, even where a
+   component stylesheet previously removed the browser outline. */
+html[data-eras-a11y="true"] :where(
+  a[href], button, input, select, textarea, summary,
+  [role="button"], [role="link"], [role="tab"], [role="menuitem"],
+  [tabindex]:not([tabindex="-1"])
+):focus-visible {
+  outline: 3px solid var(--eras-a11y-focus-light) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 5px var(--eras-a11y-focus-dark) !important;
+}
+
+html[data-eras-a11y="true"] :where(
+  a[href], button, input, select, textarea, summary,
+  [role="button"], [role="link"], [role="tab"], [role="menuitem"],
+  [tabindex]:not([tabindex="-1"])
+) {
+  scroll-margin-block: 96px 24px;
+}
+
+/* Skip navigation is injected by accessibility.js. */
+.eras-a11y-skip {
+  position: fixed;
+  z-index: 2147483647;
+  inset-block-start: 10px;
+  inset-inline-start: 10px;
+  max-width: calc(100vw - 20px);
+  padding: 12px 16px;
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  background: #061013;
+  color: #ffffff !important;
+  font: 800 14px/1.25 system-ui, sans-serif;
+  text-decoration: none;
+  transform: translateY(-180%);
+  transition: transform .12s ease;
+}
+.eras-a11y-skip:focus { transform: translateY(0); }
+
+/* Preserve media inside narrow/zoomed layouts. */
+html[data-eras-a11y="true"] :where(img, video, canvas, svg) {
+  max-inline-size: 100%;
+}
+
+/* WCAG 2.2 requires 24px minimum targets unless spacing/equivalent-control
+   exceptions apply. Coarse-pointer devices get the more forgiving 44px size. */
+html[data-eras-a11y="true"] :where(
+  button, input[type="button"], input[type="submit"], input[type="reset"],
+  select, summary, [role="button"], [role="tab"], .eras-dm-launch
+) {
+  min-inline-size: 24px;
+  min-block-size: 24px;
+}
+@media (pointer: coarse) {
+  html[data-eras-a11y="true"] :where(
+    button, input[type="button"], input[type="submit"], input[type="reset"],
+    select, summary, [role="button"], [role="tab"],
+    .eras-dm-launch, .mobile-bottom-nav a, .nav-links a
+  ) {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+
+/* Small status text observed during the sweep was below 4.5:1 in several
+   terminal surfaces. Raise only those known microtext/status selectors. */
+html[data-eras-a11y="true"] .play-core-copy span,
+html[data-eras-a11y="true"] .runtime-list-empty,
+html[data-eras-a11y="true"] .mobile-status-strip,
+html[data-eras-a11y="true"] .rail-footer,
+html[data-eras-a11y="true"] .eras-dm-translation-status,
+html[data-eras-a11y="true"] .eras-dm-empty,
+html[data-eras-a11y="true"] .eras-dm-no-thread {
+  color: var(--eras-a11y-readable-muted) !important;
+}
+
+/* Status regions should remain legible even when their component uses very
+   small terminal typography. */
+html[data-eras-a11y="true"] :where(
+  .runtime-feedback, .portal-auth-loading, .portal-account-copy small,
+  .mobile-kicker, .runtime-kicker
+) {
+  line-height: 1.45;
+}
+
+/* Let zoomed/narrow universe pages scroll instead of clipping content behind
+   a fixed 100svh presentation. Gameplay canvases keep their intentional
+   full-screen behavior. */
+@media (max-width: 760px), (max-height: 620px) {
+  html[data-eras-a11y="true"] body.universe-home:not(.global-page),
+  html[data-eras-a11y="true"] body.play-hub-page:not(.global-page) {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+  html[data-eras-a11y="true"] body.universe-home:not(.global-page) .universe-landing,
+  html[data-eras-a11y="true"] body.play-hub-page:not(.global-page) .universe-landing {
+    overflow: visible !important;
+  }
+}
+
+/* The Chat surface must remain usable with browser zoom and small screens. */
+@media (max-width: 700px) {
+  html[data-eras-a11y="true"] .eras-dm-window {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+  html[data-eras-a11y="true"] .eras-dm-compose textarea {
+    min-height: 64px;
+    font-size: max(16px, 1rem);
+  }
+}
+
+/* Respect the user's OS/browser motion preference. This catches shared CSS
+   animations and transitions; app-specific JS already using the media query
+   continues to work normally. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-eras-a11y="true"] { scroll-behavior: auto !important; }
+  html[data-eras-a11y="true"] *,
+  html[data-eras-a11y="true"] *::before,
+  html[data-eras-a11y="true"] *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  .eras-a11y-skip { transition: none; }
+}
+
+/* Additional support for users explicitly requesting stronger contrast. */
+@media (prefers-contrast: more) {
+  :root {
+    --eras-a11y-readable-muted: #b9d5d7;
+  }
+  html[data-eras-a11y="true"] :where(
+    input, select, textarea, button, [role="button"], .runtime-card,
+    .mobile-panel, .eras-dm-window
+  ) {
+    border-color: currentColor !important;
+  }
+}
+
+/* Windows High Contrast / forced color modes. */
+@media (forced-colors: active) {
+  .eras-a11y-skip {
+    background: Canvas;
+    color: CanvasText !important;
+    border-color: CanvasText;
+  }
+  html[data-eras-a11y="true"] :where(
+    a[href], button, input, select, textarea, summary,
+    [role="button"], [role="link"], [role="tab"], [role="menuitem"],
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+    outline: 3px solid Highlight !important;
+    box-shadow: none !important;
+  }
+}

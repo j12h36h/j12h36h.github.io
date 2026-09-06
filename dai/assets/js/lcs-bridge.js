@@ -1,4 +1,9 @@
 (() => {
+  // DAI participates in the same site-wide accessibility runtime as the rest
+  // of E.R.A.S., even though DAI does not load the shared account module.
+  import('/assets/js/accessibility.js?v=20260906-a11y1')
+    .catch(error => console.debug('Optional E.R.A.S. accessibility runtime unavailable', error));
+
   // DAI-wide shared services. Creator, Guides, Packs, Info and every page that
   // loads the bridge inherit these without each surface maintaining its own copy.
   const addModule = (src, key) => {
