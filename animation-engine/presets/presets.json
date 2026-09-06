@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "presets": [
     {
       "id": "orbit-cartoon",
@@ -28,6 +28,13 @@
       "mode": "3D",
       "description": "Diagnostic preset for spline camera motion, near-plane clipping, global face sorting, and a moving parented point light.",
       "src": "./presets/renderer-v12-test.json"
+    },
+    {
+      "id": "cartoon-rig-v13-test",
+      "title": "CARTOON RIG V1.3 TEST",
+      "mode": "2D",
+      "description": "Diagnostic preset for recursive bones/groups, 2D spline camera, vector morphing, masks, gradients, skew, reusable clips, parented lights, and particle emitters.",
+      "src": "./presets/cartoon-rig-v13-test.json"
     }
   ]
 }

@@ -1,0 +1,438 @@
+{
+  "version": 3,
+  "title": "CARTOON RIG V1.3 TEST",
+  "mode": "2D",
+  "duration": 8,
+  "loop": true,
+  "canvas": {
+    "width": 960,
+    "height": 540,
+    "background": "#171007"
+  },
+  "camera": {
+    "x": 480,
+    "y": 270,
+    "zoom": 1,
+    "rotation": 0,
+    "shake": 0,
+    "interpolation": "spline",
+    "smoothing": 1,
+    "keyframes": [
+      {
+        "t": 0,
+        "x": 430,
+        "y": 260,
+        "zoom": 0.9,
+        "rotation": -2
+      },
+      {
+        "t": 4,
+        "x": 520,
+        "y": 250,
+        "zoom": 1.16,
+        "rotation": 2,
+        "easing": "ease-in-out"
+      },
+      {
+        "t": 8,
+        "x": 430,
+        "y": 260,
+        "zoom": 0.9,
+        "rotation": -2,
+        "easing": "ease-in-out"
+      }
+    ]
+  },
+  "lighting": {
+    "ambient": {
+      "color": "#f3dca2",
+      "intensity": 0.92
+    },
+    "point": [
+      {
+        "id": "rig-glow",
+        "parent": "hand",
+        "x": 0,
+        "y": 0,
+        "color": "#ffd767",
+        "intensity": 2.2,
+        "range": 120
+      }
+    ]
+  },
+  "post": {
+    "exposure": 1.02,
+    "vignette": 0.08,
+    "grain": 0.015
+  },
+  "clips": {
+    "arm-wave": {
+      "duration": 1.2,
+      "loop": true,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotation": -24
+        },
+        {
+          "t": 0.6,
+          "rotation": 28,
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 1.2,
+          "rotation": -24,
+          "easing": "ease-in-out"
+        }
+      ]
+    }
+  },
+  "objects": [
+    {
+      "id": "panel-mask",
+      "type": "path",
+      "maskOnly": true,
+      "x": 480,
+      "y": 270,
+      "points": [
+        [
+          -360,
+          -210
+        ],
+        [
+          330,
+          -210
+        ],
+        [
+          380,
+          170
+        ],
+        [
+          -320,
+          220
+        ]
+      ],
+      "fill": "#fff"
+    },
+    {
+      "id": "back-card",
+      "type": "rect",
+      "mask": "panel-mask",
+      "x": 480,
+      "y": 270,
+      "width": 900,
+      "height": 620,
+      "fill": {
+        "type": "linear",
+        "x0": -450,
+        "y0": -260,
+        "x1": 450,
+        "y1": 260,
+        "stops": [
+          {
+            "offset": 0,
+            "color": "#7f5213"
+          },
+          {
+            "offset": 0.55,
+            "color": "#d7a83a"
+          },
+          {
+            "offset": 1,
+            "color": "#f5e2a3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rig",
+      "type": "group",
+      "x": 480,
+      "y": 310,
+      "scale": 1,
+      "keyframes": [
+        {
+          "t": 0,
+          "rotation": -4
+        },
+        {
+          "t": 4,
+          "rotation": 4
+        },
+        {
+          "t": 8,
+          "rotation": -4
+        }
+      ]
+    },
+    {
+      "id": "torso",
+      "parent": "rig",
+      "type": "path",
+      "points": [
+        [
+          -55,
+          -105
+        ],
+        [
+          55,
+          -105
+        ],
+        [
+          74,
+          55
+        ],
+        [
+          0,
+          105
+        ],
+        [
+          -74,
+          55
+        ]
+      ],
+      "fill": "#3d2a17",
+      "stroke": "#fff0bf",
+      "lineWidth": 5
+    },
+    {
+      "id": "neck",
+      "parent": "rig",
+      "type": "bone",
+      "x": 0,
+      "y": -110,
+      "rotation": 0
+    },
+    {
+      "id": "head",
+      "parent": "neck",
+      "type": "circle",
+      "x": 0,
+      "y": -58,
+      "radius": 46,
+      "fill": "#f0c78e",
+      "stroke": "#3a291c",
+      "lineWidth": 5
+    },
+    {
+      "id": "arm",
+      "parent": "rig",
+      "type": "bone",
+      "x": 66,
+      "y": -78,
+      "rotation": -24,
+      "clip": "arm-wave",
+      "clipRate": 1
+    },
+    {
+      "id": "upper-arm",
+      "parent": "arm",
+      "type": "rect",
+      "x": 0,
+      "y": 52,
+      "width": 28,
+      "height": 104,
+      "anchorY": 0,
+      "fill": "#62401c",
+      "stroke": "#f0d38e",
+      "lineWidth": 4
+    },
+    {
+      "id": "forearm",
+      "parent": "arm",
+      "type": "bone",
+      "x": 0,
+      "y": 104,
+      "rotation": -20
+    },
+    {
+      "id": "forearm-shape",
+      "parent": "forearm",
+      "type": "rect",
+      "x": 0,
+      "y": 45,
+      "width": 24,
+      "height": 90,
+      "anchorY": 0,
+      "fill": "#754c20",
+      "stroke": "#f0d38e",
+      "lineWidth": 4
+    },
+    {
+      "id": "hand",
+      "parent": "forearm",
+      "type": "bone",
+      "x": 0,
+      "y": 92
+    },
+    {
+      "id": "hand-shape",
+      "parent": "hand",
+      "type": "circle",
+      "x": 0,
+      "y": 8,
+      "radius": 18,
+      "fill": "#f0c78e",
+      "stroke": "#3a291c",
+      "lineWidth": 4
+    },
+    {
+      "id": "spark-emitter",
+      "parent": "hand",
+      "type": "emitter",
+      "x": 0,
+      "y": 8,
+      "emitRate": 24,
+      "life": 0.8,
+      "speed": 90,
+      "speedJitter": 0.55,
+      "direction": -90,
+      "spread": 110,
+      "gravityY": 55,
+      "size": 10,
+      "sizeEnd": 1,
+      "color": "#fff2a8",
+      "colorEnd": "#d8891f",
+      "particleOpacity": 0.95,
+      "opacityEnd": 0,
+      "maxParticles": 120
+    },
+    {
+      "id": "morph",
+      "type": "path",
+      "x": 230,
+      "y": 165,
+      "closed": true,
+      "smooth": true,
+      "fill": "#5f3bb0",
+      "stroke": "#f4d46b",
+      "lineWidth": 5,
+      "points": [
+        [
+          -50,
+          -40
+        ],
+        [
+          35,
+          -55
+        ],
+        [
+          60,
+          0
+        ],
+        [
+          30,
+          55
+        ],
+        [
+          -50,
+          35
+        ]
+      ],
+      "keyframes": [
+        {
+          "t": 0,
+          "points": [
+            [
+              -50,
+              -40
+            ],
+            [
+              35,
+              -55
+            ],
+            [
+              60,
+              0
+            ],
+            [
+              30,
+              55
+            ],
+            [
+              -50,
+              35
+            ]
+          ]
+        },
+        {
+          "t": 4,
+          "points": [
+            [
+              -70,
+              0
+            ],
+            [
+              -20,
+              -70
+            ],
+            [
+              55,
+              -35
+            ],
+            [
+              70,
+              40
+            ],
+            [
+              -30,
+              65
+            ]
+          ],
+          "easing": "ease-in-out"
+        },
+        {
+          "t": 8,
+          "points": [
+            [
+              -50,
+              -40
+            ],
+            [
+              35,
+              -55
+            ],
+            [
+              60,
+              0
+            ],
+            [
+              30,
+              55
+            ],
+            [
+              -50,
+              35
+            ]
+          ],
+          "easing": "ease-in-out"
+        }
+      ]
+    },
+    {
+      "id": "label",
+      "type": "text",
+      "x": 480,
+      "y": 70,
+      "text": "S.A.D. CARTOON RIG TEST",
+      "font": "900 30px system-ui",
+      "align": "center",
+      "fill": "#fff1bf",
+      "stroke": "#3a220e",
+      "lineWidth": 6
+    },
+    {
+      "id": "skew-card",
+      "type": "rect",
+      "x": 730,
+      "y": 390,
+      "width": 150,
+      "height": 92,
+      "skewX": -18,
+      "rotation": -5,
+      "fill": "#7f2f22",
+      "stroke": "#f1d46a",
+      "lineWidth": 5
+    }
+  ]
+}

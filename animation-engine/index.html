@@ -8,7 +8,7 @@
   <title>Simple Animation Designer — Project E.R.A.S.</title>
   <link rel="stylesheet" href="/game/assets/css/site.css">
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
-  <link rel="stylesheet" href="./simple-animation-designer.css?v=1.2.1">
+  <link rel="stylesheet" href="./simple-animation-designer.css?v=1.3.0">
 </head>
 <body class="sad-page">
   <div class="universe-frame" aria-hidden="true"><i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i><span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span><span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span></div>
@@ -19,7 +19,7 @@
 
   <main class="sad-shell">
     <section class="sad-titlebar">
-      <div><p>CREATOR NODE // JSON ANIMATION ENGINE</p><h1>Simple Animation Designer</h1><span>Build 2D cartoons and cinematic 3D scenes with JSON-defined camera, lighting, sound, sprites, groups, keyframes, and post effects.</span></div>
+      <div><p>CREATOR NODE // JSON ANIMATION ENGINE</p><h1>Simple Animation Designer</h1><span>Build 2D cartoons/anime and cinematic 3D scenes with JSON-defined cameras, vector paths, rigs, particles, lighting, sound, sprites, groups, keyframes, and post effects.</span></div>
       <a href="/">BACK TO UNIVERSE</a>
     </section>
 
@@ -64,7 +64,7 @@
       <aside class="sad-reference-panel">
         <section><header><span>PROJECT</span><b>SCHEMA</b></header><div class="sad-reference-list" id="schemaReference"></div></section>
         <section><header><span>LOADED</span><b>MEDIA</b></header><div class="sad-reference-list" id="spriteList"><p>NO MEDIA ASSETS LOADED.</p></div></section>
-        <section><header><span>ENGINE</span><b>INFO</b></header><div class="sad-reference-list"><p>2D: shapes, text, sprites, groups, point lighting, sound, transforms and keyframes.</p><p>3D: camera keyframes, groups, lit box/sphere/plane geometry, sprite billboards, ambient/directional/point lights and emissive surfaces.</p><p>Cinematic post: exposure, tint, vignette, grain, letterbox, fades, flashes and camera shake.</p><p>Sound: imported audio or procedural tones with timeline start/end, volume, stereo pan, rate and keyframes.</p><p>Files stay local to the browser. Exported JSON stores media paths, not binary media data.</p></div></section>
+        <section><header><span>ENGINE</span><b>INFO</b></header><div class="sad-reference-list"><p>2D: vector paths, polygons, masks, recursive bone/group rigs, spline camera, morphing, gradients, skew, particles, sprites, lighting, sound and keyframes.</p><p>3D: camera keyframes, groups, lit box/sphere/plane geometry, sprite billboards, ambient/directional/point lights and emissive surfaces.</p><p>Cinematic post: exposure, tint, vignette, grain, letterbox, fades, flashes and camera shake.</p><p>Sound: imported audio or procedural tones with timeline start/end, volume, stereo pan, rate and keyframes.</p><p>Files stay local to the browser. Exported JSON stores media paths, not binary media data.</p></div></section>
       </aside>
     </section>
   </main>
@@ -84,6 +84,6 @@
   <input id="spriteFileInput" type="file" accept="image/*" multiple hidden>
   <input id="audioFileInput" type="file" accept="audio/*" multiple hidden>
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./simple-animation-designer.js?v=1.2.1"></script>
+  <script type="module" src="./simple-animation-designer.js?v=1.3.0"></script>
 </body>
 </html>

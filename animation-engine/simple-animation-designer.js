@@ -106,6 +106,7 @@ function validateProject(p){
   if(p.objects.length>2000)throw new Error('A project may contain up to 2000 objects.');
   p.sounds=Array.isArray(p.sounds)?p.sounds:[];
   if(p.sounds.length>256)throw new Error('A project may contain up to 256 sound clips.');
+  p.clips=p.clips&&typeof p.clips==='object'&&!Array.isArray(p.clips)?p.clips:{};
   p.post=p.post&&typeof p.post==='object'&&!Array.isArray(p.post)?p.post:{};
   p.post={exposure:1,vignette:0,letterbox:0,fade:0,flash:0,grain:0,tint:'#ffffff',tintOpacity:0,...p.post};
   p.lighting=p.lighting&&typeof p.lighting==='object'&&!Array.isArray(p.lighting)?p.lighting:{};
@@ -114,6 +115,7 @@ function validateProject(p){
   p.lighting.point=Array.isArray(p.lighting.point)?p.lighting.point:[];
   p.lighting.shadows={enabled:false,groundY:-2.5,opacity:.25,softness:14,...(p.lighting.shadows||{})};
   if(p.mode==='3D')p.camera={x:0,y:0,z:-8,rotateX:0,rotateY:0,rotateZ:0,fov:520,shake:0,near:.2,far:5000,interpolation:'spline',smoothing:1,...(p.camera||{})};
+  else p.camera={x:p.canvas.width/2,y:p.canvas.height/2,zoom:1,rotation:0,shake:0,interpolation:'spline',smoothing:1,...(p.camera||{})};
   return p;
 }
 
@@ -147,6 +149,16 @@ function ease(t,type){
   if(type==='ease-in-out')return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
   return t;
 }
+function interpolateValue(a,b,t,raw=t){
+  if(typeof a==='number'&&typeof b==='number')return lerp(a,b,t);
+  if(Array.isArray(a)&&Array.isArray(b)&&a.length===b.length)return a.map((v,i)=>interpolateValue(v,b[i],t,raw));
+  if(a&&b&&typeof a==='object'&&typeof b==='object'&&!Array.isArray(a)&&!Array.isArray(b)){
+    const keys=new Set([...Object.keys(a),...Object.keys(b)]),out={};
+    for(const k of keys)out[k]=(k in a&&k in b)?interpolateValue(a[k],b[k],t,raw):(raw<1?a[k]:b[k]);
+    return out;
+  }
+  return raw<1?a:b;
+}
 function keyframeValue(obj,key,time){
   const frames=Array.isArray(obj?.keyframes)?obj.keyframes.filter(f=>f&&Number.isFinite(Number(f.t))&&Object.prototype.hasOwnProperty.call(f,key)).slice().sort((a,b)=>Number(a.t)-Number(b.t)):[];
   const base=obj&&Object.prototype.hasOwnProperty.call(obj,key)?obj[key]:undefined;
@@ -156,20 +168,28 @@ function keyframeValue(obj,key,time){
   for(let i=0;i<frames.length-1;i++){
     const a=frames[i],b=frames[i+1],at=Number(a.t),bt=Number(b.t);
     if(time<at||time>bt)continue;
-    const raw=(time-at)/Math.max(.000001,bt-at);
-    const t=ease(raw,b.easing||a.easing||'linear');
-    const av=a[key],bv=b[key];
-    if(typeof av==='number'&&typeof bv==='number')return lerp(av,bv,t);
-    return raw<1?av:bv;
+    const raw=(time-at)/Math.max(.000001,bt-at),t=ease(raw,b.easing||a.easing||'linear');
+    return interpolateValue(a[key],b[key],t,raw);
   }
   return base;
 }
+function applyAnimationClip(out,obj,time){
+  const name=String(obj?.clip||'');if(!name)return out;
+  const clip=state.project?.clips?.[name];if(!clip||typeof clip!=='object')return out;
+  const duration=Math.max(.0001,finite(clip.duration,1)),rate=finite(obj.clipRate,1),start=finite(obj.clipStart,0);
+  let local=(time-start)*rate;if(local<0)return out;
+  const loop=obj.clipLoop!==undefined?obj.clipLoop!==false:clip.loop!==false;
+  local=loop?((local%duration)+duration)%duration:clamp(local,0,duration);
+  const keys=new Set();for(const f of clip.keyframes||[])for(const k of Object.keys(f||{}))if(k!=='t'&&k!=='easing')keys.add(k);
+  for(const k of keys){const v=keyframeValue(clip,k,local);if(v!==undefined)out[k]=v;}
+  return out;
+}
 function resolved(obj,time=state.time){
   const out={...(obj||{})};
-  const keys=new Set(['x','y','z','width','height','depth','radius','rotation','rotationX','rotationY','rotationZ','scale','scaleX','scaleY','opacity','anchorX','anchorY','frame','intensity','range','fov','shake','targetX','targetY','targetZ','volume','pan','rate','frequency','exposure','vignette','letterbox','fade','flash','grain','tintOpacity']);
+  const keys=new Set(['x','y','z','width','height','depth','radius','rotation','rotationX','rotationY','rotationZ','scale','scaleX','scaleY','skewX','skewY','pivotX','pivotY','opacity','anchorX','anchorY','frame','intensity','range','fov','shake','zoom','targetX','targetY','targetZ','volume','pan','rate','frequency','exposure','vignette','letterbox','fade','flash','grain','tintOpacity','points']);
   for(const f of obj?.keyframes||[])for(const k of Object.keys(f||{}))if(k!=='t'&&k!=='easing')keys.add(k);
   for(const k of keys){const v=keyframeValue(obj,k,time);if(v!==undefined)out[k]=v;}
-  return out;
+  return applyAnimationClip(out,obj,time);
 }
 
 function assetSource(assetId,asset){
@@ -193,21 +213,21 @@ function sceneObjects(){
 }
 function resolveWorldObject(raw,map,cache,stack){
   const id=String(raw?.id||'');if(id&&cache.has(id))return cache.get(id);
-  if(id&&stack.has(id))return resolved(raw);
-  if(id)stack.add(id);
-  let o=resolved(raw);
-  const parentId=String(o.parent||o.parentId||'');
+  if(id&&stack.has(id)){const cycle={...resolved(raw),visible:false,_hierarchyCycle:true};cache.set(id,cycle);return cycle;}
+  const next=new Set(stack);if(id)next.add(id);
+  let o=resolved(raw);const parentId=String(o.parent||o.parentId||'');
   if(parentId&&map.has(parentId)){
-    const p=resolveWorldObject(map.get(parentId),map,cache,stack);
-    if(state.project.mode==='3D')o=inherit3D(o,p);else o=inherit2D(o,p);
+    const p=resolveWorldObject(map.get(parentId),map,cache,next);
+    if(p?._hierarchyCycle)o={...o,visible:false,_hierarchyCycle:true};
+    else if(state.project.mode==='3D')o=inherit3D(o,p);else o=inherit2D(o,p);
   }
-  if(id){stack.delete(id);cache.set(id,o);}return o;
+  if(id)cache.set(id,o);return o;
 }
 function inherit2D(o,p){
-  const psx=finite(p.scaleX,p.scale??1),psy=finite(p.scaleY,p.scale??1),pr=rad(p.rotation);
-  const lx=finite(o.x)*psx,ly=finite(o.y)*psy;
+  const psx=finite(p.scaleX,p.scale??1),psy=finite(p.scaleY,p.scale??1),pr=rad(p.rotation),ppx=finite(p.pivotX,0),ppy=finite(p.pivotY,0);
+  const lx=(finite(o.x)-ppx)*psx,ly=(finite(o.y)-ppy)*psy;
   const rx=lx*Math.cos(pr)-ly*Math.sin(pr),ry=lx*Math.sin(pr)+ly*Math.cos(pr);
-  return {...o,x:finite(p.x)+rx,y:finite(p.y)+ry,rotation:finite(p.rotation)+finite(o.rotation),scaleX:psx*finite(o.scaleX,o.scale??1),scaleY:psy*finite(o.scaleY,o.scale??1),scale:1,opacity:clamp(finite(p.opacity,1)*finite(o.opacity,1),0,1),visible:p.visible!==false&&o.visible!==false,start:Math.max(finite(p.start,0),finite(o.start,0)),end:Math.min(finite(p.end,state.project.duration),finite(o.end,state.project.duration))};
+  return {...o,x:finite(p.x)+rx,y:finite(p.y)+ry,rotation:finite(p.rotation)+finite(o.rotation),skewX:finite(p.skewX)+finite(o.skewX),skewY:finite(p.skewY)+finite(o.skewY),scaleX:psx*finite(o.scaleX,o.scale??1),scaleY:psy*finite(o.scaleY,o.scale??1),scale:1,opacity:clamp(finite(p.opacity,1)*finite(o.opacity,1),0,1),visible:p.visible!==false&&o.visible!==false,start:Math.max(finite(p.start,0),finite(o.start,0)),end:Math.min(finite(p.end,state.project.duration),finite(o.end,state.project.duration))};
 }
 function inherit3D(o,p){
   const ps=finite(p.scale,1);const q=rotatePoint({x:finite(o.x)*ps,y:finite(o.y)*ps,z:finite(o.z)*ps},rad(p.rotationX),rad(p.rotationY),rad(p.rotationZ));
@@ -226,23 +246,62 @@ function renderFrame(){
   $('#timeline').value=Math.round(clamp(state.time/state.project.duration,0,1)*1000);
 }
 
+function currentCamera2D(){
+  const source=state.project.camera||{},c={...source},keys=new Set(['x','y','zoom','rotation','shake']);
+  for(const f of source.keyframes||[])for(const k of Object.keys(f||{}))if(k!=='t'&&k!=='easing'&&k!=='interpolation')keys.add(k);
+  for(const k of keys){const v=cameraTrackValue(source,k,state.time);if(v!==undefined)c[k]=v;}
+  c.x=finite(c.x,canvas.width/2);c.y=finite(c.y,canvas.height/2);c.zoom=clamp(finite(c.zoom,1),.02,64);c.rotation=finite(c.rotation,0);
+  const shake=Math.max(0,finite(c.shake,0));if(shake>0){const t=state.time;c.x+=Math.sin(t*47.7)*shake;c.y+=Math.cos(t*39.3)*shake*.8;c.rotation+=Math.sin(t*58.2)*shake*.05;}
+  return c;
+}
+function apply2DCameraTransform(c){ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(-rad(c.rotation));ctx.scale(c.zoom,c.zoom);ctx.translate(-c.x,-c.y);}
+function applyObject2DTransform(o){
+  ctx.translate(finite(o.x),finite(o.y));ctx.rotate(rad(o.rotation));
+  const kx=Math.tan(rad(clamp(finite(o.skewX,0),-89,89))),ky=Math.tan(rad(clamp(finite(o.skewY,0),-89,89)));if(kx||ky)ctx.transform(1,ky,kx,1,0,0);
+  ctx.scale(finite(o.scaleX,o.scale??1),finite(o.scaleY,o.scale??1));ctx.translate(-finite(o.pivotX,0),-finite(o.pivotY,0));
+}
+function localPoint(v){return Array.isArray(v)?{x:finite(v[0]),y:finite(v[1])}:{x:finite(v?.x),y:finite(v?.y)};}
+function tracePointPath(points,closed=true,smooth=false){
+  const pts=(Array.isArray(points)?points:[]).map(localPoint);if(!pts.length)return false;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  if(smooth&&pts.length>2){for(let i=1;i<pts.length;i++){const p=pts[i],n=pts[(i+1)%pts.length],mx=(p.x+n.x)/2,my=(p.y+n.y)/2;ctx.quadraticCurveTo(p.x,p.y,mx,my);}if(closed)ctx.closePath();}
+  else{for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);if(closed)ctx.closePath();}
+  return true;
+}
+function tracePrimitivePath(o){
+  if(o.type==='rect'){const w=finite(o.width,100),h=finite(o.height,100),ax=finite(o.anchorX,.5),ay=finite(o.anchorY,.5);ctx.beginPath();ctx.rect(-w*ax,-h*ay,w,h);return true;}
+  if(o.type==='circle'||o.type==='ellipse'){const rx=finite(o.radiusX,o.radius??50),ry=finite(o.radiusY,o.radius??rx);ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);return true;}
+  if(o.type==='polygon'||o.type==='path')return tracePointPath(o.points??o.pathPoints,o.closed!==false,o.smooth===true);
+  return false;
+}
+function paintStyle(value,o,fallback='#ffffff'){
+  if(!value||typeof value!=='object'||Array.isArray(value))return value||fallback;
+  const type=String(value.type||'linear').toLowerCase();let g;
+  if(type==='radial')g=ctx.createRadialGradient(finite(value.x0,0),finite(value.y0,0),Math.max(0,finite(value.r0,0)),finite(value.x1,0),finite(value.y1,0),Math.max(.001,finite(value.r1,finite(o.radius,100))));
+  else g=ctx.createLinearGradient(finite(value.x0,-finite(o.width,100)/2),finite(value.y0,0),finite(value.x1,finite(o.width,100)/2),finite(value.y1,0));
+  const stops=Array.isArray(value.stops)?value.stops:[];if(!stops.length){g.addColorStop(0,fallback);g.addColorStop(1,fallback);}else for(const stop of stops)g.addColorStop(clamp(finite(stop.offset,0),0,1),String(stop.color||fallback));return g;
+}
+function apply2DMask(mask){
+  if(!mask)return false;const base=typeof ctx.getTransform==='function'?ctx.getTransform():null;applyObject2DTransform(mask);let traced=false;
+  if(mask.type==='path'&&mask.d&&typeof Path2D!=='undefined'){try{const p=new Path2D(mask.d);ctx.clip(p,mask.fillRule||'nonzero');if(base)ctx.setTransform(base);return true;}catch(_){}}
+  traced=tracePrimitivePath(mask);if(traced)ctx.clip(mask.fillRule||'nonzero');if(base)ctx.setTransform(base);return traced;
+}
 function render2D(){
-  for(const o of sceneObjects().filter(objectVisible)){if(o.type!=='group')draw2DObject(o);}
-  apply2DLighting();
+  state._frameLights=null;const objects=sceneObjects().filter(objectVisible),map=new Map(objects.map(o=>[String(o.id||''),o])),cam=currentCamera2D();
+  ctx.save();apply2DCameraTransform(cam);
+  for(const o of objects){if(['group','bone'].includes(o.type)||o.maskOnly===true)continue;ctx.save();const maskId=String(o.mask||o.clipPath||'');if(maskId&&map.has(maskId))apply2DMask(map.get(maskId));draw2DObject(o);ctx.restore();}
+  apply2DPointLights();ctx.restore();apply2DAmbientLighting();
 }
 function draw2DObject(o){
-  ctx.save();ctx.globalAlpha=clamp(finite(o.opacity,1),0,1);ctx.globalCompositeOperation=o.blend||'source-over';
-  const x=finite(o.x),y=finite(o.y),sx=finite(o.scaleX,o.scale??1),sy=finite(o.scaleY,o.scale??1);
-  ctx.translate(x,y);ctx.rotate(rad(o.rotation));ctx.scale(sx,sy);
+  ctx.save();ctx.globalAlpha=clamp(finite(o.opacity,1),0,1);ctx.globalCompositeOperation=o.blend||'source-over';applyObject2DTransform(o);
   if(o.shadow){ctx.shadowColor=normalizeColor(o.shadow,'#000000');ctx.shadowBlur=finite(o.shadowBlur,12);ctx.shadowOffsetX=finite(o.shadowX,0);ctx.shadowOffsetY=finite(o.shadowY,4);}
-  if(o.type==='rect'){
-    const w=finite(o.width,100),h=finite(o.height,100),ax=finite(o.anchorX,.5),ay=finite(o.anchorY,.5);
-    if(o.fill){ctx.fillStyle=o.fill;ctx.fillRect(-w*ax,-h*ay,w,h);}if(o.stroke){ctx.strokeStyle=o.stroke;ctx.lineWidth=finite(o.lineWidth,1);ctx.strokeRect(-w*ax,-h*ay,w,h);}
-  }else if(o.type==='circle'||o.type==='ellipse'){
-    const rx=finite(o.radiusX,o.radius??50),ry=finite(o.radiusY,o.radius??rx);ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);if(o.fill){ctx.fillStyle=o.fill;ctx.fill();}if(o.stroke){ctx.strokeStyle=o.stroke;ctx.lineWidth=finite(o.lineWidth,1);ctx.stroke();}
+  if(['rect','circle','ellipse','polygon','path'].includes(o.type)){
+    if(o.type==='path'&&o.d&&typeof Path2D!=='undefined'){
+      try{const p=new Path2D(o.d);if(o.fill!==false){ctx.fillStyle=paintStyle(o.fill,o,'#ffffff');ctx.fill(p,o.fillRule||'nonzero');}if(o.stroke){ctx.strokeStyle=paintStyle(o.stroke,o,'#ffffff');ctx.lineWidth=finite(o.lineWidth,1);ctx.stroke(p);}ctx.restore();return;}catch(_){}
+    }
+    if(tracePrimitivePath(o)){if(o.fill!==false&&o.fill){ctx.fillStyle=paintStyle(o.fill,o,'#ffffff');ctx.fill(o.fillRule||'nonzero');}if(o.stroke){ctx.strokeStyle=paintStyle(o.stroke,o,'#ffffff');ctx.lineWidth=finite(o.lineWidth,1);ctx.lineJoin=o.lineJoin||'round';ctx.lineCap=o.lineCap||'round';ctx.stroke();}}
   }else if(o.type==='text'){
-    ctx.font=o.font||'700 32px system-ui';ctx.textAlign=o.align||'left';ctx.textBaseline=o.baseline||'alphabetic';if(o.fill!==false){ctx.fillStyle=o.fill||'#ffffff';ctx.fillText(String(o.text??''),0,0);}if(o.stroke){ctx.strokeStyle=o.stroke;ctx.lineWidth=finite(o.lineWidth,1);ctx.strokeText(String(o.text??''),0,0);}
-  }else if(o.type==='sprite')drawSprite(o);
+    ctx.font=o.font||'700 32px system-ui';ctx.textAlign=o.align||'left';ctx.textBaseline=o.baseline||'alphabetic';if(o.fill!==false){ctx.fillStyle=paintStyle(o.fill,o,'#ffffff');ctx.fillText(String(o.text??''),0,0);}if(o.stroke){ctx.strokeStyle=paintStyle(o.stroke,o,'#ffffff');ctx.lineWidth=finite(o.lineWidth,1);ctx.strokeText(String(o.text??''),0,0);}
+  }else if(o.type==='sprite')drawSprite(o);else if(o.type==='emitter')drawParticleEmitter(o);
   ctx.restore();
 }
 function spriteFrame(asset,o,img){
@@ -255,11 +314,25 @@ function drawSprite(o){
   ctx.imageSmoothingEnabled=o.pixelated!==true;ctx.drawImage(img,f.sx,f.sy,f.sw,f.sh,-w*ax,-h*ay,w,h);
 }
 function drawMissingSprite(o){const w=finite(o.width,80),h=finite(o.height,80);ctx.strokeStyle='#ff6b92';ctx.strokeRect(-w/2,-h/2,w,h);ctx.beginPath();ctx.moveTo(-w/2,-h/2);ctx.lineTo(w/2,h/2);ctx.moveTo(w/2,-h/2);ctx.lineTo(-w/2,h/2);ctx.stroke();}
-function apply2DLighting(){
-  const lighting=state.project.lighting||{},ambient=resolved(lighting.ambient||{}),ambientIntensity=clamp(finite(ambient.intensity,1),0,2);
-  if(ambientIntensity<1){ctx.save();ctx.fillStyle=`rgba(0,0,0,${clamp((1-ambientIntensity)*.65,0,.8)})`;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();}
-  for(const raw of lighting.point||[]){const l=resolved(raw),intensity=clamp(finite(l.intensity,0),0,8),range=Math.max(1,finite(l.range,220));if(intensity<=0)continue;const rgb=parseColor(l.color||'#ffffff');const g=ctx.createRadialGradient(finite(l.x),finite(l.y),0,finite(l.x),finite(l.y),range);g.addColorStop(0,rgba(rgb,clamp(intensity*.18,0,.8)));g.addColorStop(1,rgba(rgb,0));ctx.save();ctx.globalCompositeOperation='screen';ctx.fillStyle=g;ctx.fillRect(finite(l.x)-range,finite(l.y)-range,range*2,range*2);ctx.restore();}
+function stringSeed(value){let h=2166136261>>>0;for(const ch of String(value||'')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
+function particleRand(seed,index,salt=0){let x=(seed^Math.imul(index+1,2654435761)^Math.imul(salt+1,1597334677))>>>0;x^=x<<13;x^=x>>>17;x^=x<<5;return(x>>>0)/4294967296;}
+function mixColor(a,b,t){const x=parseColor(a),y=parseColor(b||a);return rgba([lerp(x[0],y[0],t),lerp(x[1],y[1],t),lerp(x[2],y[2],t),lerp(x[3],y[3],t)],lerp(x[3],y[3],t));}
+function drawParticleEmitter(o){
+  const elapsed=state.time-finite(o.start,0);if(elapsed<0)return;const rate=clamp(finite(o.emitRate??o.rate,20),0,500),life=Math.max(.01,finite(o.life,1)),burst=clamp(Math.floor(finite(o.burst,0)),0,1000),maxParticles=clamp(Math.floor(finite(o.maxParticles,500)),1,1500),seed=stringSeed(o.seed??o.id),direction=rad(finite(o.direction,-90)),spread=rad(Math.abs(finite(o.spread,40))),speed=finite(o.speed,140),speedJitter=Math.max(0,finite(o.speedJitter,.25)),gx=finite(o.gravityX,0),gy=finite(o.gravityY,0);
+  const timedCount=rate>0?Math.floor(elapsed*rate)+1:0,total=Math.min(maxParticles,burst+timedCount),first=Math.max(0,total-maxParticles);
+  for(let i=first;i<total;i++){
+    const born=i<burst?0:(i-burst)/Math.max(rate,.0001),age=elapsed-born;if(age<0||age>life)continue;const q=clamp(age/life,0,1),ang=direction+(particleRand(seed,i,1)-.5)*spread,sp=speed*(1+(particleRand(seed,i,2)*2-1)*speedJitter),vx=Math.cos(ang)*sp,vy=Math.sin(ang)*sp,x=vx*age+.5*gx*age*age,y=vy*age+.5*gy*age*age,size=lerp(finite(o.size,8),finite(o.sizeEnd,0),q),alpha=clamp(lerp(finite(o.particleOpacity,1),finite(o.opacityEnd,0),q),0,1);if(size<=0||alpha<=0)continue;
+    ctx.save();ctx.translate(x,y);ctx.rotate(rad(finite(o.particleRotation,0)+finite(o.rotationSpeed,0)*age));ctx.globalAlpha*=alpha;ctx.fillStyle=mixColor(o.color||'#ffffff',o.colorEnd||o.color||'#ffffff',q);const shape=String(o.particleShape||'circle').toLowerCase();if(shape==='rect')ctx.fillRect(-size/2,-size/2,size,size);else if(shape==='line'){ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=Math.max(1,finite(o.lineWidth,2));ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-Math.cos(ang)*size*2,-Math.sin(ang)*size*2);ctx.stroke();}else{ctx.beginPath();ctx.arc(0,0,size/2,0,Math.PI*2);ctx.fill();}ctx.restore();
+  }
 }
+function resolvePointLight2DWorld(raw,map,cache){
+  const l=resolved(raw),parentId=String(l.parent||l.parentId||'');if(!parentId||!map.has(parentId))return l;const p=resolveWorldObject(map.get(parentId),map,cache,new Set()),psx=finite(p.scaleX,p.scale??1),psy=finite(p.scaleY,p.scale??1),pr=rad(p.rotation),lx=(finite(l.x)-finite(p.pivotX,0))*psx,ly=(finite(l.y)-finite(p.pivotY,0))*psy;return {...l,x:finite(p.x)+lx*Math.cos(pr)-ly*Math.sin(pr),y:finite(p.y)+lx*Math.sin(pr)+ly*Math.cos(pr)};
+}
+function apply2DPointLights(){
+  const lighting=state.project.lighting||{},map=objectMap(),cache=new Map();
+  for(const raw of lighting.point||[]){const l=resolvePointLight2DWorld(raw,map,cache),intensity=clamp(finite(l.intensity,0),0,8),range=Math.max(1,finite(l.range,220));if(intensity<=0)continue;const rgb=parseColor(l.color||'#ffffff'),g=ctx.createRadialGradient(finite(l.x),finite(l.y),0,finite(l.x),finite(l.y),range);g.addColorStop(0,rgba(rgb,clamp(intensity*.18,0,.8)));g.addColorStop(1,rgba(rgb,0));ctx.save();ctx.globalCompositeOperation='screen';ctx.fillStyle=g;ctx.fillRect(finite(l.x)-range,finite(l.y)-range,range*2,range*2);ctx.restore();}
+}
+function apply2DAmbientLighting(){const ambient=resolved(state.project.lighting?.ambient||{}),intensity=clamp(finite(ambient.intensity,1),0,2);if(intensity<1){ctx.save();ctx.fillStyle=`rgba(0,0,0,${clamp((1-intensity)*.65,0,.8)})`;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();}}
 
 function rotatePoint(p,rx,ry,rz){let{x,y,z}=p;let c=Math.cos(rx),s=Math.sin(rx);[y,z]=[y*c-z*s,y*s+z*c];c=Math.cos(ry);s=Math.sin(ry);[x,z]=[x*c+z*s,-x*s+z*c];c=Math.cos(rz);s=Math.sin(rz);[x,y]=[x*c-y*s,x*s+y*c];return{x,y,z};}
 function catmullRom(a,b,c,d,t){
@@ -382,7 +455,7 @@ function collect3DCommands(objects,cam){
   return commands.sort((a,b)=>b.depth-a.depth);
 }
 function render3D(){
-  state._frameLights=null;const cam=currentCamera(),objects=sceneObjects().filter(objectVisible).filter(o=>o.type!=='group');
+  state._frameLights=null;const cam=currentCamera(),objects=sceneObjects().filter(objectVisible).filter(o=>!['group','bone'].includes(o.type));
   renderShadows3D(objects,cam);
   for(const command of collect3DCommands(objects,cam))draw3DCommand(command,cam);
 }
@@ -493,7 +566,7 @@ async function addAudio(files){
 function refreshReference(){
   const mode=state.project?.mode||'2D';const rows=mode==='3D'?
     [['camera','spline keyframes + look-at + near/far clipping + smoothing'],['lighting','spatial ambient/directional/point lights + range/falloff/decay + parent'],['objects[]','group | box | sphere | plane | sprite'],['parent','inherit group/object transforms'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','asset, start/end, volume, pan, rate, keyframes']]:
-    [['objects[]','group | rect | circle | ellipse | text | sprite'],['parent','inherit position / rotation / scale'],['lighting','ambient + point[] canvas lights'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','audio/tone cues on the timeline'],['keyframes[]','{ t, property…, easing? }']];
+    [['camera','2D pan/zoom/rotation/shake with spline keyframes'],['objects[]','group | bone | rect | circle | ellipse | polygon | path | text | sprite | emitter'],['hierarchy','recursive parent chains + pivots/skew'],['mask','mask / clipPath by object id'],['morph','keyframe points[] for vector shape morphing'],['clips','reusable clips{} keyframes via object.clip'],['particles','deterministic emitter rate/burst/life/speed/gravity'],['lighting','ambient + parentable point[] canvas lights'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','audio/tone cues on the timeline']];
   $('#schemaReference').innerHTML=rows.map(([a,b])=>`<div class="sad-reference-item"><b>${a}</b><small>${b}</small></div>`).join('');
   const entries=[];for(const [id,a] of Object.entries(state.project?.assets||{})){if(a?.type==='sprite'||a?.type==='audio'||a?.type==='tone')entries.push({id,type:a.type});}
   $('#spriteList').innerHTML=entries.length?entries.map(x=>`<div class="sad-reference-item"><b>${x.id}</b><small>${x.type.toUpperCase()} ASSET</small></div>`).join(''):'<p>NO MEDIA ASSETS LOADED.</p>';

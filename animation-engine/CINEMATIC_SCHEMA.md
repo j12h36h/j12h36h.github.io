@@ -1,15 +1,113 @@
-# Simple Animation Designer — Cinematic Schema v2
+# Simple Animation Designer — Cinematic Schema v3
 
-S.A.D. v1.2.0 keeps the existing JSON-first format and adds renderer/camera upgrades on top of the v1.1 cinematic systems. Existing v1/v2 projects remain valid.
+S.A.D. v1.3.0 keeps the v1.2 cinematic/3D renderer and adds the first full cartoon/anime authoring pass. Existing v1/v2 projects remain valid.
 
-### v1.2 renderer upgrades
+### v1.3 cartoon/anime upgrades
 
-- near/far camera clipping for polygon geometry
-- global face-depth sorting across boxes and planes
-- off-screen/frustum rejection
-- spline-smoothed camera position and target tracks
-- positional point-light range/falloff/decay
-- point lights may be parented to moving scene objects
+- recursive 2D `group` / `bone` hierarchy with cycle protection
+- real keyframed 2D camera: pan, zoom, rotation, shake, spline smoothing
+- `polygon` and point-based `path` vector objects plus optional SVG `d` paths
+- point-array interpolation for shape morphing
+- object masks / clipping with `mask` or `clipPath`
+- gradient fills, skew/shear, pivots
+- reusable animation `clips` for rig poses/cycles
+- deterministic JSON particle `emitter` objects
+- parentable 2D point lights
+
+## 2D Camera
+
+```json
+"camera": {
+  "x": 480, "y": 270, "zoom": 1, "rotation": 0, "shake": 0,
+  "interpolation": "spline", "smoothing": 1,
+  "keyframes": [
+    {"t":0,"x":430,"y":260,"zoom":0.9},
+    {"t":3,"x":520,"y":245,"zoom":1.2,"rotation":2,"easing":"ease-in-out"}
+  ]
+}
+```
+
+The 2D camera is centered on `x/y`. `zoom` is clamped to a safe positive range. Camera motion uses the same spline/linear/step track controls as the 3D camera.
+
+## Cartoon Rig Hierarchy / Bones
+
+`bone` is an invisible transform node, equivalent to a group but clearer for articulated rigs. Parent chains may be nested to arbitrary practical depth.
+
+```json
+{"id":"shoulder","type":"bone","x":400,"y":250,"rotation":-20},
+{"id":"upper-arm","parent":"shoulder","type":"rect","x":0,"y":50,"width":24,"height":100,"anchorY":0},
+{"id":"elbow","parent":"shoulder","type":"bone","x":0,"y":100,"rotation":25},
+{"id":"forearm","parent":"elbow","type":"rect","x":0,"y":42,"width":20,"height":84,"anchorY":0}
+```
+
+`pivotX` / `pivotY`, `skewX` / `skewY`, scale, rotation, opacity and timing are inherited through the hierarchy. Cyclic parent references are hidden instead of recursing forever.
+
+## Vector Paths + Morphing
+
+```json
+{
+  "id":"face", "type":"path", "x":400, "y":240, "closed":true, "smooth":true,
+  "points":[[-50,-40],[40,-55],[60,10],[20,60],[-55,35]],
+  "fill":"#f0c78e",
+  "keyframes":[
+    {"t":0,"points":[[-50,-40],[40,-55],[60,10],[20,60],[-55,35]]},
+    {"t":1,"points":[[-60,-20],[30,-65],[70,0],[30,70],[-60,25]]}
+  ]
+}
+```
+
+`polygon` and `path` accept `points` as `[x,y]` pairs or `{x,y}` objects. Matching point arrays interpolate numerically between keyframes. A `path` may alternatively use an SVG-compatible `d` string through the browser `Path2D` implementation; `d` strings switch discretely rather than morphing.
+
+## Masks / Comic Panels
+
+Set `mask` or `clipPath` to another 2D object's id. Set `maskOnly:true` on a shape used only as a mask.
+
+```json
+{"id":"panel-mask","type":"path","maskOnly":true,"points":[[-200,-150],[220,-130],[180,160],[-230,180]]},
+{"id":"art","type":"sprite","mask":"panel-mask","asset":"hero","x":480,"y":270}
+```
+
+## Gradients + Skew
+
+`fill` and `stroke` may be strings or gradient objects.
+
+```json
+"fill": {
+  "type":"linear", "x0":-100, "y0":0, "x1":100, "y1":0,
+  "stops":[{"offset":0,"color":"#43210d"},{"offset":1,"color":"#f0c864"}]
+}
+```
+
+2D objects may animate `skewX` and `skewY` in degrees.
+
+## Reusable Animation Clips
+
+```json
+"clips": {
+  "wave": {
+    "duration":1.2, "loop":true,
+    "keyframes":[{"t":0,"rotation":-25},{"t":0.6,"rotation":25},{"t":1.2,"rotation":-25}]
+  }
+}
+```
+
+Apply with `"clip":"wave"`, plus optional `clipStart`, `clipRate`, and `clipLoop`. The clip overrides the properties it animates while normal object keyframes can animate other properties.
+
+## Particle Emitters
+
+```json
+{
+  "id":"sparks", "type":"emitter", "x":500, "y":250,
+  "emitRate":30, "burst":4, "life":0.8, "speed":130, "speedJitter":0.35,
+  "direction":-90, "spread":80, "gravityY":120,
+  "size":10, "sizeEnd":1, "color":"#fff4b0", "colorEnd":"#d77919",
+  "particleShape":"circle", "maxParticles":300
+}
+```
+
+Emitters are deterministic from project time, so scrubbing the timeline recreates the same particles instead of depending on hidden runtime state. Supported particle shapes: `circle`, `rect`, and `line`.
+
+---
 
 ## Camera
 
