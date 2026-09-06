@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "title": "RENDERER V1.2 TEST",
+  "mode": "3D",
+  "duration": 10,
+  "loop": true,
+  "canvas": {"width": 960, "height": 540, "background": "#030812"},
+  "camera": {
+    "x": -4, "y": 1.2, "z": -8,
+    "targetX": 0, "targetY": 0, "targetZ": 7,
+    "fov": 500, "near": 0.25, "far": 100,
+    "interpolation": "spline", "smoothing": 1,
+    "keyframes": [
+      {"t":0,"x":-4,"y":1.2,"z":-8,"targetX":0,"targetY":0,"targetZ":7},
+      {"t":3,"x":-1.5,"y":1.7,"z":-2,"targetX":0,"targetY":0,"targetZ":7},
+      {"t":6,"x":2.2,"y":1.3,"z":3.7,"targetX":0,"targetY":0,"targetZ":8},
+      {"t":10,"x":4,"y":1.2,"z":-8,"targetX":0,"targetY":0,"targetZ":7}
+    ]
+  },
+  "lighting": {
+    "ambient": {"color":"#607a9e","intensity":0.22},
+    "directional": [{"id":"key","x":-0.4,"y":0.8,"z":-0.5,"color":"#d9e8ff","intensity":0.65}],
+    "point": [
+      {"id":"moving-light","parent":"light-rig","x":0,"y":0,"z":0,"color":"#ff9c5b","intensity":4,"range":7,"falloff":2,"decay":1}
+    ],
+    "shadows": {"enabled":true,"groundY":-2.1,"opacity":0.2,"softness":12}
+  },
+  "post": {"exposure":1,"vignette":0.16,"grain":0.015,"letterbox":0.025},
+  "assets": {},
+  "sounds": [],
+  "objects": [
+    {"id":"ground","type":"plane","x":0,"y":-2.1,"z":8,"width":18,"height":22,"rotationX":90,"fill":"#263542","stroke":"#425566"},
+    {"id":"near-wall","type":"box","x":0,"y":0,"z":5,"width":5.5,"height":5,"depth":0.7,"fill":"#526579","stroke":"#8ca8bd"},
+    {"id":"back-wall","type":"box","x":0,"y":0,"z":10,"width":7,"height":5.5,"depth":0.8,"fill":"#344b62","stroke":"#6f91ad"},
+    {"id":"left-box","type":"box","x":-3.4,"y":-0.7,"z":7.5,"width":2.2,"height":2.8,"depth":2.2,"fill":"#4e7682","stroke":"#8bd4db"},
+    {"id":"right-sphere","type":"sphere","x":3.1,"y":-0.5,"z":8.2,"radius":1.5,"fill":"#7b4e58","stroke":"#ef9ca8"},
+    {"id":"light-rig","type":"group","x":-3,"y":1,"z":6,"keyframes":[{"t":0,"x":-3,"z":6},{"t":5,"x":3,"z":8,"easing":"ease-in-out"},{"t":10,"x":-3,"z":6,"easing":"ease-in-out"}]},
+    {"id":"light-orb","parent":"light-rig","type":"sphere","x":0,"y":0,"z":0,"radius":0.22,"fill":"#ffd2a0","stroke":false,"emissive":"#ff8c4b","emissiveIntensity":1.6,"castShadow":false}
+  ]
+}

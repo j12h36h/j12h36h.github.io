@@ -21,6 +21,13 @@
       "mode": "3D",
       "description": "Full cinematic preset: spiraling planets, collisions, debris, moving camera, camera shake, dynamic lights, flashes, letterbox, grain, and procedural sound.",
       "src": "./presets/universe-spiral-collapse.json"
+    },
+    {
+      "id": "renderer-v12-test",
+      "title": "RENDERER V1.2 TEST",
+      "mode": "3D",
+      "description": "Diagnostic preset for spline camera motion, near-plane clipping, global face sorting, and a moving parented point light.",
+      "src": "./presets/renderer-v12-test.json"
     }
   ]
 }

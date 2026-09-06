@@ -1,6 +1,15 @@
 # Simple Animation Designer — Cinematic Schema v2
 
-S.A.D. v1.1.0 keeps the existing JSON-first format and adds cinematic systems. Existing v1 projects remain valid.
+S.A.D. v1.2.0 keeps the existing JSON-first format and adds renderer/camera upgrades on top of the v1.1 cinematic systems. Existing v1/v2 projects remain valid.
+
+### v1.2 renderer upgrades
+
+- near/far camera clipping for polygon geometry
+- global face-depth sorting across boxes and planes
+- off-screen/frustum rejection
+- spline-smoothed camera position and target tracks
+- positional point-light range/falloff/decay
+- point lights may be parented to moving scene objects
 
 ## Camera
 
@@ -16,6 +25,10 @@ S.A.D. v1.1.0 keeps the existing JSON-first format and adds cinematic systems. E
   "rotateZ": 0,
   "fov": 520,
   "shake": 0,
+  "near": 0.2,
+  "far": 5000,
+  "interpolation": "spline",
+  "smoothing": 1,
   "keyframes": [
     {"t": 0, "x": -2, "fov": 480},
     {"t": 4, "x": 1, "fov": 560, "easing": "ease-in-out"}
@@ -24,6 +37,8 @@ S.A.D. v1.1.0 keeps the existing JSON-first format and adds cinematic systems. E
 ```
 
 Instead of explicit rotation, a camera may use `targetX`, `targetY`, and `targetZ`. Those properties can also be keyframed.
+
+Camera position and look-at tracks use spline interpolation by default in v1.2. Set `"interpolation":"linear"` on the camera or an individual keyframe for a straight segment, or `"interpolation":"step"` for a hard cut. `smoothing` ranges from 0 to 1. `near` and `far` control the 3D clipping planes.
 
 ## Groups / Parent Transforms
 
@@ -46,14 +61,16 @@ Children inherit position, rotation, scale, opacity, visibility, and active star
     {"id":"sun","x":-0.5,"y":0.8,"z":-0.5,"color":"#fff1d2","intensity":1.1}
   ],
   "point": [
-    {"id":"lamp","x":2,"y":1,"z":5,"color":"#65cfff","intensity":2.5,"range":7,
+    {"id":"lamp","x":2,"y":1,"z":5,"color":"#65cfff","intensity":2.5,"range":7,"falloff":2,"decay":1,
      "keyframes":[{"t":0,"intensity":0.5},{"t":3,"intensity":3}]}
   ],
   "shadows": {"enabled":true,"groundY":-2.5,"opacity":0.25,"softness":16}
 }
 ```
 
-Supported 3D lighting: ambient, directional, point, colored light, emissive surfaces, and optional projected ground shadows.
+Supported 3D lighting: ambient, directional, spatial point lighting, colored light, emissive surfaces, and optional projected ground shadows.
+
+Point lights are evaluated from their real 3D position against each rendered surface. `range` limits influence, `falloff` controls edge softness, and `decay` controls distance attenuation. A point light may specify `parent` / `parentId` to follow a moving object or group.
 
 Objects can use:
 

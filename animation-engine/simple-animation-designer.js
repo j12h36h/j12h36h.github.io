@@ -37,7 +37,7 @@ const EXAMPLE_3D={
   duration:8,
   loop:true,
   canvas:{width:960,height:540,background:'#030711'},
-  camera:{x:0,y:.2,z:-8,rotateX:0,rotateY:0,rotateZ:0,fov:520,shake:0,
+  camera:{x:0,y:.2,z:-8,rotateX:0,rotateY:0,rotateZ:0,fov:520,shake:0,near:.2,far:5000,interpolation:'spline',smoothing:1,
     keyframes:[{t:0,x:-.7,y:.35,rotateY:-4,fov:500},{t:4,x:.7,y:-.05,rotateY:4,fov:555,easing:'ease-in-out'},{t:8,x:-.7,y:.35,rotateY:-4,fov:500,easing:'ease-in-out'}]},
   lighting:{
     ambient:{color:'#8db3d8',intensity:.32},
@@ -113,7 +113,7 @@ function validateProject(p){
   p.lighting.directional=Array.isArray(p.lighting.directional)?p.lighting.directional:[];
   p.lighting.point=Array.isArray(p.lighting.point)?p.lighting.point:[];
   p.lighting.shadows={enabled:false,groundY:-2.5,opacity:.25,softness:14,...(p.lighting.shadows||{})};
-  if(p.mode==='3D')p.camera={x:0,y:0,z:-8,rotateX:0,rotateY:0,rotateZ:0,fov:520,shake:0,...(p.camera||{})};
+  if(p.mode==='3D')p.camera={x:0,y:0,z:-8,rotateX:0,rotateY:0,rotateZ:0,fov:520,shake:0,near:.2,far:5000,interpolation:'spline',smoothing:1,...(p.camera||{})};
   return p;
 }
 
@@ -262,29 +262,80 @@ function apply2DLighting(){
 }
 
 function rotatePoint(p,rx,ry,rz){let{x,y,z}=p;let c=Math.cos(rx),s=Math.sin(rx);[y,z]=[y*c-z*s,y*s+z*c];c=Math.cos(ry);s=Math.sin(ry);[x,z]=[x*c+z*s,-x*s+z*c];c=Math.cos(rz);s=Math.sin(rz);[x,y]=[x*c-y*s,x*s+y*c];return{x,y,z};}
+function catmullRom(a,b,c,d,t){
+  const t2=t*t,t3=t2*t;
+  return .5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t2+(-a+3*b-3*c+d)*t3);
+}
+function smootherStep(t){t=clamp(t,0,1);return t*t*t*(t*(t*6-15)+10);}
+function cameraTrackValue(camera,key,time){
+  const frames=Array.isArray(camera?.keyframes)?camera.keyframes.filter(f=>f&&Number.isFinite(Number(f.t))&&Object.prototype.hasOwnProperty.call(f,key)).slice().sort((a,b)=>Number(a.t)-Number(b.t)):[];
+  const base=Object.prototype.hasOwnProperty.call(camera||{},key)?camera[key]:undefined;
+  if(!frames.length)return base;
+  if(time<=Number(frames[0].t))return frames[0][key];
+  if(time>=Number(frames.at(-1).t))return frames.at(-1)[key];
+  for(let i=0;i<frames.length-1;i++){
+    const a=frames[i],b=frames[i+1],at=Number(a.t),bt=Number(b.t);if(time<at||time>bt)continue;
+    const raw=(time-at)/Math.max(.000001,bt-at),av=a[key],bv=b[key];
+    if(typeof av!=='number'||typeof bv!=='number')return raw<1?av:bv;
+    const easing=String(b.easing||a.easing||'').toLowerCase();
+    const interpolation=String(b.interpolation||a.interpolation||camera.interpolation||'spline').toLowerCase();
+    if(interpolation==='step'||easing==='step')return av;
+    if(interpolation==='linear')return lerp(av,bv,ease(raw,easing||'linear'));
+    if(['x','y','z','targetX','targetY','targetZ'].includes(key)){
+      const p0=i>0&&typeof frames[i-1][key]==='number'?frames[i-1][key]:av;
+      const p3=i+2<frames.length&&typeof frames[i+2][key]==='number'?frames[i+2][key]:bv;
+      const spline=catmullRom(p0,av,bv,p3,raw);
+      const linear=lerp(av,bv,smootherStep(raw));
+      const smooth=clamp(finite(camera.smoothing,1),0,1);
+      return lerp(linear,spline,smooth);
+    }
+    return lerp(av,bv,easing?ease(raw,easing):smootherStep(raw));
+  }
+  return base;
+}
 function currentCamera(){
-  const c=resolved(state.project.camera||{});
+  const source=state.project.camera||{},c={...source};
+  const keys=new Set(['x','y','z','rotateX','rotateY','rotateZ','fov','shake','targetX','targetY','targetZ','near','far']);
+  for(const f of source.keyframes||[])for(const k of Object.keys(f||{}))if(k!=='t'&&k!=='easing'&&k!=='interpolation')keys.add(k);
+  for(const k of keys){const v=cameraTrackValue(source,k,state.time);if(v!==undefined)c[k]=v;}
+  c.near=clamp(finite(c.near,.2),.01,1000);c.far=Math.max(c.near+.01,finite(c.far,5000));
   if(Number.isFinite(Number(c.targetX))&&Number.isFinite(Number(c.targetY))&&Number.isFinite(Number(c.targetZ))){const dx=finite(c.targetX)-finite(c.x),dy=finite(c.targetY)-finite(c.y),dz=finite(c.targetZ)-finite(c.z),h=Math.hypot(dx,dz)||.0001;c.rotateY=Math.atan2(dx,dz)*180/Math.PI;c.rotateX=-Math.atan2(dy,h)*180/Math.PI;}
   const shake=Math.max(0,finite(c.shake,0));if(shake>0){const t=state.time;c.x=finite(c.x)+Math.sin(t*47.1)*shake*.035;c.y=finite(c.y)+Math.cos(t*39.7)*shake*.027;c.rotateZ=finite(c.rotateZ)+Math.sin(t*61.3)*shake*.42;c.rotateX=finite(c.rotateX)+Math.cos(t*53.2)*shake*.22;}return c;
 }
 function cameraPointWith(p,c){let q={x:p.x-finite(c.x),y:p.y-finite(c.y),z:p.z-finite(c.z)};q=rotatePoint(q,-rad(c.rotateX),-rad(c.rotateY),-rad(c.rotateZ));return q;}
 function cameraPoint(p){return cameraPointWith(p,currentCamera());}
-function projectPointWith(p,c){const q=cameraPointWith(p,c),f=Math.max(10,finite(c.fov,520));if(q.z<=.08)return null;const s=f/q.z;return{x:canvas.width/2+q.x*s,y:canvas.height/2-q.y*s,scale:s,z:q.z};}
+function projectCameraPoint(q,c){const f=Math.max(10,finite(c.fov,520));if(q.z<=0)return null;const s=f/q.z;return{x:canvas.width/2+q.x*s,y:canvas.height/2-q.y*s,scale:s,z:q.z};}
+function projectPointWith(p,c){const q=cameraPointWith(p,c),near=finite(c.near,.2),far=finite(c.far,5000);if(q.z<near||q.z>far)return null;return projectCameraPoint(q,c);}
 function projectPoint(p){return projectPointWith(p,currentCamera());}
 function objectVertex(o,v){const local=rotatePoint({x:v.x*finite(o.scale,1),y:v.y*finite(o.scale,1),z:v.z*finite(o.scale,1)},rad(o.rotationX),rad(o.rotationY),rad(o.rotationZ));return{x:local.x+finite(o.x),y:local.y+finite(o.y),z:local.z+finite(o.z)};}
 function normalize3(v){const d=Math.hypot(v.x,v.y,v.z)||1;return{x:v.x/d,y:v.y/d,z:v.z/d};}
 function cross(a,b){return{x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x};}
 function sub(a,b){return{x:a.x-b.x,y:a.y-b.y,z:a.z-b.z};}
 function dot(a,b){return a.x*b.x+a.y*b.y+a.z*b.z;}
-function resolvedLights(){const l=state.project.lighting||{};return{ambient:resolved(l.ambient||{}),directional:(l.directional||[]).map(x=>resolved(x)),point:(l.point||[]).map(x=>resolved(x))};}
+function resolvePointLightWorld(raw,map,cache){
+  const l=resolved(raw),parentId=String(l.parent||l.parentId||'');if(!parentId||!map.has(parentId))return l;
+  const p=resolveWorldObject(map.get(parentId),map,cache,new Set()),ps=finite(p.scale,1),q=rotatePoint({x:finite(l.x)*ps,y:finite(l.y)*ps,z:finite(l.z)*ps},rad(p.rotationX),rad(p.rotationY),rad(p.rotationZ));
+  return {...l,x:finite(p.x)+q.x,y:finite(p.y)+q.y,z:finite(p.z)+q.z};
+}
+function resolvedLights(){
+  if(state._frameLights&&state._frameLights.time===state.time)return state._frameLights.value;
+  const l=state.project.lighting||{},map=objectMap(),cache=new Map(),value={ambient:resolved(l.ambient||{}),directional:(l.directional||[]).map(x=>resolved(x)),point:(l.point||[]).map(x=>resolvePointLightWorld(x,map,cache))};
+  state._frameLights={time:state.time,value};return value;
+}
+function pointLightAttenuation(light,dist){
+  const range=Math.max(.001,finite(light.range,8));if(dist>=range)return 0;
+  const edge=Math.pow(clamp(1-dist/range,0,1),clamp(finite(light.falloff,2),.25,8));
+  const decay=clamp(finite(light.decay,1),0,8),normalized=dist/range;
+  return edge/(1+decay*normalized*normalized*4);
+}
 function surfaceLightSample(point,normal={x:0,y:0,z:-1}){
   const lights=resolvedLights(),n=normalize3(normal),ambientIntensity=clamp(finite(lights.ambient.intensity,.28),0,3),ambientColor=parseColor(lights.ambient.color||'#ffffff');
   let intensity=ambientIntensity,weight=Math.max(.001,ambientIntensity),tint=[ambientColor[0]*weight,ambientColor[1]*weight,ambientColor[2]*weight];
   for(const d of lights.directional){const dir=normalize3({x:finite(d.x,-.4),y:finite(d.y,.6),z:finite(d.z,-.6)}),amount=Math.max(0,dot(n,dir))*clamp(finite(d.intensity,1),0,8);if(amount<=0)continue;const c=parseColor(d.color||'#ffffff');intensity+=amount;weight+=amount;tint[0]+=c[0]*amount;tint[1]+=c[1]*amount;tint[2]+=c[2]*amount;}
-  for(const p of lights.point){const delta=sub({x:finite(p.x),y:finite(p.y),z:finite(p.z)},point),dist=Math.hypot(delta.x,delta.y,delta.z),range=Math.max(.001,finite(p.range,8));if(dist>=range)continue;const fall=Math.pow(1-dist/range,2),amount=Math.max(0,dot(n,normalize3(delta)))*fall*clamp(finite(p.intensity,1),0,12);if(amount<=0)continue;const c=parseColor(p.color||'#ffffff');intensity+=amount;weight+=amount;tint[0]+=c[0]*amount;tint[1]+=c[1]*amount;tint[2]+=c[2]*amount;}
-  return{intensity:clamp(intensity,.03,3.5),tint:[tint[0]/weight,tint[1]/weight,tint[2]/weight]};
+  for(const p of lights.point){const delta=sub({x:finite(p.x),y:finite(p.y),z:finite(p.z)},point),dist=Math.hypot(delta.x,delta.y,delta.z),attenuation=pointLightAttenuation(p,dist);if(attenuation<=0)continue;const lambert=p.omnidirectional===true?1:Math.max(0,dot(n,normalize3(delta))),amount=lambert*attenuation*clamp(finite(p.intensity,1),0,20);if(amount<=0)continue;const c=parseColor(p.color||'#ffffff');intensity+=amount;weight+=amount;tint[0]+=c[0]*amount;tint[1]+=c[1]*amount;tint[2]+=c[2]*amount;}
+  return{intensity:clamp(intensity,.03,5),tint:[tint[0]/weight,tint[1]/weight,tint[2]/weight]};
 }
-function litSurfaceColor(value,point,normal,multiplier=1){const base=parseColor(value),sample=surfaceLightSample(point,normal),f=sample.intensity*multiplier;return rgba([clamp(base[0]*f*(.58+.42*sample.tint[0]/255),0,255),clamp(base[1]*f*(.58+.42*sample.tint[1]/255),0,255),clamp(base[2]*f*(.58+.42*sample.tint[2]/255),0,255),base[3]],base[3]);}
+function litSurfaceColor(value,point,normal,multiplier=1){const base=parseColor(value),sample=surfaceLightSample(point,normal),f=sample.intensity*multiplier;return rgba([clamp(base[0]*f*(.55+.45*sample.tint[0]/255),0,255),clamp(base[1]*f*(.55+.45*sample.tint[1]/255),0,255),clamp(base[2]*f*(.55+.45*sample.tint[2]/255),0,255),base[3]],base[3]);}
 function parseColor(value){
   const s=String(value||'#ffffff').trim();let m;
   if((m=s.match(/^#([0-9a-f]{3})$/i))){return m[1].split('').map(x=>parseInt(x+x,16)).concat(1);}
@@ -294,47 +345,78 @@ function parseColor(value){
 }
 function rgba(c,a=c[3]??1){return`rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${clamp(a,0,1)})`;}
 function shadeColor(value,factor=1){const c=parseColor(value);return rgba([clamp(c[0]*factor,0,255),clamp(c[1]*factor,0,255),clamp(c[2]*factor,0,255),c[3]],c[3]);}
+function clipPolygonAtZ(poly,z,keepGreater=true){
+  if(!poly.length)return[];const out=[];
+  for(let i=0;i<poly.length;i++){
+    const a=poly[i],b=poly[(i+1)%poly.length],ain=keepGreater?a.z>=z:a.z<=z,bin=keepGreater?b.z>=z:b.z<=z;
+    if(ain)out.push(a);
+    if(ain!==bin){const t=(z-a.z)/((b.z-a.z)||1e-9);out.push({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),z});}
+  }
+  return out;
+}
+function clipCameraPolygon(poly,cam){let out=clipPolygonAtZ(poly,finite(cam.near,.2),true);if(out.length<3)return[];out=clipPolygonAtZ(out,finite(cam.far,5000),false);return out.length>=3?out:[];}
+function projectedCameraPolygon(poly,cam){
+  const screen=poly.map(p=>projectCameraPoint(p,cam));if(screen.some(p=>!p))return null;
+  const margin=8;if(screen.every(p=>p.x<-margin)||screen.every(p=>p.x>canvas.width+margin)||screen.every(p=>p.y<-margin)||screen.every(p=>p.y>canvas.height+margin))return null;
+  return screen;
+}
+function beginScreenPath(points){if(!points?.length)return false;ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);ctx.closePath();return true;}
+function faceNormal(world){return normalize3(cross(sub(world[1],world[0]),sub(world[2],world[0])));}
+function faceCenter(world){return world.reduce((a,p)=>({x:a.x+p.x/world.length,y:a.y+p.y/world.length,z:a.z+p.z/world.length}),{x:0,y:0,z:0});}
+function faceCommand(o,world,cam){
+  const camPoly=clipCameraPolygon(world.map(p=>cameraPointWith(p,cam)),cam);if(camPoly.length<3)return null;const screen=projectedCameraPolygon(camPoly,cam);if(!screen)return null;
+  return{kind:'face',o,world,screen,depth:camPoly.reduce((sum,p)=>sum+p.z,0)/camPoly.length,normal:faceNormal(world),center:faceCenter(world)};
+}
+function collect3DCommands(objects,cam){
+  const commands=[];
+  for(const o of objects){
+    if(o.type==='box'){
+      const w=finite(o.width,2)/2,h=finite(o.height,2)/2,d=finite(o.depth,2)/2,local=[[-w,-h,-d],[w,-h,-d],[w,h,-d],[-w,h,-d],[-w,-h,d],[w,-h,d],[w,h,d],[-w,h,d]],verts=local.map(([x,y,z])=>objectVertex(o,{x,y,z})),faces=[[0,1,2,3],[4,5,6,7],[0,1,5,4],[2,3,7,6],[1,2,6,5],[0,3,7,4]];
+      for(const face of faces){const cmd=faceCommand(o,face.map(i=>verts[i]),cam);if(cmd)commands.push(cmd);}
+    }else if(o.type==='plane'){
+      const w=finite(o.width,2)/2,h=finite(o.height,2)/2,world=[[-w,-h,0],[w,-h,0],[w,h,0],[-w,h,0]].map(([x,y,z])=>objectVertex(o,{x,y,z})),cmd=faceCommand(o,world,cam);if(cmd)commands.push(cmd);
+    }else if(o.type==='sphere'||o.type==='sprite'){
+      const q=cameraPointWith({x:finite(o.x),y:finite(o.y),z:finite(o.z)},cam);if(q.z>=cam.near&&q.z<=cam.far)commands.push({kind:o.type,o,depth:q.z});
+    }
+  }
+  return commands.sort((a,b)=>b.depth-a.depth);
+}
 function render3D(){
-  const cam=currentCamera();const objects=sceneObjects().filter(objectVisible).filter(o=>o.type!=='group').map(o=>({o,depth:cameraPointWith({x:finite(o.x),y:finite(o.y),z:finite(o.z)},cam).z})).sort((a,b)=>b.depth-a.depth);
-  renderShadows3D(objects.map(x=>x.o),cam);
-  for(const row of objects)draw3DObject(row.o,cam);
+  state._frameLights=null;const cam=currentCamera(),objects=sceneObjects().filter(objectVisible).filter(o=>o.type!=='group');
+  renderShadows3D(objects,cam);
+  for(const command of collect3DCommands(objects,cam))draw3DCommand(command,cam);
 }
 function renderShadows3D(objects,cam){
   const cfg=state.project.lighting?.shadows||{};if(cfg.enabled!==true)return;const groundY=finite(cfg.groundY,-2.5),opacity=clamp(finite(cfg.opacity,.25),0,.8),softness=Math.max(0,finite(cfg.softness,14)),key=(resolvedLights().directional||[])[0]||{x:-.4,y:.8,z:-.5};let toward=normalize3({x:finite(key.x,-.4),y:finite(key.y,.8),z:finite(key.z,-.5)});if(Math.abs(toward.y)<.05)toward.y=.05;const away={x:-toward.x,y:-toward.y,z:-toward.z};
   ctx.save();ctx.fillStyle=`rgba(0,0,0,${opacity})`;ctx.shadowColor=`rgba(0,0,0,${opacity})`;ctx.shadowBlur=softness;
-  for(const o of objects){if(o.castShadow===false||!['sphere','box','sprite'].includes(o.type))continue;const py=finite(o.y);let t=(groundY-py)/away.y;if(!Number.isFinite(t)||t<0)t=(groundY-py)/(-away.y);if(!Number.isFinite(t)||t<0)continue;const sp={x:finite(o.x)+away.x*t,y:groundY,z:finite(o.z)+away.z*t},pp=projectPointWith(sp,cam);if(!pp)continue;const size=(o.type==='sphere'?finite(o.radius,1):Math.max(finite(o.width,1),finite(o.depth,1))*.5)*finite(o.scale,1)*pp.scale;if(size<=0)continue;ctx.beginPath();ctx.ellipse(pp.x,pp.y,Math.max(2,size*.9),Math.max(1,size*.24),0,0,Math.PI*2);ctx.fill();}
+  for(const o of objects){if(o.castShadow===false||!['sphere','box','sprite'].includes(o.type))continue;const py=finite(o.y);let t=(groundY-py)/away.y;if(!Number.isFinite(t)||t<0)t=(groundY-py)/(-away.y);if(!Number.isFinite(t)||t<0)continue;const sp={x:finite(o.x)+away.x*t,y:groundY,z:finite(o.z)+away.z*t},pp=projectPointWith(sp,cam);if(!pp)continue;const size=(o.type==='sphere'?finite(o.radius,1):Math.max(finite(o.width,1),finite(o.depth,1))*.5)*finite(o.scale,1)*pp.scale;if(size<=0)continue;if(pp.x+size<0||pp.x-size>canvas.width||pp.y+size<0||pp.y-size>canvas.height)continue;ctx.beginPath();ctx.ellipse(pp.x,pp.y,Math.max(2,size*.9),Math.max(1,size*.24),0,0,Math.PI*2);ctx.fill();}
   ctx.restore();
 }
-function draw3DObject(o,cam){
-  ctx.save();ctx.globalAlpha=clamp(finite(o.opacity,1),0,1);ctx.lineWidth=finite(o.lineWidth,1.5);ctx.strokeStyle=o.stroke===false?'transparent':(o.stroke||'#8adfff');
-  if(o.type==='sphere')drawLitSphere(o,cam);else if(o.type==='box')drawBox(o,cam);else if(o.type==='plane')drawPlane(o,cam);else if(o.type==='sprite')drawBillboard(o,cam);
+function draw3DCommand(command,cam){
+  const o=command.o;ctx.save();ctx.globalAlpha=clamp(finite(o.opacity,1),0,1);ctx.lineWidth=finite(o.lineWidth,1.5);ctx.strokeStyle=o.stroke===false?'transparent':(o.stroke||'#8adfff');
+  if(command.kind==='face')drawFaceCommand(command);else if(command.kind==='sphere')drawLitSphere(o,cam);else if(command.kind==='sprite')drawBillboard(o,cam);
   ctx.restore();
+}
+function drawFaceCommand(command){
+  const {o,screen,center,normal}=command;if(!beginScreenPath(screen))return;ctx.fillStyle=litSurfaceColor(o.fill||'#546d7d',center,normal);
+  if(o.fill!==false)ctx.fill();
+  if(o.emissive){ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha*=clamp(finite(o.emissiveIntensity,.35),0,2);ctx.fillStyle=o.emissive;ctx.fill();ctx.restore();}
+  if(o.stroke!==false){ctx.strokeStyle=o.stroke||'#8adfff';ctx.stroke();}
 }
 function strongestLightScreenOffset(point,cam,r){
   const lights=resolvedLights();let best=null,bestScore=0;
-  for(const l of lights.point){const intensity=finite(l.intensity,0),range=Math.max(.01,finite(l.range,8)),d=Math.hypot(finite(l.x)-point.x,finite(l.y)-point.y,finite(l.z)-point.z);const score=intensity*Math.max(0,1-d/range);if(score>bestScore){const pp=projectPointWith({x:finite(l.x),y:finite(l.y),z:finite(l.z)},cam),cp=projectPointWith(point,cam);if(pp&&cp){bestScore=score;const dx=pp.x-cp.x,dy=pp.y-cp.y,len=Math.hypot(dx,dy)||1;best={x:dx/len*r*.33,y:dy/len*r*.33};}}}
+  for(const l of lights.point){const intensity=finite(l.intensity,0),d=Math.hypot(finite(l.x)-point.x,finite(l.y)-point.y,finite(l.z)-point.z),score=intensity*pointLightAttenuation(l,d);if(score>bestScore){const pp=projectPointWith({x:finite(l.x),y:finite(l.y),z:finite(l.z)},cam),cp=projectPointWith(point,cam);if(pp&&cp){bestScore=score;const dx=pp.x-cp.x,dy=pp.y-cp.y,len=Math.hypot(dx,dy)||1;best={x:dx/len*r*.33,y:dy/len*r*.33};}}}
   if(!best&&lights.directional.length){const l=lights.directional[0],v=normalize3({x:finite(l.x,-.4),y:finite(l.y,.6),z:finite(l.z,-.6)});best={x:v.x*r*.28,y:-v.y*r*.28};}
   return best||{x:-r*.18,y:-r*.18};
 }
 function drawLitSphere(o,cam){
-  const point={x:finite(o.x),y:finite(o.y),z:finite(o.z)},center=projectPointWith(point,cam);if(!center)return;const edge=projectPointWith({x:point.x+finite(o.radius,1)*finite(o.scale,1),y:point.y,z:point.z},cam);const r=edge?Math.abs(edge.x-center.x):Math.abs(finite(o.radius,1)*center.scale);if(r<=0)return;
-  const base=o.fill||'#6aa4bf',normal={x:0,y:0,z:-1},off=strongestLightScreenOffset(point,cam,r);const g=ctx.createRadialGradient(center.x+off.x,center.y+off.y,Math.max(1,r*.05),center.x,center.y,r*1.1);g.addColorStop(0,litSurfaceColor(base,point,normal,1.3));g.addColorStop(.5,litSurfaceColor(base,point,normal,.78));g.addColorStop(1,litSurfaceColor(base,point,normal,.3));ctx.fillStyle=g;ctx.beginPath();ctx.arc(center.x,center.y,r,0,Math.PI*2);if(o.fill!==false)ctx.fill();
+  const point={x:finite(o.x),y:finite(o.y),z:finite(o.z)},center=projectPointWith(point,cam);if(!center)return;const edge=projectPointWith({x:point.x+finite(o.radius,1)*finite(o.scale,1),y:point.y,z:point.z},cam);const r=edge?Math.abs(edge.x-center.x):Math.abs(finite(o.radius,1)*center.scale);if(r<=0||center.x+r<0||center.x-r>canvas.width||center.y+r<0||center.y-r>canvas.height)return;
+  const base=o.fill||'#6aa4bf',normal={x:0,y:0,z:-1},off=strongestLightScreenOffset(point,cam,r),g=ctx.createRadialGradient(center.x+off.x,center.y+off.y,Math.max(1,r*.05),center.x,center.y,r*1.1);g.addColorStop(0,litSurfaceColor(base,point,normal,1.35));g.addColorStop(.52,litSurfaceColor(base,point,normal,.78));g.addColorStop(1,litSurfaceColor(base,point,normal,.27));ctx.fillStyle=g;ctx.beginPath();ctx.arc(center.x,center.y,r,0,Math.PI*2);if(o.fill!==false)ctx.fill();
   if(o.emissive){ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha*=clamp(finite(o.emissiveIntensity,.5),0,2);const eg=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,r*1.35),ec=parseColor(o.emissive);eg.addColorStop(0,rgba(ec,.34));eg.addColorStop(1,rgba(ec,0));ctx.fillStyle=eg;ctx.beginPath();ctx.arc(center.x,center.y,r*1.35,0,Math.PI*2);ctx.fill();ctx.restore();}
   if(o.stroke!==false){ctx.strokeStyle=o.stroke||'#8adfff';ctx.stroke();ctx.save();ctx.globalAlpha*=.35;ctx.beginPath();ctx.ellipse(center.x,center.y,r,r*.28,rad(o.rotationY),0,Math.PI*2);ctx.stroke();ctx.restore();}
 }
-function pathProjected(points,cam){const pp=points.map(p=>projectPointWith(p,cam));if(pp.some(p=>!p))return false;ctx.beginPath();ctx.moveTo(pp[0].x,pp[0].y);for(let i=1;i<pp.length;i++)ctx.lineTo(pp[i].x,pp[i].y);ctx.closePath();return pp;}
-function faceNormal(world){return normalize3(cross(sub(world[1],world[0]),sub(world[2],world[0])));}
-function faceCenter(world){return world.reduce((a,p)=>({x:a.x+p.x/world.length,y:a.y+p.y/world.length,z:a.z+p.z/world.length}),{x:0,y:0,z:0});}
-function drawPlane(o,cam){
-  const w=finite(o.width,2)/2,h=finite(o.height,2)/2,pts=[[-w,-h,0],[w,-h,0],[w,h,0],[-w,h,0]].map(([x,y,z])=>objectVertex(o,{x,y,z}));if(pathProjected(pts,cam)){ctx.fillStyle=litSurfaceColor(o.fill||'#56778b',faceCenter(pts),faceNormal(pts));if(o.fill!==false)ctx.fill();if(o.emissive){ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha*=clamp(finite(o.emissiveIntensity,.35),0,2);ctx.fillStyle=o.emissive;ctx.fill();ctx.restore();}if(o.stroke!==false){ctx.strokeStyle=o.stroke||'#8adfff';ctx.stroke();}}
-}
-function drawBox(o,cam){
-  const w=finite(o.width,2)/2,h=finite(o.height,2)/2,d=finite(o.depth,2)/2,local=[[-w,-h,-d],[w,-h,-d],[w,h,-d],[-w,h,-d],[-w,-h,d],[w,-h,d],[w,h,d],[-w,h,d]],verts=local.map(([x,y,z])=>objectVertex(o,{x,y,z})),faces=[[0,1,2,3],[4,5,6,7],[0,1,5,4],[2,3,7,6],[1,2,6,5],[0,3,7,4]];
-  const rendered=faces.map(face=>{const world=face.map(i=>verts[i]),camPts=world.map(p=>cameraPointWith(p,cam));return{world,depth:camPts.reduce((s,p)=>s+p.z,0)/4};}).sort((a,b)=>b.depth-a.depth);
-  for(const f of rendered){if(pathProjected(f.world,cam)){ctx.fillStyle=litSurfaceColor(o.fill||'#546372',faceCenter(f.world),faceNormal(f.world));if(o.fill!==false)ctx.fill();if(o.emissive){ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha*=clamp(finite(o.emissiveIntensity,.35),0,2);ctx.fillStyle=o.emissive;ctx.fill();ctx.restore();}if(o.stroke!==false){ctx.strokeStyle=o.stroke||'#8adfff';ctx.stroke();}}}
-}
 function drawBillboard(o,cam){
-  const p=projectPointWith({x:finite(o.x),y:finite(o.y),z:finite(o.z)},cam);if(!p)return;const img=state.images.get(o.asset),a=state.project.assets[o.asset]||{},worldW=finite(o.width,1.5)*finite(o.scale,1),worldH=finite(o.height,1.5)*finite(o.scale,1),w=worldW*p.scale,h=worldH*p.scale;ctx.translate(p.x,p.y);ctx.rotate(rad(o.rotationZ));
+  const p=projectPointWith({x:finite(o.x),y:finite(o.y),z:finite(o.z)},cam);if(!p)return;const img=state.images.get(o.asset),a=state.project.assets[o.asset]||{},worldW=finite(o.width,1.5)*finite(o.scale,1),worldH=finite(o.height,1.5)*finite(o.scale,1),w=worldW*p.scale,h=worldH*p.scale;if(p.x+w/2<0||p.x-w/2>canvas.width||p.y+h/2<0||p.y-h/2>canvas.height)return;ctx.translate(p.x,p.y);ctx.rotate(rad(o.rotationZ));
   if(!img){ctx.strokeStyle=o.stroke||'#ff6b92';ctx.strokeRect(-w/2,-h/2,w,h);return;}const f=spriteFrame(a,o,img);ctx.imageSmoothingEnabled=o.pixelated!==true;ctx.drawImage(img,f.sx,f.sy,f.sw,f.sh,-w/2,-h/2,w,h);
 }
 
@@ -410,7 +492,7 @@ async function addAudio(files){
 
 function refreshReference(){
   const mode=state.project?.mode||'2D';const rows=mode==='3D'?
-    [['camera','keyframe position/rotation/FOV/shake or targetX/Y/Z'],['lighting','ambient + directional[] + point[] + optional shadows'],['objects[]','group | box | sphere | plane | sprite'],['parent','inherit group/object transforms'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','asset, start/end, volume, pan, rate, keyframes']]:
+    [['camera','spline keyframes + look-at + near/far clipping + smoothing'],['lighting','spatial ambient/directional/point lights + range/falloff/decay + parent'],['objects[]','group | box | sphere | plane | sprite'],['parent','inherit group/object transforms'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','asset, start/end, volume, pan, rate, keyframes']]:
     [['objects[]','group | rect | circle | ellipse | text | sprite'],['parent','inherit position / rotation / scale'],['lighting','ambient + point[] canvas lights'],['post','exposure, vignette, letterbox, fade, flash, grain'],['sounds[]','audio/tone cues on the timeline'],['keyframes[]','{ t, property…, easing? }']];
   $('#schemaReference').innerHTML=rows.map(([a,b])=>`<div class="sad-reference-item"><b>${a}</b><small>${b}</small></div>`).join('');
   const entries=[];for(const [id,a] of Object.entries(state.project?.assets||{})){if(a?.type==='sprite'||a?.type==='audio'||a?.type==='tone')entries.push({id,type:a.type});}
