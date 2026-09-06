@@ -739,5 +739,6 @@ exports.claimGlobalArcadeMilestones = onCall(async request => {
 // Firebase Auth + privateAccounts and validates all user input server-side.
 const assetLibrarySecurity = require('./asset-library-security.js');
 exports.acquireAssetVariant = assetLibrarySecurity.acquireAssetVariant;
+exports.acquireEscapePodStyle = assetLibrarySecurity.acquireEscapePodStyle;
 exports.getModerationCapabilities = assetLibrarySecurity.getModerationCapabilities;
 exports.createModeTestLobby = assetLibrarySecurity.createModeTestLobby;

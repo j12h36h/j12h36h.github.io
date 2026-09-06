@@ -220,10 +220,15 @@ function normalizeVariant(assetId, raw={}) {
   throw new HttpsError('invalid-argument','Unsupported asset category.');
 }
 
-function deterministicId(profileId,assetId,storage) {
-  const digest = crypto.createHash('sha256').update(storage).digest('hex').slice(0,16);
-  return `market__${profileId}__${assetId.replace(/[^a-zA-Z0-9_-]/g,'_')}__${digest}`.slice(0,180);
+function deterministicToken(value,max=72) {
+  return String(value || '').replace(/[^0-9a-zA-Z_-]/g,'_').slice(0,max) || 'unknown';
 }
+function deterministicId(profileId,assetId,storage) {
+  const digest = crypto.createHash('sha256').update(String(storage || '')).digest('hex').slice(0,16);
+  return `market__${deterministicToken(profileId,64)}__${deterministicToken(assetId,72)}__${digest}`.slice(0,180);
+}
+
+const ESCAPE_POD_PURCHASE_BACKEND_VERSION = 'escape-pod-style-v4';
 
 async function acquireEscapePodVariant(profileId, normalized) {
   const assetId = 'eras:escape_pod';
@@ -233,21 +238,34 @@ async function acquireEscapePodVariant(profileId, normalized) {
   }
 
   const holdingId = deterministicId(profileId,assetId,normalized.storage);
-  const holdingRef = db.doc(`assetHoldings/${holdingId}`);
-  const receiptRef = db.doc(`assetVariantPurchases/${holdingId}`);
-  const walletRef = db.doc(`creditWallets/${profileId}`);
-  const now = Timestamp.now();
+  let holdingRef, receiptRef, walletRef;
+  try {
+    holdingRef = db.doc(`assetHoldings/${holdingId}`);
+    receiptRef = db.doc(`assetVariantPurchases/${holdingId}`);
+    walletRef = db.doc(`creditWallets/${profileId}`);
+  } catch (error) {
+    console.error('Escape Pod reference construction failed',{
+      profileId, style, holdingId,
+      code:String(error?.code || ''),
+      message:String(error?.message || error || '')
+    });
+    throw new HttpsError(
+      'invalid-argument',
+      'Escape Pod purchase identifiers were invalid.',
+      {stage:'reference-build',style,backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION}
+    );
+  }
+
   let charged = 0;
   let duplicate = false;
+  let recovered = false;
 
   try {
     await db.runTransaction(async tx => {
-      // All reads happen before writes. The receipt uses set() rather than create()
-      // so an orphaned/older deterministic receipt cannot crash a retry.
-      const [holdingSnap,walletSnap] = await Promise.all([
-        tx.get(holdingRef),
-        tx.get(walletRef)
-      ]);
+      // Explicitly sequential reads. Nothing is written until ALL three reads finish.
+      const holdingSnap = await tx.get(holdingRef);
+      const receiptSnap = await tx.get(receiptRef);
+      const walletSnap = await tx.get(walletRef);
 
       if (holdingSnap.exists) {
         if (String(holdingSnap.data()?.ownerProfileId || '') !== profileId) {
@@ -257,15 +275,35 @@ async function acquireEscapePodVariant(profileId, normalized) {
         return;
       }
 
-      if (normalized.price > 0) {
+      const priorReceipt = receiptSnap.exists ? (receiptSnap.data() || {}) : null;
+      const receiptMatches = !!priorReceipt
+        && String(priorReceipt.profileId || '') === profileId
+        && String(priorReceipt.assetId || '') === assetId
+        && String(priorReceipt.variant || '') === normalized.storage;
+
+      // If an older attempt left a valid deterministic receipt but the holding is
+      // missing, restore the holding without charging a second time.
+      if (receiptMatches) {
+        recovered = true;
+      } else if (normalized.price > 0) {
         if (!walletSnap.exists) {
-          throw new HttpsError('failed-precondition','Your E.R.A.S. Credit wallet is not initialized yet.');
+          throw new HttpsError(
+            'failed-precondition',
+            'Your E.R.A.S. Credit wallet is not initialized yet.',
+            {stage:'wallet-read',style,backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION}
+          );
         }
+
         const wallet = walletSnap.data() || {};
         const balance = Math.max(0,Number(wallet.balance || 0));
         if (balance < normalized.price) {
-          throw new HttpsError('failed-precondition','Not enough Credits for this Escape Pod Style.');
+          throw new HttpsError(
+            'failed-precondition',
+            'Not enough Credits for this Escape Pod Style.',
+            {stage:'wallet-balance',style,backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION}
+          );
         }
+
         charged = normalized.price;
         tx.set(walletRef,{
           profileId,
@@ -274,8 +312,8 @@ async function acquireEscapePodVariant(profileId, normalized) {
           totalLost:Math.max(0,Number(wallet.totalLost || 0))+charged,
           lastEventId:holdingId,
           lastEventType:'market_purchase',
-          createdAt:wallet.createdAt || now,
-          updatedAt:now
+          createdAt:wallet.createdAt || FieldValue.serverTimestamp(),
+          updatedAt:FieldValue.serverTimestamp()
         },{merge:true});
       }
 
@@ -283,13 +321,13 @@ async function acquireEscapePodVariant(profileId, normalized) {
         ownerProfileId:profileId,
         assetId,
         tint:normalized.storage,
-        acquiredAt:now,
-        updatedAt:now,
+        acquiredAt:FieldValue.serverTimestamp(),
+        updatedAt:FieldValue.serverTimestamp(),
         lastEventId:holdingId,
-        lastEventType:'market_acquire',
+        lastEventType:recovered?'market_recover':'market_acquire',
         archived:false,
         archivedAt:null
-      });
+      },{merge:true});
 
       tx.set(receiptRef,{
         profileId,
@@ -298,22 +336,38 @@ async function acquireEscapePodVariant(profileId, normalized) {
         variant:normalized.storage,
         custom:normalized.custom,
         priceCredits:normalized.price,
-        chargedCredits:charged,
-        createdAt:now,
-        updatedAt:now
+        chargedCredits:receiptMatches
+          ? Math.max(0,Number(priorReceipt?.chargedCredits ?? priorReceipt?.priceCredits ?? 0))
+          : charged,
+        backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION,
+        recovered,
+        createdAt:receiptMatches && priorReceipt?.createdAt
+          ? priorReceipt.createdAt
+          : FieldValue.serverTimestamp(),
+        updatedAt:FieldValue.serverTimestamp()
       },{merge:true});
     });
   } catch (error) {
     if (error instanceof HttpsError) throw error;
+
+    const backendCode=String(error?.code || 'unknown');
+    const backendMessage=String(error?.message || error || 'unknown');
     console.error('Escape Pod purchase transaction failed',{
       profileId, style, holdingId,
-      code:String(error?.code || ''),
-      message:String(error?.message || error || '')
+      code:backendCode,
+      message:backendMessage
     });
+
     throw new HttpsError(
       'aborted',
-      'Escape Pod purchase could not commit. No Credits were charged. Retry once.',
-      { stage:'escape-pod-purchase', style, backendCode:String(error?.code || 'unknown') }
+      `Escape Pod Firestore transaction failed (${backendCode}). No new charge was committed by this attempt.`,
+      {
+        stage:'firestore-transaction',
+        style,
+        backendCode,
+        backendMessage:backendMessage.slice(0,180),
+        backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION
+      }
     );
   }
 
@@ -326,9 +380,23 @@ async function acquireEscapePodVariant(profileId, normalized) {
     custom:normalized.custom,
     priceCharged:duplicate?0:charged,
     duplicate,
-    migrated:false
+    recovered,
+    migrated:false,
+    backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION
   };
 }
+
+// Dedicated callable used by both Escape Pod Dash and the Asset Library.
+// Keeping this under its own exported function name lets the browser verify that
+// the new backend is actually deployed instead of silently reaching an older
+// acquireAssetVariant revision.
+exports.acquireEscapePodStyle = onCall(async request => {
+  const uid = requireAuth(request);
+  const profileId = await callerProfile(uid);
+  const style = token(request.data?.style || 'standard');
+  const normalized = normalizeVariant('eras:escape_pod',{style});
+  return acquireEscapePodVariant(profileId,normalized);
+});
 
 exports.acquireAssetVariant = onCall(async request => {
   const uid = requireAuth(request);

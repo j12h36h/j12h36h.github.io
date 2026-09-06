@@ -23,6 +23,7 @@ const escapeHtml = (value='') => String(value).replace(/[&<>"']/g, c => ({
 
 const functions = getFunctions(getApp('site-account'));
 const acquireAssetVariantCall = httpsCallable(functions,'acquireAssetVariant');
+const acquireEscapePodStyleCall = httpsCallable(functions,'acquireEscapePodStyle');
 const createModeTestLobbyCall = httpsCallable(functions,'createModeTestLobby');
 
 const state = {
@@ -836,11 +837,19 @@ async function acquireSelectedAsset() {
 
   try {
     await auth.currentUser.getIdToken(true);
-    const result=await acquireAssetVariantCall({
-      assetId:state.asset.id,
-      variant:info.payload
-    });
+    const result=state.asset.id==='eras:escape_pod'
+      ? await acquireEscapePodStyleCall({style:String(info.payload?.style||'standard')})
+      : await acquireAssetVariantCall({
+          assetId:state.asset.id,
+          variant:info.payload
+        });
     const data=result?.data||{};
+    if(state.asset.id==='eras:escape_pod' && data.backendVersion!=='escape-pod-style-v4') {
+      throw Object.assign(new Error('Escape Pod backend version mismatch. The new Firebase Function is not live yet.'),{
+        code:'functions/failed-precondition',
+        details:{stage:'backend-version',backendVersion:String(data.backendVersion||'missing')}
+      });
+    }
     if (!data.ok) throw new Error(data.error||'Asset acquisition failed.');
 
     say(
@@ -853,8 +862,13 @@ async function acquireSelectedAsset() {
     console.error('Acquire asset variant',error);
     const code=String(error?.code||'').replace(/^functions\//,'').toUpperCase();
     const stage=String(error?.details?.stage||'');
-    const suffix=[code,stage].filter(Boolean).join(' // ');
-    say(`Could not add asset: ${error?.message||error}${suffix?` [${suffix}]`:''}`,'error');
+    const backend=String(error?.details?.backendVersion||'');
+    if(state.asset?.id==='eras:escape_pod' && code==='NOT-FOUND') {
+      say('Could not add Escape Pod: dedicated Firebase backend is not deployed yet [ACQUIREESCAPEPODSTYLE // NOT-FOUND].','error');
+    } else {
+      const suffix=[code,stage,backend].filter(Boolean).join(' // ');
+      say(`Could not add asset: ${error?.message||error}${suffix?` [${suffix}]`:''}`,'error');
+    }
   } finally {
     button.disabled=false;
     button.textContent=old;
