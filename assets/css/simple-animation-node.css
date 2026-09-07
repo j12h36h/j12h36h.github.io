@@ -4,9 +4,14 @@
 .universe-main-page .node-animation:hover,.universe-main-page .node-animation:focus-visible{color:#f0d58e;text-shadow:0 0 14px rgba(217,180,93,.4)}
 .universe-main-page .node-animation:hover b,.universe-main-page .node-animation:focus-visible b{background:rgba(217,180,93,.3);box-shadow:0 0 18px rgba(217,180,93,.58)}
 
+/* D.A.I. Engine orbit node — Purple system identity */
+.universe-main-page .node-information b{border-color:#a874ff;background:rgba(168,116,255,.15);box-shadow:0 0 12px rgba(168,116,255,.30)}
+.universe-main-page .node-information:hover,.universe-main-page .node-information:focus-visible{color:#d4b6ff;text-shadow:0 0 14px rgba(168,116,255,.42)}
+.universe-main-page .node-information:hover b,.universe-main-page .node-information:focus-visible b{background:rgba(168,116,255,.30);box-shadow:0 0 18px rgba(168,116,255,.58)}
+
 /* Node subtitle backplate.
-   60% transparent (40% opaque) glass-dark background that hugs only the
-   subtitle text. The softer outline keeps the subtitle below title weight. */
+   60% transparent glass-dark background that hugs only the subtitle text.
+   The softer outline keeps the subtitle below title weight. */
 .universe-main-page .world-node small{
   display:inline-block;
   width:max-content;
