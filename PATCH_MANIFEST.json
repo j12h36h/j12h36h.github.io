@@ -1,0 +1,14 @@
+{
+  "patch": "SpaceStories",
+  "version": "1.0.0",
+  "target": "j12h36h/j12h36h.github.io",
+  "created": "2026-09-07",
+  "entry": "/game/global/space-stories/",
+  "files": [
+    "game/global/index.html",
+    "game/global/space-stories/index.html",
+    "game/global/space-stories/space-stories.css",
+    "game/global/space-stories/space-stories.js",
+    "SPACESTORIES_PATCH.md"
+  ]
+}
