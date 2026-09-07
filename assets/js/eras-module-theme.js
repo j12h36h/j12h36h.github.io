@@ -28,7 +28,7 @@ function mountThemeCss() {
   if (document.querySelector('link[data-eras-module-theme-css]')) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = '/assets/css/eras-module-theme.css?v=20260907-t4';
+  link.href = '/assets/css/eras-module-theme.css?v=20260907-t6';
   link.dataset.erasModuleThemeCss = '1';
   document.head.appendChild(link);
 }

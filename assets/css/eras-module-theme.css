@@ -629,3 +629,155 @@ html[data-eras-module-theme="lcs"] .primary-nav .nav-item.active b{
     inset 0 0 10px rgba(239,184,216,.045),
     0 2px 7px rgba(0,0,0,.18);
 }
+
+
+/* =========================================================
+   LCS LEFT RAIL — FULL GLASS BUTTONS
+   Give every navigation action the rounded translucent plate,
+   not only the text label.
+   ========================================================= */
+
+html[data-eras-module-theme="lcs"] .primary-nav{
+  gap:8px;
+}
+
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item{
+  min-height:54px;
+  padding:10px 14px;
+  border:1px solid rgba(226,205,239,.11);
+  border-radius:999px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(27,17,36,.36),
+      rgba(37,24,48,.28)
+    );
+  -webkit-backdrop-filter:blur(5px) brightness(.82);
+  backdrop-filter:blur(5px) brightness(.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    inset 0 0 14px rgba(202,167,237,.018),
+    0 3px 10px rgba(0,0,0,.10);
+  color:#bdb2c4;
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    box-shadow .18s ease,
+    transform .18s ease;
+}
+
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item:hover{
+  background:
+    linear-gradient(
+      90deg,
+      rgba(44,28,56,.46),
+      rgba(51,32,62,.38)
+    );
+  border-color:rgba(226,205,239,.19);
+  color:#fff9ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    inset 0 0 16px rgba(202,167,237,.03),
+    0 5px 14px rgba(0,0,0,.13);
+  transform:translateX(2px);
+}
+
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item.active{
+  background:
+    linear-gradient(
+      90deg,
+      rgba(239,184,216,.18),
+      rgba(202,167,237,.16)
+    );
+  border-color:rgba(239,207,239,.27);
+  color:#fffaff;
+  box-shadow:
+    inset 3px 0 0 #efb8d8,
+    inset 0 1px 0 rgba(255,255,255,.05),
+    inset 0 0 18px rgba(239,184,216,.05),
+    0 6px 18px rgba(0,0,0,.14);
+}
+
+/* Avoid a "plate inside a plate": once the full button has glass,
+   the text itself goes back to a clean label. */
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item b{
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  box-shadow:none;
+  text-shadow:0 1px 2px rgba(0,0,0,.72);
+}
+
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item:hover b,
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item.active b{
+  background:transparent;
+  border:0;
+  box-shadow:none;
+}
+
+
+/* =========================================================
+   LCS LEFT RAIL — STRONGER BUTTON SEPARATION
+   Make every nav button visibly distinct from the pale Lilac Lily backdrop.
+   ========================================================= */
+
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item{
+  background:
+    linear-gradient(
+      90deg,
+      rgba(35,23,45,.52),
+      rgba(27,18,36,.44)
+    );
+  border:1px solid rgba(242,222,248,.22);
+  color:#eee5f2;
+  box-shadow:
+    inset 0 0 0 1px rgba(72,44,88,.28),
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 4px 14px rgba(35,20,45,.18);
+}
+
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item:hover{
+  background:
+    linear-gradient(
+      90deg,
+      rgba(52,34,65,.64),
+      rgba(42,27,53,.56)
+    );
+  border-color:rgba(247,229,252,.34);
+  color:#fffaff;
+  box-shadow:
+    inset 0 0 0 1px rgba(106,69,126,.30),
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 6px 18px rgba(35,20,45,.22),
+    0 0 16px rgba(202,167,237,.08);
+}
+
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item.active{
+  background:
+    linear-gradient(
+      90deg,
+      rgba(239,184,216,.30),
+      rgba(202,167,237,.26)
+    );
+  border-color:rgba(255,231,249,.46);
+  color:#fff;
+  box-shadow:
+    inset 3px 0 0 #f2b8da,
+    inset 0 0 0 1px rgba(164,112,184,.20),
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 7px 20px rgba(57,30,66,.23),
+    0 0 22px rgba(239,184,216,.10);
+}
+
+/* Keep icons readable on the darker glass pills. */
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item > span{
+  color:#d9cbe0;
+  text-shadow:0 1px 2px rgba(0,0,0,.65);
+}
+html[data-eras-module-theme="lcs"] .primary-nav .nav-item.active > span{
+  color:#fff4fb;
+}
