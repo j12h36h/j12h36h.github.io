@@ -15,7 +15,9 @@ async function loadHostedRules(baseRules){
   const lobbyId=params.get('lobby');if(!lobbyId)return baseRules;
   try{
     const snap=await fs.getDoc(fs.doc(db,'gameLobbies',lobbyId));if(!snap.exists())return baseRules;
-    const lobby=snap.data()||{};if(String(lobby.gameStyle)!=='tactical-strike')return baseRules;
+    const lobby=snap.data()||{};
+    const effectiveModeId=String(lobby.settings?.modeId||lobby.gameStyle||'');
+    if(effectiveModeId!=='tactical-strike')return baseRules;
     const m=lobby.settings?.modeSettings||lobby.settings?.mode||{};
     $('#loadStatus').textContent=`Hosted rules loaded · ${lobby.name||'Tactical Strike'} · local practice combat runtime`;
     return {...baseRules,...m,hostedLobbyId:lobbyId,hostedLobbyName:lobby.name||''};
@@ -69,10 +71,13 @@ function feed(text){const root=$('#killFeed'),d=document.createElement('div');d.
 
 function wire(){
   $('#enterGame').addEventListener('click',()=>{state.started=true;$('#startOverlay').hidden=true;state.renderer.domElement.requestPointerLock();});
-  document.addEventListener('pointerlockchange',()=>{state.locked=document.pointerLockElement===state.renderer.domElement;if(state.locked&&state.phase==='buy')$('#buyPanel').hidden=false;});
+  document.addEventListener('pointerlockchange',()=>{state.locked=document.pointerLockElement===state.renderer.domElement;if(!state.locked)state.keys.clear();if(state.locked&&state.phase==='buy')$('#buyPanel').hidden=false;});
   document.addEventListener('mousemove',e=>{if(!state.locked||!state.started)return;state.yaw-=e.movementX*.0022;state.pitch=clamp(state.pitch-e.movementY*.0022,-1.48,1.48);state.camera.rotation.set(state.pitch,state.yaw,0);});
-  document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName))return;state.keys.add(e.code);if(e.code==='KeyR')reload();if(e.code==='Digit1'){state.player.weapon='rifle';if(!state.player.owned.rifle)state.player.weapon='pistol';updateWeaponView();updateHud();}if(e.code==='Digit2'){state.player.weapon='pistol';updateWeaponView();updateHud();}if(e.code==='KeyB'&&state.phase==='buy')$('#buyPanel').hidden=!$('#buyPanel').hidden;});
-  document.addEventListener('keyup',e=>state.keys.delete(e.code));
+  const movementKeys=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight']);
+  document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName))return;if(state.locked&&movementKeys.has(e.code))e.preventDefault();state.keys.add(e.code);if(e.code==='KeyR')reload();if(e.code==='Digit1'){state.player.weapon='rifle';if(!state.player.owned.rifle)state.player.weapon='pistol';updateWeaponView();updateHud();}if(e.code==='Digit2'){state.player.weapon='pistol';updateWeaponView();updateHud();}if(e.code==='KeyB'&&state.phase==='buy')$('#buyPanel').hidden=!$('#buyPanel').hidden;});
+  document.addEventListener('keyup',e=>{state.keys.delete(e.code);if(state.locked&&movementKeys.has(e.code))e.preventDefault();});
+  addEventListener('blur',()=>state.keys.clear());
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)state.keys.clear();});
   document.addEventListener('mousedown',e=>{if(e.button===0&&state.locked)shoot();});
   $('#buyPanel').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b)buy(b.dataset.buy);});
 }
@@ -86,7 +91,44 @@ function hitMark(){const h=$('#hitMarker');h.classList.remove('show');void h.off
 function damagePlayer(amount,from='BRAVO'){if(state.player.health<=0)return;let d=amount;if(state.player.armor>0){const absorbed=Math.min(state.player.armor,d*.6);state.player.armor-=absorbed;d-=absorbed;}state.player.health=Math.max(0,state.player.health-d);const f=$('#damageFlash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');updateHud();if(state.player.health<=0){feed(`${from}  ⊕  YOU`);endRound('bravo','ALPHA ELIMINATED');}}
 
 function collides(pos){const box=new THREE.Box3(new THREE.Vector3(pos.x-.32,.08,pos.z-.32),new THREE.Vector3(pos.x+.32,1.78,pos.z+.32));return state.colliders.some(c=>c.box.intersectsBox(box));}
-function updateMovement(dt){if(!state.started||!state.locked||state.player.health<=0||state.phase==='round end')return;const speed=state.keys.has('ShiftLeft')?7.2:4.8;let x=0,z=0;if(state.keys.has('KeyW'))z-=1;if(state.keys.has('KeyS'))z+=1;if(state.keys.has('KeyA'))x-=1;if(state.keys.has('KeyD'))x+=1;if(!x&&!z)return;const len=Math.hypot(x,z)||1;x/=len;z/=len;const sin=Math.sin(state.yaw),cos=Math.cos(state.yaw),dx=(x*cos-z*sin)*speed*dt,dz=(x*sin+z*cos)*speed*dt;const p=state.camera.position.clone();let q=p.clone();q.x+=dx;if(!collides(q))p.x=q.x;q=p.clone();q.z+=dz;if(!collides(q))p.z=q.z;p.y=1.7;state.camera.position.copy(p);}
+function updateMovement(dt){
+  if(!state.started||!state.locked||state.player.health<=0||state.phase==='round end')return;
+
+  const forwardInput=(state.keys.has('KeyW')||state.keys.has('ArrowUp')?1:0)-(state.keys.has('KeyS')||state.keys.has('ArrowDown')?1:0);
+  const rightInput=(state.keys.has('KeyD')||state.keys.has('ArrowRight')?1:0)-(state.keys.has('KeyA')||state.keys.has('ArrowLeft')?1:0);
+  if(!forwardInput&&!rightInput)return;
+
+  const speed=(state.keys.has('ShiftLeft')||state.keys.has('ShiftRight'))?7.2:4.8;
+
+  // Derive movement from the camera itself. This keeps W/S aligned with the
+  // direction the player is actually looking and A/D perpendicular to it,
+  // regardless of Three.js yaw sign conventions.
+  const forward=new THREE.Vector3();
+  state.camera.getWorldDirection(forward);
+  forward.y=0;
+  if(forward.lengthSq()<1e-8)forward.set(0,0,-1);
+  forward.normalize();
+
+  const right=new THREE.Vector3().crossVectors(forward,new THREE.Vector3(0,1,0)).normalize();
+  const move=new THREE.Vector3()
+    .addScaledVector(forward,forwardInput)
+    .addScaledVector(right,rightInput);
+
+  if(move.lengthSq()>1)move.normalize();
+  move.multiplyScalar(speed*dt);
+
+  // Resolve axes independently so players slide along walls instead of
+  // sticking when only one component of the movement is blocked.
+  const p=state.camera.position.clone();
+  let q=p.clone();
+  q.x+=move.x;
+  if(!collides(q))p.x=q.x;
+  q=p.clone();
+  q.z+=move.z;
+  if(!collides(q))p.z=q.z;
+  p.y=1.7;
+  state.camera.position.copy(p);
+}
 function botLineOfSight(bot){const origin=bot.group.position.clone().add(new THREE.Vector3(0,1.25,0)),target=state.camera.position.clone(),dir=target.clone().sub(origin),distance=dir.length();dir.normalize();const ray=new THREE.Raycaster(origin,dir,.1,distance);return ray.intersectObjects(state.colliders.map(c=>c.mesh),false).length===0;}
 function updateBots(dt,now){if(state.phase!=='live'||state.player.health<=0)return;for(const b of state.bots){if(!b.alive)continue;const target=state.camera.position.clone();target.y=0;const pos=b.group.position.clone();pos.y=0;const v=target.sub(pos),dist=v.length();if(dist>5){v.normalize();const np=b.group.position.clone().addScaledVector(v,dt*1.5);const botBox=new THREE.Box3(new THREE.Vector3(np.x-.35,0,np.z-.35),new THREE.Vector3(np.x+.35,1.8,np.z+.35));if(!state.colliders.some(c=>c.box.intersectsBox(botBox)))b.group.position.copy(np);}b.group.lookAt(state.camera.position.x,b.group.position.y,state.camera.position.z);if(dist<28&&now>b.lastFire&&botLineOfSight(b)){b.lastFire=now+650+Math.random()*450;damagePlayer(10+Math.random()*5,b.id.toUpperCase());}}}
 function updateRound(now){if(!state.started)return;const left=Math.max(0,state.phaseEnds-now),sec=Math.ceil(left/1000);$('#roundTimer').textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;if(left>0)return;if(state.phase==='buy'){setPhase('live',num(state.rules.roundSeconds,105));banner('ROUND LIVE',800);}else if(state.phase==='live')endRound('bravo','TIME EXPIRED');}
