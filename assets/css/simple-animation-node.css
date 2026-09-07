@@ -4,27 +4,29 @@
 .universe-main-page .node-animation:hover,.universe-main-page .node-animation:focus-visible{color:#f0d58e;text-shadow:0 0 14px rgba(217,180,93,.4)}
 .universe-main-page .node-animation:hover b,.universe-main-page .node-animation:focus-visible b{background:rgba(217,180,93,.3);box-shadow:0 0 18px rgba(217,180,93,.58)}
 
-/* Improve subtitle legibility over both the dark sky and bright planet.
-   Keep the pale outline and add a rounded translucent backplate behind only
-   the subtitle text beneath each node title. */
+/* Node subtitle backplate.
+   60% transparent (40% opaque) glass-dark background that hugs only the
+   subtitle text. The softer outline keeps the subtitle below title weight. */
 .universe-main-page .world-node small{
   display:inline-block;
   width:max-content;
   max-width:100%;
   margin-top:2px;
-  padding:2px 8px;
-  border-radius:999px;
-  color:#8aa3a8;
-  background:rgba(2,9,11,.60);
-  border:1px solid rgba(255,255,255,.10);
-  -webkit-text-stroke:.35px rgba(242,255,255,.78);
+  padding:3px 7px 3px 8px;
+  border-radius:6px;
+  color:#849da1;
+  background:rgba(2,10,13,.40);
+  border:1px solid rgba(198,244,246,.16);
+  -webkit-backdrop-filter:blur(4px) brightness(.72);
+  backdrop-filter:blur(4px) brightness(.72);
+  -webkit-text-stroke:.16px rgba(242,255,255,.52);
   paint-order:stroke fill;
   text-shadow:
     0 1px 2px rgba(0,0,0,.98),
-    0 0 3px rgba(0,0,0,.78);
+    0 0 3px rgba(0,0,0,.68);
   box-shadow:
-    0 0 0 1px rgba(0,0,0,.18) inset,
-    0 3px 12px rgba(0,0,0,.16);
+    inset 0 0 10px rgba(131,224,227,.025),
+    0 2px 7px rgba(0,0,0,.28);
 }
 
 @media(max-width:720px){.universe-main-page .node-animation{left:8%;top:17%;}.universe-main-page .node-animation small{max-width:112px}}
