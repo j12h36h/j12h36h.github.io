@@ -8,6 +8,7 @@ const rndi = (min, max) => Math.floor(rnd(min, max + 1));
 const now = () => performance.now() / 1000;
 const SAVE_VERSION = 1;
 const MAX_CARGO = 30;
+const MAX_STORY = 50;
 const CHAT_TARGET_ID = 'spacestories-world-chat';
 const CHAT_TARGET_KEY = `object:${CHAT_TARGET_ID}`;
 const GROUND_Y = 510;
@@ -19,7 +20,11 @@ const ZONES = Object.freeze([
   { name: 'Comet Gardens', short: 'COMET', sky: '#184a55', glow: '#a8ffd0', ground: '#376559', enemy: 'Comet Crab', boss: 'Garden Meteor', accent: '#9df0b8' },
   { name: 'Nebula Arcade', short: 'ARCADE', sky: '#2a2258', glow: '#d7adff', ground: '#55467a', enemy: 'Pixel Jelly', boss: 'High Score Hydra', accent: '#c9a8ff' },
   { name: 'Saturn Ringworks', short: 'RINGS', sky: '#543a2d', glow: '#ffe393', ground: '#755d48', enemy: 'Ring Drone', boss: 'Foreman Pancake', accent: '#ffe58a' },
-  { name: 'Tiny Void', short: 'VOID', sky: '#151729', glow: '#aebeff', ground: '#303448', enemy: 'Void Bloop', boss: 'The Smallest Black Hole', accent: '#b8c4ff' }
+  { name: 'Tiny Void', short: 'VOID', sky: '#151729', glow: '#aebeff', ground: '#303448', enemy: 'Void Bloop', boss: 'The Smallest Black Hole', accent: '#b8c4ff' },
+  { name: 'Star Candy Belt', short: 'CANDY', sky: '#43244f', glow: '#ffb7ed', ground: '#6a466f', enemy: 'Candy Comet', boss: 'Jawbreaker Jupiter', accent: '#ffc0ef' },
+  { name: 'Aurora Reef', short: 'AURORA', sky: '#153d4d', glow: '#84ffe6', ground: '#2d6470', enemy: 'Aurora Guppy', boss: 'Ribbon Ray', accent: '#85f6df' },
+  { name: 'Clockwork Constellation', short: 'CLOCK', sky: '#403522', glow: '#ffd884', ground: '#695a3e', enemy: 'Tick-Tock Bot', boss: 'Grandfather Star', accent: '#ffd98b' },
+  { name: 'Event Horizon Nursery', short: 'HORIZON', sky: '#161329', glow: '#d6adff', ground: '#37314f', enemy: 'Baby Singularity', boss: 'Mother Event Horizon', accent: '#dab3ff' }
 ]);
 
 const ITEM_SLOTS = Object.freeze([
@@ -31,11 +36,11 @@ const ITEM_SLOTS = Object.freeze([
   ['core', 'SHIP CORE']
 ]);
 const RARITIES = Object.freeze([
-  { id: 'common', name: 'Common', mult: 1, color: '#c8d7e1', weight: 52 },
-  { id: 'uncommon', name: 'Uncommon', mult: 1.22, color: '#9df0b8', weight: 27 },
-  { id: 'rare', name: 'Rare', mult: 1.52, color: '#8de9ff', weight: 14 },
-  { id: 'epic', name: 'Epic', mult: 1.95, color: '#d8a8ff', weight: 6 },
-  { id: 'cosmic', name: 'Cosmic', mult: 2.55, color: '#ffe58a', weight: 1 }
+  { id: 'common', name: 'Common', rank: 0, color: '#c8d7e1', weight: 52, minPower: 120, maxPower: 899 },
+  { id: 'uncommon', name: 'Uncommon', rank: 1, color: '#9df0b8', weight: 27, minPower: 1000, maxPower: 1899 },
+  { id: 'rare', name: 'Rare', rank: 2, color: '#8de9ff', weight: 14, minPower: 2100, maxPower: 3299 },
+  { id: 'epic', name: 'Epic', rank: 3, color: '#d8a8ff', weight: 6, minPower: 3600, maxPower: 5299 },
+  { id: 'cosmic', name: 'Cosmic', rank: 4, color: '#ffe58a', weight: 1, minPower: 5800, maxPower: 8200 }
 ]);
 const SHOP = Object.freeze([
   { id: 'hull', name: 'Marshmallow Hull', desc: '+18 max Hull per level', base: 75 },
@@ -63,7 +68,7 @@ const state = {
 };
 
 function stageInfo(stage) {
-  const n = clamp(Math.floor(Number(stage) || 1), 1, 30);
+  const n = clamp(Math.floor(Number(stage) || 1), 1, MAX_STORY);
   const zoneIndex = Math.floor((n - 1) / 5);
   const step = (n - 1) % 5 + 1;
   const zone = ZONES[zoneIndex];
@@ -96,7 +101,7 @@ function sanitizeItem(item) {
   const slot = ITEM_SLOTS.find(([id]) => id === item.slot)?.[0];
   const rarity = RARITIES.find(r => r.id === item.rarity)?.id;
   if (!slot || !rarity) return null;
-  return {
+  return normalizeItemToRarity({
     id: String(item.id || crypto.randomUUID()).slice(0, 80),
     slot,
     rarity,
@@ -108,8 +113,8 @@ function sanitizeItem(item) {
     crit: clamp(Number(item.crit) || 0, 0, 50),
     speed: clamp(Number(item.speed) || 0, 0, 100),
     power: clamp(Math.floor(Number(item.power) || 0), 0, 999999),
-    foundStage: clamp(Math.floor(Number(item.foundStage) || 1), 1, 30)
-  };
+    foundStage: clamp(Math.floor(Number(item.foundStage) || 1), 1, MAX_STORY)
+  });
 }
 function loadSave() {
   const base = defaultSave();
@@ -126,7 +131,7 @@ function loadSave() {
     };
     state.save.inventory = (Array.isArray(raw.inventory) ? raw.inventory : []).map(sanitizeItem).filter(Boolean).slice(0, MAX_CARGO);
     for (const [slot] of ITEM_SLOTS) state.save.equipped[slot] = sanitizeItem(raw.equipped?.[slot]);
-    state.save.highestStage = clamp(Math.floor(Number(state.save.highestStage) || 1), 1, 30);
+    state.save.highestStage = clamp(Math.floor(Number(state.save.highestStage) || 1), 1, MAX_STORY);
     state.save.currentStage = clamp(Math.floor(Number(state.save.currentStage) || 1), 1, state.save.highestStage);
   } catch (_) {
     state.save = base;
@@ -141,18 +146,74 @@ function schedulePersist() {
   state.autosaveTimer = setTimeout(persist, 120);
 }
 
-function rarityByRoll(forceRare = false) {
-  if (forceRare) {
-    const pool = RARITIES.slice(2);
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-  const luck = (state.save?.upgrades?.magnet || 0) * 2;
-  let roll = Math.random() * 100 - luck;
-  for (const rarity of RARITIES) {
-    if (roll < rarity.weight) return rarity;
-    roll -= rarity.weight;
+function rarityByRoll(forceRare = false, stage = 1) {
+  const progress = clamp((stage - 1) / (MAX_STORY - 1), 0, 1);
+  const weights = RARITIES.map(rarity => {
+    if (forceRare && rarity.rank < 2) return 0;
+    if (rarity.rank === 0) return Math.max(8, rarity.weight * (1 - progress * 0.72));
+    if (rarity.rank === 1) return rarity.weight * (1 - progress * 0.20);
+    if (rarity.rank === 2) return rarity.weight * (1 + progress * 0.95);
+    if (rarity.rank === 3) return rarity.weight * (1 + progress * 1.80);
+    return rarity.weight * (1 + progress * 3.80);
+  });
+  const total = weights.reduce((a, b) => a + b, 0);
+  let roll = Math.random() * total;
+  for (let i = 0; i < RARITIES.length; i++) {
+    if (roll < weights[i]) return RARITIES[i];
+    roll -= weights[i];
   }
   return RARITIES[RARITIES.length - 1];
+}
+function rarityBand(rarityId, stage = 1) {
+  const rarity = RARITIES.find(r => r.id === rarityId) || RARITIES[0];
+  const progress = clamp((stage - 1) / (MAX_STORY - 1), 0, 1);
+  const span = rarity.maxPower - rarity.minPower;
+  const center = rarity.minPower + span * (0.08 + progress * 0.78);
+  const wiggle = span * 0.07;
+  return {
+    rarity,
+    min: Math.max(rarity.minPower, Math.round(center - wiggle)),
+    max: Math.min(rarity.maxPower, Math.round(center + wiggle))
+  };
+}
+function computedPower(item) {
+  return Math.round((item.attack || 0) * 3 + (item.defense || 0) * 2 + (item.hp || 0) * 0.22 + (item.crit || 0) * 7 + (item.speed || 0) * 4);
+}
+function statsForPower(slot, targetPower) {
+  const power = Math.max(1, Math.round(targetPower));
+  const out = { attack: 0, defense: 0, hp: 0, crit: 0, speed: 0 };
+  if (slot === 'blaster') {
+    out.attack = Math.max(1, Math.round(power / 3));
+  } else if (slot === 'suit') {
+    const hpPower = power * 0.68;
+    out.hp = Math.max(1, Math.round(hpPower / 0.22));
+    out.defense = Math.max(0, Math.round((power - out.hp * 0.22) / 2));
+  } else if (slot === 'visor') {
+    const critPower = Math.min(power * 0.28, 18 * 7);
+    out.crit = Number((critPower / 7).toFixed(1));
+    out.defense = Math.max(0, Math.round((power - out.crit * 7) / 2));
+  } else if (slot === 'boots') {
+    const speedPower = Math.min(power * 0.26, 24 * 4);
+    out.speed = Number((speedPower / 4).toFixed(1));
+    out.defense = Math.max(0, Math.round((power - out.speed * 4) / 2));
+  } else if (slot === 'charm') {
+    const critPower = Math.min(power * 0.22, 15 * 7);
+    out.crit = Number((critPower / 7).toFixed(1));
+    out.hp = Math.max(0, Math.round((power - out.crit * 7) / 0.22));
+  } else {
+    const attackPower = power * 0.68;
+    out.attack = Math.max(1, Math.round(attackPower / 3));
+    out.defense = Math.max(0, Math.round((power - out.attack * 3) / 2));
+  }
+  return out;
+}
+function normalizeItemToRarity(item) {
+  if (!item) return null;
+  const band = rarityBand(item.rarity, item.foundStage || 1);
+  const current = computedPower(item) || Number(item.power) || band.min;
+  const safePower = clamp(Math.round(current), band.min, band.max);
+  const stats = statsForPower(item.slot, safePower);
+  return { ...item, ...stats, power: computedPower(stats) };
 }
 function itemName(slot, rarity) {
   const prefixes = {
@@ -175,18 +236,21 @@ function itemName(slot, rarity) {
   return `${p} ${n}`;
 }
 function generateItem(stage, forceRare = false) {
-  const rarity = rarityByRoll(forceRare);
+  const rarity = rarityByRoll(forceRare, stage);
   const slot = ITEM_SLOTS[rndi(0, ITEM_SLOTS.length - 1)][0];
-  const base = 4 + stage * 1.7;
-  const mult = rarity.mult;
-  const item = { id: crypto.randomUUID(), slot, rarity: rarity.id, name: itemName(slot, rarity), level: Math.max(1, Math.ceil(stage / 2)), attack: 0, defense: 0, hp: 0, crit: 0, speed: 0, foundStage: stage };
-  if (slot === 'blaster' || slot === 'core') item.attack = Math.round(base * mult * rnd(0.9, 1.25));
-  if (slot === 'suit') item.hp = Math.round(base * 5.3 * mult * rnd(0.9, 1.2));
-  if (slot === 'visor' || slot === 'charm') item.crit = Number((rnd(1.2, 3.2) * mult).toFixed(1));
-  if (slot === 'boots') item.speed = Number((rnd(2.5, 5.2) * mult).toFixed(1));
-  if (slot === 'suit' || slot === 'visor' || slot === 'core') item.defense = Math.round(base * 0.48 * mult * rnd(0.8, 1.2));
-  item.power = Math.round(item.attack * 3 + item.defense * 2 + item.hp * 0.22 + item.crit * 7 + item.speed * 4);
-  return item;
+  const band = rarityBand(rarity.id, stage);
+  const targetPower = rndi(band.min, band.max);
+  const stats = statsForPower(slot, targetPower);
+  return {
+    id: crypto.randomUUID(),
+    slot,
+    rarity: rarity.id,
+    name: itemName(slot, rarity),
+    level: Math.max(1, Math.ceil(stage / 2)),
+    ...stats,
+    power: computedPower(stats),
+    foundStage: stage
+  };
 }
 function itemScore(item) { return item ? item.power || 0 : 0; }
 function addItem(item) {
@@ -216,6 +280,17 @@ function equipItem(itemId) {
   renderLobby();
   renderInventory();
   renderRunStats();
+}
+function deleteItem(itemId) {
+  const index = state.save.inventory.findIndex(item => item.id === itemId);
+  if (index < 0) return;
+  const item = state.save.inventory[index];
+  if (!window.confirm(`Delete ${item.name}? This permanently removes the item and gives no Starbits.`)) return;
+  state.save.inventory.splice(index, 1);
+  schedulePersist();
+  renderLobby();
+  renderInventory();
+  combatSay(`${item.name} DELETED FROM CARGO`);
 }
 function equipBest() {
   for (const [slot] of ITEM_SLOTS) {
@@ -334,7 +409,7 @@ function renderLobby() {
   $('#sceneLevel').textContent = state.save.level;
   $('#sceneBestStage').textContent = String(state.save.highestStage).padStart(2, '0');
   $('#sceneCoins').textContent = state.save.starbits.toLocaleString();
-  $('#mapProgress').textContent = `${String(state.save.highestStage).padStart(2, '0')} / 30`;
+  $('#mapProgress').textContent = `${String(state.save.highestStage).padStart(2, '0')} / ${MAX_STORY}`;
   $('#inventoryCount').textContent = `${state.save.inventory.length} / ${MAX_CARGO}`;
   $('#launchStoryButton').disabled = !state.identity?.profileId;
   $('#launchStoryButton').textContent = state.identity?.profileId ? `LAUNCH STORY ${String(state.save.currentStage).padStart(2, '0')}` : 'SIGN IN TO LAUNCH';
@@ -376,7 +451,7 @@ function renderGameHudForMode() {
     $('#objectiveTitle').textContent = 'PREPARE YOUR NEXT STORY';
     $('#objectiveText').textContent = 'Open the route map, inspect your gear, and launch when ready.';
     $('#objectiveCount').textContent = `${String(state.save.currentStage).padStart(2, '0')} / ${String(state.save.highestStage).padStart(2, '0')} UNLOCKED`;
-    $('#objectiveFill').style.width = `${clamp((state.save.highestStage / 30) * 100, 0, 100)}%`;
+    $('#objectiveFill').style.width = `${clamp((state.save.highestStage / MAX_STORY) * 100, 0, 100)}%`;
     const button = $('#autoPilotButton');
     button.setAttribute('aria-pressed', String(Boolean(state.save.auto)));
     button.textContent = `AUTO PILOT // ${state.save.auto ? 'ON' : 'OFF'}`;
@@ -386,7 +461,7 @@ function renderGameHudForMode() {
 function renderStarMap() {
   const root = $('#starMap');
   root.innerHTML = '';
-  for (let n = 1; n <= 30; n++) {
+  for (let n = 1; n <= MAX_STORY; n++) {
     const info = stageInfo(n);
     const button = document.createElement('button');
     button.type = 'button';
@@ -460,8 +535,9 @@ function renderInventory() {
     if (item.hp) stats.push(`HULL +${item.hp}`);
     if (item.crit) stats.push(`CRIT +${item.crit}%`);
     if (item.speed) stats.push(`SPD +${item.speed}%`);
-    el.innerHTML = `<header><h3 style="color:${rarity.color}">${item.name}</h3><span class="rarity-${rarity.id}">${rarity.name}</span></header><p>${ITEM_SLOTS.find(x => x[0] === item.slot)?.[1]} // POWER ${item.power}<br>${stats.join(' // ') || 'COSMETIC ENERGY'}</p><button type="button">EQUIP</button>`;
-    el.querySelector('button').addEventListener('click', () => equipItem(item.id));
+    el.innerHTML = `<header><h3 style="color:${rarity.color}">${item.name}</h3><span class="rarity-${rarity.id}">${rarity.name}</span></header><p>${ITEM_SLOTS.find(x => x[0] === item.slot)?.[1]} // POWER ${item.power}<br>${stats.join(' // ') || 'COSMETIC ENERGY'}</p><div class="inventory-actions"><button type="button" data-equip>EQUIP</button><button type="button" data-delete>DELETE</button></div>`;
+    el.querySelector('[data-equip]').addEventListener('click', () => equipItem(item.id));
+    el.querySelector('[data-delete]').addEventListener('click', () => deleteItem(item.id));
     root.appendChild(el);
   }
 }
@@ -511,7 +587,7 @@ function createStage(stage) {
   const stats = derivedStats();
   const player = { x: 150, y: GROUND_Y - 52, w: 34, h: 52, vx: 0, vy: 0, onGround: true, facing: 1, hp: stats.maxHp, maxHp: stats.maxHp, attack: stats.attack, defense: stats.defense, crit: stats.crit, moveSpeed: stats.moveSpeed, invuln: 0, attackCd: 0 };
   const enemies = [];
-  const count = info.boss ? 1 : 4 + Math.min(info.step, 3);
+  const count = info.boss ? 1 : Math.min(10, 4 + Math.min(info.step, 3) + Math.floor(Math.max(0, stage - 30) / 5));
   if (info.boss) {
     enemies.push(makeEnemy(info, 1880, true));
     for (let i = 0; i < 2; i++) enemies.push(makeEnemy(info, 1200 + i * 360, false, true));
@@ -547,10 +623,30 @@ function createStage(stage) {
   drawGame();
   combatSay(info.boss ? `BOSS STORY // ${info.title}` : `STORY ${stage} // AUTO PILOT ${state.save.auto ? 'ON' : 'OFF'}`);
 }
+function difficultyMultiplier(stage) {
+  if (stage <= 30) return { hp: 1, attack: 1, defense: 1, speed: 1 };
+  const late = stage - 30;
+  return {
+    hp: 1 + late * 0.22 + Math.pow(late, 1.18) * 0.035,
+    attack: 1 + late * 0.12,
+    defense: 1 + late * 0.075,
+    speed: 1 + Math.min(0.35, late * 0.018)
+  };
+}
 function makeEnemy(info, x, boss = false, minion = false) {
+  const diff = difficultyMultiplier(info.stage);
   const hpBase = 34 + info.stage * 14;
-  const maxHp = Math.round(hpBase * (boss ? 7.5 : 1) * (minion ? 0.75 : 1));
-  return { id: crypto.randomUUID(), x, y: GROUND_Y - (boss ? 76 : 40), w: boss ? 72 : 42, h: boss ? 76 : 40, vx: 0, hp: maxHp, maxHp, attack: Math.round((7 + info.stage * 1.7) * (boss ? 1.75 : 1)), defense: Math.floor(info.stage * 0.45), speed: boss ? 48 : 55 + rnd(-8, 12), attackCd: rnd(0.2, 0.8), boss, dead: false, flash: 0, bob: rnd(0, Math.PI * 2), name: boss ? info.boss : info.zone.enemy, color: info.zone.accent };
+  const bossHp = info.stage > 30 ? 9.5 : 7.5;
+  const maxHp = Math.round(hpBase * diff.hp * (boss ? bossHp : 1) * (minion ? 0.82 : 1));
+  const baseAttack = 7 + info.stage * 1.7;
+  const attack = Math.round(baseAttack * diff.attack * (boss ? (info.stage > 30 ? 2.15 : 1.75) : 1));
+  const defense = Math.round((Math.floor(info.stage * 0.45) + Math.max(0, info.stage - 30) * 2.6) * diff.defense);
+  const speed = (boss ? 48 : 55 + rnd(-8, 12)) * diff.speed;
+  return {
+    id: crypto.randomUUID(), x, y: GROUND_Y - (boss ? 76 : 40), w: boss ? 72 : 42, h: boss ? 76 : 40,
+    vx: 0, hp: maxHp, maxHp, attack, defense, speed, attackCd: rnd(0.2, 0.8), boss, dead: false, flash: 0,
+    bob: rnd(0, Math.PI * 2), name: boss ? info.boss : info.zone.enemy, color: info.zone.accent
+  };
 }
 function startStage() {
   if (!state.identity?.profileId) { combatSay('SIGN IN REQUIRED'); return; }
@@ -698,14 +794,14 @@ function clearStage() {
   const first = g.stage >= state.save.highestStage;
   if (g.info.boss) state.save.stardust += 3;
   else state.save.stardust += 1;
-  if (first && g.stage < 30) state.save.highestStage = g.stage + 1;
-  state.save.currentStage = Math.min(30, g.stage + 1);
+  if (first && g.stage < MAX_STORY) state.save.highestStage = g.stage + 1;
+  state.save.currentStage = Math.min(MAX_STORY, g.stage + 1);
   state.save.starbits += 30 + g.stage * 5;
   checkMissions();
   schedulePersist();
   renderLobby();
-  const final = g.stage === 30;
-  showOverlay(final ? 'SEASON COMPLETE' : 'STORY CLEAR', final ? 'THE TINY VOID SMILES BACK' : 'NEXT STOP!', final ? 'You cleared all 30 SpaceStories. Story 30 remains replayable for better loot.' : `Story ${g.stage} is complete. Story ${g.stage + 1} is now on the route.`, final ? 'REPLAY STORY 30' : 'NEXT STORY', () => { hideOverlay(); createStage(final ? 30 : g.stage + 1); }, 'RETURN TO LOBBY', () => setScreen('lobby'));
+  const final = g.stage === MAX_STORY;
+  showOverlay(final ? 'SEASON COMPLETE' : 'STORY CLEAR', final ? 'THE EVENT HORIZON TUCKS IN THE STARS' : 'NEXT STOP!', final ? `You cleared all ${MAX_STORY} SpaceStories. Story ${MAX_STORY} remains replayable for the strongest loot.` : `Story ${g.stage} is complete. Story ${g.stage + 1} is now on the route.`, final ? `REPLAY STORY ${MAX_STORY}` : 'NEXT STORY', () => { hideOverlay(); createStage(final ? MAX_STORY : g.stage + 1); }, 'RETURN TO LOBBY', () => setScreen('lobby'));
   combatSay(`STORY CLEAR // +${30 + g.stage * 5} STARbits`);
   if (state.save.auto && !final) {
     clearTimeout(state.autoNextTimer);

@@ -1,6 +1,6 @@
 # SpaceStories — E.R.A.S. Global Game Patch
 
-## Update 1.1.0 — Modular Command View
+## Update 1.2.0 — Stories 31–50 + Rarity Safety + Gear Delete
 
 Drop the contents of this ZIP into the root of `j12h36h.github.io` and allow the included files to merge/replace matching paths.
 
@@ -14,7 +14,12 @@ Drop the contents of this ZIP into the root of `j12h36h.github.io` and allow the
 
 ## Gameplay
 - Cute 2D space side-scroller / idle action RPG.
-- 30 story stages across 6 themed zones.
+- 50 story stages across 10 themed zones.
+- Stories 31–50 add Star Candy Belt, Aurora Reef, Clockwork Constellation, and Event Horizon Nursery.
+- Late-game difficulty ramps enemy HP, attack, defense, speed, and crowd size sharply after Story 30.
+- Gear rarity now uses strict, non-overlapping global power bands: Common < Uncommon < Rare < Epic < Cosmic.
+- Existing saved gear is normalized into its claimed rarity band when loaded.
+- Every cargo item has EQUIP and DELETE buttons; DELETE requires confirmation and gives no Starbits.
 - Boss encounter every fifth story.
 - Manual movement, jump, attack, three active skills, and Auto Pilot.
 - Level / XP progression.
