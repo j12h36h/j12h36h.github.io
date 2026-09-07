@@ -3,12 +3,17 @@
 .universe-main-page .node-animation b{border-color:#d9b45d;background:rgba(217,180,93,.14);box-shadow:0 0 12px rgba(217,180,93,.28)}
 .universe-main-page .node-animation:hover,.universe-main-page .node-animation:focus-visible{color:#f0d58e;text-shadow:0 0 14px rgba(217,180,93,.4)}
 .universe-main-page .node-animation:hover b,.universe-main-page .node-animation:focus-visible b{background:rgba(217,180,93,.3);box-shadow:0 0 18px rgba(217,180,93,.58)}
-@media(max-width:720px){.universe-main-page .node-animation{left:8%;top:17%;}.universe-main-page .node-animation small{max-width:112px}}
 
-/* Keep node subtitles readable when they cross the bright planet surface. */
-.universe-main-page .world-node small {
-  -webkit-text-stroke: .45px rgba(0, 0, 0, .96);
+/* Improve subtitle legibility over both the dark sky and bright planet.
+   A thin pale stroke defines each glyph; the dark shadow keeps the text
+   separated when it crosses luminous parts of the planet. */
+.universe-main-page .world-node small{
+  color:#809a9e;
+  -webkit-text-stroke:.35px rgba(242,255,255,.78);
+  paint-order:stroke fill;
   text-shadow:
-    0 1px 2px rgba(0, 0, 0, 1),
-    0 0 4px rgba(0, 0, 0, .92);
+    0 1px 2px rgba(0,0,0,.98),
+    0 0 3px rgba(0,0,0,.78);
 }
+
+@media(max-width:720px){.universe-main-page .node-animation{left:8%;top:17%;}.universe-main-page .node-animation small{max-width:112px}}
