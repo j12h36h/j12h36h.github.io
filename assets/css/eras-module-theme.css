@@ -512,3 +512,79 @@ html[data-eras-module-theme="lcs"] .comment-card{
 html[data-eras-module-theme="lcs"] .comment-card::after{
   background:rgba(38,25,48,.94);
 }
+
+
+/* =========================================================
+   LCS LILAC LILY — CONTRAST + GLASS LABEL REFINEMENT
+   2026-09-07
+   ========================================================= */
+
+/* Keep the ambient module glow behind the actual interface instead of
+   compositing over the navigation/cards and washing out their contrast. */
+html[data-eras-module-theme="lcs"] body{
+  position:relative;
+  isolation:isolate;
+}
+html[data-eras-module-theme="lcs"] #erasModuleGlow{
+  z-index:-1;
+  opacity:.34;
+  border-color:rgba(202,167,237,.07);
+  box-shadow:
+    inset 0 0 14px rgba(202,167,237,.025),
+    inset 0 0 62px rgba(239,184,216,.035);
+  background:
+    radial-gradient(ellipse at 18% 20%,rgba(202,167,237,.10),transparent 34%),
+    radial-gradient(ellipse at 80% 82%,rgba(239,184,216,.075),transparent 38%),
+    linear-gradient(90deg,
+      rgba(202,167,237,.018),
+      transparent 9%,
+      transparent 91%,
+      rgba(239,184,216,.018));
+  mix-blend-mode:screen;
+}
+
+/* Node-subtitle-style translucent plates for LCS's small section labels.
+   These intentionally hug the text rather than creating full-width bars. */
+html[data-eras-module-theme="lcs"] .brand-copy small,
+html[data-eras-module-theme="lcs"] .eyebrow{
+  display:inline-block;
+  width:max-content;
+  max-width:100%;
+  padding:3px 7px 3px 8px;
+  border-radius:6px;
+  background:rgba(18,11,25,.40);
+  border:1px solid rgba(226,205,239,.15);
+  -webkit-backdrop-filter:blur(4px) brightness(.78);
+  backdrop-filter:blur(4px) brightness(.78);
+  text-shadow:
+    0 1px 2px rgba(0,0,0,.92),
+    0 0 3px rgba(0,0,0,.58);
+  box-shadow:
+    inset 0 0 10px rgba(202,167,237,.035),
+    0 2px 7px rgba(0,0,0,.20);
+}
+
+html[data-eras-module-theme="lcs"] .brand-copy small{
+  color:#c7b6cf;
+}
+
+html[data-eras-module-theme="lcs"] .eyebrow{
+  color:#e0c7f0;
+}
+
+/* Restore full foreground contrast in the areas that were most visibly
+   washed out by the previous overlaid glow. */
+html[data-eras-module-theme="lcs"] .left-rail,
+html[data-eras-module-theme="lcs"] .content-column,
+html[data-eras-module-theme="lcs"] .right-rail,
+html[data-eras-module-theme="lcs"] .topbar{
+  position:relative;
+  z-index:1;
+}
+html[data-eras-module-theme="lcs"] .nav-item{
+  color:#b9afc0;
+}
+html[data-eras-module-theme="lcs"] .nav-item:hover,
+html[data-eras-module-theme="lcs"] .nav-item.active{
+  color:#fff9ff;
+}

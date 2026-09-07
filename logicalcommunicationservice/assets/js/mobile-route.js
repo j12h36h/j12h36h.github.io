@@ -30,7 +30,7 @@
     if (!document.querySelector('script[data-eras-module-theme-loader]')) {
       const script = document.createElement('script');
       script.type = 'module';
-      script.src = '/assets/js/eras-module-theme.js?v=20260907-t2';
+      script.src = '/assets/js/eras-module-theme.js?v=20260907-t3';
       script.dataset.erasModuleThemeLoader = '1';
       document.head.appendChild(script);
     }
