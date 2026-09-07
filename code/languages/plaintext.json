@@ -1,0 +1,24 @@
+{
+  "id": "plaintext",
+  "name": "Plain Text",
+  "extensions": [
+    ".txt",
+    ".log",
+    ".text"
+  ],
+  "lineComment": "",
+  "blockComment": {
+    "start": "",
+    "end": ""
+  },
+  "stringQuotes": [
+    "\"",
+    "'"
+  ],
+  "keywords": [],
+  "literals": [],
+  "builtins": [],
+  "operators": [],
+  "highlightNumbers": false,
+  "caseSensitive": true
+}

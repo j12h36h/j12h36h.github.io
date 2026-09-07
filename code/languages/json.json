@@ -1,0 +1,33 @@
+{
+  "id": "json",
+  "name": "JSON",
+  "extensions": [
+    ".json",
+    ".jsonc"
+  ],
+  "lineComment": "",
+  "blockComment": {
+    "start": "",
+    "end": ""
+  },
+  "stringQuotes": [
+    "\""
+  ],
+  "keywords": [],
+  "literals": [
+    "true",
+    "false",
+    "null"
+  ],
+  "builtins": [],
+  "operators": [
+    ":",
+    ",",
+    "{",
+    "}",
+    "[",
+    "]"
+  ],
+  "highlightNumbers": true,
+  "caseSensitive": true
+}

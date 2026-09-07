@@ -1,10 +1,62 @@
 /* =========================================================
-   PROJECT E.R.A.S. : UNIVERSE — MODULE NODE IDENTITIES
-   PLAY remains the native Universe cyan.
+   PROJECT E.R.A.S. : UNIVERSE — MODULE NODE IDENTITIES v1.5
+   Radial alignment:
+   PLAY / OPTIONS are the vertical axis.
+   SOCIAL / CONTENT are the horizontal axis.
+   ANIMATION / DRAW are upper diagonals.
+   D.A.I. / CODE are lower diagonals.
    ========================================================= */
 
+/* Push all module nodes outward to a consistent radial distance. */
+.universe-main-page .node-play{
+  left:50%;
+  top:2%;
+  transform:translateX(-50%);
+  text-align:center;
+  justify-items:center;
+}
+.universe-main-page .node-animation{
+  left:4%;
+  top:19%;
+}
+.universe-main-page .node-draw{
+  right:4%;
+  top:19%;
+  text-align:right;
+  justify-items:end;
+}
+.universe-main-page .node-social{
+  left:-1%;
+  top:46%;
+  transform:translateY(-50%);
+}
+.universe-main-page .node-content{
+  right:-1%;
+  top:46%;
+  transform:translateY(-50%);
+  text-align:right;
+  justify-items:end;
+}
+.universe-main-page .node-information{
+  left:7%;
+  bottom:9%;
+}
+.universe-main-page .node-code{
+  right:7%;
+  bottom:9%;
+  text-align:right;
+  justify-items:end;
+}
+.universe-main-page .node-options{
+  left:50%;
+  right:auto;
+  bottom:1%;
+  transform:translateX(-50%);
+  text-align:center;
+  justify-items:center;
+}
+
 /* ANIMATION — Golden Rye */
-.universe-main-page .node-animation{left:13%;top:18%;}
 .universe-main-page .node-animation b{
   border-color:#d9b45d;
   background:rgba(217,180,93,.14);
@@ -21,13 +73,7 @@
   box-shadow:0 0 18px rgba(217,180,93,.58);
 }
 
-/* DRAW — Deep Wooden Brown / symmetrical to ANIMATION */
-.universe-main-page .node-draw{
-  right:13%;
-  top:18%;
-  text-align:right;
-  justify-items:end;
-}
+/* DRAW — Deep Wooden Brown */
 .universe-main-page .node-draw b{
   border-color:#9a633c;
   background:linear-gradient(135deg,rgba(154,99,60,.22),rgba(91,51,30,.18));
@@ -46,6 +92,29 @@
   box-shadow:
     0 0 18px rgba(183,122,74,.58),
     0 0 28px rgba(105,61,36,.22);
+}
+
+/* CODE — Bright Lime Teal */
+.universe-main-page .node-code b{
+  border-color:#63f7b4;
+  background:linear-gradient(135deg,rgba(99,247,180,.22),rgba(120,255,105,.12));
+  box-shadow:
+    0 0 12px rgba(99,247,180,.35),
+    0 0 24px rgba(120,255,105,.12);
+}
+.universe-main-page .node-code:hover,
+.universe-main-page .node-code:focus-visible{
+  color:#a2ffd0;
+  text-shadow:
+    0 0 14px rgba(99,247,180,.52),
+    0 0 22px rgba(120,255,105,.18);
+}
+.universe-main-page .node-code:hover b,
+.universe-main-page .node-code:focus-visible b{
+  background:linear-gradient(135deg,rgba(99,247,180,.38),rgba(120,255,105,.23));
+  box-shadow:
+    0 0 19px rgba(99,247,180,.64),
+    0 0 30px rgba(120,255,105,.20);
 }
 
 /* SOCIAL — Lilac Lily */
@@ -122,7 +191,7 @@
   box-shadow:0 0 18px rgba(168,116,255,.58);
 }
 
-/* Subtitle glass plate — intentionally secondary to the module title. */
+/* Subtitle glass plate */
 .universe-main-page .world-node small{
   display:inline-block;
   width:max-content;
@@ -145,9 +214,15 @@
     0 2px 7px rgba(0,0,0,.28);
 }
 
+/* Narrow layouts keep the same conceptual octagonal alignment. */
 @media(max-width:720px){
-  .universe-main-page .node-animation{left:8%;top:17%;}
-  .universe-main-page .node-animation small{max-width:112px;}
-  .universe-main-page .node-draw{right:8%;top:17%;}
-  .universe-main-page .node-draw small{max-width:122px;}
+  .universe-main-page .node-play{top:3%}
+  .universe-main-page .node-animation{left:1%;top:18%}
+  .universe-main-page .node-draw{right:1%;top:18%}
+  .universe-main-page .node-social{left:-3%;top:45%}
+  .universe-main-page .node-content{right:-3%;top:45%}
+  .universe-main-page .node-information{left:3%;bottom:10%}
+  .universe-main-page .node-code{right:3%;bottom:10%}
+  .universe-main-page .node-options{bottom:2%}
+  .universe-main-page .world-node small{max-width:125px}
 }

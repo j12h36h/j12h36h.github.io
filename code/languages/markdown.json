@@ -1,0 +1,51 @@
+{
+  "id": "markdown",
+  "name": "Markdown",
+  "extensions": [
+    ".md",
+    ".markdown",
+    ".mdx"
+  ],
+  "lineComment": "",
+  "blockComment": {
+    "start": "<!--",
+    "end": "-->"
+  },
+  "stringQuotes": [
+    "`",
+    "\"",
+    "'"
+  ],
+  "keywords": [
+    "#",
+    "##",
+    "###",
+    "####",
+    "#####",
+    "######",
+    "TODO",
+    "NOTE",
+    "WARNING"
+  ],
+  "literals": [
+    "true",
+    "false",
+    "null"
+  ],
+  "builtins": [],
+  "operators": [
+    "*",
+    "_",
+    "-",
+    "+",
+    "[",
+    "]",
+    "(",
+    ")",
+    ">",
+    "|",
+    "`"
+  ],
+  "highlightNumbers": true,
+  "caseSensitive": false
+}

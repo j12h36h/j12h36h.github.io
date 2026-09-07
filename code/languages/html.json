@@ -1,0 +1,76 @@
+{
+  "id": "html",
+  "name": "HTML",
+  "extensions": [
+    ".html",
+    ".htm",
+    ".xhtml"
+  ],
+  "lineComment": "",
+  "blockComment": {
+    "start": "<!--",
+    "end": "-->"
+  },
+  "stringQuotes": [
+    "\"",
+    "'"
+  ],
+  "keywords": [
+    "html",
+    "head",
+    "body",
+    "main",
+    "section",
+    "article",
+    "aside",
+    "header",
+    "footer",
+    "nav",
+    "div",
+    "span",
+    "p",
+    "a",
+    "button",
+    "input",
+    "label",
+    "form",
+    "script",
+    "style",
+    "link",
+    "meta",
+    "canvas",
+    "dialog",
+    "template",
+    "slot",
+    "svg",
+    "path"
+  ],
+  "literals": [
+    "true",
+    "false"
+  ],
+  "builtins": [
+    "class",
+    "id",
+    "href",
+    "src",
+    "type",
+    "name",
+    "value",
+    "data",
+    "aria",
+    "role",
+    "hidden",
+    "disabled"
+  ],
+  "operators": [
+    "<",
+    ">",
+    "/",
+    "=",
+    "!",
+    "-"
+  ],
+  "highlightNumbers": true,
+  "caseSensitive": false
+}

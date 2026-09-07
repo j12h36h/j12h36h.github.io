@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#06120d">
+  <meta name="description" content="CODE — Project E.R.A.S. Advanced Text Editor with modular custom language definitions.">
+  <title>CODE — Advanced Text Editor — Project E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="./code.css?v=1.0.0">
+</head>
+<body class="code-page">
+  <div class="universe-frame" aria-hidden="true">
+    <i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i>
+    <span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span>
+    <span class="uf-line uf-left"></span><span class="uf-line uf-right"></span>
+    <span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="/"><span class="brand-mark"></span><span>PROJECT E.R.A.S. <b>: CODE</b></span></a>
+    <div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">ACCOUNT…</div></div>
+  </header>
+
+  <main class="code-shell">
+    <section class="code-titlebar">
+      <div>
+        <p>CREATOR NODE // MODULAR LANGUAGE WORKSPACE</p>
+        <h1>CODE</h1>
+        <span>Advanced Text Editor — a browser-native Notepad++ style workspace built toward a modular IDE, with editable language definitions instead of hard-coded syntax rules.</span>
+      </div>
+      <a href="/">BACK TO UNIVERSE</a>
+    </section>
+
+    <section class="code-toolbar" aria-label="Editor actions">
+      <button type="button" id="newFileButton">NEW FILE</button>
+      <button type="button" id="openFilesButton">OPEN FILES</button>
+      <button type="button" id="openFolderButton">OPEN FOLDER</button>
+      <button type="button" id="saveFileButton" class="is-primary">SAVE FILE</button>
+      <span class="code-toolbar-sep"></span>
+      <button type="button" id="findButton">FIND</button>
+      <button type="button" id="replaceButton">REPLACE</button>
+      <button type="button" id="gotoLineButton">GO TO LINE</button>
+      <span class="code-toolbar-sep"></span>
+      <button type="button" id="formatButton">FORMAT</button>
+      <button type="button" id="commandButton">COMMANDS</button>
+      <span class="code-toolbar-grow"></span>
+      <label class="code-toolbar-select"><span>LANGUAGE</span><select id="languageSelect"></select></label>
+    </section>
+
+    <section class="code-workspace">
+      <aside class="code-explorer">
+        <header><span>WORKSPACE</span><b>FILES</b></header>
+        <div class="code-explorer-actions">
+          <button type="button" id="explorerNewFile">+ FILE</button>
+          <button type="button" id="explorerImport">IMPORT</button>
+        </div>
+        <div id="fileTree" class="code-file-tree"></div>
+
+        <section class="code-language-library">
+          <header><span>LANGUAGE</span><b>DEFINITIONS</b></header>
+          <div id="languageList" class="code-language-list"></div>
+          <div class="code-language-actions">
+            <button type="button" id="newLanguageButton">+ LANGUAGE</button>
+            <button type="button" id="loadLanguageButton">LOAD JSON</button>
+            <button type="button" id="saveLanguageButton">SAVE JSON</button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="code-editor-column">
+        <div id="editorTabs" class="code-tabs" role="tablist" aria-label="Open files"></div>
+
+        <section id="searchPanel" class="code-search-panel" hidden>
+          <label><span>FIND</span><input id="findInput" type="text" autocomplete="off" spellcheck="false"></label>
+          <label id="replaceField"><span>REPLACE</span><input id="replaceInput" type="text" autocomplete="off" spellcheck="false"></label>
+          <button type="button" id="findPrevious">↑</button>
+          <button type="button" id="findNext">↓</button>
+          <button type="button" id="replaceOne">REPLACE</button>
+          <button type="button" id="replaceAll">ALL</button>
+          <label class="code-check"><input id="caseSensitive" type="checkbox"><span>CASE</span></label>
+          <label class="code-check"><input id="wholeWord" type="checkbox"><span>WORD</span></label>
+          <button type="button" id="closeSearch">×</button>
+        </section>
+
+        <div class="code-editor-host">
+          <div id="lineNumbers" class="code-line-numbers" aria-hidden="true">1</div>
+          <div class="code-editor-stack">
+            <pre id="highlightLayer" class="code-highlight" aria-hidden="true"><code></code></pre>
+            <textarea id="codeEditor" class="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Code editor"></textarea>
+          </div>
+          <div id="minimap" class="code-minimap" aria-hidden="true"></div>
+        </div>
+
+        <footer class="code-statusbar">
+          <span id="statusFile">UNTITLED.TXT</span>
+          <span id="statusPosition">LN 1 // COL 1</span>
+          <span id="statusSelection">SEL 0</span>
+          <span id="statusIndent">SPACES: 2</span>
+          <span id="statusEncoding">UTF-8</span>
+          <span id="statusLanguage">PLAIN TEXT</span>
+        </footer>
+
+        <section class="code-bottom-panel">
+          <header>
+            <button type="button" class="is-active" data-bottom-tab="output">OUTPUT</button>
+            <button type="button" data-bottom-tab="problems">PROBLEMS <b id="problemCount">0</b></button>
+            <button type="button" data-bottom-tab="stats">DOCUMENT</button>
+            <span></span>
+            <button type="button" id="toggleBottomPanel">HIDE</button>
+          </header>
+          <div id="bottomPanelContent" class="code-bottom-content"></div>
+        </section>
+      </section>
+
+      <aside class="code-inspector">
+        <section class="code-inspector-section">
+          <header><span>LANGUAGE</span><b id="languageInspectorName">PLAIN TEXT</b></header>
+          <div class="code-language-meta">
+            <label><span>ID</span><input id="langId" spellcheck="false"></label>
+            <label><span>NAME</span><input id="langName" spellcheck="false"></label>
+            <label><span>EXTENSIONS</span><input id="langExtensions" spellcheck="false" placeholder=".txt, .log"></label>
+            <label><span>LINE COMMENT</span><input id="langLineComment" spellcheck="false" placeholder="//"></label>
+            <label><span>BLOCK START</span><input id="langBlockStart" spellcheck="false" placeholder="/*"></label>
+            <label><span>BLOCK END</span><input id="langBlockEnd" spellcheck="false" placeholder="*/"></label>
+          </div>
+        </section>
+
+        <section class="code-inspector-section">
+          <header><span>SYNTAX</span><b>WORD SETS</b></header>
+          <label class="code-token-field"><span>KEYWORDS // ONE PER LINE</span><textarea id="langKeywords" spellcheck="false"></textarea></label>
+          <label class="code-token-field"><span>LITERALS // ONE PER LINE</span><textarea id="langLiterals" spellcheck="false"></textarea></label>
+          <label class="code-token-field"><span>BUILT-INS // ONE PER LINE</span><textarea id="langBuiltins" spellcheck="false"></textarea></label>
+        </section>
+
+        <section class="code-inspector-section">
+          <header><span>SYNTAX</span><b>DELIMITERS</b></header>
+          <label class="code-token-field"><span>STRING QUOTES // EXAMPLE: " ' `</span><input id="langQuotes" spellcheck="false"></label>
+          <label class="code-token-field"><span>OPERATORS // SPACE SEPARATED</span><input id="langOperators" spellcheck="false"></label>
+          <label class="code-check code-inspector-check"><input id="langNumbers" type="checkbox"><span>HIGHLIGHT NUMBERS</span></label>
+          <label class="code-check code-inspector-check"><input id="langCaseSensitive" type="checkbox"><span>CASE-SENSITIVE KEYWORDS</span></label>
+        </section>
+
+        <section class="code-inspector-section">
+          <header><span>EDITOR</span><b>CUSTOMIZATION</b></header>
+          <label class="code-range"><span>FONT SIZE</span><input id="fontSize" type="range" min="10" max="24" value="14"><output id="fontSizeOut">14 PX</output></label>
+          <label class="code-range"><span>TAB WIDTH</span><input id="tabWidth" type="range" min="1" max="8" value="2"><output id="tabWidthOut">2</output></label>
+          <label class="code-check code-inspector-check"><input id="wordWrap" type="checkbox"><span>WORD WRAP</span></label>
+          <label class="code-check code-inspector-check"><input id="showMinimap" type="checkbox" checked><span>MINIMAP</span></label>
+          <label class="code-check code-inspector-check"><input id="autoClose" type="checkbox" checked><span>AUTO-CLOSE BRACKETS / QUOTES</span></label>
+        </section>
+      </aside>
+    </section>
+
+    <p id="codeFeedback" class="code-feedback" aria-live="polite">READY // FILES REMAIN LOCAL UNTIL YOU SAVE OR EXPORT THEM.</p>
+  </main>
+
+  <dialog id="newFileDialog" class="code-dialog">
+    <form method="dialog">
+      <header><span>NEW FILE</span><button value="cancel">CLOSE</button></header>
+      <label><span>FILE NAME</span><input id="newFileName" value="untitled.txt" spellcheck="false"></label>
+      <footer><button value="cancel">CANCEL</button><button id="createFileButton" value="default" class="is-primary">CREATE</button></footer>
+    </form>
+  </dialog>
+
+  <dialog id="commandDialog" class="code-dialog code-command-dialog">
+    <form method="dialog">
+      <header><span>COMMAND PALETTE</span><button value="cancel">CLOSE</button></header>
+      <input id="commandSearch" class="code-command-search" placeholder="Type a command…" autocomplete="off" spellcheck="false">
+      <div id="commandList" class="code-command-list"></div>
+    </form>
+  </dialog>
+
+  <input id="fileInput" type="file" multiple hidden>
+  <input id="folderInput" type="file" webkitdirectory multiple hidden>
+  <input id="languageFileInput" type="file" accept=".json,.eraslang.json,application/json" hidden>
+
+  <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="./code.js?v=1.0.0"></script>
+</body>
+</html>

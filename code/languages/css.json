@@ -1,0 +1,79 @@
+{
+  "id": "css",
+  "name": "CSS",
+  "extensions": [
+    ".css",
+    ".scss",
+    ".sass",
+    ".less"
+  ],
+  "lineComment": "",
+  "blockComment": {
+    "start": "/*",
+    "end": "*/"
+  },
+  "stringQuotes": [
+    "\"",
+    "'"
+  ],
+  "keywords": [
+    "@media",
+    "@supports",
+    "@keyframes",
+    "@font-face",
+    "@property",
+    "from",
+    "to",
+    "important",
+    "inherit",
+    "initial",
+    "unset",
+    "revert"
+  ],
+  "literals": [
+    "none",
+    "auto",
+    "transparent",
+    "currentColor",
+    "normal",
+    "block",
+    "grid",
+    "flex",
+    "absolute",
+    "relative",
+    "fixed",
+    "sticky"
+  ],
+  "builtins": [
+    "var",
+    "calc",
+    "min",
+    "max",
+    "clamp",
+    "rgb",
+    "rgba",
+    "hsl",
+    "hsla",
+    "linear-gradient",
+    "radial-gradient",
+    "url"
+  ],
+  "operators": [
+    "{",
+    "}",
+    "[",
+    "]",
+    "(",
+    ")",
+    ":",
+    ";",
+    "=",
+    ">",
+    "+",
+    "~",
+    "*",
+    "."
+  ],
+  "highlightNumbers": true,
+  "caseSensitive": false
+}

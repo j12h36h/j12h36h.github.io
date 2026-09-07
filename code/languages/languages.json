@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "languages": [
+    {
+      "id": "plaintext",
+      "path": "./languages/plaintext.json"
+    },
+    {
+      "id": "javascript",
+      "path": "./languages/javascript.json"
+    },
+    {
+      "id": "json",
+      "path": "./languages/json.json"
+    },
+    {
+      "id": "html",
+      "path": "./languages/html.json"
+    },
+    {
+      "id": "css",
+      "path": "./languages/css.json"
+    },
+    {
+      "id": "markdown",
+      "path": "./languages/markdown.json"
+    },
+    {
+      "id": "python",
+      "path": "./languages/python.json"
+    }
+  ]
+}
