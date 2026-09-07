@@ -8,7 +8,8 @@ const rndi = (min, max) => Math.floor(rnd(min, max + 1));
 const now = () => performance.now() / 1000;
 const SAVE_VERSION = 1;
 const MAX_CARGO = 30;
-const MAX_STORY = 50;
+const MAX_STORY = 60;
+const GEAR_PROGRESSION_CAP = 50;
 const CHAT_TARGET_ID = 'spacestories-world-chat';
 const CHAT_TARGET_KEY = `object:${CHAT_TARGET_ID}`;
 const GROUND_Y = 510;
@@ -24,7 +25,9 @@ const ZONES = Object.freeze([
   { name: 'Star Candy Belt', short: 'CANDY', sky: '#43244f', glow: '#ffb7ed', ground: '#6a466f', enemy: 'Candy Comet', boss: 'Jawbreaker Jupiter', accent: '#ffc0ef' },
   { name: 'Aurora Reef', short: 'AURORA', sky: '#153d4d', glow: '#84ffe6', ground: '#2d6470', enemy: 'Aurora Guppy', boss: 'Ribbon Ray', accent: '#85f6df' },
   { name: 'Clockwork Constellation', short: 'CLOCK', sky: '#403522', glow: '#ffd884', ground: '#695a3e', enemy: 'Tick-Tock Bot', boss: 'Grandfather Star', accent: '#ffd98b' },
-  { name: 'Event Horizon Nursery', short: 'HORIZON', sky: '#161329', glow: '#d6adff', ground: '#37314f', enemy: 'Baby Singularity', boss: 'Mother Event Horizon', accent: '#dab3ff' }
+  { name: 'Event Horizon Nursery', short: 'HORIZON', sky: '#161329', glow: '#d6adff', ground: '#37314f', enemy: 'Baby Singularity', boss: 'Mother Event Horizon', accent: '#dab3ff' },
+  { name: 'Supercluster Carnival', short: 'CARNIVAL', sky: '#30204f', glow: '#ffb6f1', ground: '#604a78', enemy: 'Carousel Comet', boss: 'Ringmaster Quasar', accent: '#ffb8ef' },
+  { name: 'Last Light Cradle', short: 'CRADLE', sky: '#0d1730', glow: '#9ec5ff', ground: '#263b5d', enemy: 'Starling Wisp', boss: 'The Bedtime Supernova', accent: '#a7caff' }
 ]);
 
 const ITEM_SLOTS = Object.freeze([
@@ -147,7 +150,7 @@ function schedulePersist() {
 }
 
 function rarityByRoll(forceRare = false, stage = 1) {
-  const progress = clamp((stage - 1) / (MAX_STORY - 1), 0, 1);
+  const progress = clamp((stage - 1) / (GEAR_PROGRESSION_CAP - 1), 0, 1);
   const weights = RARITIES.map(rarity => {
     if (forceRare && rarity.rank < 2) return 0;
     if (rarity.rank === 0) return Math.max(8, rarity.weight * (1 - progress * 0.72));
@@ -166,7 +169,7 @@ function rarityByRoll(forceRare = false, stage = 1) {
 }
 function rarityBand(rarityId, stage = 1) {
   const rarity = RARITIES.find(r => r.id === rarityId) || RARITIES[0];
-  const progress = clamp((stage - 1) / (MAX_STORY - 1), 0, 1);
+  const progress = clamp((stage - 1) / (GEAR_PROGRESSION_CAP - 1), 0, 1);
   const span = rarity.maxPower - rarity.minPower;
   const center = rarity.minPower + span * (0.08 + progress * 0.78);
   const wiggle = span * 0.07;
@@ -587,10 +590,16 @@ function createStage(stage) {
   const stats = derivedStats();
   const player = { x: 150, y: GROUND_Y - 52, w: 34, h: 52, vx: 0, vy: 0, onGround: true, facing: 1, hp: stats.maxHp, maxHp: stats.maxHp, attack: stats.attack, defense: stats.defense, crit: stats.crit, moveSpeed: stats.moveSpeed, invuln: 0, attackCd: 0 };
   const enemies = [];
-  const count = info.boss ? 1 : Math.min(10, 4 + Math.min(info.step, 3) + Math.floor(Math.max(0, stage - 30) / 5));
+  const count = info.boss ? 1 : Math.min(12, 4 + Math.min(info.step, 3) + Math.floor(Math.max(0, stage - 30) / 4));
   if (info.boss) {
     enemies.push(makeEnemy(info, 1880, true));
-    for (let i = 0; i < 2; i++) enemies.push(makeEnemy(info, 1200 + i * 360, false, true));
+    const helperCount = stage >= 55 ? 5 : stage >= 50 ? 4 : stage >= 40 ? 3 : 2;
+    const helperStart = 860;
+    const helperSpan = 1080;
+    for (let i = 0; i < helperCount; i++) {
+      const x = helperStart + (helperSpan * i / Math.max(1, helperCount - 1));
+      enemies.push(makeEnemy(info, x, false, true));
+    }
   } else {
     for (let i = 0; i < count; i++) enemies.push(makeEnemy(info, 520 + i * (WORLD_WIDTH - 800) / Math.max(1, count - 1) + rnd(-60, 60), false));
   }
@@ -624,27 +633,46 @@ function createStage(stage) {
   combatSay(info.boss ? `BOSS STORY // ${info.title}` : `STORY ${stage} // AUTO PILOT ${state.save.auto ? 'ON' : 'OFF'}`);
 }
 function difficultyMultiplier(stage) {
-  if (stage <= 30) return { hp: 1, attack: 1, defense: 1, speed: 1 };
-  const late = stage - 30;
+  if (stage <= 30) return { hp: 1, attack: 1, defense: 1, speed: 1, armorPierce: 0 };
+  if (stage < 40) {
+    const late = stage - 30;
+    return {
+      hp: 1 + late * 0.22 + Math.pow(late, 1.18) * 0.035,
+      attack: 1 + late * 0.12,
+      defense: 1 + late * 0.075,
+      speed: 1 + Math.min(0.35, late * 0.018),
+      armorPierce: 0
+    };
+  }
+  // Story 40 is the hard breakpoint: mobs receive at least 10x HP and 10x raw damage.
+  // The curve accelerates every five stories so Story 50+ cannot be cleared on the old gear curve.
+  const tier = Math.floor((stage - 40) / 5);
+  const withinTier = (stage - 40) % 5;
+  const tierBase = [10, 14, 20, 28, 40][Math.min(tier, 4)];
+  const nextBase = [14, 20, 28, 40, 52][Math.min(tier, 4)];
+  const hardScale = tierBase + (nextBase - tierBase) * (withinTier / 5);
   return {
-    hp: 1 + late * 0.22 + Math.pow(late, 1.18) * 0.035,
-    attack: 1 + late * 0.12,
-    defense: 1 + late * 0.075,
-    speed: 1 + Math.min(0.35, late * 0.018)
+    hp: hardScale,
+    attack: hardScale,
+    defense: 2.4 + (stage - 40) * 0.16,
+    speed: 1.25 + Math.min(0.55, (stage - 40) * 0.018),
+    armorPierce: clamp(0.35 + (stage - 40) * 0.015, 0.35, 0.65)
   };
 }
 function makeEnemy(info, x, boss = false, minion = false) {
   const diff = difficultyMultiplier(info.stage);
   const hpBase = 34 + info.stage * 14;
-  const bossHp = info.stage > 30 ? 9.5 : 7.5;
+  const bossHp = info.stage >= 40 ? 12.5 : info.stage > 30 ? 9.5 : 7.5;
   const maxHp = Math.round(hpBase * diff.hp * (boss ? bossHp : 1) * (minion ? 0.82 : 1));
   const baseAttack = 7 + info.stage * 1.7;
-  const attack = Math.round(baseAttack * diff.attack * (boss ? (info.stage > 30 ? 2.15 : 1.75) : 1));
+  const bossAttack = info.stage >= 40 ? 3.25 : info.stage > 30 ? 2.15 : 1.75;
+  const attack = Math.round(baseAttack * diff.attack * (boss ? bossAttack : 1));
   const defense = Math.round((Math.floor(info.stage * 0.45) + Math.max(0, info.stage - 30) * 2.6) * diff.defense);
   const speed = (boss ? 48 : 55 + rnd(-8, 12)) * diff.speed;
+  const armorPierce = clamp(diff.armorPierce + (boss && info.stage >= 40 ? 0.20 : 0), 0, 0.85);
   return {
     id: crypto.randomUUID(), x, y: GROUND_Y - (boss ? 76 : 40), w: boss ? 72 : 42, h: boss ? 76 : 40,
-    vx: 0, hp: maxHp, maxHp, attack, defense, speed, attackCd: rnd(0.2, 0.8), boss, dead: false, flash: 0,
+    vx: 0, hp: maxHp, maxHp, attack, defense, speed, armorPierce, attackCd: rnd(0.2, 0.8), boss, dead: false, flash: 0,
     bob: rnd(0, Math.PI * 2), name: boss ? info.boss : info.zone.enemy, color: info.zone.accent
   };
 }
@@ -768,10 +796,11 @@ function killEnemy(e) {
   updateGameHud();
   if (g.enemies.every(x => x.dead)) clearStage();
 }
-function hitPlayer(raw) {
+function hitPlayer(raw, armorPierce = 0) {
   const g = state.game, p = g.player;
   if (p.invuln > 0 || g.dead) return;
-  const dmg = Math.max(1, Math.round(raw - p.defense * 0.55));
+  const effectiveDefense = p.defense * (1 - clamp(armorPierce, 0, 0.9));
+  const dmg = Math.max(1, Math.round(raw - effectiveDefense * 0.55));
   p.hp = Math.max(0, p.hp - dmg);
   p.invuln = 0.65;
   spawnBurst(p.x + p.w / 2, p.y + p.h / 2, '#ff8d9d', 10);
@@ -801,7 +830,7 @@ function clearStage() {
   schedulePersist();
   renderLobby();
   const final = g.stage === MAX_STORY;
-  showOverlay(final ? 'SEASON COMPLETE' : 'STORY CLEAR', final ? 'THE EVENT HORIZON TUCKS IN THE STARS' : 'NEXT STOP!', final ? `You cleared all ${MAX_STORY} SpaceStories. Story ${MAX_STORY} remains replayable for the strongest loot.` : `Story ${g.stage} is complete. Story ${g.stage + 1} is now on the route.`, final ? `REPLAY STORY ${MAX_STORY}` : 'NEXT STORY', () => { hideOverlay(); createStage(final ? MAX_STORY : g.stage + 1); }, 'RETURN TO LOBBY', () => setScreen('lobby'));
+  showOverlay(final ? 'SEASON COMPLETE' : 'STORY CLEAR', final ? 'THE BEDTIME SUPERNOVA GOES QUIET' : 'NEXT STOP!', final ? `You cleared all ${MAX_STORY} SpaceStories. Story ${MAX_STORY} remains replayable for the strongest loot.` : `Story ${g.stage} is complete. Story ${g.stage + 1} is now on the route.`, final ? `REPLAY STORY ${MAX_STORY}` : 'NEXT STORY', () => { hideOverlay(); createStage(final ? MAX_STORY : g.stage + 1); }, 'RETURN TO LOBBY', () => setScreen('lobby'));
   combatSay(`STORY CLEAR // +${30 + g.stage * 5} STARbits`);
   if (state.save.auto && !final) {
     clearTimeout(state.autoNextTimer);
@@ -867,7 +896,7 @@ function updateGame(dt) {
       if (Math.abs(dist) > 55) e.x += Math.sign(dist) * e.speed * dt;
       if (Math.abs(dist) < 68 && e.attackCd <= 0) {
         e.attackCd = e.boss ? 1.05 : 1.4;
-        hitPlayer(e.attack);
+        hitPlayer(e.attack, e.armorPierce || 0);
       }
     }
   }
