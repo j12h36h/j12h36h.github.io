@@ -1,0 +1,35 @@
+.global-premade-page .hosted-shell{padding-top:88px}
+.global-premade-page .hosted-head-actions b{min-width:92px}
+.global-premade-page .hosted-side{grid-template-columns:1fr}
+.global-premade-scoreboard{border:1px solid rgba(131,224,227,.14);background:rgba(3,12,14,.82);padding:12px}
+.global-premade-scoreboard header{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:10px}
+.global-premade-scoreboard header span{display:block;color:#5f7e81;font:800 6px/1 var(--mono);letter-spacing:.12em}
+.global-premade-scoreboard header h2{margin:5px 0 0;color:#d7e9ea;font:800 11px/1 var(--mono);letter-spacing:.12em}
+.global-premade-personal{text-align:right}.global-premade-personal b{display:block;margin-top:5px;color:#ffe39a;font:900 18px/1 var(--mono)}
+.global-premade-score-head,.global-premade-scoreboard li{display:grid;grid-template-columns:42px minmax(0,1fr) 82px 92px;gap:8px;align-items:center}
+.global-premade-score-head{padding:6px 8px;color:#57777a;font:800 6px/1 var(--mono);letter-spacing:.08em;border-bottom:1px solid rgba(131,224,227,.08)}
+.global-premade-scoreboard ol{list-style:none;margin:0;padding:0}
+.global-premade-scoreboard li{min-height:34px;padding:6px 8px;border-bottom:1px solid rgba(131,224,227,.06);font:700 8px/1.2 var(--mono)}
+.global-premade-scoreboard li i{color:#5e7b7e;font-style:normal}.global-premade-scoreboard li b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.global-premade-scoreboard li span,.global-premade-scoreboard li strong{text-align:right}.global-premade-scoreboard li strong{color:#dceff0}
+.global-premade-scoreboard li.is-you{background:rgba(131,224,227,.06);box-shadow:inset 2px 0 0 #83e0e3}.global-premade-scoreboard li.is-empty{display:block;color:#607f82;text-align:center;padding:18px}
+.global-premade-start{min-height:44px;width:100%;margin-top:8px}
+.global-premade-credit-note{margin:8px 0 0;color:#658487;font:700 7px/1.5 var(--mono);letter-spacing:.06em}
+.soldoku-cell.hinted{background:#0b1820;color:#7d9ba4}
+
+/* Galactic Dominion Global Trial */
+.gal-global-board{display:grid;grid-template:repeat(7,minmax(54px,1fr))/repeat(7,minmax(54px,1fr));gap:4px;width:min(100%,760px);min-height:520px;margin:auto;padding:10px;background:radial-gradient(circle at center,rgba(113,88,175,.13),transparent 36%),#02090b}
+.gal-space{min-width:0;padding:5px;border:1px solid rgba(131,224,227,.11);background:#061012;color:#769497;text-align:left;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.gal-space small{font:800 5px/1 var(--mono);color:#486568}.gal-space b{font:800 6px/1.2 var(--mono);overflow:hidden}.gal-space span{font:700 6px/1 var(--mono);color:#8e7db4}
+.gal-space.is-owned{border-color:rgba(255,220,120,.4);background:#171408}.gal-space.is-current{box-shadow:inset 0 0 0 2px #8ef0f2,0 0 18px rgba(131,224,227,.18);color:#e8f7f7}
+.gal-global-center{grid-row:2/7;grid-column:2/7;display:grid;place-items:center;align-content:center;gap:12px;border:1px solid rgba(131,224,227,.12);background:radial-gradient(circle,rgba(80,61,137,.14),rgba(3,12,14,.92) 65%);text-align:center}
+.gal-global-center p{margin:0;color:#7765a2;font:900 8px/1 var(--mono);letter-spacing:.18em}.gal-global-center strong{font:500 clamp(30px,5vw,54px)/1 var(--sans);color:#effafa}
+.gal-global-center span{color:#69898c;font:800 7px/1 var(--mono);letter-spacing:.1em}
+#galacticLog{display:grid;gap:6px;max-height:190px;overflow:auto}#galacticLog p{margin:0;padding:7px;border:1px solid rgba(131,224,227,.07);color:#6e9093;font:700 6px/1.35 var(--mono)}
+
+@media(max-width:900px){
+  .global-premade-page .hosted-layout{grid-template-columns:1fr}
+  .global-premade-score-head,.global-premade-scoreboard li{grid-template-columns:34px minmax(0,1fr) 64px 78px}
+  .gal-global-board{grid-template:repeat(7,minmax(43px,1fr))/repeat(7,minmax(43px,1fr));min-height:420px;padding:5px;gap:2px}
+  .gal-space b{font-size:5px}.gal-space span{display:none}
+}

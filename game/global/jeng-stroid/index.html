@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#02090b">
+  <meta name="description" content="Jeng-stroid Global — persistent E.R.A.S. leaderboard and Credit progression.">
+  <title>Jeng-stroid Global — Project E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=2.1.0">
+  <link rel="stylesheet" href="/game/hosted-mode/hosted-mode.css?v=1.2.0">
+  <link rel="stylesheet" href="/game/assets/css/global-premade.css?v=1.0.0">
+  <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260901-dm6">
+</head>
+<body class="hosted-mode-page global-premade-page" data-global-mode="jeng-stroid">
+  <header class="site-header">
+    <a class="brand" href="/game/global/" aria-label="Back to E.R.A.S. Global games"><span class="brand-mark" aria-hidden="true"></span><span>PROJECT E.R.A.S. <b>: JENG-STROID GLOBAL</b></span></a>
+    <button class="eras-dm-launch" type="button" data-eras-messages>CHAT</button>
+    <div class="portal-auth-area" id="portalAuthArea" aria-live="polite"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
+  </header>
+  <main class="hosted-shell">
+    <section class="hosted-head">
+      <div><p id="modeKicker">GLOBAL // SITE-HOSTED 24/7</p><h1 id="modeTitle">JENG-STROID GLOBAL</h1><p id="modeDescription">Loading Global rules.</p></div>
+      <div class="hosted-head-actions"><a href="/game/global/">BACK TO GLOBAL</a><b id="runScore">0</b></div>
+    </section>
+    <section class="hosted-layout">
+      <div class="hosted-game-card">
+        <div id="gameHud" class="hosted-hud"></div>
+        <div id="gameStage" class="hosted-stage"><p class="runtime-list-empty">SIGN IN TO BEGIN.</p></div>
+        <div id="gameControls" class="hosted-controls"></div>
+        <button id="startRun" class="runtime-primary global-premade-start" type="button" disabled>START RUN</button>
+        <p id="gameFeedback" class="runtime-feedback" aria-live="polite">CONNECTING TO GLOBAL…</p>
+      </div>
+      <aside class="hosted-side">
+        <section class="runtime-card"><h2>GLOBAL RULES</h2><div id="globalRules" class="runtime-status"></div><p class="global-premade-credit-note">E.R.A.S. Credits are awarded only by the authenticated milestone backend after a completed score is recorded.</p></section>
+
+        <section class="global-premade-scoreboard" aria-label="Jeng-stroid Global leaderboard">
+          <header><div><span>GLOBAL SCOREBOARD</span><h2>JENG-STROID</h2></div><div class="global-premade-personal"><span>YOUR BEST</span><b id="personalBest">—</b></div></header>
+          <div class="global-premade-score-head"><span>RANK</span><span>PLAYER</span><span id="metricHeading">METRIC</span><span>SCORE</span></div>
+          <ol id="globalLeaderboard"><li class="is-empty">LOADING GLOBAL SCORES…</li></ol>
+        </section>
+      </aside>
+    </section>
+  </main>
+  <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="/game/global/messaging.js?v=20260901-dm6"></script>
+  <script type="module" src="/game/assets/js/global-premade.js?v=1.0.0"></script>
+</body>
+</html>

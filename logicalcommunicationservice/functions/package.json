@@ -1,7 +1,7 @@
 {
   "name": "eras-backend-functions",
   "private": true,
-  "main": "index.js",
+  "main": "eras-functions.js",
   "engines": {
     "node": "20"
   },
