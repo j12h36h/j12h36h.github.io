@@ -148,14 +148,101 @@
 }
 
 /* =========================================================
-   DESKTOP MIDLINE POLISH — 2026-09-07
-   SOCIAL / DRAW sit slightly low of their previous 46% position so their
-   label blocks visually center against the globe rather than their top edge.
-   Mobile is intentionally untouched because the mobile repair is already set.
+   DESKTOP RADIAL SYMMETRY — 2026-09-07
+
+   Eight node markers are placed on one mirrored radial system:
+       PLAY
+   CONTENT   ANIMATION
+   SOCIAL       DRAW
+   D.A.I.       CODE
+       OPTIONS
+
+   The diagonal positions use matching X/Y coordinates, the center pair uses
+   the exact same Y coordinate, and every left position is mirrored on right.
+   Mobile remains controlled entirely by the rules above.
    ========================================================= */
 @media (min-width: 721px) {
-  .universe-main-page .node-social,
+  /* Top / bottom axis */
+  .universe-main-page .node-play {
+    left: 50% !important;
+    right: auto !important;
+    top: 1.5% !important;
+    bottom: auto !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+    justify-items: center !important;
+  }
+
+  .universe-main-page .node-options {
+    left: 50% !important;
+    right: auto !important;
+    top: 91.5% !important;
+    bottom: auto !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+    justify-items: center !important;
+  }
+
+  /* Upper 45-degree pair */
+  .universe-main-page .node-content {
+    left: 18.2% !important;
+    right: auto !important;
+    top: 14.7% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: left !important;
+    justify-items: start !important;
+  }
+
+  .universe-main-page .node-animation {
+    right: 18.2% !important;
+    left: auto !important;
+    top: 14.7% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: right !important;
+    justify-items: end !important;
+  }
+
+  /* Exact horizontal middle pair */
+  .universe-main-page .node-social {
+    left: 5% !important;
+    right: auto !important;
+    top: 46.5% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: left !important;
+    justify-items: start !important;
+  }
+
   .universe-main-page .node-draw {
-    top: 49% !important;
+    right: 5% !important;
+    left: auto !important;
+    top: 46.5% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: right !important;
+    justify-items: end !important;
+  }
+
+  /* Lower 45-degree pair — mirrored from the upper pair */
+  .universe-main-page .node-information {
+    left: 18.2% !important;
+    right: auto !important;
+    top: 78.3% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: left !important;
+    justify-items: start !important;
+  }
+
+  .universe-main-page .node-code {
+    right: 18.2% !important;
+    left: auto !important;
+    top: 78.3% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: right !important;
+    justify-items: end !important;
   }
 }
