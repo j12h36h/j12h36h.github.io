@@ -1,8 +1,14 @@
 # SpaceStories — E.R.A.S. Global Game Patch
 
+## Update 1.1.0 — Modular Command View
+
 Drop the contents of this ZIP into the root of `j12h36h.github.io` and allow the included files to merge/replace matching paths.
 
 ## Adds
+- Single centered gameplay viewport with overlay-based UI.
+- Cursor-style modular command buttons wrapped around the play window.
+- Route, shop, gear, cargo, objectives, stats, help, and world chat now open as direct in-viewport popups.
+- Lobby and game flow unified into one command-centered screen layout.
 - `/game/global/space-stories/` — complete SpaceStories Global mode.
 - SpaceStories card as `GLOBAL // 011` on `/game/global/`.
 

@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/account/assets/css/account-button.css">
   <link rel="stylesheet" href="/game/assets/css/runtime.css?v=2.1.0">
   <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260901-dm6">
-  <link rel="stylesheet" href="./space-stories.css?v=1.0.0">
+  <link rel="stylesheet" href="./space-stories.css?v=1.1.0">
 </head>
 <body class="runtime-page space-stories-page">
   <header class="site-header">
@@ -25,132 +25,153 @@
   <main class="space-shell">
     <section class="space-titlebar">
       <div>
-        <p class="runtime-kicker">GLOBAL // CUTE SPACE IDLE RPG // LIVE WORLD CHAT</p>
+        <p class="runtime-kicker">GLOBAL // CUTE SPACE IDLE RPG // MODULAR COMMAND VIEW</p>
         <h1>SPACESTORIES</h1>
-        <p>Hop between tiny worlds, bonk adorable space creatures, collect strange gear, and let Auto Pilot keep the story moving.</p>
+        <p>All core menus now live inside one centered viewport. Use the modular cursor-style command buttons around the screen to open and close popups directly over the game window.</p>
       </div>
       <a class="runtime-back" href="/game/global/">BACK TO GLOBAL</a>
     </section>
 
-    <section id="spaceLobby" class="space-lobby">
-      <div class="space-lobby-main">
-        <article class="space-station-card">
-          <div class="station-art" aria-hidden="true">
-            <div class="station-planet planet-a"></div>
-            <div class="station-planet planet-b"></div>
-            <div class="station-orbit orbit-a"></div>
-            <div class="station-orbit orbit-b"></div>
-            <div class="station-moon"></div>
-            <div class="station-hub"><span>★</span></div>
-            <i class="star s1"></i><i class="star s2"></i><i class="star s3"></i><i class="star s4"></i><i class="star s5"></i>
-          </div>
-          <div class="station-copy">
-            <span class="space-eyebrow">STORY HUB // TINY ORBITAL STATION</span>
-            <h2>MOCHI-9 WAYSTATION</h2>
-            <p>Your little expedition ship is fueled and ready. Every cleared story unlocks the next stop on the star map.</p>
-            <div class="pilot-strip">
-              <div><span>PILOT</span><b id="lobbyPilotName">SIGNED OUT</b></div>
-              <div><span>LEVEL</span><b id="lobbyLevel">1</b></div>
-              <div><span>BEST STORY</span><b id="lobbyBestStage">1</b></div>
-              <div><span>STARbits</span><b id="lobbyCoins">0</b></div>
-            </div>
-            <div class="station-actions">
-              <button id="launchStoryButton" class="space-primary" type="button">LAUNCH CURRENT STORY</button>
-              <button id="equipBestButton" class="space-secondary" type="button">EQUIP BEST GEAR</button>
-            </div>
-          </div>
-        </article>
-
-        <div class="space-lobby-grid">
-          <article class="space-panel star-map-panel">
-            <header><div><span>STORY ROUTE</span><h2>STAR MAP</h2></div><b id="mapProgress">01 / 30</b></header>
-            <div id="starMap" class="star-map"></div>
-          </article>
-
-          <article class="space-panel shop-panel">
-            <header><div><span>PERMANENT UPGRADES</span><h2>ORBITAL SHOP</h2></div><b>★</b></header>
-            <div id="shopList" class="shop-list"></div>
-          </article>
-
-          <article class="space-panel gear-panel">
-            <header><div><span>LOADOUT</span><h2>GEAR BAY</h2></div><b id="inventoryCount">0 / 30</b></header>
-            <div id="equipmentGrid" class="equipment-grid"></div>
-            <div class="gear-actions"><button id="openInventoryButton" type="button">OPEN CARGO</button><button id="sellJunkButton" type="button">SELL LOWER GEAR</button></div>
-          </article>
-
-          <article class="space-panel mission-panel">
-            <header><div><span>DAILY-FEELING GOALS</span><h2>CAPTAIN'S LOG</h2></div><b>✦</b></header>
-            <div id="missionList" class="mission-list"></div>
-          </article>
-        </div>
-      </div>
-
-      <aside class="world-chat-panel" aria-label="SpaceStories live world chat">
-        <header>
-          <div><span>GLOBAL LOBBY</span><h2>WORLD CHAT</h2></div>
-          <b class="chat-live">● LIVE</b>
-        </header>
-        <div class="world-chat-notice">WORLD CHAT IS PUBLIC. TREAT EVERY MESSAGE LIKE A PUBLIC POST. DO NOT SHARE PRIVATE OR SENSITIVE INFORMATION.</div>
-        <div id="worldChatMessages" class="world-chat-messages"><div class="chat-empty">CONNECTING TO MOCHI-9…</div></div>
-        <form id="worldChatForm" class="world-chat-form">
-          <textarea id="worldChatInput" maxlength="500" rows="2" placeholder="Broadcast to every SpaceStories pilot…" disabled></textarea>
-          <div><span id="worldChatStatus">SIGN IN TO CHAT</span><button type="submit" id="worldChatSend" disabled>SEND</button></div>
-        </form>
-      </aside>
+    <section class="space-command-ribbon" aria-label="Current pilot summary">
+      <article><span>PILOT</span><b id="lobbyPilotName">SIGNED OUT</b></article>
+      <article><span>MODE</span><b id="modeBadge">LOBBY</b></article>
+      <article><span>LEVEL</span><b id="lobbyLevel">1</b></article>
+      <article><span>BEST STORY</span><b id="lobbyBestStage">01</b></article>
+      <article><span>STARBITS</span><b id="lobbyCoins">0</b></article>
     </section>
 
-    <section id="spaceGame" class="space-game" hidden>
-      <div class="space-game-topbar">
-        <div class="space-game-stat"><span>STORY</span><b id="gameStory">01</b></div>
-        <div class="space-game-stat"><span>ZONE</span><b id="gameZone">STARLIGHT DOCK</b></div>
-        <div class="space-game-stat"><span>LEVEL</span><b id="gameLevel">1</b></div>
-        <div class="space-game-stat"><span>STARbits</span><b id="gameCoins">0</b></div>
-        <button id="autoPilotButton" class="auto-pilot-button" type="button" aria-pressed="true">AUTO PILOT // ON</button>
-      </div>
+    <section class="space-command-stage">
+      <aside class="command-rail command-rail-left" aria-label="Left control rail">
+        <button type="button" class="command-node" data-panel-toggle="map"><span>01</span><b>ROUTE</b><small>Star Map</small></button>
+        <button type="button" class="command-node" data-panel-toggle="shop"><span>02</span><b>SHOP</b><small>Upgrades</small></button>
+        <button type="button" class="command-node" data-panel-toggle="gear"><span>03</span><b>GEAR</b><small>Loadout</small></button>
+        <button type="button" class="command-node" data-panel-toggle="cargo"><span>04</span><b>CARGO</b><small>Inventory</small></button>
+      </aside>
 
-      <div class="space-game-layout">
-        <section class="play-card">
-          <div class="rpg-bars">
-            <div class="rpg-bar hp"><span>HULL</span><i><em id="hpFill"></em></i><b id="hpText">100 / 100</b></div>
-            <div class="rpg-bar xp"><span>LEVEL XP</span><i><em id="xpFill"></em></i><b id="xpText">0 / 100</b></div>
-            <div class="rpg-bar boss" id="bossBar" hidden><span>BOSS</span><i><em id="bossFill"></em></i><b id="bossText">—</b></div>
-          </div>
-          <div class="space-canvas-wrap" id="spaceCanvasWrap">
-            <canvas id="spaceCanvas" width="1100" height="580" aria-label="SpaceStories 2D side-scrolling RPG playfield"></canvas>
-            <div id="storyOverlay" class="story-overlay" hidden><div><span id="overlayKicker">STORY CLEAR</span><h2 id="overlayTitle">NEXT STOP!</h2><p id="overlayText">The route ahead is open.</p><div><button id="overlayNext" class="space-primary" type="button">NEXT STORY</button><button id="overlayLobby" class="space-secondary" type="button">RETURN TO LOBBY</button></div></div></div>
-          </div>
-          <div id="combatFeed" class="combat-feed" aria-live="polite">AUTO PILOT READY.</div>
-          <div class="skill-bar" aria-label="Skills">
-            <button type="button" data-skill="basic"><span>J</span><b>PULSE POP</b><small>Basic shot</small></button>
-            <button type="button" data-skill="nova"><span>1</span><b>NOVA BUBBLE</b><small id="novaCd">Ready</small></button>
-            <button type="button" data-skill="dash"><span>2</span><b>COMET DASH</b><small id="dashCd">Ready</small></button>
-            <button type="button" data-skill="heal"><span>3</span><b>PATCH POD</b><small id="healCd">Ready</small></button>
-          </div>
-          <div class="mobile-controls" aria-label="Mobile controls">
-            <div><button type="button" data-move="left">◀</button><button type="button" data-move="right">▶</button></div>
-            <div><button type="button" data-action="jump">JUMP</button><button type="button" data-action="attack">POP</button></div>
-          </div>
-        </section>
+      <section class="space-center-frame">
+        <div class="space-game-topbar">
+          <div class="space-game-stat"><span>STORY</span><b id="gameStory">01</b></div>
+          <div class="space-game-stat"><span>ZONE</span><b id="gameZone">MOCHI-9 WAYSTATION</b></div>
+          <div class="space-game-stat"><span>LEVEL</span><b id="gameLevel">1</b></div>
+          <div class="space-game-stat"><span>STARBITS</span><b id="gameCoins">0</b></div>
+          <button id="autoPilotButton" class="auto-pilot-button" type="button" aria-pressed="true">AUTO PILOT // ON</button>
+        </div>
 
-        <aside class="run-panel">
-          <section><span>STORY OBJECTIVE</span><h3 id="objectiveTitle">CLEAR THE AREA</h3><p id="objectiveText">Defeat every creature in the current story.</p><div class="objective-progress"><i><em id="objectiveFill"></em></i><b id="objectiveCount">0 / 0</b></div></section>
-          <section><span>PILOT STATS</span><div id="runStats" class="run-stats"></div></section>
-          <section><span>RECENT LOOT</span><div id="recentLoot" class="recent-loot"><p>No cargo yet.</p></div></section>
-          <section class="controls-note"><span>CONTROLS</span><p>A/D or arrows move // Space jumps // J attacks // 1–3 skills // E toggles Auto Pilot.</p></section>
-        </aside>
-      </div>
+        <div class="rpg-bars">
+          <div class="rpg-bar hp"><span>HULL</span><i><em id="hpFill"></em></i><b id="hpText">100 / 100</b></div>
+          <div class="rpg-bar xp"><span>LEVEL XP</span><i><em id="xpFill"></em></i><b id="xpText">0 / 100</b></div>
+          <div class="rpg-bar boss" id="bossBar" hidden><span>BOSS</span><i><em id="bossFill"></em></i><b id="bossText">—</b></div>
+        </div>
+
+        <div class="space-canvas-wrap" id="spaceCanvasWrap">
+          <canvas id="spaceCanvas" width="1100" height="580" aria-label="SpaceStories 2D side-scrolling RPG playfield"></canvas>
+
+          <section class="space-scene-overlay" id="sceneOverlay" aria-label="Lobby overview">
+            <div class="scene-glass">
+              <span class="scene-kicker" id="sceneTagline">STORY HUB // ORBITAL WAYSTATION</span>
+              <h2 id="sceneTitle">MOCHI-9 WAYSTATION</h2>
+              <p id="sceneDescription">Choose a route, check your cargo, chat with other pilots, and launch directly into your current story.</p>
+              <div class="scene-pilot-strip">
+                <div><span>PILOT</span><b id="scenePilotName">SIGNED OUT</b></div>
+                <div><span>LEVEL</span><b id="sceneLevel">1</b></div>
+                <div><span>BEST</span><b id="sceneBestStage">01</b></div>
+                <div><span>STARBITS</span><b id="sceneCoins">0</b></div>
+              </div>
+              <div class="scene-actions">
+                <button id="launchStoryButton" class="space-primary" type="button">LAUNCH CURRENT STORY</button>
+                <button id="sceneQuickRoute" class="space-secondary" type="button">OPEN STAR MAP</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="viewport-panels" id="viewportPanels" aria-label="Overlay menus">
+            <article class="viewport-panel" data-panel="map" hidden>
+              <header><div><span>STORY ROUTE</span><h2>STAR MAP</h2></div><b id="mapProgress">01 / 30</b><button type="button" class="panel-close" data-close-panels aria-label="Close panel">×</button></header>
+              <div id="starMap" class="star-map"></div>
+            </article>
+
+            <article class="viewport-panel" data-panel="shop" hidden>
+              <header><div><span>PERMANENT UPGRADES</span><h2>ORBITAL SHOP</h2></div><b>★</b><button type="button" class="panel-close" data-close-panels aria-label="Close panel">×</button></header>
+              <div id="shopList" class="shop-list"></div>
+            </article>
+
+            <article class="viewport-panel" data-panel="gear" hidden>
+              <header><div><span>LOADOUT</span><h2>GEAR BAY</h2></div><b>◈</b><button type="button" class="panel-close" data-close-panels aria-label="Close panel">×</button></header>
+              <div id="equipmentGrid" class="equipment-grid"></div>
+              <div class="gear-actions"><button id="equipBestButton" type="button">EQUIP BEST</button><button id="sellJunkButton" type="button">SELL LOWER GEAR</button></div>
+            </article>
+
+            <article class="viewport-panel viewport-panel-wide" data-panel="cargo" hidden>
+              <header><div><span>SHIP STORAGE</span><h2>CARGO HOLD</h2></div><b id="inventoryCount">0 / 30</b><button type="button" class="panel-close" data-close-panels aria-label="Close panel">×</button></header>
+              <div id="inventoryList" class="inventory-list"></div>
+            </article>
+
+            <article class="viewport-panel" data-panel="log" hidden>
+              <header><div><span>CAPTAIN'S LOG</span><h2>OBJECTIVES</h2></div><b>✦</b><button type="button" class="panel-close" data-close-panels aria-label="Close panel">×</button></header>
+              <section class="panel-objective-card">
+                <span>ACTIVE STORY OBJECTIVE</span>
+                <h3 id="objectiveTitle">CLEAR THE AREA</h3>
+                <p id="objectiveText">Defeat every creature in the current story.</p>
+                <div class="objective-progress"><i><em id="objectiveFill"></em></i><b id="objectiveCount">0 / 0</b></div>
+              </section>
+              <div id="missionList" class="mission-list"></div>
+            </article>
+
+            <article class="viewport-panel viewport-panel-chat" data-panel="chat" hidden>
+              <header><div><span>GLOBAL LOBBY</span><h2>WORLD CHAT</h2></div><b class="chat-live">● LIVE</b><button type="button" class="panel-close" data-close-panels aria-label="Close panel">×</button></header>
+              <div class="world-chat-notice">WORLD CHAT IS PUBLIC. TREAT EVERY MESSAGE LIKE A PUBLIC POST. DO NOT SHARE PRIVATE OR SENSITIVE INFORMATION.</div>
+              <div id="worldChatMessages" class="world-chat-messages"><div class="chat-empty">CONNECTING TO MOCHI-9…</div></div>
+              <form id="worldChatForm" class="world-chat-form">
+                <textarea id="worldChatInput" maxlength="500" rows="2" placeholder="Broadcast to every SpaceStories pilot…" disabled></textarea>
+                <div><span id="worldChatStatus">SIGN IN TO CHAT</span><button type="submit" id="worldChatSend" disabled>SEND</button></div>
+              </form>
+            </article>
+
+            <article class="viewport-panel" data-panel="stats" hidden>
+              <header><div><span>PILOT DIAGNOSTICS</span><h2>STATS & LOOT</h2></div><b>◎</b><button type="button" class="panel-close" data-close-panels aria-label="Close panel">×</button></header>
+              <div id="runStats" class="run-stats"></div>
+              <section class="panel-loot-card"><span>RECENT LOOT</span><div id="recentLoot" class="recent-loot"><p>No cargo yet.</p></div></section>
+            </article>
+
+            <article class="viewport-panel" data-panel="help" hidden>
+              <header><div><span>SHIP ASSISTANCE</span><h2>CONTROLS</h2></div><b>?</b><button type="button" class="panel-close" data-close-panels aria-label="Close panel">×</button></header>
+              <div class="help-grid">
+                <div class="help-card"><span>DESKTOP</span><p>A / D or Arrows = Move<br>Space / W = Jump<br>J = Basic Attack<br>1 / 2 / 3 = Skills<br>E = Toggle Auto Pilot</p></div>
+                <div class="help-card"><span>MOBILE</span><p>Use the on-screen movement and POP buttons below the viewport to move, jump, and attack.</p></div>
+                <div class="help-card"><span>GAME LOOP</span><p>Clear stories, collect gear, buy upgrades, and progress deeper into the route. Bosses appear on every 5th story.</p></div>
+              </div>
+            </article>
+          </section>
+
+          <div id="storyOverlay" class="story-overlay" hidden><div><span id="overlayKicker">STORY CLEAR</span><h2 id="overlayTitle">NEXT STOP!</h2><p id="overlayText">The route ahead is open.</p><div><button id="overlayNext" class="space-primary" type="button">NEXT STORY</button><button id="overlayLobby" class="space-secondary" type="button">RETURN TO LOBBY</button></div></div></div>
+        </div>
+
+        <div id="combatFeed" class="combat-feed" aria-live="polite">COMMAND VIEW READY.</div>
+
+        <div class="skill-bar" aria-label="Skills">
+          <button type="button" data-skill="basic"><span>J</span><b>PULSE POP</b><small>Basic shot</small></button>
+          <button type="button" data-skill="nova"><span>1</span><b>NOVA BUBBLE</b><small id="novaCd">Ready</small></button>
+          <button type="button" data-skill="dash"><span>2</span><b>COMET DASH</b><small id="dashCd">Ready</small></button>
+          <button type="button" data-skill="heal"><span>3</span><b>PATCH POD</b><small id="healCd">Ready</small></button>
+        </div>
+
+        <div class="mobile-controls" aria-label="Mobile controls">
+          <div><button type="button" data-move="left">◀</button><button type="button" data-move="right">▶</button></div>
+          <div><button type="button" data-action="jump">JUMP</button><button type="button" data-action="attack">POP</button></div>
+        </div>
+      </section>
+
+      <aside class="command-rail command-rail-right" aria-label="Right control rail">
+        <button type="button" class="command-node" data-panel-toggle="log"><span>05</span><b>LOG</b><small>Objectives</small></button>
+        <button type="button" class="command-node" data-panel-toggle="chat"><span>06</span><b>CHAT</b><small>World Chat</small></button>
+        <button type="button" class="command-node" data-panel-toggle="stats"><span>07</span><b>STATS</b><small>Diagnostics</small></button>
+        <button type="button" class="command-node" data-panel-toggle="help"><span>08</span><b>HELP</b><small>Controls</small></button>
+      </aside>
     </section>
   </main>
 
-  <dialog id="inventoryDialog" class="cargo-dialog">
-    <form method="dialog" class="cargo-window">
-      <header><div><span>SHIP STORAGE</span><h2>CARGO HOLD</h2></div><button value="close" aria-label="Close cargo">×</button></header>
-      <div id="inventoryList" class="inventory-list"></div>
-    </form>
-  </dialog>
-
   <script type="module" src="/account/assets/js/account.js"></script>
   <script type="module" src="/game/global/messaging.js?v=20260901-dm6"></script>
-  <script type="module" src="./space-stories.js?v=1.0.0"></script>
+  <script type="module" src="./space-stories.js?v=1.1.0"></script>
 </body>
 </html>
