@@ -83,3 +83,14 @@ Global Clash scoring:
 - +2,000 victory bonus
 
 The score payload is validated by the authenticated reward backend before milestone Credits can be awarded.
+
+
+### Visual update for E.R.A.S. Clash Global
+
+The Clash fighter visuals are now adjusted as requested:
+
+- **Players render as their account/profile icons** when an icon/photo/avatar URL is available from identity data.
+- If a player icon is unavailable, the fighter falls back to a circular badge using the player's initials.
+- The **NPC opponent remains the default green Slime** rather than a recolored alternate character.
+
+This only changes the fighter presentation layer; the scoring, controls, leaderboard, and Credit progression remain the same.
