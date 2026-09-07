@@ -1,54 +1,514 @@
-/* Shared E.R.A.S. module glow.
-   SITE sky blue | DAI orange | LCS purple | GAME green | OPTIONS red */
+/* =========================================================
+   E.R.A.S. MODULE COLOR IDENTITIES — 2026-09-07
+   Site: sky blue
+   Game: green
+   Options: crimson
+   Content: library green
+   D.A.I.: purple
+   Social/LCS: Lilac Lily (pastel lilac + lily pink)
+   Animation: Golden Rye
+   ========================================================= */
 
-html[data-eras-module-theme="site"] {
-  --eras-module-accent: #78d6ff;
-  --eras-module-rgb: 120, 214, 255;
+html[data-eras-module-theme="site"]{
+  --eras-module-accent:#78d6ff;
+  --eras-module-rgb:120,214,255;
 }
-html[data-eras-module-theme="dai"] {
-  --eras-module-accent: #ff9f45;
-  --eras-module-rgb: 255, 159, 69;
+html[data-eras-module-theme="game"]{
+  --eras-module-accent:#61e68f;
+  --eras-module-rgb:97,230,143;
 }
-html[data-eras-module-theme="lcs"] {
-  --eras-module-accent: #bd78ff;
-  --eras-module-rgb: 189, 120, 255;
+html[data-eras-module-theme="options"]{
+  --eras-module-accent:#d34b61;
+  --eras-module-rgb:211,75,97;
+  --accent:#d34b61;
+  --line:rgba(211,75,97,.15);
+  --line-strong:rgba(238,112,132,.48);
+  --glow:rgba(211,75,97,.28);
 }
-html[data-eras-module-theme="game"] {
-  --eras-module-accent: #61e68f;
-  --eras-module-rgb: 97, 230, 143;
+html[data-eras-module-theme="content"]{
+  --eras-module-accent:#65c97c;
+  --eras-module-rgb:101,201,124;
+  --accent:#65c97c;
+  --line:rgba(101,201,124,.15);
+  --line-strong:rgba(132,229,155,.46);
+  --glow:rgba(101,201,124,.25);
 }
-html[data-eras-module-theme="options"] {
-  --eras-module-accent: #ff6375;
-  --eras-module-rgb: 255, 99, 117;
+html[data-eras-module-theme="dai"]{
+  --eras-module-accent:#a874ff;
+  --eras-module-rgb:168,116,255;
+}
+html[data-eras-module-theme="lcs"]{
+  --eras-module-accent:#caa7ed;
+  --eras-module-rgb:202,167,237;
+
+  --bg:#0d0913;
+  --bg2:#160f20;
+  --panel:rgba(24,16,34,.82);
+  --panel2:rgba(34,22,46,.80);
+  --line:rgba(238,220,247,.11);
+  --text:#fbf6ff;
+  --muted:#b5a9bd;
+
+  /* Keep legacy variable names so existing LCS components inherit the new
+     Lilac Lily identity without changing application code. */
+  --purple:#caa7ed;
+  --orange:#efb8d8;
+
+  --lcs-bubble-line:rgba(246,226,252,.12);
+  --lcs-bubble-fill:linear-gradient(145deg,rgba(43,29,54,.91),rgba(20,13,27,.90));
+  --lcs-bubble-fill-soft:linear-gradient(145deg,rgba(239,218,247,.075),rgba(255,255,255,.025));
+  --lcs-bubble-glow:0 0 0 1px rgba(202,167,237,.055),0 18px 48px rgba(166,105,187,.13);
+}
+html[data-eras-module-theme="animation"]{
+  --eras-module-accent:#d9b45d;
+  --eras-module-rgb:217,180,93;
 }
 
-#erasModuleGlow {
-  position: fixed;
-  inset: 0;
-  z-index: 2147480000;
-  pointer-events: none;
-  opacity: .78;
-  border: 1px solid rgba(var(--eras-module-rgb, 120,214,255), .12);
+/* Shared perimeter glow. */
+#erasModuleGlow{
+  position:fixed;
+  inset:0;
+  z-index:2147480000;
+  pointer-events:none;
+  opacity:.78;
+  border:1px solid rgba(var(--eras-module-rgb,120,214,255),.12);
   box-shadow:
-    inset 0 0 18px rgba(var(--eras-module-rgb, 120,214,255), .055),
-    inset 0 0 80px rgba(var(--eras-module-rgb, 120,214,255), .065);
+    inset 0 0 18px rgba(var(--eras-module-rgb,120,214,255),.055),
+    inset 0 0 80px rgba(var(--eras-module-rgb,120,214,255),.065);
   background:
-    radial-gradient(ellipse at 50% -12%, rgba(var(--eras-module-rgb, 120,214,255), .11), transparent 40%),
-    radial-gradient(ellipse at 50% 112%, rgba(var(--eras-module-rgb, 120,214,255), .075), transparent 42%),
+    radial-gradient(ellipse at 50% -12%,rgba(var(--eras-module-rgb,120,214,255),.11),transparent 40%),
+    radial-gradient(ellipse at 50% 112%,rgba(var(--eras-module-rgb,120,214,255),.075),transparent 42%),
     linear-gradient(90deg,
-      rgba(var(--eras-module-rgb, 120,214,255), .045),
+      rgba(var(--eras-module-rgb,120,214,255),.045),
       transparent 7%,
       transparent 93%,
-      rgba(var(--eras-module-rgb, 120,214,255), .045));
-  mix-blend-mode: screen;
+      rgba(var(--eras-module-rgb,120,214,255),.045));
+  mix-blend-mode:screen;
+}
+@media(prefers-reduced-motion:no-preference){
+  #erasModuleGlow{animation:erasModuleGlowPulse 5.5s ease-in-out infinite alternate}
+}
+@keyframes erasModuleGlowPulse{
+  from{opacity:.63}
+  to{opacity:.88}
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  #erasModuleGlow {
-    animation: erasModuleGlowPulse 5.5s ease-in-out infinite alternate;
+/* =========================================================
+   OPTIONS — CRIMSON
+   ========================================================= */
+html[data-eras-module-theme="options"] body.options-page{
+  background:
+    radial-gradient(circle at 50% 44%,rgba(109,25,43,.20),transparent 35rem),
+    linear-gradient(180deg,#0e0508 0%,#070305 100%);
+}
+html[data-eras-module-theme="options"] .options-page .cosmos{
+  background:
+    radial-gradient(circle at 50% 48%,rgba(91,20,36,.25) 0,rgba(18,5,9,.13) 40%,transparent 68%),
+    #080305;
+}
+html[data-eras-module-theme="options"] .options-page .nebula-a{
+  background:radial-gradient(ellipse at 38% 48%,rgba(141,35,57,.30),transparent 36%);
+}
+html[data-eras-module-theme="options"] .options-page .nebula-b{
+  background:radial-gradient(ellipse at 67% 62%,rgba(96,20,43,.25),transparent 34%);
+}
+html[data-eras-module-theme="options"] .options-page .grid-haze{
+  background-image:
+    linear-gradient(rgba(211,75,97,.20) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(211,75,97,.20) 1px,transparent 1px);
+}
+html[data-eras-module-theme="options"] .options-page .brand-mark{
+  border-color:#d34b61;
+  box-shadow:0 0 14px rgba(211,75,97,.30);
+}
+html[data-eras-module-theme="options"] .options-page .brand b,
+html[data-eras-module-theme="options"] .range-shell output{
+  color:#e36a7d;
+}
+html[data-eras-module-theme="options"] .options-page .enter-button{
+  border-color:rgba(211,75,97,.38);
+  background:rgba(24,6,11,.48);
+}
+html[data-eras-module-theme="options"] .options-page .enter-button:hover,
+html[data-eras-module-theme="options"] .options-page .enter-button:focus-visible{
+  border-color:rgba(238,112,132,.74);
+  background:rgba(211,75,97,.10);
+  box-shadow:0 0 24px rgba(211,75,97,.10);
+}
+html[data-eras-module-theme="options"] .options-ring-field{
+  filter:drop-shadow(0 0 25px rgba(211,75,97,.10));
+}
+html[data-eras-module-theme="options"] .hollow-ring{
+  border-color:rgba(238,112,132,.25);
+  box-shadow:
+    inset 0 0 22px rgba(211,75,97,.035),
+    0 0 20px rgba(211,75,97,.045);
+}
+html[data-eras-module-theme="options"] .hollow-ring::before{
+  border-color:rgba(211,75,97,.14);
+}
+html[data-eras-module-theme="options"] .hollow-ring::after{
+  background:#f59aac;
+  box-shadow:0 0 12px rgba(211,75,97,.80);
+}
+html[data-eras-module-theme="options"] .hollow-ring span{
+  border-color:rgba(211,75,97,.11);
+}
+html[data-eras-module-theme="options"] .ring-d{
+  border-color:rgba(238,112,132,.34);
+}
+html[data-eras-module-theme="options"] .ring-core-mark{
+  border-color:rgba(238,112,132,.62);
+  background:rgba(211,75,97,.16);
+  box-shadow:0 0 18px rgba(211,75,97,.34);
+}
+html[data-eras-module-theme="options"] .options-panel{
+  border-top-color:rgba(211,75,97,.27);
+  border-bottom-color:rgba(211,75,97,.20);
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(19,5,9,.74) 12%,
+    rgba(29,7,13,.88) 50%,
+    rgba(19,5,9,.74) 88%,
+    transparent
+  );
+  box-shadow:
+    inset 0 0 34px rgba(211,75,97,.025),
+    0 0 28px rgba(211,75,97,.035);
+}
+html[data-eras-module-theme="options"] .options-heading>span{
+  color:#9e5663;
+}
+html[data-eras-module-theme="options"] .options-heading h1{
+  color:#f2e7e9;
+  text-shadow:0 0 18px rgba(211,75,97,.10);
+}
+html[data-eras-module-theme="options"] .option-label{
+  color:#c8afb4;
+}
+html[data-eras-module-theme="options"] .options-page input[type="range"]::-webkit-slider-runnable-track{
+  background:linear-gradient(
+    90deg,
+    rgba(226,94,116,.82) var(--fill,100%),
+    rgba(211,75,97,.16) var(--fill,100%)
+  );
+  box-shadow:0 0 9px rgba(211,75,97,.12);
+}
+html[data-eras-module-theme="options"] .options-page input[type="range"]::-moz-range-track{
+  background:rgba(211,75,97,.16);
+}
+html[data-eras-module-theme="options"] .options-page input[type="range"]::-moz-range-progress{
+  background:rgba(226,94,116,.82);
+}
+html[data-eras-module-theme="options"] .options-page input[type="range"]::-webkit-slider-thumb{
+  border-color:#f08a9a;
+  background:#d34b61;
+  box-shadow:0 0 12px rgba(211,75,97,.55);
+}
+html[data-eras-module-theme="options"] .options-page input[type="range"]::-moz-range-thumb{
+  border-color:#f08a9a;
+  background:#d34b61;
+  box-shadow:0 0 12px rgba(211,75,97,.55);
+}
+html[data-eras-module-theme="options"] .graphics-choice{
+  border-color:rgba(211,75,97,.22);
+  background:rgba(20,6,10,.62);
+  color:#9f7d83;
+}
+html[data-eras-module-theme="options"] .graphics-choice:hover,
+html[data-eras-module-theme="options"] .graphics-choice:focus-visible{
+  border-color:rgba(238,112,132,.55);
+  color:#f2dfe3;
+}
+html[data-eras-module-theme="options"] .graphics-choice.is-selected,
+html[data-eras-module-theme="options"] .graphics-choice[aria-pressed="true"]{
+  border-color:rgba(238,112,132,.70);
+  background:rgba(211,75,97,.13);
+  color:#ef7d8f;
+  box-shadow:
+    inset 0 0 16px rgba(211,75,97,.05),
+    0 0 13px rgba(211,75,97,.10);
+}
+
+/* =========================================================
+   CONTENT — GREEN PUBLIC ASSET LIBRARY
+   ========================================================= */
+html[data-eras-module-theme="content"] body.market-page{
+  background:#041008;
+}
+html[data-eras-module-theme="content"] .market-page .brand b{
+  color:#75d78b;
+}
+html[data-eras-module-theme="content"] .market-page .brand-mark{
+  border-color:#65c97c;
+  box-shadow:0 0 14px rgba(101,201,124,.28);
+}
+html[data-eras-module-theme="content"] .market-shell{
+  background:
+    radial-gradient(circle at 52% 40%,rgba(50,140,76,.16),transparent 35rem),
+    linear-gradient(180deg,#06110a,#030a05);
+}
+html[data-eras-module-theme="content"] .market-shell::before{
+  background-image:
+    linear-gradient(rgba(101,201,124,.20) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(101,201,124,.20) 1px,transparent 1px);
+}
+html[data-eras-module-theme="content"] .market-hero,
+html[data-eras-module-theme="content"] .market-panel,
+html[data-eras-module-theme="content"] .asset-stage{
+  border-color:rgba(101,201,124,.19);
+  background:rgba(4,16,8,.80);
+}
+html[data-eras-module-theme="content"] .market-hero{
+  box-shadow:
+    inset 0 0 30px rgba(101,201,124,.025),
+    0 18px 50px rgba(0,0,0,.18);
+}
+html[data-eras-module-theme="content"] .market-kicker{
+  color:#70af7d;
+}
+html[data-eras-module-theme="content"] .market-stats span{
+  border-color:rgba(101,201,124,.14);
+  background:rgba(2,12,5,.68);
+}
+html[data-eras-module-theme="content"] .market-stats b{
+  color:#91e6a4;
+}
+html[data-eras-module-theme="content"] .market-panel-title{
+  border-bottom-color:rgba(101,201,124,.12);
+}
+html[data-eras-module-theme="content"] .market-panel-title span{
+  color:#568a62;
+}
+html[data-eras-module-theme="content"] .market-filter{
+  border-color:rgba(101,201,124,.10);
+  background:rgba(4,17,8,.48);
+  color:#6c9274;
+}
+html[data-eras-module-theme="content"] .market-filter.is-active,
+html[data-eras-module-theme="content"] .market-filter#chooseAsset:hover{
+  border-color:rgba(132,229,155,.34);
+  color:#ddf5e2;
+  background:rgba(101,201,124,.08);
+}
+html[data-eras-module-theme="content"] .market-note{
+  border-top-color:rgba(101,201,124,.11);
+}
+html[data-eras-module-theme="content"] .market-note b{
+  color:#8bc79a;
+}
+html[data-eras-module-theme="content"] .asset-preview-wrap{
+  background:radial-gradient(circle at center,rgba(73,167,96,.11),transparent 49%);
+}
+html[data-eras-module-theme="content"] .asset-preview-grid{
+  background-image:
+    linear-gradient(rgba(101,201,124,.28) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(101,201,124,.28) 1px,transparent 1px);
+}
+html[data-eras-module-theme="content"] .asset-meta,
+html[data-eras-module-theme="content"] .asset-controls{
+  border-top-color:rgba(101,201,124,.12);
+}
+html[data-eras-module-theme="content"] .asset-tags span{
+  border-color:rgba(101,201,124,.13);
+  color:#72947a;
+}
+html[data-eras-module-theme="content"] .asset-controls input[type="color"],
+html[data-eras-module-theme="content"] .inventory-copy input{
+  border-color:rgba(101,201,124,.22);
+  background:#041008;
+}
+html[data-eras-module-theme="content"] .market-primary{
+  border-color:rgba(132,229,155,.50);
+  background:rgba(101,201,124,.12);
+  color:#ebfff0;
+  box-shadow:0 0 18px rgba(101,201,124,.05);
+}
+html[data-eras-module-theme="content"] .market-primary:hover:not(:disabled){
+  background:rgba(101,201,124,.20);
+  border-color:rgba(132,229,155,.68);
+}
+html[data-eras-module-theme="content"] .content-trade-link{
+  border-color:rgba(101,201,124,.20);
+  background:rgba(4,16,8,.76);
+  color:#8cc999;
+}
+html[data-eras-module-theme="content"] .content-trade-link:hover{
+  color:#effff2;
+  border-color:rgba(101,201,124,.48);
+  background:rgba(101,201,124,.08);
+}
+html[data-eras-module-theme="content"] .inventory-item{
+  border-color:rgba(101,201,124,.12);
+  background:rgba(2,12,5,.58);
+}
+html[data-eras-module-theme="content"] .inventory-view-tabs button,
+html[data-eras-module-theme="content"] .inventory-archive,
+html[data-eras-module-theme="content"] .inventory-restore{
+  border-color:rgba(101,201,124,.13);
+}
+html[data-eras-module-theme="content"] .inventory-view-tabs button.is-active{
+  border-color:rgba(132,229,155,.38);
+  background:rgba(101,201,124,.09);
+  color:#e7f9ea;
+}
+html[data-eras-module-theme="content"] .inventory-view-tabs button b{
+  color:#8bc89a;
+}
+@media(max-width:680px){
+  html[data-eras-module-theme="content"] .market-nav .market-panel-title{
+    background:#06110a;
   }
 }
-@keyframes erasModuleGlowPulse {
-  from { opacity: .63; }
-  to { opacity: .88; }
+
+/* =========================================================
+   SOCIAL / LCS — LILAC LILY
+   Existing orange/purple identity is replaced with pastel lilac + pink.
+   Semantic colors (green success, red errors, cyan information) remain intact.
+   ========================================================= */
+html[data-eras-module-theme="lcs"] body{
+  background:
+    radial-gradient(circle at 28% 0,rgba(130,84,157,.24) 0,rgba(13,9,19,.96) 42%,#08060c 100%);
+}
+html[data-eras-module-theme="lcs"] .ambient-a{
+  background:#caa7ed;
+  opacity:.14;
+}
+html[data-eras-module-theme="lcs"] .ambient-b{
+  background:#efb8d8;
+  opacity:.12;
+}
+html[data-eras-module-theme="lcs"] .topbar{
+  background:rgba(13,9,19,.84);
+  border-bottom-color:rgba(239,219,248,.10);
+}
+html[data-eras-module-theme="lcs"] .orbit{
+  border-color:rgba(239,184,216,.82);
+}
+html[data-eras-module-theme="lcs"] .orbit-b{
+  border-color:rgba(202,167,237,.92);
+}
+html[data-eras-module-theme="lcs"] .core-dot{
+  background:#fff7fd;
+  box-shadow:
+    0 0 12px #fff,
+    0 0 24px rgba(239,184,216,.25);
+}
+html[data-eras-module-theme="lcs"] .primary-button{
+  background:linear-gradient(135deg,#efb8d8,#caa7ed);
+  color:#231625;
+  box-shadow:
+    0 8px 24px rgba(202,167,237,.16),
+    0 4px 18px rgba(239,184,216,.10),
+    inset 0 1px 0 rgba(255,255,255,.22);
+}
+html[data-eras-module-theme="lcs"] .nav-item.active{
+  background:linear-gradient(90deg,rgba(239,184,216,.11),rgba(202,167,237,.08));
+  box-shadow:
+    inset 3px 0 0 #efb8d8,
+    inset 0 0 0 1px rgba(239,184,216,.14),
+    0 8px 24px rgba(0,0,0,.10);
+}
+html[data-eras-module-theme="lcs"] .rail-card,
+html[data-eras-module-theme="lcs"] .reasoning-card,
+html[data-eras-module-theme="lcs"] .hero-card,
+html[data-eras-module-theme="lcs"] .composer,
+html[data-eras-module-theme="lcs"] .universe-panel,
+html[data-eras-module-theme="lcs"] .catalog-card{
+  background:linear-gradient(180deg,rgba(37,25,49,.87),rgba(17,11,24,.87));
+}
+html[data-eras-module-theme="lcs"] .eyebrow{
+  color:#ddc2f1;
+}
+html[data-eras-module-theme="lcs"] .text-button,
+html[data-eras-module-theme="lcs"] .add-space{
+  color:#efb8d8;
+}
+html[data-eras-module-theme="lcs"] .space-item i{
+  background:linear-gradient(135deg,#caa7ed,#efb8d8);
+  box-shadow:0 0 11px rgba(202,167,237,.38);
+}
+html[data-eras-module-theme="lcs"] .hero-card::after{
+  border-color:rgba(202,167,237,.15);
+  box-shadow:0 0 100px rgba(202,167,237,.13);
+}
+html[data-eras-module-theme="lcs"] .hero-orbit::before{
+  border-color:rgba(239,184,216,.30);
+}
+html[data-eras-module-theme="lcs"] .hero-orbit::after{
+  border-color:rgba(202,167,237,.34);
+}
+html[data-eras-module-theme="lcs"] .avatar,
+html[data-eras-module-theme="lcs"] .auth-user .auth-fallback-avatar{
+  background:linear-gradient(135deg,#6c4f7c,#ad82c8);
+}
+html[data-eras-module-theme="lcs"] .thought-chip:hover,
+html[data-eras-module-theme="lcs"] .thought-chip.selected{
+  border-color:rgba(239,184,216,.48);
+  background:rgba(239,184,216,.075);
+}
+html[data-eras-module-theme="lcs"] .momentum-console{
+  background:linear-gradient(
+    135deg,
+    rgba(202,167,237,.105),
+    rgba(239,184,216,.065) 48%,
+    rgba(18,12,25,.90)
+  );
+}
+html[data-eras-module-theme="lcs"] .momentum-console::after{
+  background:radial-gradient(circle,rgba(239,184,216,.20),transparent 68%);
+}
+html[data-eras-module-theme="lcs"] .momentum-mode:hover,
+html[data-eras-module-theme="lcs"] .momentum-mode.active{
+  border-color:rgba(239,184,216,.48);
+  background:rgba(239,184,216,.08);
+}
+html[data-eras-module-theme="lcs"] .momentum-card-foot button,
+html[data-eras-module-theme="lcs"] .momentum-meter-head b,
+html[data-eras-module-theme="lcs"] .category-momentum-actions .ghost-button.active,
+html[data-eras-module-theme="lcs"] .session-impact-item.has-impact b,
+html[data-eras-module-theme="lcs"] .impact-total b{
+  color:#efbedb;
+}
+html[data-eras-module-theme="lcs"] .momentum-track i{
+  background:linear-gradient(90deg,#caa7ed,#efb8d8,#d7c1ec);
+  box-shadow:0 0 16px rgba(202,167,237,.30);
+}
+html[data-eras-module-theme="lcs"] .category-momentum-actions .ghost-button.active{
+  border-color:rgba(239,184,216,.44);
+  background:rgba(239,184,216,.07);
+}
+html[data-eras-module-theme="lcs"] .network-context-card{
+  border-color:rgba(202,167,237,.20);
+  background:linear-gradient(110deg,rgba(202,167,237,.075),rgba(239,184,216,.055));
+}
+html[data-eras-module-theme="lcs"] .dai-network-links a:hover{
+  border-color:rgba(202,167,237,.34);
+}
+html[data-eras-module-theme="lcs"] .impact-total{
+  border-color:rgba(239,184,216,.22);
+  background:rgba(239,184,216,.055);
+}
+html[data-eras-module-theme="lcs"] .universe-node::after{
+  background:conic-gradient(#efb8d8 var(--node-momentum,0%),transparent 0) border-box;
+}
+html[data-eras-module-theme="lcs"] .trend-item b{
+  color:#ddc4ef;
+}
+
+/* Bubble-skin overrides: loaded after the base LCS theme and intentionally
+   repeated here so the Lilac Lily palette wins regardless of CSS timing. */
+html[data-eras-module-theme="lcs"] .nav-item.active{
+  background:linear-gradient(90deg,rgba(239,184,216,.11),rgba(202,167,237,.08));
+}
+html[data-eras-module-theme="lcs"] .post-card:hover{
+  box-shadow:0 18px 42px rgba(0,0,0,.26),0 0 0 1px rgba(202,167,237,.06);
+}
+html[data-eras-module-theme="lcs"] .comment-card{
+  background:linear-gradient(145deg,rgba(202,167,237,.11),rgba(239,184,216,.035));
+  border-color:rgba(221,192,240,.16);
+}
+html[data-eras-module-theme="lcs"] .comment-card::after{
+  background:rgba(38,25,48,.94);
 }

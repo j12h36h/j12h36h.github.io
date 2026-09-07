@@ -2,34 +2,51 @@ const path = location.pathname.toLowerCase().replace(/\/index\.html$/i, '/');
 
 const theme =
   /^\/options(?:\/|$)/.test(path) ? 'options' :
+  /^\/content(?:\/|$)/.test(path) ? 'content' :
   /^\/dai(?:\/|$)/.test(path) ? 'dai' :
   /^\/(?:logicalcommunicationservice|lcs-mobile|lcs)(?:\/|$)/.test(path) ? 'lcs' :
+  /^\/animation-engine(?:\/|$)/.test(path) ? 'animation' :
   /^\/(?:game|game-mobile)(?:\/|$)/.test(path) ? 'game' :
   'site';
 
 document.documentElement.dataset.erasModuleTheme = theme;
 
-function mountTheme() {
-  if (!document.querySelector('link[data-eras-module-theme-css]')) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/assets/css/eras-module-theme.css?v=20260905-t1';
-    link.dataset.erasModuleThemeCss = '1';
-    document.head.appendChild(link);
-  }
+const browserThemeColors = {
+  site: '#02090b',
+  game: '#07110b',
+  options: '#120609',
+  content: '#061109',
+  dai: '#0b0714',
+  lcs: '#100b17',
+  animation: '#130f07'
+};
 
-  if (!document.getElementById('erasModuleGlow') && document.body) {
-    const glow = document.createElement('div');
-    glow.id = 'erasModuleGlow';
-    glow.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(glow);
-  }
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+if (themeMeta) themeMeta.setAttribute('content', browserThemeColors[theme] || browserThemeColors.site);
+
+function mountThemeCss() {
+  if (document.querySelector('link[data-eras-module-theme-css]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = '/assets/css/eras-module-theme.css?v=20260907-t2';
+  link.dataset.erasModuleThemeCss = '1';
+  document.head.appendChild(link);
 }
 
+function mountGlow() {
+  if (!document.body || document.getElementById('erasModuleGlow')) return;
+  const glow = document.createElement('div');
+  glow.id = 'erasModuleGlow';
+  glow.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(glow);
+}
+
+mountThemeCss();
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', mountTheme, { once: true });
+  document.addEventListener('DOMContentLoaded', mountGlow, { once: true });
 } else {
-  mountTheme();
+  mountGlow();
 }
 
 window.dispatchEvent(new CustomEvent('eras:module-theme', { detail: { theme } }));

@@ -1,17 +1,101 @@
-/* Simple Animation Designer orbit node — Golden Rye */
+/* =========================================================
+   PROJECT E.R.A.S. : UNIVERSE — MODULE NODE IDENTITIES
+   PLAY remains the native Universe cyan.
+   ========================================================= */
+
+/* ANIMATION — Golden Rye */
 .universe-main-page .node-animation{left:13%;top:18%;}
-.universe-main-page .node-animation b{border-color:#d9b45d;background:rgba(217,180,93,.14);box-shadow:0 0 12px rgba(217,180,93,.28)}
-.universe-main-page .node-animation:hover,.universe-main-page .node-animation:focus-visible{color:#f0d58e;text-shadow:0 0 14px rgba(217,180,93,.4)}
-.universe-main-page .node-animation:hover b,.universe-main-page .node-animation:focus-visible b{background:rgba(217,180,93,.3);box-shadow:0 0 18px rgba(217,180,93,.58)}
+.universe-main-page .node-animation b{
+  border-color:#d9b45d;
+  background:rgba(217,180,93,.14);
+  box-shadow:0 0 12px rgba(217,180,93,.28);
+}
+.universe-main-page .node-animation:hover,
+.universe-main-page .node-animation:focus-visible{
+  color:#f0d58e;
+  text-shadow:0 0 14px rgba(217,180,93,.40);
+}
+.universe-main-page .node-animation:hover b,
+.universe-main-page .node-animation:focus-visible b{
+  background:rgba(217,180,93,.30);
+  box-shadow:0 0 18px rgba(217,180,93,.58);
+}
 
-/* D.A.I. Engine orbit node — Purple system identity */
-.universe-main-page .node-information b{border-color:#a874ff;background:rgba(168,116,255,.15);box-shadow:0 0 12px rgba(168,116,255,.30)}
-.universe-main-page .node-information:hover,.universe-main-page .node-information:focus-visible{color:#d4b6ff;text-shadow:0 0 14px rgba(168,116,255,.42)}
-.universe-main-page .node-information:hover b,.universe-main-page .node-information:focus-visible b{background:rgba(168,116,255,.30);box-shadow:0 0 18px rgba(168,116,255,.58)}
+/* SOCIAL — Lilac Lily */
+.universe-main-page .node-social b{
+  border-color:#caa7ed;
+  background:linear-gradient(135deg,rgba(202,167,237,.18),rgba(239,184,216,.16));
+  box-shadow:
+    0 0 11px rgba(202,167,237,.30),
+    0 0 20px rgba(239,184,216,.10);
+}
+.universe-main-page .node-social:hover,
+.universe-main-page .node-social:focus-visible{
+  color:#e8cff7;
+  text-shadow:
+    0 0 13px rgba(202,167,237,.38),
+    0 0 19px rgba(239,184,216,.18);
+}
+.universe-main-page .node-social:hover b,
+.universe-main-page .node-social:focus-visible b{
+  background:linear-gradient(135deg,rgba(202,167,237,.34),rgba(239,184,216,.28));
+  box-shadow:
+    0 0 18px rgba(202,167,237,.55),
+    0 0 25px rgba(239,184,216,.22);
+}
 
-/* Node subtitle backplate.
-   60% transparent glass-dark background that hugs only the subtitle text.
-   The softer outline keeps the subtitle below title weight. */
+/* CONTENT — Library Green */
+.universe-main-page .node-content b{
+  border-color:#65c97c;
+  background:rgba(101,201,124,.15);
+  box-shadow:0 0 12px rgba(101,201,124,.29);
+}
+.universe-main-page .node-content:hover,
+.universe-main-page .node-content:focus-visible{
+  color:#8ee5a2;
+  text-shadow:0 0 14px rgba(101,201,124,.40);
+}
+.universe-main-page .node-content:hover b,
+.universe-main-page .node-content:focus-visible b{
+  background:rgba(101,201,124,.30);
+  box-shadow:0 0 18px rgba(101,201,124,.56);
+}
+
+/* OPTIONS — Crimson */
+.universe-main-page .node-options b{
+  border-color:#d34b61;
+  background:rgba(211,75,97,.15);
+  box-shadow:0 0 12px rgba(211,75,97,.30);
+}
+.universe-main-page .node-options:hover,
+.universe-main-page .node-options:focus-visible{
+  color:#ef7d8f;
+  text-shadow:0 0 14px rgba(211,75,97,.44);
+}
+.universe-main-page .node-options:hover b,
+.universe-main-page .node-options:focus-visible b{
+  background:rgba(211,75,97,.31);
+  box-shadow:0 0 18px rgba(211,75,97,.59);
+}
+
+/* D.A.I. — Purple */
+.universe-main-page .node-information b{
+  border-color:#a874ff;
+  background:rgba(168,116,255,.15);
+  box-shadow:0 0 12px rgba(168,116,255,.30);
+}
+.universe-main-page .node-information:hover,
+.universe-main-page .node-information:focus-visible{
+  color:#d4b6ff;
+  text-shadow:0 0 14px rgba(168,116,255,.42);
+}
+.universe-main-page .node-information:hover b,
+.universe-main-page .node-information:focus-visible b{
+  background:rgba(168,116,255,.30);
+  box-shadow:0 0 18px rgba(168,116,255,.58);
+}
+
+/* Subtitle glass plate — intentionally secondary to the module title. */
 .universe-main-page .world-node small{
   display:inline-block;
   width:max-content;
@@ -34,4 +118,7 @@
     0 2px 7px rgba(0,0,0,.28);
 }
 
-@media(max-width:720px){.universe-main-page .node-animation{left:8%;top:17%;}.universe-main-page .node-animation small{max-width:112px}}
+@media(max-width:720px){
+  .universe-main-page .node-animation{left:8%;top:17%;}
+  .universe-main-page .node-animation small{max-width:112px;}
+}
