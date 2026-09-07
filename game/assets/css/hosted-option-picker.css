@@ -41,3 +41,77 @@
   .eras-option-card{padding-right:34px}
   .eras-option-card-icon .eras-option-glyph{font-size:24px}
 }
+
+/* =========================================================
+   v1.0.3 — ASSET PICKER CARD COLLAPSE FIX
+   Preserve each asset's own row height and let the grid scroll instead of
+   squeezing every asset into the visible dialog height.
+   ========================================================= */
+
+.eras-option-dialog{
+  min-height:0;
+}
+
+.eras-option-grid{
+  min-height:0;
+  overflow-y:auto !important;
+  overflow-x:hidden;
+  align-content:start !important;
+  align-items:start !important;
+  grid-auto-flow:row !important;
+  grid-auto-rows:minmax(108px,max-content) !important;
+  scrollbar-gutter:stable;
+  overscroll-behavior:contain;
+}
+
+.eras-option-grid > .eras-option-card{
+  box-sizing:border-box;
+  min-width:0;
+  min-height:108px !important;
+  height:auto !important;
+  max-height:none !important;
+  align-self:start !important;
+  overflow:visible !important;
+  padding:11px 36px 11px 11px;
+}
+
+.eras-option-grid > .eras-option-card .eras-option-card-icon{
+  width:58px !important;
+  height:58px !important;
+  min-width:58px;
+  min-height:58px;
+  flex:none;
+  align-self:center;
+}
+
+.eras-option-grid > .eras-option-card .eras-option-card-copy{
+  min-width:0;
+  overflow:visible !important;
+  align-self:center;
+}
+
+.eras-option-grid > .eras-option-card .eras-option-card-copy b{
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
+.eras-option-grid > .eras-option-card .eras-option-card-copy p{
+  display:block;
+  max-height:none;
+  overflow:visible;
+}
+
+@media(max-width:700px){
+  .eras-option-grid{
+    grid-auto-rows:minmax(96px,max-content) !important;
+  }
+  .eras-option-grid > .eras-option-card{
+    min-height:96px !important;
+  }
+  .eras-option-grid > .eras-option-card .eras-option-card-icon{
+    width:50px !important;
+    height:50px !important;
+    min-width:50px;
+    min-height:50px;
+  }
+}
