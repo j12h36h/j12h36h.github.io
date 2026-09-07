@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#180d08">
+  <meta name="description" content="DRAW — Project E.R.A.S. Creative Graphic Editor for sprites, sprite sheets, PNG graphics and layered pixel artwork.">
+  <title>DRAW — Creative Graphic Editor — Project E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="./draw.css?v=1.0.0">
+</head>
+<body class="draw-page">
+  <div class="universe-frame" aria-hidden="true">
+    <i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i><i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i>
+    <span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span><span class="uf-line uf-left"></span><span class="uf-line uf-right"></span>
+    <span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="/"><span class="brand-mark"></span><span>PROJECT E.R.A.S. <b>: DRAW</b></span></a>
+    <div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">ACCOUNT…</div></div>
+  </header>
+
+  <main class="draw-shell">
+    <section class="draw-titlebar">
+      <div>
+        <p>CREATOR NODE // LOCAL GRAPHICS WORKSPACE</p>
+        <h1>DRAW</h1>
+        <span>Creative Graphic Editor — build sprites, sprite sheets, icons, textures, transparent PNG graphics and layered artwork directly in the browser.</span>
+      </div>
+      <a href="/">BACK TO UNIVERSE</a>
+    </section>
+
+    <section class="draw-toolbar" aria-label="Document actions">
+      <button type="button" id="newDocument">NEW</button>
+      <button type="button" id="openProject">OPEN PROJECT</button>
+      <button type="button" id="openImage">OPEN IMAGE</button>
+      <button type="button" id="importLayer">IMPORT LAYER</button>
+      <button type="button" id="saveProject">SAVE PROJECT</button>
+      <span class="draw-toolbar-sep"></span>
+      <button type="button" id="undoButton">UNDO</button>
+      <button type="button" id="redoButton">REDO</button>
+      <span class="draw-toolbar-sep"></span>
+      <button type="button" id="exportPng" class="is-primary">EXPORT PNG</button>
+      <button type="button" id="exportSheet">EXPORT SPRITESHEET</button>
+    </section>
+
+    <section class="draw-workspace">
+      <aside class="draw-tools-panel">
+        <header><span>TOOLS</span><b id="activeToolLabel">PENCIL</b></header>
+        <div class="draw-tool-grid" id="toolGrid">
+          <button type="button" data-tool="pencil" class="is-active"><b>✎</b><span>PENCIL</span><kbd>B</kbd></button>
+          <button type="button" data-tool="eraser"><b>⌫</b><span>ERASER</span><kbd>E</kbd></button>
+          <button type="button" data-tool="line"><b>╱</b><span>LINE</span><kbd>L</kbd></button>
+          <button type="button" data-tool="rect"><b>□</b><span>RECT</span><kbd>R</kbd></button>
+          <button type="button" data-tool="ellipse"><b>○</b><span>ELLIPSE</span><kbd>O</kbd></button>
+          <button type="button" data-tool="fill"><b>▣</b><span>FILL</span><kbd>G</kbd></button>
+          <button type="button" data-tool="eyedropper"><b>⌖</b><span>PICK</span><kbd>I</kbd></button>
+          <button type="button" data-tool="text"><b>T</b><span>TEXT</span><kbd>T</kbd></button>
+        </div>
+
+        <section class="draw-control-group">
+          <label><span>PRIMARY</span><input id="primaryColor" type="color" value="#d39a62"></label>
+          <label><span>SECONDARY</span><input id="secondaryColor" type="color" value="#392114"></label>
+          <button id="swapColors" type="button">SWAP COLORS</button>
+        </section>
+
+        <section class="draw-control-group">
+          <label><span>BRUSH SIZE</span><input id="brushSize" type="range" min="1" max="64" value="4"><output id="brushSizeOut">4 px</output></label>
+          <label><span>TOOL OPACITY</span><input id="toolOpacity" type="range" min="0.05" max="1" step="0.05" value="1"><output id="toolOpacityOut">100%</output></label>
+          <label class="draw-check"><input id="shapeFill" type="checkbox"><span>FILL SHAPES</span></label>
+        </section>
+
+        <section class="draw-shortcuts">
+          <b>SHORTCUTS</b>
+          <p>CTRL/CMD + Z // UNDO</p>
+          <p>CTRL/CMD + Y // REDO</p>
+          <p>[ / ] // BRUSH SIZE</p>
+          <p>+ / - // ZOOM</p>
+          <p>SHIFT // STRAIGHT / SQUARE</p>
+        </section>
+      </aside>
+
+      <section class="draw-canvas-panel">
+        <header>
+          <div><span>CANVAS</span><b id="documentName">UNTITLED</b></div>
+          <div class="draw-canvas-status"><small id="documentDimensions">128 × 128</small><small id="cursorPosition">X 0 // Y 0</small><small id="zoomReadout">400%</small></div>
+        </header>
+        <div class="draw-stage" id="drawStage">
+          <div class="draw-canvas-holder" id="canvasHolder">
+            <canvas id="displayCanvas" width="128" height="128" aria-label="Graphic editor canvas"></canvas>
+            <canvas id="previewCanvas" width="128" height="128" aria-hidden="true"></canvas>
+            <div id="pixelGrid" class="draw-pixel-grid" aria-hidden="true"></div>
+          </div>
+        </div>
+        <footer class="draw-viewport-toolbar">
+          <button id="zoomOut" type="button">−</button>
+          <input id="zoomSlider" type="range" min="25" max="1600" step="25" value="400" aria-label="Zoom">
+          <button id="zoomIn" type="button">+</button>
+          <button id="fitCanvas" type="button">FIT</button>
+          <label><input id="showGrid" type="checkbox" checked> PIXEL GRID</label>
+          <label><input id="pixelPerfect" type="checkbox" checked> PIXEL PERFECT</label>
+        </footer>
+      </section>
+
+      <aside class="draw-properties-panel">
+        <section class="draw-side-section">
+          <header><span>DOCUMENT</span><b>PROPERTIES</b></header>
+          <div class="draw-property-grid">
+            <label><span>WIDTH</span><input id="docWidth" type="number" min="1" max="4096" value="128"></label>
+            <label><span>HEIGHT</span><input id="docHeight" type="number" min="1" max="4096" value="128"></label>
+          </div>
+          <div class="draw-preset-row">
+            <button type="button" data-size="32">32</button><button type="button" data-size="64">64</button><button type="button" data-size="128">128</button><button type="button" data-size="256">256</button><button type="button" data-size="512">512</button>
+          </div>
+          <button type="button" id="resizeDocument">RESIZE CANVAS</button>
+        </section>
+
+        <section class="draw-side-section draw-layers">
+          <header><span>FRAME <b id="activeFrameNumber">01</b></span><b>LAYERS</b></header>
+          <div class="draw-layer-actions">
+            <button id="addLayer" type="button">+</button>
+            <button id="duplicateLayer" type="button">DUP</button>
+            <button id="layerUp" type="button">↑</button>
+            <button id="layerDown" type="button">↓</button>
+            <button id="deleteLayer" type="button">×</button>
+          </div>
+          <div class="draw-layer-props">
+            <label><span>OPACITY</span><input id="layerOpacity" type="range" min="0" max="1" step="0.05" value="1"></label>
+          </div>
+          <div id="layerList" class="draw-layer-list"></div>
+        </section>
+
+        <section class="draw-side-section draw-frames">
+          <header><span>ANIMATION</span><b>FRAMES</b></header>
+          <div class="draw-frame-actions">
+            <button id="addFrame" type="button">+ FRAME</button>
+            <button id="duplicateFrame" type="button">DUPLICATE</button>
+            <button id="deleteFrame" type="button">DELETE</button>
+          </div>
+          <div id="frameList" class="draw-frame-list"></div>
+          <label class="draw-sheet-columns"><span>SHEET COLUMNS</span><input id="sheetColumns" type="number" min="1" max="64" value="8"></label>
+        </section>
+      </aside>
+    </section>
+
+    <p id="drawFeedback" class="draw-feedback" aria-live="polite">READY // FILES REMAIN LOCAL UNTIL YOU EXPORT THEM.</p>
+  </main>
+
+  <dialog id="newDialog" class="draw-dialog">
+    <form method="dialog">
+      <header><span>NEW GRAPHIC</span><button value="cancel">CLOSE</button></header>
+      <div class="draw-dialog-grid">
+        <label><span>NAME</span><input id="newName" value="Untitled Sprite"></label>
+        <label><span>WIDTH</span><input id="newWidth" type="number" min="1" max="4096" value="128"></label>
+        <label><span>HEIGHT</span><input id="newHeight" type="number" min="1" max="4096" value="128"></label>
+        <label><span>BACKGROUND</span><select id="newBackground"><option value="transparent">TRANSPARENT</option><option value="white">WHITE</option><option value="primary">PRIMARY COLOR</option></select></label>
+      </div>
+      <footer><button value="cancel">CANCEL</button><button id="createDocument" value="default" class="is-primary">CREATE</button></footer>
+    </form>
+  </dialog>
+
+  <input id="projectFileInput" type="file" accept=".erasdraw.json,application/json,.json" hidden>
+  <input id="imageFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+  <input id="layerFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+
+  <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="./draw.js?v=1.0.0"></script>
+</body>
+</html>

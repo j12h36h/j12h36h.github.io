@@ -1,0 +1,109 @@
+/* E.R.A.S. shared game controls reference */
+body.eras-controls-scrollable{
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  height:auto!important;
+  min-height:100svh;
+}
+body.eras-controls-scrollable .global-shell{
+  min-height:100svh;
+  height:100svh;
+}
+.eras-game-control-guide{
+  position:relative;
+  z-index:35;
+  width:100%;
+  padding:18px 18px 42px;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(131,224,227,.07),transparent 28rem),
+    #02090b;
+  border-top:1px solid rgba(131,224,227,.16);
+}
+.eras-game-control-inner{
+  width:min(1120px,100%);
+  margin:0 auto;
+  border:1px solid rgba(131,224,227,.16);
+  background:rgba(3,12,14,.88);
+  box-shadow:0 18px 54px rgba(0,0,0,.28);
+}
+.eras-game-control-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:20px;
+  padding:18px 20px;
+  border-bottom:1px solid rgba(131,224,227,.11);
+}
+.eras-game-control-head small{
+  display:block;
+  color:#557b7e;
+  font:800 6px/1 var(--mono,monospace);
+  letter-spacing:.16em;
+}
+.eras-game-control-head h2{
+  margin:7px 0 0;
+  color:#edfafa;
+  font:700 22px/1 var(--sans,system-ui);
+  letter-spacing:.12em;
+}
+.eras-game-control-head>div:last-child{text-align:right}
+.eras-game-control-head b{
+  display:block;
+  color:#a7dfe1;
+  font:800 9px/1 var(--mono,monospace);
+  letter-spacing:.12em;
+}
+.eras-game-control-head span{
+  display:block;
+  margin-top:6px;
+  color:#5d8083;
+  font:700 6px/1.2 var(--mono,monospace);
+  letter-spacing:.12em;
+}
+.eras-game-control-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:1px;
+  background:rgba(131,224,227,.08);
+}
+.eras-control-row{
+  min-height:58px;
+  display:grid;
+  grid-template-columns:minmax(112px,.45fr) minmax(0,1fr);
+  align-items:center;
+  gap:14px;
+  padding:11px 16px;
+  background:#061012;
+}
+.eras-control-row kbd{
+  justify-self:start;
+  max-width:100%;
+  padding:7px 9px;
+  border:1px solid rgba(151,239,241,.26);
+  border-bottom-color:rgba(151,239,241,.48);
+  background:linear-gradient(180deg,rgba(131,224,227,.09),rgba(0,6,8,.86));
+  color:#dff6f6;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.35),0 3px 8px rgba(0,0,0,.22);
+  font:800 7px/1.2 var(--mono,monospace);
+  letter-spacing:.09em;
+  white-space:normal;
+}
+.eras-control-row span{
+  color:#819fa2;
+  font:700 8px/1.45 var(--mono,monospace);
+  letter-spacing:.05em;
+}
+.eras-game-control-inner footer{
+  padding:10px 16px;
+  color:#46676a;
+  text-align:center;
+  font:800 6px/1 var(--mono,monospace);
+  letter-spacing:.14em;
+}
+@media(max-width:700px){
+  .eras-game-control-guide{padding:12px 10px 28px}
+  .eras-game-control-head{display:block}
+  .eras-game-control-head>div:last-child{margin-top:12px;text-align:left}
+  .eras-game-control-grid{grid-template-columns:1fr}
+  .eras-control-row{grid-template-columns:minmax(96px,.4fr) minmax(0,1fr)}
+}

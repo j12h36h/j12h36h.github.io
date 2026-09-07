@@ -21,6 +21,33 @@
   box-shadow:0 0 18px rgba(217,180,93,.58);
 }
 
+/* DRAW — Deep Wooden Brown / symmetrical to ANIMATION */
+.universe-main-page .node-draw{
+  right:13%;
+  top:18%;
+  text-align:right;
+  justify-items:end;
+}
+.universe-main-page .node-draw b{
+  border-color:#9a633c;
+  background:linear-gradient(135deg,rgba(154,99,60,.22),rgba(91,51,30,.18));
+  box-shadow:
+    0 0 12px rgba(154,99,60,.34),
+    0 0 22px rgba(91,51,30,.16);
+}
+.universe-main-page .node-draw:hover,
+.universe-main-page .node-draw:focus-visible{
+  color:#d8aa79;
+  text-shadow:0 0 15px rgba(154,99,60,.48);
+}
+.universe-main-page .node-draw:hover b,
+.universe-main-page .node-draw:focus-visible b{
+  background:linear-gradient(135deg,rgba(183,122,74,.34),rgba(104,58,33,.28));
+  box-shadow:
+    0 0 18px rgba(183,122,74,.58),
+    0 0 28px rgba(105,61,36,.22);
+}
+
 /* SOCIAL — Lilac Lily */
 .universe-main-page .node-social b{
   border-color:#caa7ed;
@@ -121,4 +148,6 @@
 @media(max-width:720px){
   .universe-main-page .node-animation{left:8%;top:17%;}
   .universe-main-page .node-animation small{max-width:112px;}
+  .universe-main-page .node-draw{right:8%;top:17%;}
+  .universe-main-page .node-draw small{max-width:122px;}
 }
