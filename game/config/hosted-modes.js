@@ -1,4 +1,5 @@
 import '/game/assets/js/slime-smash-host-compat.js?v=1.0.0';
+import '/game/assets/js/tactical-strike-firestore-compat.js?v=1.0.0';
 
 export const HOSTED_GAME_MODES = Object.freeze({
   'arcade-topdown': Object.freeze({
@@ -7,7 +8,7 @@ export const HOSTED_GAME_MODES = Object.freeze({
     tags:['COMBAT','MOBS','EQUIPMENT','SHOPS'], assetId:'eras:mode_turn_based_tactical', runtime:'tactical'
   }),
   'tactical-strike': Object.freeze({
-    id:'tactical-strike', name:'Tactical Strike', short:'TACTICAL STRIKE', icon:'⊕', mapId:'tactical-arena-01', maxPlayers:10,
+    id:'tactical-strike', name:'Tactical Strike', short:'TACTICAL STRIKE', icon:'⊕', mapId:'tactical-arena-01', maxPlayers:10, storageGameStyle:'arcade-topdown', storageMapId:'global-plaza',
     description:'Round-based first-person tactical combat played inside reusable E.R.A.S. 3D Scenes.',
     tags:['FPS','ROUND BASED','3D SCENES','ECONOMY'], assetId:'eras:mode_tactical_strike', runtime:'tactical-strike'
   }),
