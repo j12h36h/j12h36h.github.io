@@ -7,45 +7,17 @@
    D.A.I. / CODE are lower diagonals.
    ========================================================= */
 
-/* Push all module nodes outward to a consistent radial distance. */
+/* Requested radial order:
+   LEFT  top -> bottom: CONTENT / SOCIAL / D.A.I.
+   RIGHT top -> bottom: ANIMATION / DRAW / CODE
+   PLAY and OPTIONS remain the vertical axis.
+*/
 .universe-main-page .node-play{
   left:50%;
   top:2%;
   transform:translateX(-50%);
   text-align:center;
   justify-items:center;
-}
-.universe-main-page .node-animation{
-  left:4%;
-  top:19%;
-}
-.universe-main-page .node-draw{
-  right:4%;
-  top:19%;
-  text-align:right;
-  justify-items:end;
-}
-.universe-main-page .node-social{
-  left:-1%;
-  top:46%;
-  transform:translateY(-50%);
-}
-.universe-main-page .node-content{
-  right:-1%;
-  top:46%;
-  transform:translateY(-50%);
-  text-align:right;
-  justify-items:end;
-}
-.universe-main-page .node-information{
-  left:7%;
-  bottom:9%;
-}
-.universe-main-page .node-code{
-  right:7%;
-  bottom:9%;
-  text-align:right;
-  justify-items:end;
 }
 .universe-main-page .node-options{
   left:50%;
@@ -54,6 +26,58 @@
   transform:translateX(-50%);
   text-align:center;
   justify-items:center;
+}
+
+/* Upper pair */
+.universe-main-page .node-content{
+  left:0;
+  right:auto;
+  top:18%;
+  transform:none;
+  text-align:left;
+  justify-items:start;
+}
+.universe-main-page .node-animation{
+  right:0;
+  left:auto;
+  top:18%;
+  transform:none;
+  text-align:right;
+  justify-items:end;
+}
+
+/* Middle pair */
+.universe-main-page .node-social{
+  left:-1%;
+  right:auto;
+  top:46%;
+  transform:translateY(-50%);
+  text-align:left;
+  justify-items:start;
+}
+.universe-main-page .node-draw{
+  right:-1%;
+  left:auto;
+  top:46%;
+  transform:translateY(-50%);
+  text-align:right;
+  justify-items:end;
+}
+
+/* Lower pair */
+.universe-main-page .node-information{
+  left:5%;
+  right:auto;
+  bottom:10%;
+  text-align:left;
+  justify-items:start;
+}
+.universe-main-page .node-code{
+  right:5%;
+  left:auto;
+  bottom:10%;
+  text-align:right;
+  justify-items:end;
 }
 
 /* ANIMATION — Golden Rye */
@@ -214,15 +238,162 @@
     0 2px 7px rgba(0,0,0,.28);
 }
 
-/* Narrow layouts keep the same conceptual octagonal alignment. */
+/* =========================================================
+   v1.6 — MOBILE UNIVERSE ALIGNMENT / READABILITY REPAIR
+   ========================================================= */
 @media(max-width:720px){
-  .universe-main-page .node-play{top:3%}
-  .universe-main-page .node-animation{left:1%;top:18%}
-  .universe-main-page .node-draw{right:1%;top:18%}
-  .universe-main-page .node-social{left:-3%;top:45%}
-  .universe-main-page .node-content{right:-3%;top:45%}
-  .universe-main-page .node-information{left:3%;bottom:10%}
-  .universe-main-page .node-code{right:3%;bottom:10%}
-  .universe-main-page .node-options{bottom:2%}
-  .universe-main-page .world-node small{max-width:125px}
+  .universe-main-page .universe-landing{
+    min-height:620px;
+  }
+
+  /* The old mobile stage could exceed viewport width. Keep every side node
+     inside a bounded navigation stage. */
+  .universe-main-page .system-stage{
+    width:min(calc(100vw - 24px),420px) !important;
+    height:min(72svh,600px) !important;
+    min-height:500px;
+    aspect-ratio:auto !important;
+    left:50%;
+    top:54%;
+    transform:translate(-50%,-50%);
+  }
+
+  /* Reduce the visual core so labels no longer get swallowed by the globe. */
+  .universe-main-page .universe-core{
+    width:210px;
+    height:210px;
+  }
+  .universe-main-page .core-planet{
+    width:148px;
+    height:148px;
+  }
+
+  .universe-main-page .world-node{
+    min-width:0;
+    width:118px;
+    gap:2px;
+    text-shadow:
+      0 1px 2px rgba(0,0,0,.98),
+      0 0 6px rgba(0,0,0,.84);
+  }
+  .universe-main-page .world-node span{
+    font-size:10px;
+    line-height:1.05;
+    letter-spacing:.10em;
+  }
+  .universe-main-page .world-node b{
+    width:10px;
+    height:10px;
+    margin-bottom:4px;
+  }
+  .universe-main-page .world-node small{
+    width:auto;
+    max-width:118px;
+    margin-top:3px;
+    padding:4px 5px;
+    border-radius:5px;
+    font-size:6.25px;
+    line-height:1.32;
+    letter-spacing:.085em;
+    white-space:normal;
+    overflow-wrap:normal;
+    word-break:normal;
+    color:#9ab0b3;
+    background:rgba(1,8,10,.78);
+    border-color:rgba(198,244,246,.20);
+    -webkit-backdrop-filter:blur(5px) brightness(.62);
+    backdrop-filter:blur(5px) brightness(.62);
+    box-shadow:
+      inset 0 0 9px rgba(131,224,227,.025),
+      0 2px 8px rgba(0,0,0,.48);
+  }
+
+  /* PLAY / OPTIONS vertical axis */
+  .universe-main-page .node-play{
+    width:172px;
+    left:50%;
+    top:0;
+    transform:translateX(-50%);
+    text-align:center;
+    justify-items:center;
+  }
+  .universe-main-page .node-play small{max-width:172px}
+  .universe-main-page .node-options{
+    width:160px;
+    left:50%;
+    bottom:0;
+    transform:translateX(-50%);
+    text-align:center;
+    justify-items:center;
+  }
+  .universe-main-page .node-options small{max-width:160px}
+
+  /* LEFT: CONTENT / SOCIAL / D.A.I. */
+  .universe-main-page .node-content{
+    left:0; right:auto; top:18%; transform:none;
+    text-align:left; justify-items:start;
+  }
+  .universe-main-page .node-social{
+    left:0; right:auto; top:45%; transform:translateY(-50%);
+    text-align:left; justify-items:start;
+  }
+  .universe-main-page .node-information{
+    left:0; right:auto; bottom:13%;
+    text-align:left; justify-items:start;
+  }
+
+  /* RIGHT: ANIMATION / DRAW / CODE */
+  .universe-main-page .node-animation{
+    right:0; left:auto; top:18%; transform:none;
+    text-align:right; justify-items:end;
+  }
+  .universe-main-page .node-draw{
+    right:0; left:auto; top:45%; transform:translateY(-50%);
+    text-align:right; justify-items:end;
+  }
+  .universe-main-page .node-code{
+    right:0; left:auto; bottom:13%;
+    text-align:right; justify-items:end;
+  }
+
+  .universe-main-page .platform-line{
+    max-width:92vw;
+    margin-inline:auto;
+    padding-inline:8px;
+    font-size:7px;
+    line-height:1.45;
+    letter-spacing:.10em;
+    text-align:center;
+  }
 }
+
+/* Extra compression for phones around 360 CSS px wide. */
+@media(max-width:390px){
+  .universe-main-page .system-stage{
+    width:calc(100vw - 18px) !important;
+    height:min(70svh,560px) !important;
+    min-height:480px;
+    top:53%;
+  }
+  .universe-main-page .universe-core{
+    width:190px;
+    height:190px;
+  }
+  .universe-main-page .core-planet{
+    width:132px;
+    height:132px;
+  }
+  .universe-main-page .world-node{width:108px}
+  .universe-main-page .world-node span{font-size:9px}
+  .universe-main-page .world-node small{
+    max-width:108px;
+    font-size:5.8px;
+    letter-spacing:.07em;
+    padding:3px 4px;
+  }
+  .universe-main-page .node-play{width:154px}
+  .universe-main-page .node-play small{max-width:154px}
+  .universe-main-page .node-options{width:146px}
+  .universe-main-page .node-options small{max-width:146px}
+}
+
