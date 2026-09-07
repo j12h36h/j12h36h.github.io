@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07100a">
   <meta name="description" content="E.R.A.S. Tactical Strike — round-based first-person tactical combat">
   <title>Tactical Strike — E.R.A.S.</title>
-  <link rel="stylesheet" href="./tactical-strike.css?v=1.0.1">
+  <link rel="stylesheet" href="./tactical-strike.css?v=1.1.0">
 </head>
 <body>
 <div id="gameViewport" class="ts-viewport" tabindex="0" aria-label="Tactical Strike first person game"></div>
@@ -15,7 +15,7 @@
   <div class="ts-round"><span id="phaseLabel">LOADING</span><b id="roundTimer">00:00</b><small id="roundLabel">ROUND 1</small></div>
   <div class="ts-score"><span>ALPHA <b id="alphaScore">0</b></span><i>:</i><span><b id="bravoScore">0</b> BRAVO</span></div>
 </header>
-<div class="ts-crosshair" aria-hidden="true"><i></i><i></i></div>
+<div class="ts-crosshair" id="crosshair" aria-hidden="true"><i></i><i></i></div><div class="ts-motion-state" id="motionStateHud" aria-live="polite"></div>
 <div id="hitMarker" class="ts-hit" aria-hidden="true">×</div>
 <div id="damageFlash" class="ts-damage" aria-hidden="true"></div>
 <section class="ts-hud">
@@ -37,7 +37,7 @@
   <div><small>BUY PHASE</small><h2>LOADOUT</h2><p>Press B to toggle. Purchases use match-local Credits only.</p></div>
   <button data-buy="rifle" type="button"><b>TACTICAL RIFLE</b><span>2700</span><small>30 / 90 · automatic</small></button>
   <button data-buy="armor" type="button"><b>BODY ARMOR</b><span>650</span><small>100 armor</small></button>
-  <button data-buy="ammo" type="button"><b>AMMUNITION</b><span>300</span><small>refill reserve</small></button>
+  <button data-buy="ammo" type="button"><b>AMMUNITION</b><span id="ammoPriceHud">300</span><small id="ammoBuyDetail">current weapon reserve</small></button>
 </section>
 <section class="ts-start" id="startOverlay">
   <div class="ts-start-card">
@@ -45,10 +45,10 @@
     <h1>ROUND-BASED FIRST PERSON COMBAT</h1>
     <p id="loadStatus">Loading Tactical Arena…</p>
     <button id="enterGame" type="button" disabled>ENTER MATCH</button>
-    <div class="ts-controls"><span>WASD MOVE</span><span>SHIFT SPRINT</span><span>MOUSE AIM</span><span>CLICK FIRE</span><span>R RELOAD</span><span>1 / 2 WEAPON</span><span>B BUY</span><span>ESC RELEASE MOUSE</span></div>
+    <div class="ts-controls"><span>WASD MOVE</span><span>LEFT SHIFT SPRINT</span><span>SPACE JUMP</span><span>C CROUCH</span><span>MOUSE AIM</span><span>CLICK FIRE</span><span>R RELOAD</span><span>1 / 2 WEAPON</span><span>B BUY</span><span>ESC RELEASE MOUSE</span></div>
     <small>Current foundation runtime uses local practice opponents. Hosted lobby rules and Scene selection are loaded when launched from an E.R.A.S. hosted lobby.</small>
   </div>
 </section>
-<script type="module" src="./tactical-strike.js?v=1.0.2"></script>
+<script type="module" src="./tactical-strike.js?v=1.1.0"></script>
 </body>
 </html>

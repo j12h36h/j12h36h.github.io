@@ -4,7 +4,7 @@
   "id": "ruleset.tactical_strike",
   "name": "Tactical Strike Standard",
   "modeId": "tactical-strike",
-  "version": 1,
+  "version": 2,
   "roundsToWin": 7,
   "roundSeconds": 105,
   "buySeconds": 15,
@@ -27,7 +27,17 @@
       "fireIntervalMs": 240,
       "reloadMs": 1450,
       "spread": 0.008,
-      "recoil": 0.012
+      "recoil": 0.012,
+      "automatic": false,
+      "range": 78,
+      "falloffStart": 34,
+      "minDamageMultiplier": 0.72,
+      "headshotMultiplier": 2.0,
+      "moveSpread": 0.02,
+      "airSpread": 0.06,
+      "crouchSpreadMultiplier": 0.68,
+      "recoilYaw": 0.004,
+      "reserveMax": 48
     },
     "rifle": {
       "name": "Tactical Rifle",
@@ -38,7 +48,17 @@
       "fireIntervalMs": 100,
       "reloadMs": 2100,
       "spread": 0.014,
-      "recoil": 0.019
+      "recoil": 0.019,
+      "automatic": true,
+      "range": 118,
+      "falloffStart": 45,
+      "minDamageMultiplier": 0.7,
+      "headshotMultiplier": 1.85,
+      "moveSpread": 0.03,
+      "airSpread": 0.075,
+      "crouchSpreadMultiplier": 0.64,
+      "recoilYaw": 0.006,
+      "reserveMax": 90
     }
   },
   "equipment": {
@@ -49,5 +69,30 @@
     "ammo": {
       "cost": 300
     }
+  },
+  "movement": {
+    "walkSpeed": 4.8,
+    "sprintSpeed": 7.2,
+    "crouchSpeed": 2.55,
+    "jumpVelocity": 5.6,
+    "gravity": 16.5,
+    "standingEyeHeight": 1.7,
+    "crouchEyeHeight": 1.08
+  },
+  "ai": {
+    "moveSpeed": 2.6,
+    "preferredRange": 15,
+    "sightRange": 42,
+    "baseAccuracy": 0.68,
+    "reactionMinMs": 240,
+    "reactionMaxMs": 650,
+    "burstMin": 2,
+    "burstMax": 5,
+    "shotIntervalMinMs": 165,
+    "shotIntervalMaxMs": 265,
+    "burstCooldownMinMs": 520,
+    "burstCooldownMaxMs": 1100,
+    "damageMin": 18,
+    "damageMax": 27
   }
 }
