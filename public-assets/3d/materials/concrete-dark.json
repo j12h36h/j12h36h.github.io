@@ -1,0 +1,15 @@
+{
+  "eras3d": 1,
+  "type": "material",
+  "id": "material.concrete_dark",
+  "name": "Concrete Dark",
+  "shader": "standard",
+  "baseColor": "#343b40",
+  "roughness": 0.92,
+  "metalness": 0.05,
+  "texture": "/public-assets/3d/materials/textures/concrete-dark.svg",
+  "repeat": [
+    2,
+    2
+  ]
+}

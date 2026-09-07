@@ -1,0 +1,18 @@
+{
+  "eras3d": 1,
+  "type": "object",
+  "id": "object.floor",
+  "name": "Floor Block",
+  "primitive": "box",
+  "size": [
+    4,
+    0.5,
+    4
+  ],
+  "materialId": "material.floor_grid",
+  "collision": "solid",
+  "uvScale": [
+    1,
+    1
+  ]
+}

@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="./assets/market.css?v=2.5.0">
   <link rel="stylesheet" href="./assets/market-hotfix.css?v=2.5.0">
   <link rel="stylesheet" href="/game/assets/css/hosted-option-picker.css?v=1.0.3">
+  <script src="/assets/js/eras-3d-catalog-extension.js?v=1.0.0"></script>
   <script type="module" src="/assets/js/eras-module-theme.js?v=20260907-t8"></script>
 </head>
 <body class="market-page">
@@ -22,7 +23,7 @@
 
   <header class="site-header">
     <a class="brand" href="/" aria-label="Project E.R.A.S. Universe home"><span class="brand-mark" aria-hidden="true"></span><span>PROJECT E.R.A.S. <b>: CONTENT</b></span></a>
-    <div class="content-header-actions"><a class="content-trade-link" href="/trade/">TRADE</a><div class="portal-auth-area" id="portalAuthArea" aria-live="polite"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div></div>
+    <div class="content-header-actions"><a class="content-trade-link" href="/scene-designer/">SCENE DESIGNER</a><a class="content-trade-link" href="/trade/">TRADE</a><div class="portal-auth-area" id="portalAuthArea" aria-live="polite"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div></div>
   </header>
 
   <main class="market-shell">
@@ -50,6 +51,11 @@
         <button class="market-filter" type="button" disabled>WORLD <b id="worldAssetCount">00</b></button>
         <button class="market-filter" type="button" disabled>EFFECT <b id="effectAssetCount">00</b></button>
         <button class="market-filter" type="button" disabled>ICON <b id="iconAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>3D OBJECT <b id="objectAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>STRUCTURE <b id="structureAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>MATERIAL <b id="materialAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>SCENE <b id="sceneAssetCount">00</b></button>
+        <button class="market-filter" type="button" disabled>RULESET <b id="rulesetAssetCount">00</b></button>
         <div class="market-note"><b>PUBLIC-ASSETS/</b><p>Asset Library files are served from the site’s public asset package. Firestore stores immutable Collection holdings and lifecycle state, not duplicate files.</p></div>
       </aside>
 

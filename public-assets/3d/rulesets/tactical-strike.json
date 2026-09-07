@@ -1,0 +1,53 @@
+{
+  "eras3d": 1,
+  "type": "ruleset",
+  "id": "ruleset.tactical_strike",
+  "name": "Tactical Strike Standard",
+  "modeId": "tactical-strike",
+  "version": 1,
+  "roundsToWin": 7,
+  "roundSeconds": 105,
+  "buySeconds": 15,
+  "teamSize": 5,
+  "startingCredits": 800,
+  "friendlyFire": false,
+  "objectiveMode": "elimination",
+  "economy": {
+    "winReward": 3250,
+    "lossReward": 1900,
+    "killReward": 300
+  },
+  "weapons": {
+    "pistol": {
+      "name": "Service Pistol",
+      "cost": 0,
+      "damage": 38,
+      "magazine": 12,
+      "reserve": 48,
+      "fireIntervalMs": 240,
+      "reloadMs": 1450,
+      "spread": 0.008,
+      "recoil": 0.012
+    },
+    "rifle": {
+      "name": "Tactical Rifle",
+      "cost": 2700,
+      "damage": 34,
+      "magazine": 30,
+      "reserve": 90,
+      "fireIntervalMs": 100,
+      "reloadMs": 2100,
+      "spread": 0.014,
+      "recoil": 0.019
+    }
+  },
+  "equipment": {
+    "armor": {
+      "cost": 650,
+      "max": 100
+    },
+    "ammo": {
+      "cost": 300
+    }
+  }
+}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#08110a">
+  <meta name="description" content="E.R.A.S. 3D Scene and World Designer">
+  <title>3D Scene Designer — E.R.A.S.</title>
+  <link rel="stylesheet" href="./scene-designer.css?v=1.0.0">
+</head>
+<body>
+<header class="sd-topbar">
+  <a class="sd-brand" href="/"><i></i><span>PROJECT E.R.A.S. <b>: 3D SCENE DESIGNER</b></span></a>
+  <nav><a href="/content/">ASSET LIBRARY</a><a href="/animation-engine/">ANIMATION DESIGNER</a><a href="/game/tactical-strike/">TEST FPS</a></nav>
+</header>
+<main class="sd-app">
+  <section class="sd-toolbar" aria-label="Document controls">
+    <div class="sd-mode-tabs" role="group" aria-label="Designer mode">
+      <button class="is-active" data-doc-mode="scene" type="button">SCENE</button>
+      <button data-doc-mode="world" type="button">WORLD</button>
+    </div>
+    <label class="sd-title-field">NAME <input id="docName" value="Untitled Scene" maxlength="80"></label>
+    <div class="sd-toolbar-actions">
+      <button id="newDoc" type="button">NEW</button>
+      <button id="loadSample" type="button">LOAD SAMPLE</button>
+      <label class="sd-file-button">IMPORT JSON<input id="importJson" type="file" accept="application/json,.json"></label>
+      <button id="exportJson" class="primary" type="button">EXPORT JSON</button>
+    </div>
+  </section>
+
+  <section class="sd-workspace">
+    <aside class="sd-panel sd-palette">
+      <div class="sd-panel-head"><span>01</span><div><small>ASSET LIBRARY</small><h2>PALETTE</h2></div></div>
+      <input id="assetSearch" class="sd-search" type="search" placeholder="Search 3D assets">
+      <div id="paletteList" class="sd-palette-list"></div>
+      <div class="sd-palette-tools" id="sceneTools">
+        <button data-special-add="marker" type="button">＋ MARKER</button>
+        <button data-special-add="light" type="button">＋ LIGHT</button>
+        <button data-special-add="socket" type="button">＋ SOCKET</button>
+      </div>
+      <p class="sd-help">Objects and Structures come from the Asset Library. Scenes can expose sockets so Worlds snap chunks together without duplicating model files.</p>
+    </aside>
+
+    <section class="sd-viewport-panel">
+      <div class="sd-viewport-head">
+        <div><small id="viewportModeLabel">SCENE VIEWPORT</small><b id="selectionLabel">NO SELECTION</b></div>
+        <div class="sd-view-controls"><label><input id="snapEnabled" type="checkbox" checked> SNAP</label><label>STEP <input id="snapStep" type="number" min="0.1" max="16" step="0.1" value="1"></label><button id="frameAll" type="button">FRAME ALL</button></div>
+      </div>
+      <div id="viewport" class="sd-viewport" tabindex="0" aria-label="3D scene viewport">
+        <div id="viewportStatus" class="sd-viewport-status">LOADING 3D ENGINE…</div>
+        <div class="sd-viewport-help">DRAG: ORBIT · SHIFT+DRAG: PAN · WHEEL: ZOOM · CLICK: SELECT</div>
+      </div>
+      <div class="sd-hierarchy-wrap">
+        <div class="sd-subhead"><span>HIERARCHY</span><div><button id="duplicateSelection" type="button">DUPLICATE</button><button id="deleteSelection" type="button">DELETE</button></div></div>
+        <div id="hierarchy" class="sd-hierarchy"></div>
+      </div>
+    </section>
+
+    <aside class="sd-panel sd-inspector">
+      <div class="sd-panel-head"><span>02</span><div><small>LIVE PROPERTIES</small><h2>INSPECTOR</h2></div></div>
+      <div id="inspectorEmpty" class="sd-empty">Select an object, marker, socket, light, or world Scene chunk.</div>
+      <form id="inspectorForm" class="sd-inspector-form" hidden>
+        <label>NAME<input id="iName" maxlength="80"></label>
+        <label>ASSET / TYPE<input id="iAsset" readonly></label>
+        <fieldset><legend>POSITION</legend><div class="sd-triple"><label>X<input id="iPx" type="number" step="0.1"></label><label>Y<input id="iPy" type="number" step="0.1"></label><label>Z<input id="iPz" type="number" step="0.1"></label></div></fieldset>
+        <fieldset id="rotationFields"><legend>ROTATION °</legend><div class="sd-triple"><label>X<input id="iRx" type="number" step="1"></label><label>Y<input id="iRy" type="number" step="1"></label><label>Z<input id="iRz" type="number" step="1"></label></div></fieldset>
+        <fieldset id="scaleFields"><legend>SCALE</legend><div class="sd-triple"><label>X<input id="iSx" type="number" step="0.1" min="0.05"></label><label>Y<input id="iSy" type="number" step="0.1" min="0.05"></label><label>Z<input id="iSz" type="number" step="0.1" min="0.05"></label></div></fieldset>
+        <label id="materialField">MATERIAL<select id="iMaterial"></select></label>
+        <div id="uvFields"><label>UV TILE X<input id="iUvX" type="number" min="0.1" max="128" step="0.1"></label><label>UV TILE Y<input id="iUvY" type="number" min="0.1" max="128" step="0.1"></label></div>
+        <label id="collisionField">COLLISION<select id="iCollision"><option value="solid">SOLID</option><option value="none">NONE</option><option value="trigger">TRIGGER</option><option value="ladder">LADDER</option><option value="invisible-barrier">INVISIBLE BARRIER</option></select></label>
+        <div id="markerFields" hidden><label>MARKER TYPE<select id="iMarkerType"><option value="team_spawn">TEAM SPAWN</option><option value="objective">OBJECTIVE</option><option value="item_spawn">ITEM SPAWN</option><option value="spectator">SPECTATOR</option></select></label><label>TEAM / LABEL<input id="iMarkerTeam" maxlength="32"></label></div>
+        <div id="socketFields" hidden><label>SOCKET KIND<input id="iSocketKind" maxlength="32" placeholder="road, door, tunnel"></label><label>EDGE<select id="iSocketEdge"><option value="north">NORTH</option><option value="east">EAST</option><option value="south">SOUTH</option><option value="west">WEST</option><option value="custom">CUSTOM</option></select></label></div>
+        <div id="lightFields" hidden><label>LIGHT COLOR<input id="iLightColor" type="color" value="#ffffff"></label><label>INTENSITY<input id="iLightIntensity" type="number" min="0" max="200" step="0.5"></label></div>
+        <div id="worldFields" hidden><label>SCENE ID<input id="iSceneId" readonly></label><div class="sd-adjacent"><span>ADD ADJACENT</span><button data-adjacent="north" type="button">N</button><button data-adjacent="west" type="button">W</button><button data-adjacent="east" type="button">E</button><button data-adjacent="south" type="button">S</button></div></div>
+      </form>
+      <section class="sd-schema-note"><b>OBJECT → STRUCTURE → SCENE → WORLD</b><p>Scene JSON references reusable assets. World JSON references Scene chunks. Materials and Rulesets stay reusable instead of being copied into every map.</p></section>
+    </aside>
+  </section>
+  <footer class="sd-statusbar"><span id="docStats">0 OBJECTS</span><span id="saveStatus">LOCAL AUTOSAVE READY</span><span>E.R.A.S. 3D FORMAT v1</span></footer>
+</main>
+<script type="module" src="./scene-designer.js?v=1.0.0"></script>
+</body>
+</html>

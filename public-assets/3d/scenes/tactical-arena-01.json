@@ -1,0 +1,478 @@
+{
+  "eras3d": 1,
+  "type": "scene",
+  "id": "scene.tactical_arena_01",
+  "name": "Tactical Arena 01",
+  "version": 1,
+  "chunkSize": [
+    64,
+    16,
+    64
+  ],
+  "environment": {
+    "skyColor": "#11191c",
+    "ambientIntensity": 0.72,
+    "sunIntensity": 1.1,
+    "sunDirection": [
+      0.5,
+      1,
+      0.25
+    ]
+  },
+  "objects": [
+    {
+      "id": "floor-main",
+      "assetId": "object.floor",
+      "position": [
+        0,
+        -0.25,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        16,
+        1,
+        16
+      ],
+      "materialId": "material.floor_grid",
+      "collision": "solid",
+      "uvScale": [
+        16,
+        16
+      ]
+    },
+    {
+      "id": "north-wall",
+      "assetId": "object.wall",
+      "position": [
+        0,
+        1.5,
+        -31.5
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        16,
+        1,
+        1
+      ],
+      "materialId": "material.concrete_dark",
+      "collision": "solid",
+      "uvScale": [
+        16,
+        1
+      ]
+    },
+    {
+      "id": "south-wall",
+      "assetId": "object.wall",
+      "position": [
+        0,
+        1.5,
+        31.5
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        16,
+        1,
+        1
+      ],
+      "materialId": "material.concrete_dark",
+      "collision": "solid",
+      "uvScale": [
+        16,
+        1
+      ]
+    },
+    {
+      "id": "west-wall",
+      "assetId": "object.wall",
+      "position": [
+        -31.5,
+        1.5,
+        0
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": [
+        16,
+        1,
+        1
+      ],
+      "materialId": "material.concrete_dark",
+      "collision": "solid",
+      "uvScale": [
+        16,
+        1
+      ]
+    },
+    {
+      "id": "east-wall",
+      "assetId": "object.wall",
+      "position": [
+        31.5,
+        1.5,
+        0
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": [
+        16,
+        1,
+        1
+      ],
+      "materialId": "material.concrete_dark",
+      "collision": "solid",
+      "uvScale": [
+        16,
+        1
+      ]
+    },
+    {
+      "id": "mid-wall-a",
+      "assetId": "object.wall",
+      "position": [
+        -8,
+        1.5,
+        -7
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        3,
+        1,
+        1
+      ],
+      "materialId": "material.concrete_dark",
+      "collision": "solid"
+    },
+    {
+      "id": "mid-wall-b",
+      "assetId": "object.wall",
+      "position": [
+        9,
+        1.5,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        3,
+        1,
+        1
+      ],
+      "materialId": "material.concrete_dark",
+      "collision": "solid"
+    },
+    {
+      "id": "lane-wall-a",
+      "assetId": "object.wall",
+      "position": [
+        -15,
+        1.5,
+        8
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": [
+        4,
+        1,
+        1
+      ],
+      "materialId": "material.concrete_dark",
+      "collision": "solid"
+    },
+    {
+      "id": "lane-wall-b",
+      "assetId": "object.wall",
+      "position": [
+        15,
+        1.5,
+        -8
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": [
+        4,
+        1,
+        1
+      ],
+      "materialId": "material.concrete_dark",
+      "collision": "solid"
+    },
+    {
+      "id": "crate-a",
+      "assetId": "object.industrial_crate",
+      "position": [
+        -5,
+        0.75,
+        5
+      ],
+      "rotation": [
+        0,
+        18,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "materialId": "material.metal_green",
+      "collision": "solid"
+    },
+    {
+      "id": "crate-b",
+      "assetId": "object.industrial_crate",
+      "position": [
+        5,
+        0.75,
+        -5
+      ],
+      "rotation": [
+        0,
+        -12,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "materialId": "material.metal_green",
+      "collision": "solid"
+    },
+    {
+      "id": "crate-c",
+      "assetId": "object.industrial_crate",
+      "position": [
+        0,
+        0.75,
+        14
+      ],
+      "rotation": [
+        0,
+        35,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "materialId": "material.metal_green",
+      "collision": "solid"
+    }
+  ],
+  "markers": [
+    {
+      "id": "alpha-1",
+      "type": "team_spawn",
+      "team": "alpha",
+      "position": [
+        -24,
+        1.7,
+        20
+      ],
+      "rotation": [
+        0,
+        45,
+        0
+      ]
+    },
+    {
+      "id": "alpha-2",
+      "type": "team_spawn",
+      "team": "alpha",
+      "position": [
+        -21,
+        1.7,
+        23
+      ],
+      "rotation": [
+        0,
+        45,
+        0
+      ]
+    },
+    {
+      "id": "bravo-1",
+      "type": "team_spawn",
+      "team": "bravo",
+      "position": [
+        24,
+        1.0,
+        -20
+      ],
+      "rotation": [
+        0,
+        -135,
+        0
+      ]
+    },
+    {
+      "id": "bravo-2",
+      "type": "team_spawn",
+      "team": "bravo",
+      "position": [
+        21,
+        1.0,
+        -23
+      ],
+      "rotation": [
+        0,
+        -135,
+        0
+      ]
+    },
+    {
+      "id": "bravo-3",
+      "type": "team_spawn",
+      "team": "bravo",
+      "position": [
+        25,
+        1.0,
+        -16
+      ],
+      "rotation": [
+        0,
+        -135,
+        0
+      ]
+    },
+    {
+      "id": "objective-a",
+      "type": "objective",
+      "objective": "A",
+      "position": [
+        -11,
+        0.1,
+        -18
+      ]
+    },
+    {
+      "id": "objective-b",
+      "type": "objective",
+      "objective": "B",
+      "position": [
+        12,
+        0.1,
+        17
+      ]
+    },
+    {
+      "id": "spectator",
+      "type": "spectator",
+      "position": [
+        0,
+        12,
+        0
+      ]
+    }
+  ],
+  "lights": [
+    {
+      "id": "center-light",
+      "type": "point",
+      "position": [
+        0,
+        7,
+        0
+      ],
+      "color": "#dcefe6",
+      "intensity": 22,
+      "range": 35
+    }
+  ],
+  "sockets": [
+    {
+      "id": "north-road",
+      "edge": "north",
+      "kind": "road",
+      "position": [
+        0,
+        0,
+        -32
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "south-road",
+      "edge": "south",
+      "kind": "road",
+      "position": [
+        0,
+        0,
+        32
+      ],
+      "direction": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "east-road",
+      "edge": "east",
+      "kind": "road",
+      "position": [
+        32,
+        0,
+        0
+      ],
+      "direction": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "west-road",
+      "edge": "west",
+      "kind": "road",
+      "position": [
+        -32,
+        0,
+        0
+      ],
+      "direction": [
+        -1,
+        0,
+        0
+      ]
+    }
+  ]
+}

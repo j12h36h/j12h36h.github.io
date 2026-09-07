@@ -1,0 +1,18 @@
+{
+  "eras3d": 1,
+  "type": "object",
+  "id": "object.wall",
+  "name": "Wall Block",
+  "primitive": "box",
+  "size": [
+    4,
+    3,
+    0.35
+  ],
+  "materialId": "material.concrete_dark",
+  "collision": "solid",
+  "uvScale": [
+    2,
+    1
+  ]
+}

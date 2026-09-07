@@ -25,7 +25,16 @@ export function assetCategory(asset) {
 
   if (rawCategory === 'game-mode-icons' || id.includes('mode_') || rawType === 'mode') return 'Mode';
   if (['audio','sound','music'].includes(rawType) || ['audio','sounds','music'].includes(rawCategory)) return 'Audio';
-  if (['world','map'].includes(rawType) || ['world','worlds','maps'].includes(rawCategory)) return 'World';
+
+  // E.R.A.S. 3D asset hierarchy: Object -> Structure -> Scene -> World.
+  // Material and Ruleset are reusable supporting assets beside that hierarchy.
+  if (['object','3d-object','model'].includes(rawType) || ['3d-objects','objects','models'].includes(rawCategory)) return 'Object';
+  if (['structure','3d-structure'].includes(rawType) || ['3d-structures','structures'].includes(rawCategory)) return 'Structure';
+  if (['material','surface'].includes(rawType) || ['3d-materials','materials','surfaces'].includes(rawCategory)) return 'Material';
+  if (['scene','map-chunk','scene-chunk'].includes(rawType) || ['3d-scenes','scenes','scene-chunks'].includes(rawCategory)) return 'Scene';
+  if (['ruleset','rules'].includes(rawType) || ['rulesets','rules'].includes(rawCategory)) return 'Ruleset';
+
+  if (['world','map','open-world'].includes(rawType) || ['world','worlds','maps'].includes(rawCategory)) return 'World';
   if (['effect','vfx','particle','particles'].includes(rawType) || ['effects','vfx','particles'].includes(rawCategory)) return 'Effect';
   if (rawType === 'icon' || rawCategory === 'icons') return 'Icon';
 
@@ -68,8 +77,16 @@ export function assetCatalogVariantLabel(asset) {
   }
   if (kind === 'Audio') return String(asset?.pitchName || '').trim() || 'Undefined';
   if (kind === 'Mode') return String(asset?.ruleName || '').trim() || 'Undefined';
-  if (kind === 'World') return String(asset?.skinName || '').trim() || 'Undefined';
+  if (kind === 'World') return String(asset?.skinName || asset?.worldName || '').trim() || 'Undefined';
   if (kind === 'Effect') return String(asset?.impactName || '').trim() || 'Undefined';
+  if (kind === 'Object') return String(asset?.modelName || asset?.primitive || 'Default Model').trim();
+  if (kind === 'Structure') return String(asset?.moduleName || 'Assembly').trim();
+  if (kind === 'Material') return String(asset?.materialName || 'Surface').trim();
+  if (kind === 'Scene') {
+    const size = Array.isArray(asset?.chunkSize) ? asset.chunkSize : null;
+    return String(asset?.sceneName || (size ? `${size[0]} × ${size[2]} Chunk` : 'Scene Chunk')).trim();
+  }
+  if (kind === 'Ruleset') return String(asset?.ruleName || asset?.rulesetName || 'Standard').trim();
   return 'Undefined';
 }
 
@@ -84,6 +101,8 @@ export function assetCanFillRole(asset, requiredRole='') {
 
   if (role === 'sprite') return kind === 'Sprite' || kind === 'Icon';
   if (role === 'icon') return kind === 'Icon';
+  if (role === 'model' || role === '3d-object') return kind === 'Object' || kind === 'Structure';
+  if (role === 'map' || role === 'scene') return kind === 'Scene' || kind === 'World';
   return kind.toLowerCase() === role;
 }
 
@@ -157,9 +176,6 @@ export function assetLayers(asset, variant='') {
     }
   }
 
-  // Slime Juice is a single source image, but only the green liquid is tintable.
-  // Use the original colored sprite and a selective liquid tint instead of tinting
-  // the whole monochrome sprite.
   if (String(asset?.id || '') === 'eras:slime_juice') {
     return [{
       source: '/public-assets/textures/slime_juice.png',
@@ -243,8 +259,6 @@ function drawGreenDominantTint(ctx, image, tint, width, height) {
   for (let i=0; i<data.length; i+=4) {
     const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
     if (!a) continue;
-
-    // Select the actual green juice while protecting the bottle/outline/highlights.
     const greenLead = g - Math.max(r,b);
     const saturation = Math.max(r,g,b) - Math.min(r,g,b);
     if (g > r && g > b && greenLead >= 7 && saturation >= 10) {

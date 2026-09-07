@@ -1,0 +1,23 @@
+{
+  "eras3d": 1,
+  "type": "object",
+  "id": "object.ramp",
+  "name": "Combat Ramp",
+  "primitive": "box",
+  "size": [
+    4,
+    0.5,
+    6
+  ],
+  "materialId": "material.concrete_dark",
+  "collision": "solid",
+  "defaultRotation": [
+    18,
+    0,
+    0
+  ],
+  "uvScale": [
+    2,
+    2
+  ]
+}

@@ -1,0 +1,253 @@
+{
+  "version": 1,
+  "extension": "eras-3d",
+  "assets": [
+    {
+      "id": "eras:mode_tactical_strike",
+      "name": "Tactical Strike",
+      "displayName": "Tactical Strike",
+      "type": "mode",
+      "category": "game-mode-icons",
+      "description": "Round-based first-person tactical combat using E.R.A.S. 3D Scenes.",
+      "thumbnail": "/public-assets/3d/thumbnails/mode-tactical-strike.svg",
+      "source": "/public-assets/3d/rulesets/tactical-strike.json",
+      "ruleName": "Elimination",
+      "priceCredits": 0,
+      "tags": [
+        "FPS",
+        "ROUND BASED",
+        "3D",
+        "TACTICAL"
+      ],
+      "variantPolicy": {
+        "defaultRule": "Elimination",
+        "rulePresets": [
+          "Elimination",
+          "Attack / Defend",
+          "Control Point"
+        ],
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1
+      }
+    },
+    {
+      "id": "eras:object_floor",
+      "name": "Floor Block",
+      "type": "object",
+      "category": "3d-objects",
+      "description": "Reusable 3D floor primitive with tiled material and collision.",
+      "thumbnail": "/public-assets/3d/thumbnails/object-floor.svg",
+      "source": "/public-assets/3d/objects/floor.json",
+      "primitive": "box",
+      "modelName": "Floor Block",
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "OBJECT",
+        "COLLISION"
+      ]
+    },
+    {
+      "id": "eras:object_wall",
+      "name": "Wall Block",
+      "type": "object",
+      "category": "3d-objects",
+      "description": "Reusable wall primitive for rooms, lanes, cover and boundaries.",
+      "thumbnail": "/public-assets/3d/thumbnails/object-wall.svg",
+      "source": "/public-assets/3d/objects/wall.json",
+      "primitive": "box",
+      "modelName": "Wall Block",
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "OBJECT",
+        "WALL"
+      ]
+    },
+    {
+      "id": "eras:object_industrial_crate",
+      "name": "Industrial Crate",
+      "type": "object",
+      "category": "3d-objects",
+      "description": "Reusable solid cover prop for 3D scenes.",
+      "thumbnail": "/public-assets/3d/thumbnails/object-crate.svg",
+      "source": "/public-assets/3d/objects/crate.json",
+      "primitive": "box",
+      "modelName": "Industrial Crate",
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "OBJECT",
+        "COVER"
+      ]
+    },
+    {
+      "id": "eras:object_ramp",
+      "name": "Combat Ramp",
+      "type": "object",
+      "category": "3d-objects",
+      "description": "Reusable angled traversal and elevation piece.",
+      "thumbnail": "/public-assets/3d/thumbnails/object-ramp.svg",
+      "source": "/public-assets/3d/objects/ramp.json",
+      "primitive": "box",
+      "modelName": "Combat Ramp",
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "OBJECT",
+        "RAMP"
+      ]
+    },
+    {
+      "id": "eras:structure_doorway",
+      "name": "Modular Doorway",
+      "type": "structure",
+      "category": "3d-structures",
+      "description": "Reusable multi-object doorway assembly with connection sockets.",
+      "thumbnail": "/public-assets/3d/thumbnails/structure-doorway.svg",
+      "source": "/public-assets/3d/structures/doorway.json",
+      "moduleName": "Doorway Assembly",
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "STRUCTURE",
+        "SOCKETS"
+      ]
+    },
+    {
+      "id": "eras:material_concrete_dark",
+      "name": "Concrete Dark",
+      "type": "material",
+      "category": "3d-materials",
+      "description": "Tileable dark concrete surface material.",
+      "thumbnail": "/public-assets/3d/thumbnails/material-concrete.svg",
+      "source": "/public-assets/3d/materials/concrete-dark.json",
+      "materialName": "Concrete Dark",
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "MATERIAL",
+        "TILEABLE"
+      ]
+    },
+    {
+      "id": "eras:material_metal_green",
+      "name": "Industrial Green Metal",
+      "type": "material",
+      "category": "3d-materials",
+      "description": "Tileable green industrial metal surface.",
+      "thumbnail": "/public-assets/3d/thumbnails/material-metal.svg",
+      "source": "/public-assets/3d/materials/metal-green.json",
+      "materialName": "Industrial Green Metal",
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "MATERIAL",
+        "METAL"
+      ]
+    },
+    {
+      "id": "eras:material_floor_grid",
+      "name": "Tactical Floor Grid",
+      "type": "material",
+      "category": "3d-materials",
+      "description": "Tileable floor grid for modular scene construction.",
+      "thumbnail": "/public-assets/3d/thumbnails/material-grid.svg",
+      "source": "/public-assets/3d/materials/floor-grid.json",
+      "materialName": "Tactical Floor Grid",
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "MATERIAL",
+        "GRID"
+      ]
+    },
+    {
+      "id": "eras:scene_tactical_arena_01",
+      "name": "Tactical Arena 01",
+      "type": "scene",
+      "category": "3d-scenes",
+      "description": "A 64 \u00d7 64 meter tactical FPS scene chunk with three lanes, cover, spawns, objectives and connection sockets.",
+      "thumbnail": "/public-assets/3d/thumbnails/scene-arena-01.svg",
+      "source": "/public-assets/3d/scenes/tactical-arena-01.json",
+      "sceneName": "64 \u00d7 64 Chunk",
+      "chunkSize": [
+        64,
+        16,
+        64
+      ],
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "SCENE",
+        "FPS",
+        "CHUNK"
+      ]
+    },
+    {
+      "id": "eras:scene_tactical_arena_02",
+      "name": "Tactical Arena Extension",
+      "type": "scene",
+      "category": "3d-scenes",
+      "description": "A compatible 64 \u00d7 64 scene chunk designed to snap beside Tactical Arena 01.",
+      "thumbnail": "/public-assets/3d/thumbnails/scene-arena-02.svg",
+      "source": "/public-assets/3d/scenes/tactical-arena-02.json",
+      "sceneName": "64 \u00d7 64 Chunk",
+      "chunkSize": [
+        64,
+        16,
+        64
+      ],
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "SCENE",
+        "OPEN WORLD",
+        "CHUNK"
+      ]
+    },
+    {
+      "id": "eras:world_tactical_open_demo",
+      "name": "Tactical Open World Demo",
+      "type": "world",
+      "category": "worlds",
+      "description": "Open-world composition made from adjacent reusable Scene chunks.",
+      "thumbnail": "/public-assets/3d/thumbnails/world-open-demo.svg",
+      "source": "/public-assets/3d/worlds/tactical-open-world-demo.json",
+      "skinName": "Scene Chunks",
+      "defaultSkin": "Scene Chunks",
+      "priceCredits": 0,
+      "tags": [
+        "3D",
+        "WORLD",
+        "STREAMING",
+        "SCENES"
+      ],
+      "variantPolicy": {
+        "defaultSkin": "Scene Chunks",
+        "skinPresets": [
+          "Scene Chunks"
+        ],
+        "defaultPriceCredits": 0,
+        "customPriceCredits": 1
+      }
+    },
+    {
+      "id": "eras:ruleset_tactical_strike",
+      "name": "Tactical Strike Standard Rules",
+      "type": "ruleset",
+      "category": "rulesets",
+      "description": "Round timer, economy, weapon and victory rules for Tactical Strike.",
+      "thumbnail": "/public-assets/3d/thumbnails/ruleset-tactical.svg",
+      "source": "/public-assets/3d/rulesets/tactical-strike.json",
+      "ruleName": "Tactical Strike v1",
+      "priceCredits": 0,
+      "tags": [
+        "RULESET",
+        "FPS",
+        "ECONOMY",
+        "ROUNDS"
+      ]
+    }
+  ]
+}

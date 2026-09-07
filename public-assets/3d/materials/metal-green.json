@@ -1,0 +1,15 @@
+{
+  "eras3d": 1,
+  "type": "material",
+  "id": "material.metal_green",
+  "name": "Industrial Green Metal",
+  "shader": "standard",
+  "baseColor": "#315c45",
+  "roughness": 0.58,
+  "metalness": 0.65,
+  "texture": "/public-assets/3d/materials/textures/metal-green.svg",
+  "repeat": [
+    2,
+    2
+  ]
+}

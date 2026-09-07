@@ -1,0 +1,65 @@
+{
+  "eras3d": 1,
+  "type": "world",
+  "id": "world.tactical_open_demo",
+  "name": "Tactical Open World Demo",
+  "version": 1,
+  "streaming": {
+    "chunkRadius": 1,
+    "unloadRadius": 2
+  },
+  "sceneChunks": [
+    {
+      "id": "chunk-0-0",
+      "sceneId": "scene.tactical_arena_01",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "chunk-1-0",
+      "sceneId": "scene.tactical_arena_02",
+      "position": [
+        64,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "chunk-0-1",
+      "sceneId": "scene.tactical_arena_02",
+      "position": [
+        0,
+        0,
+        64
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "chunk-0-0:east-road",
+      "to": "chunk-1-0:west-road"
+    },
+    {
+      "from": "chunk-0-0:south-road",
+      "to": "chunk-0-1:west-road"
+    }
+  ]
+}

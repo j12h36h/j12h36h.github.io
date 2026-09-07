@@ -1,0 +1,15 @@
+{
+  "eras3d": 1,
+  "type": "material",
+  "id": "material.floor_grid",
+  "name": "Tactical Floor Grid",
+  "shader": "standard",
+  "baseColor": "#252c2a",
+  "roughness": 0.78,
+  "metalness": 0.18,
+  "texture": "/public-assets/3d/materials/textures/floor-grid.svg",
+  "repeat": [
+    8,
+    8
+  ]
+}

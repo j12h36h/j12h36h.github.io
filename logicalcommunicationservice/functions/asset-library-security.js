@@ -1,7 +1,7 @@
 const crypto = require('node:crypto');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { getApps, initializeApp } = require('firebase-admin/app');
-const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -12,592 +12,181 @@ const PITCH_PRESETS = Object.freeze([
 ]);
 const MODE_RULES = Object.freeze([
   'Highest Score','Longest Alive','Last Alive','Fastest Finish',
-  'Most Objectives','First to Target','Best Accuracy','Fewest Mistakes'
+  'Most Objectives','First to Target','Best Accuracy','Fewest Mistakes',
+  'Elimination','Attack / Defend','Control Point'
 ]);
 const ICON_PRESETS = Object.freeze([
-  ['Original','#ffffff','#925cff','#64d9ff'],
-  ['Cyan','#dfffff','#64d9ff','#0e7f94'],
-  ['Green','#e6fff0','#72e0a1','#287e4e'],
-  ['Orange','#fff3dd','#ffb22e','#9c5d00'],
+  ['Original','#ffffff','#925cff','#64d9ff'],['Cyan','#dfffff','#64d9ff','#0e7f94'],
+  ['Green','#e6fff0','#72e0a1','#287e4e'],['Orange','#fff3dd','#ffb22e','#9c5d00'],
   ['Purple','#f2e8ff','#b98cff','#6330a9']
 ]);
 const COMMON_TINTS = Object.freeze(['#65d67c','#65c8ff','#e07cff','#ff8b67','#e8e8e8']);
 
 const ASSETS = Object.freeze({
-  'eras:slime_monochrome': { kind:'Sprite', defaultTint:'#65d67c' },
-  'eras:health_potion': { kind:'Sprite', defaultTint:'#ff5b67' },
-  'eras:slime_juice': { kind:'Sprite', defaultTint:'#65d67c' },
-  'eras:hand_wraps': { kind:'Sprite', defaultTint:'#d7c7a2' },
-
-  'eras:escape_pod': {
-    kind:'Sprite',
-    variantKind:'style',
-    defaultStyle:'standard',
-    styles:Object.freeze({
-      standard:Object.freeze({name:'Standard Pod',price:0}),
-      comet:Object.freeze({name:'Comet Pod',price:1}),
-      aurora:Object.freeze({name:'Aurora Pod',price:1}),
-      bulwark:Object.freeze({name:'Bulwark Pod',price:1}),
-      nova:Object.freeze({name:'Nova Pod',price:1})
-    })
-  },
-
-  'eras:audio_turn_based_theme': { kind:'Audio', defaultPitch:'Alto' },
-  'eras:audio_damaged_hit': { kind:'Audio', defaultPitch:'Baritone' },
-  'eras:audio_confirm': { kind:'Audio', defaultPitch:'Soprano' },
-  'eras:audio_heal_chime': { kind:'Audio', defaultPitch:'Mezzo-Soprano' },
-
-  'eras:mode_turn_based_tactical': { kind:'Mode', modeId:'arcade-topdown' },
-  'eras:mode_galactic_dominion': { kind:'Mode', modeId:'galactic-dominion' },
-  'eras:mode_surface_discovery': { kind:'Mode', modeId:'surface-discovery' },
-  'eras:mode_jeng_stroid': { kind:'Mode', modeId:'jeng-stroid' },
-  'eras:mode_sunball': { kind:'Mode', modeId:'sunball' },
-  'eras:mode_soldoku': { kind:'Mode', modeId:'soldoku' },
-  'eras:mode_escape_pod_dash': { kind:'Mode', modeId:'escape-pod-dash' },
-
-  'eras:world_turn_based_medieval': {
-    kind:'World',
-    defaultSkin:'Medieval'
-  },
-
-  'eras:effect_damaged': {
-    kind:'Effect', defaultImpact:{size:1.0,brightness:1.35,tint:'#ff5166'}
-  },
-  'eras:effect_heal_pulse': {
-    kind:'Effect', defaultImpact:{size:1.0,brightness:1.15,tint:'#72e0a1'}
-  },
-  'eras:effect_spawn_burst': {
-    kind:'Effect', defaultImpact:{size:1.1,brightness:1.25,tint:'#b98cff'}
-  },
-  'eras:effect_movement_trail': {
-    kind:'Effect', defaultImpact:{size:0.8,brightness:0.9,tint:'#64d9ff'}
-  },
-
-  'eras:icon_attack': { kind:'Icon' },
-  'eras:icon_defend': { kind:'Icon' },
-  'eras:icon_heal': { kind:'Icon' },
-  'eras:icon_move': { kind:'Icon' },
-  'eras:icon_interact': { kind:'Icon' },
-  'eras:icon_objective': { kind:'Icon' },
-  'eras:icon_collection': { kind:'Icon' },
-  'eras:icon_chat': { kind:'Icon' }
+  'eras:slime_monochrome':{kind:'Sprite',defaultTint:'#65d67c'},
+  'eras:health_potion':{kind:'Sprite',defaultTint:'#ff5b67'},
+  'eras:slime_juice':{kind:'Sprite',defaultTint:'#65d67c'},
+  'eras:hand_wraps':{kind:'Sprite',defaultTint:'#d7c7a2'},
+  'eras:escape_pod':{kind:'Sprite',variantKind:'style',defaultStyle:'standard',styles:Object.freeze({standard:Object.freeze({name:'Standard Pod',price:0}),comet:Object.freeze({name:'Comet Pod',price:1}),aurora:Object.freeze({name:'Aurora Pod',price:1}),bulwark:Object.freeze({name:'Bulwark Pod',price:1}),nova:Object.freeze({name:'Nova Pod',price:1})})},
+  'eras:audio_turn_based_theme':{kind:'Audio',defaultPitch:'Alto'},
+  'eras:audio_damaged_hit':{kind:'Audio',defaultPitch:'Baritone'},
+  'eras:audio_confirm':{kind:'Audio',defaultPitch:'Soprano'},
+  'eras:audio_heal_chime':{kind:'Audio',defaultPitch:'Mezzo-Soprano'},
+  'eras:mode_turn_based_tactical':{kind:'Mode',modeId:'arcade-topdown'},
+  'eras:mode_galactic_dominion':{kind:'Mode',modeId:'galactic-dominion'},
+  'eras:mode_surface_discovery':{kind:'Mode',modeId:'surface-discovery'},
+  'eras:mode_jeng_stroid':{kind:'Mode',modeId:'jeng-stroid'},
+  'eras:mode_sunball':{kind:'Mode',modeId:'sunball'},
+  'eras:mode_soldoku':{kind:'Mode',modeId:'soldoku'},
+  'eras:mode_escape_pod_dash':{kind:'Mode',modeId:'escape-pod-dash'},
+  'eras:mode_tactical_strike':{kind:'Mode',modeId:'tactical-strike'},
+  'eras:world_turn_based_medieval':{kind:'World',defaultSkin:'Medieval'},
+  'eras:world_tactical_open_demo':{kind:'World',defaultSkin:'Scene Chunks'},
+  'eras:effect_damaged':{kind:'Effect',defaultImpact:{size:1,brightness:1.35,tint:'#ff5166'}},
+  'eras:effect_heal_pulse':{kind:'Effect',defaultImpact:{size:1,brightness:1.15,tint:'#72e0a1'}},
+  'eras:effect_spawn_burst':{kind:'Effect',defaultImpact:{size:1.1,brightness:1.25,tint:'#b98cff'}},
+  'eras:effect_movement_trail':{kind:'Effect',defaultImpact:{size:.8,brightness:.9,tint:'#64d9ff'}},
+  'eras:icon_attack':{kind:'Icon'},'eras:icon_defend':{kind:'Icon'},'eras:icon_heal':{kind:'Icon'},
+  'eras:icon_move':{kind:'Icon'},'eras:icon_interact':{kind:'Icon'},'eras:icon_objective':{kind:'Icon'},
+  'eras:icon_collection':{kind:'Icon'},'eras:icon_chat':{kind:'Icon'},
+  // Static 3D library primitives. These are immutable definitions; customization happens
+  // when a creator references them inside Scene/World JSON rather than mutating ownership.
+  'eras:object_floor':{kind:'Object',label:'Floor Block'},
+  'eras:object_wall':{kind:'Object',label:'Wall Block'},
+  'eras:object_industrial_crate':{kind:'Object',label:'Industrial Crate'},
+  'eras:object_ramp':{kind:'Object',label:'Combat Ramp'},
+  'eras:structure_doorway':{kind:'Structure',label:'Modular Doorway'},
+  'eras:material_concrete_dark':{kind:'Material',label:'Concrete Dark'},
+  'eras:material_metal_green':{kind:'Material',label:'Industrial Green Metal'},
+  'eras:material_floor_grid':{kind:'Material',label:'Tactical Floor Grid'},
+  'eras:scene_tactical_arena_01':{kind:'Scene',label:'Tactical Arena 01'},
+  'eras:scene_tactical_arena_02':{kind:'Scene',label:'Tactical Arena Extension'},
+  'eras:ruleset_tactical_strike':{kind:'Ruleset',label:'Tactical Strike Standard'}
 });
 
 const MODE_RUNTIME = Object.freeze({
-  'arcade-topdown': { name:'Turn-Based Tactical', mapId:'global-plaza', maxPlayers:2, runtime:'global' },
-  'galactic-dominion': { name:'Galactic Dominion', mapId:'galactic-ring', maxPlayers:2, runtime:'galactic' },
-  'surface-discovery': { name:'Surface Discovery', mapId:'surface-grid', maxPlayers:2, runtime:'hosted' },
-  'jeng-stroid': { name:'Jeng-stroid', mapId:'stack-bay', maxPlayers:2, runtime:'hosted' },
-  'sunball': { name:'Sunball', mapId:'solar-table', maxPlayers:2, runtime:'hosted' },
-  'soldoku': { name:'Soldoku', mapId:'logic-grid', maxPlayers:2, runtime:'hosted' },
-  'escape-pod-dash': { name:'Escape Pod Dash', mapId:'launch-corridor', maxPlayers:2, runtime:'hosted' }
+  'arcade-topdown':{name:'Turn-Based Tactical',mapId:'global-plaza',maxPlayers:2,runtime:'global'},
+  'galactic-dominion':{name:'Galactic Dominion',mapId:'galactic-ring',maxPlayers:2,runtime:'galactic'},
+  'surface-discovery':{name:'Surface Discovery',mapId:'surface-grid',maxPlayers:2,runtime:'hosted'},
+  'jeng-stroid':{name:'Jeng-stroid',mapId:'stack-bay',maxPlayers:2,runtime:'hosted'},
+  'sunball':{name:'Sunball',mapId:'solar-table',maxPlayers:2,runtime:'hosted'},
+  'soldoku':{name:'Soldoku',mapId:'logic-grid',maxPlayers:2,runtime:'hosted'},
+  'escape-pod-dash':{name:'Escape Pod Dash',mapId:'launch-corridor',maxPlayers:2,runtime:'hosted'},
+  'tactical-strike':{name:'Tactical Strike',mapId:'tactical-arena-01',maxPlayers:10,runtime:'tactical-strike'}
 });
 
-function requireAuth(request) {
-  const uid = request.auth?.uid;
-  if (!uid) throw new HttpsError('unauthenticated','Sign in through E.R.A.S. first.');
-  return uid;
-}
+function requireAuth(request){const uid=request.auth?.uid;if(!uid)throw new HttpsError('unauthenticated','Sign in through E.R.A.S. first.');return uid;}
+async function callerProfile(uid){const account=await db.doc(`privateAccounts/${uid}`).get();const profileId=String(account.data()?.publicProfileId||'');if(!profileId)throw new HttpsError('failed-precondition','E.R.A.S. profile link is missing.');return profileId;}
+function safeHex(value,fallback='#ffffff'){const text=String(value||'').toLowerCase();return /^#[0-9a-f]{6}$/.test(text)?text:fallback;}
+function token(value){return String(value||'').trim().toLowerCase().replace(/[^a-z0-9._-]+/g,'_').replace(/^_+|_+$/g,'').slice(0,80)||'default';}
+function sameNumber(a,b,epsilon=.001){return Math.abs(Number(a)-Number(b))<=epsilon;}
+function pitchPreset(rate){let best=null,distance=Infinity;for(const [name,value] of PITCH_PRESETS){const d=Math.abs(Number(rate)-value);if(d<distance){best={name,value};distance=d;}}return{best,distance};}
 
-async function callerProfile(uid) {
-  const account = await db.doc(`privateAccounts/${uid}`).get();
-  const profileId = String(account.data()?.publicProfileId || '');
-  if (!profileId) throw new HttpsError('failed-precondition','E.R.A.S. profile link is missing.');
-  return profileId;
-}
-
-function safeHex(value, fallback='#ffffff') {
-  const text = String(value || '').toLowerCase();
-  return /^#[0-9a-f]{6}$/.test(text) ? text : fallback;
-}
-function token(value) {
-  return String(value || '')
-    .trim().toLowerCase().replace(/[^a-z0-9._-]+/g,'_')
-    .replace(/^_+|_+$/g,'').slice(0,80) || 'default';
-}
-function sameNumber(a,b,epsilon=.001) {
-  return Math.abs(Number(a)-Number(b)) <= epsilon;
-}
-function pitchPreset(rate) {
-  let best = null;
-  let distance = Infinity;
-  for (const [name,value] of PITCH_PRESETS) {
-    const d = Math.abs(Number(rate)-value);
-    if (d < distance) { best={name,value}; distance=d; }
+function normalizeVariant(assetId,raw={}){
+  const asset=ASSETS[assetId];
+  if(!asset)throw new HttpsError('invalid-argument','Unknown E.R.A.S. Asset Library asset.');
+  if(['Object','Structure','Material','Scene','Ruleset'].includes(asset.kind)){
+    return{storage:'default',custom:false,price:0,label:String(asset.label||'Default')};
   }
-  return { best,distance };
-}
-
-function normalizeVariant(assetId, raw={}) {
-  const asset = ASSETS[assetId];
-  if (!asset) throw new HttpsError('invalid-argument','Unknown E.R.A.S. Asset Library asset.');
-
-  if (asset.kind === 'Sprite') {
-    if (asset.variantKind === 'style') {
-      const requested = token(raw.style || asset.defaultStyle || 'standard');
-      const style = asset.styles?.[requested];
-      if (!style) throw new HttpsError('invalid-argument','Unknown Escape Pod Style.');
-      return {
-        storage:`sprite|style=${requested}`,
-        custom:Number(style.price||0)>0,
-        price:Math.max(0,Math.floor(Number(style.price)||0)),
-        label:String(style.name||requested),
-        runtime:{style:requested}
-      };
+  if(asset.kind==='Sprite'){
+    if(asset.variantKind==='style'){
+      const requested=token(raw.style||asset.defaultStyle||'standard'),style=asset.styles?.[requested];
+      if(!style)throw new HttpsError('invalid-argument','Unknown Escape Pod Style.');
+      return{storage:`sprite|style=${requested}`,custom:Number(style.price||0)>0,price:Math.max(0,Math.floor(Number(style.price)||0)),label:String(style.name||requested),runtime:{style:requested}};
     }
-    const tint = safeHex(raw.tint,asset.defaultTint);
-    const presets = new Set([asset.defaultTint.toLowerCase(),...COMMON_TINTS]);
-    const custom = !presets.has(tint);
-    return { storage:tint, custom, price:custom?1:0, label:tint.toUpperCase() };
+    const tint=safeHex(raw.tint,asset.defaultTint),presets=new Set([asset.defaultTint.toLowerCase(),...COMMON_TINTS]),custom=!presets.has(tint);
+    return{storage:tint,custom,price:custom?1:0,label:tint.toUpperCase()};
   }
-
-  if (asset.kind === 'Audio') {
-    const rate = Math.max(.5,Math.min(1.5,Number(raw.pitchRate ?? 1)));
-    const {best,distance} = pitchPreset(rate);
-    const custom = !best || distance > .004;
-    if (!custom) {
-      return {
-        storage:`audio|pitch=${token(best.name)}`,
-        custom:false, price:0, label:best.name,
-        runtime:{pitchRate:best.value}
-      };
-    }
-    return {
-      storage:`audio|rate=${rate.toFixed(2)}`,
-      custom:true, price:1, label:`${rate.toFixed(2)}x CUSTOM`,
-      runtime:{pitchRate:rate}
-    };
+  if(asset.kind==='Audio'){
+    const rate=Math.max(.5,Math.min(1.5,Number(raw.pitchRate??1))),{best,distance}=pitchPreset(rate),custom=!best||distance>.004;
+    if(!custom)return{storage:`audio|pitch=${token(best.name)}`,custom:false,price:0,label:best.name,runtime:{pitchRate:best.value}};
+    return{storage:`audio|rate=${rate.toFixed(2)}`,custom:true,price:1,label:`${rate.toFixed(2)}x CUSTOM`,runtime:{pitchRate:rate}};
   }
-
-  if (asset.kind === 'Mode') {
-    const requested = String(raw.rule || 'Highest Score');
-    const custom = requested === '__custom__' || !MODE_RULES.includes(requested);
-    if (!custom) {
-      return { storage:`mode|rule=${token(requested)}`, custom:false, price:0, label:requested };
-    }
-    const customRule = String(raw.customRule || '').trim().slice(0,80);
-    if (customRule.length < 2) throw new HttpsError('invalid-argument','Custom Mode Rule must be at least 2 characters.');
-    return { storage:`mode|custom_rule=${token(customRule)}`, custom:true, price:1, label:customRule };
+  if(asset.kind==='Mode'){
+    const requested=String(raw.rule||'Highest Score'),custom=requested==='__custom__'||!MODE_RULES.includes(requested);
+    if(!custom)return{storage:`mode|rule=${token(requested)}`,custom:false,price:0,label:requested};
+    const customRule=String(raw.customRule||'').trim().slice(0,80);if(customRule.length<2)throw new HttpsError('invalid-argument','Custom Mode Rule must be at least 2 characters.');
+    return{storage:`mode|custom_rule=${token(customRule)}`,custom:true,price:1,label:customRule};
   }
-
-  if (asset.kind === 'World') {
-    const requested = String(raw.skin || asset.defaultSkin || 'Default');
-    const custom = requested === '__custom__' || requested !== asset.defaultSkin;
-    if (!custom) {
-      return { storage:`world|skin=${token(requested)}`, custom:false, price:0, label:requested };
-    }
-    const customSkin = String(raw.customSkin || '').trim().slice(0,80);
-    if (customSkin.length < 2) throw new HttpsError('invalid-argument','Custom World Skin must be at least 2 characters.');
-    return { storage:`world|custom_skin=${token(customSkin)}`, custom:true, price:1, label:customSkin };
+  if(asset.kind==='World'){
+    const requested=String(raw.skin||asset.defaultSkin||'Default'),custom=requested==='__custom__'||requested!==asset.defaultSkin;
+    if(!custom)return{storage:`world|skin=${token(requested)}`,custom:false,price:0,label:requested};
+    const customSkin=String(raw.customSkin||'').trim().slice(0,80);if(customSkin.length<2)throw new HttpsError('invalid-argument','Custom World Skin must be at least 2 characters.');
+    return{storage:`world|custom_skin=${token(customSkin)}`,custom:true,price:1,label:customSkin};
   }
-
-  if (asset.kind === 'Effect') {
-    const d = asset.defaultImpact;
-    const size = Math.max(.25,Math.min(3,Number(raw.size ?? d.size)));
-    const brightness = Math.max(0,Math.min(2,Number(raw.brightness ?? d.brightness)));
-    const tint = safeHex(raw.tint,d.tint);
-    const custom = !(sameNumber(size,d.size) && sameNumber(brightness,d.brightness) && tint===safeHex(d.tint));
-    return {
-      storage:`effect|size=${size.toFixed(2)}|brightness=${brightness.toFixed(2)}|tint=${tint}`,
-      custom, price:custom?1:0,
-      label:custom?`Size ${size.toFixed(2)} · Light ${brightness.toFixed(2)} · ${tint.toUpperCase()}`:'Default Impact'
-    };
+  if(asset.kind==='Effect'){
+    const d=asset.defaultImpact,size=Math.max(.25,Math.min(3,Number(raw.size??d.size))),brightness=Math.max(0,Math.min(2,Number(raw.brightness??d.brightness))),tint=safeHex(raw.tint,d.tint),custom=!(sameNumber(size,d.size)&&sameNumber(brightness,d.brightness)&&tint===safeHex(d.tint));
+    return{storage:`effect|size=${size.toFixed(2)}|brightness=${brightness.toFixed(2)}|tint=${tint}`,custom,price:custom?1:0,label:custom?`Size ${size.toFixed(2)} · Light ${brightness.toFixed(2)} · ${tint.toUpperCase()}`:'Default Impact'};
   }
-
-  if (asset.kind === 'Icon') {
-    const primary=safeHex(raw.primary,'#ffffff');
-    const secondary=safeHex(raw.secondary,'#925cff');
-    const accent=safeHex(raw.accent,'#64d9ff');
-    const preset=ICON_PRESETS.find(([,p,s,a])=>p===primary&&s===secondary&&a===accent);
-    const custom=!preset;
-    return {
-      storage:`icon|primary=${primary}|secondary=${secondary}|accent=${accent}`,
-      custom, price:custom?1:0,
-      label:preset?preset[0]:`${primary.toUpperCase()} / ${secondary.toUpperCase()} / ${accent.toUpperCase()}`
-    };
+  if(asset.kind==='Icon'){
+    const primary=safeHex(raw.primary,'#ffffff'),secondary=safeHex(raw.secondary,'#925cff'),accent=safeHex(raw.accent,'#64d9ff'),preset=ICON_PRESETS.find(([,p,s,a])=>p===primary&&s===secondary&&a===accent),custom=!preset;
+    return{storage:`icon|primary=${primary}|secondary=${secondary}|accent=${accent}`,custom,price:custom?1:0,label:preset?preset[0]:`${primary.toUpperCase()} / ${secondary.toUpperCase()} / ${accent.toUpperCase()}`};
   }
-
   throw new HttpsError('invalid-argument','Unsupported asset category.');
 }
 
-function deterministicToken(value,max=72) {
-  return String(value || '').replace(/[^0-9a-zA-Z_-]/g,'_').slice(0,max) || 'unknown';
-}
-function deterministicId(profileId,assetId,storage) {
-  const digest = crypto.createHash('sha256').update(String(storage || '')).digest('hex').slice(0,16);
-  return `market__${deterministicToken(profileId,64)}__${deterministicToken(assetId,72)}__${digest}`.slice(0,180);
-}
+function deterministicToken(value,max=72){return String(value||'').replace(/[^0-9a-zA-Z_-]/g,'_').slice(0,max)||'unknown';}
+function deterministicId(profileId,assetId,storage){const digest=crypto.createHash('sha256').update(String(storage||'')).digest('hex').slice(0,16);return `market__${deterministicToken(profileId,64)}__${deterministicToken(assetId,72)}__${digest}`.slice(0,180);}
+const ESCAPE_POD_PURCHASE_BACKEND_VERSION='escape-pod-style-v4';
 
-const ESCAPE_POD_PURCHASE_BACKEND_VERSION = 'escape-pod-style-v4';
-
-async function acquireEscapePodVariant(profileId, normalized) {
-  const assetId = 'eras:escape_pod';
-  const style = String(normalized.runtime?.style || '');
-  if (!['standard','comet','aurora','bulwark','nova'].includes(style)) {
-    throw new HttpsError('invalid-argument','Unknown Escape Pod Style.');
-  }
-
-  const holdingId = deterministicId(profileId,assetId,normalized.storage);
-  let holdingRef, receiptRef, walletRef;
-  try {
-    holdingRef = db.doc(`assetHoldings/${holdingId}`);
-    receiptRef = db.doc(`assetVariantPurchases/${holdingId}`);
-    walletRef = db.doc(`creditWallets/${profileId}`);
-  } catch (error) {
-    console.error('Escape Pod reference construction failed',{
-      profileId, style, holdingId,
-      code:String(error?.code || ''),
-      message:String(error?.message || error || '')
-    });
-    throw new HttpsError(
-      'invalid-argument',
-      'Escape Pod purchase identifiers were invalid.',
-      {stage:'reference-build',style,backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION}
-    );
-  }
-
-  let charged = 0;
-  let duplicate = false;
-  let recovered = false;
-
-  try {
-    await db.runTransaction(async tx => {
-      // Explicitly sequential reads. Nothing is written until ALL three reads finish.
-      const holdingSnap = await tx.get(holdingRef);
-      const receiptSnap = await tx.get(receiptRef);
-      const walletSnap = await tx.get(walletRef);
-
-      if (holdingSnap.exists) {
-        if (String(holdingSnap.data()?.ownerProfileId || '') !== profileId) {
-          throw new HttpsError('permission-denied','That Escape Pod holding belongs to another profile.');
-        }
-        duplicate = true;
-        return;
-      }
-
-      const priorReceipt = receiptSnap.exists ? (receiptSnap.data() || {}) : null;
-      const receiptMatches = !!priorReceipt
-        && String(priorReceipt.profileId || '') === profileId
-        && String(priorReceipt.assetId || '') === assetId
-        && String(priorReceipt.variant || '') === normalized.storage;
-
-      // If an older attempt left a valid deterministic receipt but the holding is
-      // missing, restore the holding without charging a second time.
-      if (receiptMatches) {
-        recovered = true;
-      } else if (normalized.price > 0) {
-        if (!walletSnap.exists) {
-          throw new HttpsError(
-            'failed-precondition',
-            'Your E.R.A.S. Credit wallet is not initialized yet.',
-            {stage:'wallet-read',style,backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION}
-          );
-        }
-
-        const wallet = walletSnap.data() || {};
-        const balance = Math.max(0,Number(wallet.balance || 0));
-        if (balance < normalized.price) {
-          throw new HttpsError(
-            'failed-precondition',
-            'Not enough Credits for this Escape Pod Style.',
-            {stage:'wallet-balance',style,backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION}
-          );
-        }
-
-        charged = normalized.price;
-        tx.set(walletRef,{
-          profileId,
-          balance:balance-charged,
-          totalEarned:Math.max(0,Number(wallet.totalEarned || 0)),
-          totalLost:Math.max(0,Number(wallet.totalLost || 0))+charged,
-          lastEventId:holdingId,
-          lastEventType:'market_purchase',
-          createdAt:wallet.createdAt || FieldValue.serverTimestamp(),
-          updatedAt:FieldValue.serverTimestamp()
-        },{merge:true});
-      }
-
-      tx.set(holdingRef,{
-        ownerProfileId:profileId,
-        assetId,
-        tint:normalized.storage,
-        acquiredAt:FieldValue.serverTimestamp(),
-        updatedAt:FieldValue.serverTimestamp(),
-        lastEventId:holdingId,
-        lastEventType:recovered?'market_recover':'market_acquire',
-        archived:false,
-        archivedAt:null
-      },{merge:true});
-
-      tx.set(receiptRef,{
-        profileId,
-        assetId,
-        holdingId,
-        variant:normalized.storage,
-        custom:normalized.custom,
-        priceCredits:normalized.price,
-        chargedCredits:receiptMatches
-          ? Math.max(0,Number(priorReceipt?.chargedCredits ?? priorReceipt?.priceCredits ?? 0))
-          : charged,
-        backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION,
-        recovered,
-        createdAt:receiptMatches && priorReceipt?.createdAt
-          ? priorReceipt.createdAt
-          : FieldValue.serverTimestamp(),
-        updatedAt:FieldValue.serverTimestamp()
-      },{merge:true});
-    });
-  } catch (error) {
-    if (error instanceof HttpsError) throw error;
-
-    const backendCode=String(error?.code || 'unknown');
-    const backendMessage=String(error?.message || error || 'unknown');
-    console.error('Escape Pod purchase transaction failed',{
-      profileId, style, holdingId,
-      code:backendCode,
-      message:backendMessage
-    });
-
-    throw new HttpsError(
-      'aborted',
-      `Escape Pod Firestore transaction failed (${backendCode}). No new charge was committed by this attempt.`,
-      {
-        stage:'firestore-transaction',
-        style,
-        backendCode,
-        backendMessage:backendMessage.slice(0,180),
-        backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION
-      }
-    );
-  }
-
-  return {
-    ok:true,
-    holdingId,
-    assetId,
-    variant:normalized.storage,
-    variantLabel:normalized.label,
-    custom:normalized.custom,
-    priceCharged:duplicate?0:charged,
-    duplicate,
-    recovered,
-    migrated:false,
-    backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION
-  };
-}
-
-// Dedicated callable used by both Escape Pod Dash and the Asset Library.
-// Keeping this under its own exported function name lets the browser verify that
-// the new backend is actually deployed instead of silently reaching an older
-// acquireAssetVariant revision.
-exports.acquireEscapePodStyle = onCall(async request => {
-  const uid = requireAuth(request);
-  const profileId = await callerProfile(uid);
-  const style = token(request.data?.style || 'standard');
-  const normalized = normalizeVariant('eras:escape_pod',{style});
-  return acquireEscapePodVariant(profileId,normalized);
-});
-
-exports.acquireAssetVariant = onCall(async request => {
-  const uid = requireAuth(request);
-  const profileId = await callerProfile(uid);
-  const assetId = String(request.data?.assetId || '');
-  const normalized = normalizeVariant(assetId,request.data?.variant || {});
-
-  // Escape Pods use a dedicated style transaction. This keeps Sprite Style
-  // purchases aligned between Asset Library + Escape Pod Dash and avoids the
-  // old Mode-variant migration path that could surface as INTERNAL [0].
-  if (assetId === 'eras:escape_pod') {
-    return acquireEscapePodVariant(profileId,normalized);
-  }
-
-  const holdingId = deterministicId(profileId,assetId,normalized.storage);
-  const holdingRef = db.doc(`assetHoldings/${holdingId}`);
-  const receiptRef = db.doc(`assetVariantPurchases/${holdingId}`);
-  const walletRef = db.doc(`creditWallets/${profileId}`);
-  let charged = 0;
-  let duplicate = false;
-
-  await db.runTransaction(async tx => {
-    const existing = await tx.get(holdingRef);
-    if (existing.exists) {
-      if (String(existing.data()?.ownerProfileId || '') !== profileId) {
-        throw new HttpsError('permission-denied','That asset holding belongs to another profile.');
-      }
-      duplicate = true;
-      return;
-    }
-
-    if (normalized.price > 0) {
-      const wallet = await tx.get(walletRef);
-      const balance = Number(wallet.data()?.balance ?? 0);
-      if (!wallet.exists || balance < normalized.price) {
-        throw new HttpsError('failed-precondition','Not enough Credits for this custom variation.');
-      }
-      charged = normalized.price;
-      tx.update(walletRef,{
-        balance:balance-charged,
-        totalLost:Number(wallet.data()?.totalLost ?? 0)+charged,
-        lastEventId:holdingId,
-        lastEventType:'market_purchase',
-        updatedAt:FieldValue.serverTimestamp()
-      });
-    }
-
-    tx.set(holdingRef,{
-      ownerProfileId:profileId,
-      assetId,
-      tint:normalized.storage,
-      acquiredAt:FieldValue.serverTimestamp(),
-      updatedAt:FieldValue.serverTimestamp(),
-      lastEventId:holdingId,
-      lastEventType:'market_acquire',
-      archived:false,
-      archivedAt:null
-    });
-
-    tx.set(receiptRef,{
-      profileId,
-      assetId,
-      holdingId,
-      variant:normalized.storage,
-      custom:normalized.custom,
-      priceCredits:normalized.price,
-      createdAt:FieldValue.serverTimestamp()
-    },{merge:true});
+async function acquireEscapePodVariant(profileId,normalized){
+  const assetId='eras:escape_pod',style=String(normalized.runtime?.style||'');
+  if(!['standard','comet','aurora','bulwark','nova'].includes(style))throw new HttpsError('invalid-argument','Unknown Escape Pod Style.');
+  const holdingId=deterministicId(profileId,assetId,normalized.storage),holdingRef=db.doc(`assetHoldings/${holdingId}`),receiptRef=db.doc(`assetVariantPurchases/${holdingId}`),walletRef=db.doc(`creditWallets/${profileId}`);
+  let charged=0,duplicate=false,recovered=false;
+  await db.runTransaction(async tx=>{
+    const holdingSnap=await tx.get(holdingRef),receiptSnap=await tx.get(receiptRef),walletSnap=await tx.get(walletRef);
+    if(holdingSnap.exists){if(String(holdingSnap.data()?.ownerProfileId||'')!==profileId)throw new HttpsError('permission-denied','That Escape Pod holding belongs to another profile.');duplicate=true;return;}
+    const priorReceipt=receiptSnap.exists?(receiptSnap.data()||{}):null,receiptMatches=!!priorReceipt&&String(priorReceipt.profileId||'')===profileId&&String(priorReceipt.assetId||'')===assetId&&String(priorReceipt.variant||'')===normalized.storage;
+    if(receiptMatches)recovered=true;
+    else if(normalized.price>0){if(!walletSnap.exists)throw new HttpsError('failed-precondition','Your E.R.A.S. Credit wallet is not initialized yet.');const wallet=walletSnap.data()||{},balance=Math.max(0,Number(wallet.balance||0));if(balance<normalized.price)throw new HttpsError('failed-precondition','Not enough Credits for this Escape Pod Style.');charged=normalized.price;tx.set(walletRef,{profileId,balance:balance-charged,totalEarned:Math.max(0,Number(wallet.totalEarned||0)),totalLost:Math.max(0,Number(wallet.totalLost||0))+charged,lastEventId:holdingId,lastEventType:'market_purchase',createdAt:wallet.createdAt||FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()},{merge:true});}
+    tx.set(holdingRef,{ownerProfileId:profileId,assetId,tint:normalized.storage,acquiredAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp(),lastEventId:holdingId,lastEventType:recovered?'market_recover':'market_acquire',archived:false,archivedAt:null},{merge:true});
+    tx.set(receiptRef,{profileId,assetId,holdingId,variant:normalized.storage,custom:normalized.custom,priceCredits:normalized.price,chargedCredits:receiptMatches?Math.max(0,Number(priorReceipt?.chargedCredits??priorReceipt?.priceCredits??0)):charged,backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION,recovered,createdAt:receiptMatches&&priorReceipt?.createdAt?priorReceipt.createdAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()},{merge:true});
   });
-
-  return {
-    ok:true,
-    holdingId,
-    assetId,
-    variant:normalized.storage,
-    variantLabel:normalized.label,
-    custom:normalized.custom,
-    priceCharged:duplicate?0:charged,
-    duplicate,
-    migrated:false
-  };
-});
-
-function activeStatus(data, nowMs) {
-  if (!data || data.active !== true) return false;
-  const expires = data.expiresAt?.toMillis?.() ?? null;
-  return expires == null || expires > nowMs;
+  return{ok:true,holdingId,assetId,variant:normalized.storage,variantLabel:normalized.label,custom:normalized.custom,priceCharged:duplicate?0:charged,duplicate,recovered,migrated:false,backendVersion:ESCAPE_POD_PURCHASE_BACKEND_VERSION};
 }
 
-exports.getModerationCapabilities = onCall(async request => {
-  const uid = requireAuth(request);
-  const profileId = await callerProfile(uid);
-  const now = Date.now();
+exports.acquireEscapePodStyle=onCall(async request=>{const uid=requireAuth(request),profileId=await callerProfile(uid),style=token(request.data?.style||'standard'),normalized=normalizeVariant('eras:escape_pod',{style});return acquireEscapePodVariant(profileId,normalized);});
 
-  const [founderSnap,statusSnap] = await Promise.all([
-    db.doc('systemPrivate/founder').get(),
-    db.collection('statusAssignments').where('profileId','==',profileId).limit(500).get()
-  ]);
-
-  const founder = String(founderSnap.data()?.profileId || '') === profileId;
-  const rows = statusSnap.docs.map(doc=>({id:doc.id,...doc.data()})).filter(row=>activeStatus(row,now));
-  const timedOutGlobal = !founder && rows.some(row=>row.status==='timeout'&&row.scopeType==='global'&&row.scopeId==='_');
-
-  let globalModerator = founder || rows.some(row=>row.status==='moderator'&&row.scopeType==='global'&&row.scopeId==='_');
-  let scopes = rows
-    .filter(row=>row.status==='moderator')
-    .map(row=>({scopeType:String(row.scopeType||''),scopeId:String(row.scopeId||''),source:'status'}));
-
-  scopes = [...new Map(scopes.map(scope=>[`${scope.scopeType}:${scope.scopeId}`,scope])).values()];
-
-  if (timedOutGlobal) {
-    globalModerator=false;
-    scopes=[];
-  }
-
-  return {
-    ok:true,
-    profileId,
-    verified:true,
-    founder,
-    globalModerator,
-    timedOutGlobal,
-    canAccess:founder || globalModerator || scopes.length>0,
-    scopes
-  };
+exports.acquireAssetVariant=onCall(async request=>{
+  const uid=requireAuth(request),profileId=await callerProfile(uid),assetId=String(request.data?.assetId||''),normalized=normalizeVariant(assetId,request.data?.variant||{});
+  if(assetId==='eras:escape_pod')return acquireEscapePodVariant(profileId,normalized);
+  const holdingId=deterministicId(profileId,assetId,normalized.storage),holdingRef=db.doc(`assetHoldings/${holdingId}`),receiptRef=db.doc(`assetVariantPurchases/${holdingId}`),walletRef=db.doc(`creditWallets/${profileId}`);let charged=0,duplicate=false;
+  await db.runTransaction(async tx=>{
+    const existing=await tx.get(holdingRef);if(existing.exists){if(String(existing.data()?.ownerProfileId||'')!==profileId)throw new HttpsError('permission-denied','That asset holding belongs to another profile.');duplicate=true;return;}
+    if(normalized.price>0){const wallet=await tx.get(walletRef),balance=Number(wallet.data()?.balance??0);if(!wallet.exists||balance<normalized.price)throw new HttpsError('failed-precondition','Not enough Credits for this custom variation.');charged=normalized.price;tx.update(walletRef,{balance:balance-charged,totalLost:Number(wallet.data()?.totalLost??0)+charged,lastEventId:holdingId,lastEventType:'market_purchase',updatedAt:FieldValue.serverTimestamp()});}
+    tx.set(holdingRef,{ownerProfileId:profileId,assetId,tint:normalized.storage,acquiredAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp(),lastEventId:holdingId,lastEventType:'market_acquire',archived:false,archivedAt:null});
+    tx.set(receiptRef,{profileId,assetId,holdingId,variant:normalized.storage,custom:normalized.custom,priceCredits:normalized.price,createdAt:FieldValue.serverTimestamp()},{merge:true});
+  });
+  return{ok:true,holdingId,assetId,variant:normalized.storage,variantLabel:normalized.label,custom:normalized.custom,priceCharged:duplicate?0:charged,duplicate,migrated:false};
 });
 
-function randomCode() {
-  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let out='';
-  for (let i=0;i<6;i++) out += chars[Math.floor(Math.random()*chars.length)];
-  return out;
-}
+function activeStatus(data,nowMs){if(!data||data.active!==true)return false;const expires=data.expiresAt?.toMillis?.()??null;return expires==null||expires>nowMs;}
+exports.getModerationCapabilities=onCall(async request=>{
+  const uid=requireAuth(request),profileId=await callerProfile(uid),now=Date.now();
+  const [founderSnap,statusSnap]=await Promise.all([db.doc('systemPrivate/founder').get(),db.collection('statusAssignments').where('profileId','==',profileId).limit(500).get()]);
+  const founder=String(founderSnap.data()?.profileId||'')===profileId,rows=statusSnap.docs.map(doc=>({id:doc.id,...doc.data()})).filter(row=>activeStatus(row,now)),timedOutGlobal=!founder&&rows.some(row=>row.status==='timeout'&&row.scopeType==='global'&&row.scopeId==='_');
+  let globalModerator=founder||rows.some(row=>row.status==='moderator'&&row.scopeType==='global'&&row.scopeId==='_'),scopes=rows.filter(row=>row.status==='moderator').map(row=>({scopeType:String(row.scopeType||''),scopeId:String(row.scopeId||''),source:'status'}));
+  scopes=[...new Map(scopes.map(scope=>[`${scope.scopeType}:${scope.scopeId}`,scope])).values()];if(timedOutGlobal){globalModerator=false;scopes=[];}
+  return{ok:true,profileId,verified:true,founder,globalModerator,timedOutGlobal,canAccess:founder||globalModerator||scopes.length>0,scopes};
+});
 
-function defaultModeSettings(modeId, ruleVariant={}) {
-  const modeDefaults = {
+function randomCode(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let out='';for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];return out;}
+function defaultModeSettings(modeId,ruleVariant={}){
+  const modeDefaults={
+    'tactical-strike':{teamSize:5,roundsToWin:7,roundSeconds:105,buySeconds:15,startingCredits:800,friendlyFire:false,objectiveMode:'elimination',sceneAssetId:'scene.tactical_arena_01'},
     'surface-discovery':{gridSize:15,lives:3,enemyCount:3,powerMoves:12,winCondition:'collect_all'},
     'jeng-stroid':{layers:18,piecesPerLayer:3,turnSeconds:60,gravity:1,collapseThreshold:65},
     'sunball':{balls:3,targetScore:25000,gravity:.22,bumperForce:1.8,multiplayerMode:'alternating'},
     'soldoku':{boardSize:9,difficulty:'normal',hints:3,mistakeLimit:3,playMode:'solo'},
     'escape-pod-dash':{lanes:3,lives:3,startSpeed:4,acceleration:.12,targetDistance:2500,obstacleRate:1}
   };
-  return {
-    player:{maxWalkDistance:50,maxHp:5,energyPerTurn:1},
-    currency:{name:'TOKENS',symbol:'◆',startingBalance:0,deathLossCap:10},
-    mode:modeDefaults[modeId] || {},
-    testRule:ruleVariant || {},
-    areas:[],
-    items:[],
-    mobs:[],
-    terminals:[]
-  };
+  return{player:{maxWalkDistance:50,maxHp:5,energyPerTurn:1},currency:{name:'TOKENS',symbol:'◆',startingBalance:0,deathLossCap:10},mode:modeDefaults[modeId]||{},modeSettings:modeDefaults[modeId]||{},testRule:ruleVariant||{},areas:[],items:[],mobs:[],terminals:[]};
 }
-
-exports.createModeTestLobby = onCall(async request => {
-  const uid = requireAuth(request);
-  const profileId = await callerProfile(uid);
-  const modeId = String(request.data?.modeId || '');
-  const mode = MODE_RUNTIME[modeId];
-  if (!mode) throw new HttpsError('invalid-argument','Unknown E.R.A.S. game Mode.');
-
-  const id = crypto.randomUUID();
-  const now = FieldValue.serverTimestamp();
-  const lobby = {
-    name:`${mode.name} Test`,
-    code:randomCode(),
-    hostProfileId:profileId,
-    visibility:'code',
-    maxPlayers:mode.maxPlayers,
-    mapId:mode.mapId,
-    gameStyle:modeId,
-    description:'Quick Asset Library Mode test.',
-    settings:defaultModeSettings(modeId,request.data?.ruleVariant || {}),
-    hostAssets:[],
-    accessOfferId:'',
-    status:'open',
-    sourceType:'hosted',
-    publishedGameId:'',
-    createdAt:now,
-    updatedAt:now,
-    lastHeartbeatAt:now
-  };
-
-  const batch = db.batch();
-  batch.create(db.doc(`gameLobbies/${id}`),lobby);
-  batch.create(db.doc(`gameLobbies/${id}/members/${profileId}`),{
-    profileId,
-    role:'host',
-    accessEntitlementId:'',
-    accessStartedAt:now,
-    accessLeaseSeconds:600,
-    joinedAt:now,
-    lastSeenAt:now
-  });
-  await batch.commit();
-
-  const url = mode.runtime==='global'
-    ? `/game/global/?lobby=${encodeURIComponent(id)}`
-    : mode.runtime==='galactic'
-      ? `/game/galactic-dominion/?lobby=${encodeURIComponent(id)}`
-      : `/game/hosted-mode/?lobby=${encodeURIComponent(id)}`;
-
-  return {ok:true,lobbyId:id,url};
+exports.createModeTestLobby=onCall(async request=>{
+  const uid=requireAuth(request),profileId=await callerProfile(uid),modeId=String(request.data?.modeId||''),mode=MODE_RUNTIME[modeId];if(!mode)throw new HttpsError('invalid-argument','Unknown E.R.A.S. game Mode.');
+  const id=crypto.randomUUID(),now=FieldValue.serverTimestamp(),settings=defaultModeSettings(modeId,request.data?.ruleVariant||{}),lobby={name:`${mode.name} Test`,code:randomCode(),hostProfileId:profileId,visibility:'code',maxPlayers:mode.maxPlayers,mapId:mode.mapId,gameStyle:modeId,description:'Quick Asset Library Mode test.',settings,hostAssets:[],accessOfferId:'',status:'open',sourceType:'hosted',publishedGameId:'',createdAt:now,updatedAt:now,lastHeartbeatAt:now};
+  const batch=db.batch();batch.create(db.doc(`gameLobbies/${id}`),lobby);batch.create(db.doc(`gameLobbies/${id}/members/${profileId}`),{profileId,role:'host',accessEntitlementId:'',accessStartedAt:now,accessLeaseSeconds:600,joinedAt:now,lastSeenAt:now});await batch.commit();
+  const url=mode.runtime==='global'?`/game/global/?lobby=${encodeURIComponent(id)}`:mode.runtime==='galactic'?`/game/galactic-dominion/?lobby=${encodeURIComponent(id)}`:mode.runtime==='tactical-strike'?`/game/tactical-strike/?lobby=${encodeURIComponent(id)}`:`/game/hosted-mode/?lobby=${encodeURIComponent(id)}`;
+  return{ok:true,lobbyId:id,url};
 });
