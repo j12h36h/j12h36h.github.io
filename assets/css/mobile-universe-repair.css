@@ -18,9 +18,6 @@
     overflow: visible !important;
   }
 
-  /* Keep the navigation universe completely inside the first viewport.
-     The previous 72svh rectangular stage could place most radial nodes
-     outside the visible mobile scene. */
   .universe-main-page .system-stage {
     left: 50% !important;
     top: 50svh !important;
@@ -71,7 +68,6 @@
     white-space: normal !important;
   }
 
-  /* Vertical axis */
   .universe-main-page .node-play {
     left: 50% !important;
     top: -3px !important;
@@ -82,10 +78,7 @@
     text-align: center !important;
     justify-items: center !important;
   }
-
-  .universe-main-page .node-play small {
-    max-width: 158px !important;
-  }
+  .universe-main-page .node-play small { max-width: 158px !important; }
 
   .universe-main-page .node-options {
     left: 50% !important;
@@ -97,74 +90,34 @@
     text-align: center !important;
     justify-items: center !important;
   }
+  .universe-main-page .node-options small { max-width: 150px !important; }
 
-  .universe-main-page .node-options small {
-    max-width: 150px !important;
-  }
-
-  /* Left arc */
   .universe-main-page .node-content {
-    left: 0 !important;
-    right: auto !important;
-    top: 18% !important;
-    bottom: auto !important;
-    transform: none !important;
-    text-align: left !important;
-    justify-items: start !important;
+    left: 0 !important; right: auto !important; top: 18% !important; bottom: auto !important;
+    transform: none !important; text-align: left !important; justify-items: start !important;
   }
-
   .universe-main-page .node-social {
-    left: -1px !important;
-    right: auto !important;
-    top: 47% !important;
-    bottom: auto !important;
-    transform: translateY(-50%) !important;
-    text-align: left !important;
-    justify-items: start !important;
+    left: -1px !important; right: auto !important; top: 47% !important; bottom: auto !important;
+    transform: translateY(-50%) !important; text-align: left !important; justify-items: start !important;
   }
-
   .universe-main-page .node-information {
-    left: 4% !important;
-    right: auto !important;
-    top: auto !important;
-    bottom: 11% !important;
-    transform: none !important;
-    text-align: left !important;
-    justify-items: start !important;
+    left: 4% !important; right: auto !important; top: auto !important; bottom: 11% !important;
+    transform: none !important; text-align: left !important; justify-items: start !important;
   }
 
-  /* Right arc */
   .universe-main-page .node-animation {
-    right: 0 !important;
-    left: auto !important;
-    top: 18% !important;
-    bottom: auto !important;
-    transform: none !important;
-    text-align: right !important;
-    justify-items: end !important;
+    right: 0 !important; left: auto !important; top: 18% !important; bottom: auto !important;
+    transform: none !important; text-align: right !important; justify-items: end !important;
   }
-
   .universe-main-page .node-draw {
-    right: -1px !important;
-    left: auto !important;
-    top: 47% !important;
-    bottom: auto !important;
-    transform: translateY(-50%) !important;
-    text-align: right !important;
-    justify-items: end !important;
+    right: -1px !important; left: auto !important; top: 47% !important; bottom: auto !important;
+    transform: translateY(-50%) !important; text-align: right !important; justify-items: end !important;
   }
-
   .universe-main-page .node-code {
-    right: 4% !important;
-    left: auto !important;
-    top: auto !important;
-    bottom: 11% !important;
-    transform: none !important;
-    text-align: right !important;
-    justify-items: end !important;
+    right: 4% !important; left: auto !important; top: auto !important; bottom: 11% !important;
+    transform: none !important; text-align: right !important; justify-items: end !important;
   }
 
-  /* Keep the footer line below the square universe, still within viewport. */
   .universe-main-page .platform-line {
     top: auto !important;
     bottom: 18px !important;
@@ -176,56 +129,33 @@
     text-align: center !important;
   }
 
-  /* Dashboard starts after the first viewport as intended. */
-  .universe-dashboard {
-    top: calc(100svh + 3px) !important;
-  }
+  .universe-dashboard { top: calc(100svh + 3px) !important; }
 
-  /* Prevent the mobile account/site selector from stealing the whole header. */
-  .site-header {
-    left: 18px !important;
-    right: 18px !important;
-    gap: 10px !important;
-  }
-
-  .site-header .brand {
-    min-width: 0 !important;
-    flex: 1 1 auto !important;
-  }
-
+  .site-header { left: 18px !important; right: 18px !important; gap: 10px !important; }
+  .site-header .brand { min-width: 0 !important; flex: 1 1 auto !important; }
   .site-header .brand > span:last-child {
-    min-width: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important;
   }
-
-  .site-header .portal-auth-area {
-    flex: 0 0 auto !important;
-    max-width: 45vw !important;
-  }
+  .site-header .portal-auth-area { flex: 0 0 auto !important; max-width: 45vw !important; }
 }
 
 @media (max-width: 390px) {
-  .universe-main-page .system-stage {
-    width: calc(100vw - 22px) !important;
-  }
+  .universe-main-page .system-stage { width: calc(100vw - 22px) !important; }
+  .universe-main-page .world-node { width: 100px !important; }
+  .universe-main-page .world-node small { max-width: 100px !important; font-size: 5.3px !important; }
+  .universe-main-page .universe-core { width: 184px !important; height: 184px !important; }
+  .universe-main-page .core-planet { width: 128px !important; height: 128px !important; }
+}
 
-  .universe-main-page .world-node {
-    width: 100px !important;
-  }
-
-  .universe-main-page .world-node small {
-    max-width: 100px !important;
-    font-size: 5.3px !important;
-  }
-
-  .universe-main-page .universe-core {
-    width: 184px !important;
-    height: 184px !important;
-  }
-
-  .universe-main-page .core-planet {
-    width: 128px !important;
-    height: 128px !important;
+/* =========================================================
+   DESKTOP MIDLINE POLISH — 2026-09-07
+   SOCIAL / DRAW sit slightly low of their previous 46% position so their
+   label blocks visually center against the globe rather than their top edge.
+   Mobile is intentionally untouched because the mobile repair is already set.
+   ========================================================= */
+@media (min-width: 721px) {
+  .universe-main-page .node-social,
+  .universe-main-page .node-draw {
+    top: 49% !important;
   }
 }
