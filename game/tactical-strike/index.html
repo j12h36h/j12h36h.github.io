@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07100a">
   <meta name="description" content="E.R.A.S. Tactical Strike — round-based first-person tactical combat">
   <title>Tactical Strike — E.R.A.S.</title>
-  <link rel="stylesheet" href="./tactical-strike.css?v=1.0.0">
+  <link rel="stylesheet" href="./tactical-strike.css?v=1.0.1">
 </head>
 <body>
 <div id="gameViewport" class="ts-viewport" tabindex="0" aria-label="Tactical Strike first person game"></div>
@@ -25,6 +25,13 @@
   <div class="ts-ammo"><small id="weaponHud">SERVICE PISTOL</small><b><span id="magHud">12</span><i>/</i><span id="reserveHud">48</span></b></div>
 </section>
 <div class="ts-killfeed" id="killFeed" aria-live="polite"></div>
+<button id="recaptureMouse" class="ts-recapture" type="button" hidden
+  aria-label="Recapture mouse for Tactical Strike" title="Recapture mouse">
+  <svg viewBox="0 0 32 38" aria-hidden="true">
+    <path d="M5 3v27l7-7 5 12 5-2-5-12h10L5 3z"></path>
+  </svg>
+</button>
+
 <div class="ts-banner" id="roundBanner" hidden></div>
 <section class="ts-buy" id="buyPanel" hidden>
   <div><small>BUY PHASE</small><h2>LOADOUT</h2><p>Press B to toggle. Purchases use match-local Credits only.</p></div>
@@ -42,6 +49,6 @@
     <small>Current foundation runtime uses local practice opponents. Hosted lobby rules and Scene selection are loaded when launched from an E.R.A.S. hosted lobby.</small>
   </div>
 </section>
-<script type="module" src="./tactical-strike.js?v=1.0.1"></script>
+<script type="module" src="./tactical-strike.js?v=1.0.2"></script>
 </body>
 </html>

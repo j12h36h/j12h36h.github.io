@@ -70,15 +70,29 @@ function banner(text,ms=1200){const b=$('#roundBanner');b.textContent=text;b.hid
 function feed(text){const root=$('#killFeed'),d=document.createElement('div');d.textContent=text;root.prepend(d);setTimeout(()=>d.remove(),3500);while(root.children.length>5)root.lastChild.remove();}
 
 function wire(){
-  $('#enterGame').addEventListener('click',()=>{state.started=true;$('#startOverlay').hidden=true;state.renderer.domElement.requestPointerLock();});
-  document.addEventListener('pointerlockchange',()=>{state.locked=document.pointerLockElement===state.renderer.domElement;if(!state.locked)state.keys.clear();if(state.locked&&state.phase==='buy')$('#buyPanel').hidden=false;});
+  const recapture=$('#recaptureMouse');
+  const syncRecaptureButton=()=>{
+    if(recapture)recapture.hidden=!state.started||state.locked;
+  };
+  const captureMouse=()=>{
+    if(!state.started||document.pointerLockElement===state.renderer.domElement)return;
+    state.renderer.domElement.requestPointerLock();
+  };
+
+  $('#enterGame').addEventListener('click',()=>{state.started=true;$('#startOverlay').hidden=true;syncRecaptureButton();captureMouse();});
+  recapture?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();captureMouse();});
+  document.addEventListener('pointerlockchange',()=>{state.locked=document.pointerLockElement===state.renderer.domElement;if(!state.locked)state.keys.clear();syncRecaptureButton();if(state.locked&&state.phase==='buy')$('#buyPanel').hidden=false;});
   document.addEventListener('mousemove',e=>{if(!state.locked||!state.started)return;state.yaw-=e.movementX*.0022;state.pitch=clamp(state.pitch-e.movementY*.0022,-1.48,1.48);state.camera.rotation.set(state.pitch,state.yaw,0);});
   const movementKeys=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight']);
   document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName))return;if(state.locked&&movementKeys.has(e.code))e.preventDefault();state.keys.add(e.code);if(e.code==='KeyR')reload();if(e.code==='Digit1'){state.player.weapon='rifle';if(!state.player.owned.rifle)state.player.weapon='pistol';updateWeaponView();updateHud();}if(e.code==='Digit2'){state.player.weapon='pistol';updateWeaponView();updateHud();}if(e.code==='KeyB'&&state.phase==='buy')$('#buyPanel').hidden=!$('#buyPanel').hidden;});
   document.addEventListener('keyup',e=>{state.keys.delete(e.code);if(state.locked&&movementKeys.has(e.code))e.preventDefault();});
   addEventListener('blur',()=>state.keys.clear());
   document.addEventListener('visibilitychange',()=>{if(document.hidden)state.keys.clear();});
-  document.addEventListener('mousedown',e=>{if(e.button===0&&state.locked)shoot();});
+  document.addEventListener('mousedown',e=>{
+    if(e.button!==0||!state.started)return;
+    if(state.locked){shoot();return;}
+    if(e.target===state.renderer.domElement)captureMouse();
+  });
   $('#buyPanel').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b)buy(b.dataset.buy);});
 }
 function buy(item){if(state.phase!=='buy')return;const price=item==='rifle'?num(state.rules.weapons?.rifle?.cost,2700):item==='armor'?num(state.rules.equipment?.armor?.cost,650):num(state.rules.equipment?.ammo?.cost,300);if(state.player.credits<price){banner('NOT ENOUGH MATCH CREDITS',900);return;}if(item==='rifle'&&state.player.owned.rifle){banner('RIFLE ALREADY OWNED',800);return;}state.player.credits-=price;if(item==='rifle'){state.player.owned.rifle=true;state.player.weapon='rifle';state.player.ammo.rifle={mag:30,reserve:90};updateWeaponView();}else if(item==='armor')state.player.armor=100;else{for(const w of ['pistol','rifle'])if(state.player.owned[w])state.player.ammo[w].reserve=w==='rifle'?90:48;}updateHud();}
