@@ -5,15 +5,26 @@
 .universe-main-page .node-animation:hover b,.universe-main-page .node-animation:focus-visible b{background:rgba(217,180,93,.3);box-shadow:0 0 18px rgba(217,180,93,.58)}
 
 /* Improve subtitle legibility over both the dark sky and bright planet.
-   A thin pale stroke defines each glyph; the dark shadow keeps the text
-   separated when it crosses luminous parts of the planet. */
+   Keep the pale outline and add a rounded translucent backplate behind only
+   the subtitle text beneath each node title. */
 .universe-main-page .world-node small{
-  color:#809a9e;
+  display:inline-block;
+  width:max-content;
+  max-width:100%;
+  margin-top:2px;
+  padding:2px 8px;
+  border-radius:999px;
+  color:#8aa3a8;
+  background:rgba(2,9,11,.60);
+  border:1px solid rgba(255,255,255,.10);
   -webkit-text-stroke:.35px rgba(242,255,255,.78);
   paint-order:stroke fill;
   text-shadow:
     0 1px 2px rgba(0,0,0,.98),
     0 0 3px rgba(0,0,0,.78);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.18) inset,
+    0 3px 12px rgba(0,0,0,.16);
 }
 
 @media(max-width:720px){.universe-main-page .node-animation{left:8%;top:17%;}.universe-main-page .node-animation small{max-width:112px}}
