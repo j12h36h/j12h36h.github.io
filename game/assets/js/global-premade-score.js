@@ -26,6 +26,10 @@ export const GLOBAL_PREMADE_TRACKS = Object.freeze({
   'galactic-dominion': Object.freeze({
     id:'galactic-dominion', prefix:'GAL', worldId:'global-galactic-dominion',
     targetId:'galactic-dominion-global-score', metric:'NET WORTH'
+  }),
+  'arena-clash': Object.freeze({
+    id:'arena-clash', prefix:'ACL', worldId:'global-arena-clash',
+    targetId:'arena-clash-global-score', metric:'KOS'
   })
 });
 
@@ -63,6 +67,13 @@ function encodePayload(gameId, score, meta = {}) {
     const turns = Math.max(0, Math.min(200, Math.floor(Number(meta.turns) || 0)));
     if (turns !== 40 || s !== netWorth * 2) return null;
     return `GAL:${s}:${netWorth}:${turns}`;
+  }
+  if (gameId === 'arena-clash') {
+    const kos = Math.max(0, Math.min(99, Math.floor(Number(meta.kos) || 0)));
+    const damage = Math.max(0, Math.min(50000, Math.floor(Number(meta.damage) || 0)));
+    const won = meta.won ? 1 : 0;
+    if (s !== kos * 1000 + damage * 10 + won * 2000) return null;
+    return `ACL:${s}:${kos}:${damage}:${won}`;
   }
   return null;
 }
@@ -104,6 +115,12 @@ function decodePayload(gameId, action) {
     const score=Number(m[1]), netWorth=Number(m[2]), turns=Number(m[3]);
     if (turns !== 40 || score !== netWorth*2) return null;
     return {score, metric:netWorth, meta:{netWorth,turns}};
+  }
+  if (gameId === 'arena-clash') {
+    m = label.match(/^ACL:(\d+):(\d+):(\d+):([01])$/); if (!m) return null;
+    const score=Number(m[1]), kos=Number(m[2]), damage=Number(m[3]), won=Number(m[4]);
+    if (score !== kos*1000 + damage*10 + won*2000) return null;
+    return {score, metric:kos, meta:{kos,damage,won:Boolean(won)}};
   }
   return null;
 }

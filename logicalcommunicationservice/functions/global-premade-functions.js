@@ -3,7 +3,7 @@ const { onCall, HttpsError } = require('firebase-functions/v2/https');
 
 const db = getFirestore();
 const STEP = 5000;
-const ALLOWED = Object.freeze(['surface-discovery','jeng-stroid','sunball','soldoku','galactic-dominion']);
+const ALLOWED = Object.freeze(['surface-discovery','jeng-stroid','sunball','soldoku','galactic-dominion','arena-clash']);
 
 async function callerProfileId(request) {
   const uid = request.auth?.uid;
@@ -46,6 +46,10 @@ function verifiedScore(gameId,action,profileId){
     m=label.match(/^GAL:(\d+):(\d+):(\d+)$/);if(!m)throw new HttpsError('failed-precondition','Galactic Dominion score payload is invalid.');
     score=Number(m[1]);const netWorth=Number(m[2]),turns=Number(m[3]);
     if(turns!==40||!Number.isInteger(netWorth)||netWorth<0||netWorth>1000000000||score!==netWorth*2)throw new HttpsError('failed-precondition','Galactic Dominion score does not match the fixed Global ruleset.');
+  }else if(gameId==='arena-clash'){
+    m=label.match(/^ACL:(\d+):(\d+):(\d+):([01])$/);if(!m)throw new HttpsError('failed-precondition','E.R.A.S. Clash score payload is invalid.');
+    score=Number(m[1]);const kos=Number(m[2]),damage=Number(m[3]),won=Number(m[4]);
+    if(!Number.isInteger(kos)||kos<0||kos>99||!Number.isInteger(damage)||damage<0||damage>50000||score!==kos*1000+damage*10+won*2000)throw new HttpsError('failed-precondition','E.R.A.S. Clash score does not match the fixed Global ruleset.');
   }else throw new HttpsError('invalid-argument','Unsupported Global premade game.');
   if(!Number.isInteger(score)||score<0||score>2000000000)throw new HttpsError('failed-precondition','Global score is outside the accepted range.');
   return score;

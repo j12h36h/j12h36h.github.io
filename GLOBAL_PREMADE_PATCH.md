@@ -8,7 +8,7 @@ This patch publishes Global versions of the five premade game modes that were st
 - Sunball
 - Soldoku
 
-Together with Turn-Based Global, Slime Smash, Escape Pod Dash, and Side Scroller, the site now exposes nine official Global games.
+Together with Turn-Based Global, Slime Smash, Escape Pod Dash, Side Scroller, and the new E.R.A.S. Clash platform fighter, the site now exposes ten official Global games.
 
 ## Shared Global progression
 
@@ -60,3 +60,26 @@ The patch also changes the Firebase Functions package entry point from `index.js
 After the files are in the repository, deploy the Firebase Functions project so the new authenticated reward callable is live. Until that backend deployment happens, gameplay and scoreboards can run, but new-mode Credit milestone claims will report that the callable is unavailable.
 
 No Firestore rules expansion is required: the score records use the already-permitted signed-in `gameActions` path and non-`global` world IDs, matching the pattern used by the existing Global arcade scoreboards.
+
+
+## E.R.A.S. Clash Global
+
+The earlier platform-fighter concept is now included as Global game 010 under original E.R.A.S. branding.
+
+- Default fighter: Slime
+- 3 stocks
+- Damage-percentage knockback
+- Main floor + three aerial platforms
+- Double jump
+- Basic melee attack
+- Slime Glob projectile special
+- Keyboard and touch controls
+- Slime-vs-Slime AI match for the initial Global implementation
+- Permanent leaderboard and the same Global Credit milestone staircase
+
+Global Clash scoring:
+- +1,000 per KO
+- +10 per 1% damage dealt
+- +2,000 victory bonus
+
+The score payload is validated by the authenticated reward backend before milestone Credits can be awarded.

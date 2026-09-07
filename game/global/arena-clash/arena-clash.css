@@ -1,0 +1,20 @@
+body.clash-page{overflow:auto;background:#02090b;color:#dcebec}
+.clash-shell{min-height:100svh;padding:88px 22px 36px;background:radial-gradient(circle at 50% 12%,rgba(85,68,170,.15),transparent 34rem),#02090b}
+.clash-head,.clash-layout{max-width:1450px;margin:auto}
+.clash-head{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:10px;padding:14px 16px;border:1px solid rgba(131,224,227,.14);background:rgba(3,12,14,.82)}
+.clash-head h1{margin:7px 0;color:#eef8f8;font-size:32px;letter-spacing:.05em}.clash-head p{margin:0;max-width:850px;color:#6f8d90}
+.clash-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:10px}
+.clash-game-card,.clash-side .runtime-card,.global-premade-scoreboard{border:1px solid rgba(131,224,227,.14);background:rgba(3,12,14,.82)}
+.clash-game-card{padding:12px}.clash-side{display:grid;gap:10px;align-content:start}.clash-side .runtime-card{padding:12px}.clash-side h2{margin:0 0 9px;color:#bacfd1;font:800 8px/1 var(--mono);letter-spacing:.12em}
+.clash-rules p{color:#668589;font:700 7px/1.5 var(--mono)}
+.clash-hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px}
+.clash-hud>div{min-height:58px;padding:8px 10px;border:1px solid rgba(131,224,227,.11);background:#041013;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center}
+.clash-hud span{color:#648386;font:800 6px/1 var(--mono);letter-spacing:.1em}.clash-hud b{justify-self:end;color:#ffe08a;font:900 14px/1 var(--mono)}.clash-hud strong{grid-column:1/-1;color:#dcecec;font:900 16px/1 var(--mono)}
+.clash-hud>div:last-child{text-align:right}.clash-hud>div:last-child b{justify-self:start}.clash-hud>div:last-child span{justify-self:end}
+.clash-score{text-align:center}.clash-score span,.clash-score b{justify-self:center!important}.clash-score strong{font-size:8px;color:#80a6aa}
+#clashCanvas{display:block;width:100%;height:auto;max-height:68vh;aspect-ratio:16/9;border:1px solid rgba(131,224,227,.14);background:#02070c;touch-action:none}
+.clash-touch-controls{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}.clash-touch-controls button,.clash-start{min-height:42px;border:1px solid rgba(131,224,227,.16);background:rgba(131,224,227,.07);color:#d7ebec;font:900 7px/1 var(--mono);letter-spacing:.07em}
+.clash-start{width:100%;margin-top:7px}.clash-start:disabled{opacity:.42}
+@media(max-width:900px){
+ .clash-shell{padding:76px 8px 24px}.clash-head{display:block}.clash-head>a{display:inline-grid;margin-top:10px}.clash-layout{grid-template-columns:1fr}.clash-side{grid-template-columns:1fr}.clash-hud strong{font-size:13px}.clash-touch-controls{grid-template-columns:repeat(5,1fr)}.clash-touch-controls button{min-width:0;padding:0 3px;font-size:6px}
+}

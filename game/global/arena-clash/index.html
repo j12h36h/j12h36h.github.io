@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#02090b">
+  <meta name="description" content="E.R.A.S. Clash Global — Slime platform-fighter score attack with permanent leaderboard and Credit progression.">
+  <title>E.R.A.S. Clash Global — Project E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="/game/assets/css/runtime.css?v=2.1.0">
+  <link rel="stylesheet" href="/game/assets/css/global-premade.css?v=1.0.0">
+  <link rel="stylesheet" href="./arena-clash.css?v=1.0.0">
+  <link rel="stylesheet" href="/assets/css/direct-messaging.css?v=20260901-dm6">
+</head>
+<body class="runtime-page clash-page">
+  <header class="site-header">
+    <a class="brand" href="/game/global/"><span class="brand-mark"></span><span>PROJECT E.R.A.S. <b>: CLASH GLOBAL</b></span></a>
+    <button class="eras-dm-launch" type="button" data-eras-messages>CHAT</button>
+    <div class="portal-auth-area" id="portalAuthArea"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
+  </header>
+  <main class="clash-shell">
+    <section class="clash-head">
+      <div>
+        <p class="runtime-kicker">GLOBAL // SITE-HOSTED 24/7 // PLATFORM FIGHTER</p>
+        <h1>E.R.A.S. CLASH GLOBAL</h1>
+        <p>Slime is the first default fighter. Knock the rival Slime beyond the arena bounds, protect your stocks, and climb the permanent Global leaderboard.</p>
+      </div>
+      <a class="runtime-secondary" href="/game/global/">BACK TO GLOBAL</a>
+    </section>
+
+    <section class="clash-layout">
+      <div class="clash-game-card">
+        <div class="clash-hud">
+          <div><span>YOU</span><b id="playerStocks">●●●</b><strong id="playerPercent">0%</strong></div>
+          <div class="clash-score"><span>GLOBAL SCORE</span><b id="runScore">0</b><strong id="matchStatus">READY</strong></div>
+          <div><span>CPU</span><b id="cpuStocks">●●●</b><strong id="cpuPercent">0%</strong></div>
+        </div>
+        <canvas id="clashCanvas" width="960" height="540" aria-label="E.R.A.S. Clash arena"></canvas>
+        <div class="clash-touch-controls">
+          <button type="button" data-clash-action="left">◀</button>
+          <button type="button" data-clash-action="right">▶</button>
+          <button type="button" data-clash-action="jump">JUMP</button>
+          <button type="button" data-clash-action="attack">ATTACK</button>
+          <button type="button" data-clash-action="special">GLOB</button>
+        </div>
+        <button id="startRun" class="runtime-primary clash-start" type="button" disabled>START MATCH</button>
+        <p id="gameFeedback" class="runtime-feedback" aria-live="polite">CONNECTING TO GLOBAL…</p>
+      </div>
+
+      <aside class="clash-side">
+        <section class="runtime-card clash-rules">
+          <h2>GLOBAL RULES</h2>
+          <div class="runtime-status">
+            <div class="runtime-status-row"><span>FIGHTER</span><b>SLIME</b></div>
+            <div class="runtime-status-row"><span>STOCKS</span><b>3 EACH</b></div>
+            <div class="runtime-status-row"><span>KO</span><b>+1,000</b></div>
+            <div class="runtime-status-row"><span>DAMAGE DEALT</span><b>+10 / 1%</b></div>
+            <div class="runtime-status-row"><span>WIN</span><b>+2,000</b></div>
+            <div class="runtime-status-row"><span>CREDITS</span><b>5K +1 // 10K +2 // 15K +3…</b></div>
+          </div>
+          <p>Keyboard: A/D or arrows to move, W/↑ to jump, J/Space to attack, K for Slime Glob. Double-jump is enabled.</p>
+        </section>
+
+        <section class="global-premade-scoreboard" aria-label="E.R.A.S. Clash Global leaderboard">
+          <header><div><span>GLOBAL SCOREBOARD</span><h2>E.R.A.S. CLASH</h2></div><div class="global-premade-personal"><span>YOUR BEST</span><b id="personalBest">—</b></div></header>
+          <div class="global-premade-score-head"><span>RANK</span><span>PLAYER</span><span>KOS</span><span>SCORE</span></div>
+          <ol id="globalLeaderboard"><li class="is-empty">LOADING GLOBAL SCORES…</li></ol>
+        </section>
+      </aside>
+    </section>
+  </main>
+  <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="/game/global/messaging.js?v=20260901-dm6"></script>
+  <script type="module" src="./arena-clash.js?v=1.0.0"></script>
+</body>
+</html>
