@@ -1,0 +1,231 @@
+/* =========================================================
+   PROJECT E.R.A.S. : UNIVERSE
+   MOBILE ALL-NODES VISIBILITY REPAIR — 2026-09-07
+
+   Loaded after site.css, universe-dashboard.css and
+   simple-animation-node.css so this is the final mobile authority.
+   ========================================================= */
+
+@media (max-width: 720px) {
+  body.universe-main-page {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  body.universe-main-page .universe-landing {
+    height: auto !important;
+    min-height: calc(100svh + 780px) !important;
+    overflow: visible !important;
+  }
+
+  /* Keep the navigation universe completely inside the first viewport.
+     The previous 72svh rectangular stage could place most radial nodes
+     outside the visible mobile scene. */
+  .universe-main-page .system-stage {
+    left: 50% !important;
+    top: 50svh !important;
+    width: min(calc(100vw - 30px), 420px) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 1 / 1 !important;
+    transform: translate(-50%, -50%) !important;
+    overflow: visible !important;
+  }
+
+  .universe-main-page .universe-core {
+    display: grid !important;
+    width: min(51vw, 205px) !important;
+    height: min(51vw, 205px) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .universe-main-page .core-planet {
+    display: block !important;
+    width: min(36vw, 146px) !important;
+    height: min(36vw, 146px) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .universe-main-page .world-node {
+    display: grid !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-width: 0 !important;
+    width: 108px !important;
+    z-index: 10 !important;
+  }
+
+  .universe-main-page .world-node span {
+    display: block !important;
+    font-size: 9px !important;
+    line-height: 1.08 !important;
+  }
+
+  .universe-main-page .world-node small {
+    display: inline-block !important;
+    max-width: 108px !important;
+    font-size: 5.7px !important;
+    line-height: 1.28 !important;
+    white-space: normal !important;
+  }
+
+  /* Vertical axis */
+  .universe-main-page .node-play {
+    left: 50% !important;
+    top: -3px !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 158px !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+    justify-items: center !important;
+  }
+
+  .universe-main-page .node-play small {
+    max-width: 158px !important;
+  }
+
+  .universe-main-page .node-options {
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: -3px !important;
+    width: 150px !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+    justify-items: center !important;
+  }
+
+  .universe-main-page .node-options small {
+    max-width: 150px !important;
+  }
+
+  /* Left arc */
+  .universe-main-page .node-content {
+    left: 0 !important;
+    right: auto !important;
+    top: 18% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: left !important;
+    justify-items: start !important;
+  }
+
+  .universe-main-page .node-social {
+    left: -1px !important;
+    right: auto !important;
+    top: 47% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    text-align: left !important;
+    justify-items: start !important;
+  }
+
+  .universe-main-page .node-information {
+    left: 4% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: 11% !important;
+    transform: none !important;
+    text-align: left !important;
+    justify-items: start !important;
+  }
+
+  /* Right arc */
+  .universe-main-page .node-animation {
+    right: 0 !important;
+    left: auto !important;
+    top: 18% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: right !important;
+    justify-items: end !important;
+  }
+
+  .universe-main-page .node-draw {
+    right: -1px !important;
+    left: auto !important;
+    top: 47% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    text-align: right !important;
+    justify-items: end !important;
+  }
+
+  .universe-main-page .node-code {
+    right: 4% !important;
+    left: auto !important;
+    top: auto !important;
+    bottom: 11% !important;
+    transform: none !important;
+    text-align: right !important;
+    justify-items: end !important;
+  }
+
+  /* Keep the footer line below the square universe, still within viewport. */
+  .universe-main-page .platform-line {
+    top: auto !important;
+    bottom: 18px !important;
+    width: calc(100vw - 46px) !important;
+    max-width: none !important;
+    font-size: 7px !important;
+    line-height: 1.45 !important;
+    white-space: normal !important;
+    text-align: center !important;
+  }
+
+  /* Dashboard starts after the first viewport as intended. */
+  .universe-dashboard {
+    top: calc(100svh + 3px) !important;
+  }
+
+  /* Prevent the mobile account/site selector from stealing the whole header. */
+  .site-header {
+    left: 18px !important;
+    right: 18px !important;
+    gap: 10px !important;
+  }
+
+  .site-header .brand {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .site-header .brand > span:last-child {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .site-header .portal-auth-area {
+    flex: 0 0 auto !important;
+    max-width: 45vw !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .universe-main-page .system-stage {
+    width: calc(100vw - 22px) !important;
+  }
+
+  .universe-main-page .world-node {
+    width: 100px !important;
+  }
+
+  .universe-main-page .world-node small {
+    max-width: 100px !important;
+    font-size: 5.3px !important;
+  }
+
+  .universe-main-page .universe-core {
+    width: 184px !important;
+    height: 184px !important;
+  }
+
+  .universe-main-page .core-planet {
+    width: 128px !important;
+    height: 128px !important;
+  }
+}
