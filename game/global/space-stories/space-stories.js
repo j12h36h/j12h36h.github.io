@@ -568,14 +568,19 @@ function refreshPanels() {
 }
 
 function setScreen(screen) {
+  // Screen transitions own overlay cleanup so result/death popups can never
+  // survive a return to the lobby. This also makes future lobby transitions safe.
+  hideOverlay();
+  clearTimeout(state.autoNextTimer);
+  state.autoNextTimer = 0;
   state.screen = screen;
   renderLobby();
   if (screen === 'lobby') {
     stopGameLoop();
+    closePanels();
     drawGame();
     setTimeout(() => $('#worldChatInput')?.blur(), 0);
   } else {
-    hideOverlay();
     startGameLoop();
   }
 }
@@ -813,7 +818,7 @@ function playerDown() {
   g.dead = true;
   state.save.currentStage = g.stage;
   schedulePersist();
-  showOverlay('RESCUE POD', 'SHIP NEEDS A HUG', `Story ${g.stage} was too spicy. Your gear and progression are safe.`, 'RETRY STORY', () => { hideOverlay(); createStage(g.stage); }, 'RETURN TO LOBBY', () => setScreen('lobby'));
+  showOverlay('RESCUE POD', 'SHIP NEEDS A HUG', `Story ${g.stage} was too spicy. Your gear and progression are safe.`, 'RETRY STORY', () => { hideOverlay(); createStage(g.stage); }, 'RETURN TO LOBBY', () => { hideOverlay(); setScreen('lobby'); });
 }
 function clearStage() {
   const g = state.game;
@@ -830,7 +835,7 @@ function clearStage() {
   schedulePersist();
   renderLobby();
   const final = g.stage === MAX_STORY;
-  showOverlay(final ? 'SEASON COMPLETE' : 'STORY CLEAR', final ? 'THE BEDTIME SUPERNOVA GOES QUIET' : 'NEXT STOP!', final ? `You cleared all ${MAX_STORY} SpaceStories. Story ${MAX_STORY} remains replayable for the strongest loot.` : `Story ${g.stage} is complete. Story ${g.stage + 1} is now on the route.`, final ? `REPLAY STORY ${MAX_STORY}` : 'NEXT STORY', () => { hideOverlay(); createStage(final ? MAX_STORY : g.stage + 1); }, 'RETURN TO LOBBY', () => setScreen('lobby'));
+  showOverlay(final ? 'SEASON COMPLETE' : 'STORY CLEAR', final ? 'THE BEDTIME SUPERNOVA GOES QUIET' : 'NEXT STOP!', final ? `You cleared all ${MAX_STORY} SpaceStories. Story ${MAX_STORY} remains replayable for the strongest loot.` : `Story ${g.stage} is complete. Story ${g.stage + 1} is now on the route.`, final ? `REPLAY STORY ${MAX_STORY}` : 'NEXT STORY', () => { hideOverlay(); createStage(final ? MAX_STORY : g.stage + 1); }, 'RETURN TO LOBBY', () => { hideOverlay(); setScreen('lobby'); });
   combatSay(`STORY CLEAR // +${30 + g.stage * 5} STARbits`);
   if (state.save.auto && !final) {
     clearTimeout(state.autoNextTimer);

@@ -1,5 +1,10 @@
 # SpaceStories — E.R.A.S. Global Game Patch
 
+## Update 1.3.1 — Lobby Overlay Cleanup
+- Returning to the lobby after death now always closes the result popup.
+- Returning to the lobby after story completion now always closes the result popup.
+- Lobby transitions also clear pending auto-next timers and modular overlays defensively.
+
 ## Update 1.3.0 — Stories 51–60 + Late-Game Hard Breakpoint
 
 Drop the contents of this ZIP into the root of `j12h36h.github.io` and allow the included files to merge/replace matching paths.
