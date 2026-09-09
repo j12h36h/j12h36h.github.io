@@ -1,0 +1,255 @@
+{
+  "version": "3.8",
+  "foundation": [
+    {
+      "title": "Start From Zero",
+      "href": "/dai/guides/tutorials/start-here/"
+    }
+  ],
+  "master_reference": [
+    {
+      "title": "Complete Capabilities",
+      "href": "/dai/guides/capabilities/"
+    },
+    {
+      "title": "Actions",
+      "href": "/dai/guides/actions/"
+    },
+    {
+      "title": "Conditions",
+      "href": "/dai/guides/conditions/"
+    },
+    {
+      "title": "Native Minecraft Bridge",
+      "href": "/dai/guides/native-minecraft-bridge/"
+    }
+  ],
+  "how_to": [
+    {
+      "title": "Custom Items",
+      "href": "/dai/guides/tutorials/create-anything/items/",
+      "surface": "dai_items"
+    },
+    {
+      "title": "Custom Blocks",
+      "href": "/dai/guides/tutorials/create-anything/blocks/",
+      "surface": "dai_blocks"
+    },
+    {
+      "title": "Weapons & Combat Items",
+      "href": "/dai/guides/tutorials/create-anything/weapons/",
+      "surface": "dai_weapons"
+    },
+    {
+      "title": "Armor & Equipment",
+      "href": "/dai/guides/tutorials/create-anything/armor/",
+      "surface": "dai_armor"
+    },
+    {
+      "title": "Attributes & Modifiers",
+      "href": "/dai/guides/tutorials/create-anything/attributes/",
+      "surface": "dai_attributes"
+    },
+    {
+      "title": "Effects & Potions",
+      "href": "/dai/guides/tutorials/create-anything/effects-potions/",
+      "surface": "dai_effects + dai_potions"
+    },
+    {
+      "title": "Projectiles",
+      "href": "/dai/guides/tutorials/create-anything/projectiles/",
+      "surface": "dai_projectiles"
+    },
+    {
+      "title": "Particles & Visual FX",
+      "href": "/dai/guides/tutorials/create-anything/particles/",
+      "surface": "dai_particles"
+    },
+    {
+      "title": "Native Entities & AI",
+      "href": "/dai/guides/tutorials/create-anything/entities/",
+      "surface": "dai_entities"
+    },
+    {
+      "title": "Animations & Render Profiles",
+      "href": "/dai/guides/tutorials/create-anything/animations-rendering/",
+      "surface": "dai_animations"
+    },
+    {
+      "title": "Sounds & Music",
+      "href": "/dai/guides/tutorials/create-anything/sound-music/",
+      "surface": "dai_sounds + dai_music"
+    },
+    {
+      "title": "HUD & Overlays",
+      "href": "/dai/guides/tutorials/create-anything/hud-ui/",
+      "surface": "dai_hud"
+    },
+    {
+      "title": "Data Screens",
+      "href": "/dai/guides/tutorials/create-anything/data-screens/",
+      "surface": "dai_screens"
+    },
+    {
+      "title": "Datapack Keybinds & Raw Input",
+      "href": "/dai/guides/tutorials/create-anything/datapack-keybinds/",
+      "surface": "dai_keybinds"
+    },
+    {
+      "title": "Persistent Content State",
+      "href": "/dai/guides/tutorials/create-anything/persistent-content-state/",
+      "surface": "components + block state"
+    },
+    {
+      "title": "Structures & Modular Rooms",
+      "href": "/dai/guides/tutorials/create-anything/structures-modules/",
+      "surface": "dai_structures"
+    },
+    {
+      "title": "Features & Biomes",
+      "href": "/dai/guides/tutorials/create-anything/features-biomes/",
+      "surface": "dai_features + dai_biomes"
+    },
+    {
+      "title": "Loot, Recipes & Processing",
+      "href": "/dai/guides/tutorials/create-anything/loot-recipes/",
+      "surface": "dai_loot + dai_recipes"
+    },
+    {
+      "title": "Economy & Social Systems",
+      "href": "/dai/guides/tutorials/create-anything/economy-social/",
+      "surface": "currencies + shops + dialogue + quests + factions"
+    },
+    {
+      "title": "Dimensions & Timelines",
+      "href": "/dai/guides/tutorials/create-anything/dimensions-timelines/",
+      "surface": "dimensions + timelines"
+    },
+    {
+      "title": "Rules & Physics",
+      "href": "/dai/guides/tutorials/create-anything/rules-physics/",
+      "surface": "dai_rules + dai_physics"
+    },
+    {
+      "title": "Vehicles",
+      "href": "/dai/guides/tutorials/create-anything/vehicles/",
+      "surface": "dai_vehicles"
+    },
+    {
+      "title": "Portals & Interactive Volumes",
+      "href": "/dai/guides/tutorials/create-anything/portals-interactives/",
+      "surface": "portals + interactives"
+    },
+    {
+      "title": "Fluids",
+      "href": "/dai/guides/tutorials/create-anything/fluids/",
+      "surface": "dai_fluids"
+    },
+    {
+      "title": "Reactions & Event Gameplay",
+      "href": "/dai/guides/tutorials/create-anything/reactions-events/",
+      "surface": "reactions"
+    },
+    {
+      "title": "Logic, Objectives & Sequences",
+      "href": "/dai/guides/tutorials/create-anything/logic-objectives/",
+      "surface": "logic + objectives"
+    },
+    {
+      "title": "Menus, Input & Keybind Gameplay",
+      "href": "/dai/guides/tutorials/create-anything/menus-input/",
+      "surface": "menus + input"
+    },
+    {
+      "title": "Recognition & Perception",
+      "href": "/dai/guides/tutorials/create-anything/recognition/",
+      "surface": "recognition"
+    },
+    {
+      "title": "Automation",
+      "href": "/dai/guides/tutorials/create-anything/automation/",
+      "surface": "automation"
+    },
+    {
+      "title": "Experiences & Worldgen",
+      "href": "/dai/guides/tutorials/create-anything/experiences-worldgen/",
+      "surface": "dai_experiences + dai_worldgen"
+    },
+    {
+      "title": "Multiplayer, Checkpoints & Migrations",
+      "href": "/dai/guides/tutorials/create-anything/multiplayer-migrations/",
+      "surface": "state + migrations"
+    },
+    {
+      "title": "Resource Packs & Models",
+      "href": "/dai/guides/tutorials/create-anything/resource-packs/",
+      "surface": "assets/<namespace>"
+    },
+    {
+      "title": "Testing, Performance & Packaging",
+      "href": "/dai/guides/tutorials/create-anything/testing-packaging/",
+      "surface": "validation + release ZIP"
+    },
+    {
+      "title": "Branding & Loading",
+      "href": "/dai/guides/tutorials/create-anything/branding-loading/",
+      "surface": "title + loading"
+    },
+    {
+      "title": "State & Capabilities",
+      "href": "/dai/guides/tutorials/create-anything/state-capabilities/",
+      "surface": "dai_state"
+    },
+    {
+      "title": "References",
+      "href": "/dai/guides/tutorials/create-anything/references/",
+      "surface": "reference store"
+    },
+    {
+      "title": "Skills",
+      "href": "/dai/guides/tutorials/create-anything/skills/",
+      "surface": "dai_skills"
+    },
+    {
+      "title": "Learning Agents & Sapphire",
+      "href": "/dai/guides/tutorials/create-anything/learning-agents/",
+      "surface": "learning/agents"
+    },
+    {
+      "title": "ERAS Cinematics",
+      "href": "/dai/guides/tutorials/create-anything/cinematics/",
+      "surface": "dai_cinematics"
+    },
+    {
+      "title": "Enchantments",
+      "href": "/dai/guides/tutorials/create-anything/enchantments/",
+      "surface": "dai_enchantments"
+    }
+  ],
+  "complete_game_tracks": [
+    {
+      "title": "AutoCraft MineShaft",
+      "href": "/dai/guides/tutorials/autocraft-mineshaft/"
+    },
+    {
+      "title": "Space Between Blocks",
+      "href": "/dai/guides/tutorials/space-between-blocks/"
+    },
+    {
+      "title": "MineTrigger",
+      "href": "/dai/guides/tutorials/minetrigger/"
+    },
+    {
+      "title": "Hollow Spiral",
+      "href": "/dai/guides/tutorials/hollow-spiral/"
+    },
+    {
+      "title": "Tower of DLC",
+      "href": "/dai/guides/tutorials/tower-of-dlc/"
+    },
+    {
+      "title": "Kitty's Dagger",
+      "href": "/dai/guides/tutorials/kittys-dagger/"
+    }
+  ]
+}

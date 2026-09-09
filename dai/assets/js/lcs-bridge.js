@@ -14,7 +14,7 @@
     script.dataset.daiShared = key;
     document.head.appendChild(script);
   };
-  addModule('/dai/assets/js/dai-version.js?v=20260904-v35', 'version');
+  addModule('/dai/assets/js/dai-version.js?v=20260909-v38', 'version');
   addModule('/assets/js/site-presence.js?v=20260904-p1', 'presence');
 
   // DAI shell navigation rule:
@@ -54,14 +54,27 @@
     if (!path.startsWith('/dai/guides/')) return;
     const foundationHref = '/dai/guides/tutorials/start-here/';
     document.querySelectorAll('.guide-sidebar').forEach(sidebar => {
-      if (sidebar.querySelector('[data-dai-foundations], a[href="/dai/guides/tutorials/start-here/"]')) return;
-      const link = document.createElement('a');
-      link.href = foundationHref;
-      link.textContent = 'Start From Zero';
-      link.dataset.daiFoundations = '1';
-      link.title = 'No coding, JSON, datapack or packaging knowledge required';
       const heading = sidebar.querySelector(':scope > strong');
-      if (heading) heading.after(link); else sidebar.prepend(link);
+      const addGuideLink = (href, text, key, title) => {
+        if (sidebar.querySelector(`a[href="${href}"], [data-dai-guide-link="${key}"]`)) return null;
+        const link = document.createElement('a');
+        link.href = href;
+        link.textContent = text;
+        link.dataset.daiGuideLink = key;
+        if (title) link.title = title;
+        return link;
+      };
+      const foundation = addGuideLink(foundationHref, 'Start From Zero', 'foundations', 'No coding, JSON, datapack or packaging knowledge required');
+      const howto = addGuideLink('/dai/guides/how-to/', 'How-To Guide Index', 'howto', 'Build a DAI capability from scratch');
+      const capabilities = addGuideLink('/dai/guides/capabilities/', 'Complete 3.8 Capabilities', 'capabilities', 'Source-derived DAI 3.8 runtime inventory');
+      const links = [foundation, howto, capabilities].filter(Boolean);
+      if (!links.length) return;
+      if (heading) {
+        let anchor = heading;
+        links.forEach(link => { anchor.after(link); anchor = link; });
+      } else {
+        links.reverse().forEach(link => sidebar.prepend(link));
+      }
     });
 
     const isFoundation = path.startsWith('/dai/guides/tutorials/start-here/');
@@ -84,6 +97,36 @@
     document.addEventListener('DOMContentLoaded', wireFoundationNavigation, { once: true });
   }
 
+  // DAI 3.8 home-page capability refresh without duplicating the large universe page.
+  // The static page keeps the existing world/project constellation; this shared layer
+  // upgrades the engine summary and exposes the new source-derived documentation.
+  const wire38Home = () => {
+    if (path !== '/dai/' && path !== '/dai') return;
+    const heroCopy = document.querySelector('.universe-hero-copy p');
+    if (heroCopy && !heroCopy.dataset.dai38Summary) {
+      heroCopy.dataset.dai38Summary = '1';
+      heroCopy.textContent = 'DAI 3.8 turns datapacks, resource packs and JSON into a reusable Minecraft game-development layer for complete experiences, addons, native/custom content, typed state and capabilities, reusable references, server-authoritative skills, Sapphire learning agents, ERAS cinematics, actions, conditions, reactions, automation, UI, world generation, physics, vehicles, projectiles, portals, fluids and open Mojang data bridges.';
+    }
+    const actions = document.querySelector('.universe-hero-copy .hero-actions');
+    if (actions && !actions.querySelector('a[href="/dai/guides/capabilities/"]')) {
+      const link = document.createElement('a');
+      link.className = 'button';
+      link.href = '/dai/guides/capabilities/';
+      link.textContent = 'DAI 3.8 Capabilities';
+      actions.appendChild(link);
+    }
+    const releaseGrid = document.querySelector('.universe-release-grid, .release-grid');
+    if (releaseGrid && !releaseGrid.querySelector('[data-dai38-release]')) {
+      const card = document.createElement('div');
+      card.className = 'release-item';
+      card.dataset.dai38Release = '1';
+      card.innerHTML = '<span class="system-tag">DAI 3.8</span><strong>State, skills, learning and cinematics are first-class runtime systems</strong><p>Typed state/capabilities, reusable references, server skill casting, Sapphire learning agents and retained 2D/3D ERAS cinematic projects now sit beside the existing content, world and automation runtimes.</p>';
+      releaseGrid.prepend(card);
+    }
+  };
+  wire38Home();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire38Home, { once: true });
+
   const title = (document.querySelector('h1')?.textContent || document.title || 'DAI').trim().replace(/\s+/g,' ').slice(0,140);
   const touchMobile = matchMedia('(max-width: 820px)').matches && (navigator.maxTouchPoints || 0) > 0;
   const lcsBase = touchMobile ? '/lcs-mobile/' : '/logicalcommunicationservice/';
@@ -91,7 +134,7 @@
     ['distribution','distribution'],['global-datapacks','distribution'],['packs/','experiences'],['experiences-worldgen','worlds'],['persistent-content-state','worlds'],
     ['menus','presentation'],['overlays','presentation'],['branding-loading','presentation'],['input-ui','presentation'],['recognition-perception','presentation'],
     ['actions','gameplay'],['conditions','gameplay'],['objectives-sequences-flow','gameplay'],['directional-combat','gameplay'],['gameplay-tester','gameplay'],
-    ['custom-content','content'],['recipes','content'],['native-minecraft-bridge','content'],['native-runtime-exposure','content'],
+    ['learning-agents','gameplay'],['state-capabilities','gameplay'],['skills','gameplay'],['cinematics','presentation'],['capabilities','engine'],['custom-content','content'],['recipes','content'],['native-minecraft-bridge','content'],['native-runtime-exposure','content'],
     ['creator-workflow','creator'],['/creator/','creator'],['architecture','engine'],['runtime-dispatch','engine'],['/info/','engine']
   ];
   const context = (rules.find(([needle]) => path.includes(needle)) || [null,'ecosystem'])[1];

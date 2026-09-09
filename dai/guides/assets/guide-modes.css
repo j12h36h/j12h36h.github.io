@@ -16,7 +16,7 @@
 .mode-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 24px}
 .mode-toolbar input,.mode-toolbar select{min-height:42px;padding:8px 11px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.2);color:inherit}
 .module-section{margin:34px 0}.module-section h2{margin-bottom:8px}.module-filter{width:min(100%,480px)}
-.module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.module-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}
 .module-card{display:flex;flex-direction:column;min-height:160px;text-decoration:none;color:inherit;padding:18px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.025)}
 .module-card:hover{border-color:rgba(255,138,42,.62);background:rgba(255,138,42,.055)}
 .module-card small{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;opacity:.62}.module-card strong{font-size:1.05rem;margin:9px 0 7px}.module-card span{font-size:.9rem;line-height:1.45;opacity:.76}

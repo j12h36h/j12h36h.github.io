@@ -1,0 +1,1236 @@
+{
+  "version": "3.8",
+  "source": "uploaded DAI Engine 3.8 main source tree",
+  "counts": {
+    "actions": 266,
+    "conditions": 273,
+    "content_kinds": 10,
+    "customization_kinds": 24,
+    "mojang_bridge_folders": 43,
+    "entity_behavior_actions": 45,
+    "entity_behavior_conditions": 22,
+    "reaction_events": 7,
+    "key_mappings": 33,
+    "server_action_aliases": 52
+  },
+  "actions": {
+    "Menu": [
+      "open_dai_creator",
+      "open_automation_creator",
+      "pause_menu",
+      "update_menu",
+      "open_dai_menu",
+      "screen_open",
+      "open_data_screen",
+      "set_cursor_released",
+      "open_chat",
+      "close_screen"
+    ],
+    "Overlay": [
+      "overlay_sprite",
+      "overlay_sprite_sheet",
+      "overlay_text",
+      "overlay_button",
+      "overlay_remove",
+      "overlay_clear",
+      "overlay_set_position",
+      "overlay_move",
+      "overlay_set_size",
+      "overlay_set_z",
+      "overlay_set_interactable",
+      "overlay_lock_transform",
+      "overlay_clamp_to_screen",
+      "overlay_repel_mouse"
+    ],
+    "Look": [
+      "set_look",
+      "add_look"
+    ],
+    "Movement": [
+      "move",
+      "jump",
+      "crouch_toggle",
+      "crouch_set",
+      "sprint_toggle",
+      "sprint_set",
+      "swim_toggle",
+      "swim_set",
+      "input_stop_all"
+    ],
+    "Target": [
+      "scan",
+      "target_clear",
+      "recognize_target",
+      "recognize_block"
+    ],
+    "Combat": [
+      "attack_target",
+      "attack_basic",
+      "attack_start",
+      "attack_stop"
+    ],
+    "Automation": [
+      "automation_start_vanilla_gameplay",
+      "automation_start_speedrun",
+      "automation_start_creative_builder",
+      "automation_start_adventure",
+      "automation_continue",
+      "speedrun_find_portal_site",
+      "automation_stop"
+    ],
+    "Game Mode": [
+      "set_gamemode",
+      "run_command",
+      "run_server_command",
+      "server_run_function",
+      "server_set_block",
+      "server_break_block",
+      "server_give_item",
+      "server_take_item",
+      "server_projectile_spawn",
+      "projectile_spawn",
+      "skill_cast",
+      "server_skill_cast",
+      "server_particle_emit",
+      "particle_emit",
+      "server_effect_apply",
+      "effect_apply",
+      "server_effect_remove",
+      "effect_remove",
+      "server_potion_apply",
+      "potion_apply",
+      "item_component_set",
+      "item_component_remove",
+      "item_component_copy",
+      "block_entity_set_boolean",
+      "block_entity_set_number",
+      "block_entity_set_string",
+      "block_entity_add_number",
+      "block_entity_toggle_boolean",
+      "block_entity_clear",
+      "block_entity_slot_set",
+      "block_entity_slot_clear",
+      "server_mark_experience_started",
+      "key_click",
+      "key_press",
+      "key_release",
+      "type_text",
+      "creative_open_inventory",
+      "creative_close_inventory",
+      "creative_select_tab",
+      "creative_search_item",
+      "creative_take_item",
+      "creative_equip_item",
+      "creative_save_toolbar",
+      "creative_load_toolbar",
+      "creative_pick_block_nbt",
+      "creative_remove_block",
+      "creative_place_block",
+      "creative_set_block",
+      "creative_flight_set",
+      "creative_fly_to",
+      "wait_for_creative_flight",
+      "creative_hover",
+      "creative_build_blueprint",
+      "creative_blueprint_cell",
+      "wait_for_creative_build"
+    ],
+    "Extension": [
+      "state_set_boolean",
+      "state_set_number",
+      "state_set_string",
+      "state_add_number",
+      "state_toggle_boolean",
+      "state_clear",
+      "capability_add",
+      "capability_remove",
+      "capability_clear",
+      "reference_remember_target_entity",
+      "reference_remember_target_block",
+      "reference_remember_reaction_entity",
+      "reference_remember_player_position",
+      "reference_select",
+      "reference_clear",
+      "emit_reaction_event",
+      "attribute_set",
+      "attribute_add",
+      "attribute_reset",
+      "attribute_modifier_add",
+      "attribute_modifier_remove",
+      "native_attribute_set",
+      "native_attribute_modifier_add",
+      "native_attribute_modifier_remove",
+      "status_set_health",
+      "status_heal",
+      "status_damage",
+      "status_set_absorption",
+      "status_set_food",
+      "status_set_air",
+      "status_set_fire_ticks",
+      "animation_play",
+      "animation_stop",
+      "animation_pause",
+      "animation_resume",
+      "wait_for_animation",
+      "cinematic_play",
+      "cinematic_stop",
+      "cinematic_pause",
+      "cinematic_resume",
+      "wait_for_cinematic",
+      "content_activate",
+      "content_deactivate",
+      "content_event",
+      "content_give"
+    ],
+    "Inventory": [
+      "open_inventory",
+      "hotbar_select",
+      "hotbar_next",
+      "hotbar_previous",
+      "hotbar_normalize",
+      "item_use",
+      "use_start",
+      "use_stop",
+      "item_drop",
+      "item_swap"
+    ],
+    "Equipment": [
+      "hotbar_select_item",
+      "equip_best_tool",
+      "equip_best_weapon",
+      "equip_best_food",
+      "equip_best_block"
+    ],
+    "Interaction": [
+      "interact",
+      "pick_block"
+    ],
+    "Mining": [
+      "break_targeted_once",
+      "break_once",
+      "break_start",
+      "break_stop",
+      "equip_best_tool_for_block",
+      "mine_targeted_block",
+      "mine_nearest_block",
+      "collect_nearby_items"
+    ],
+    "Block": [
+      "place",
+      "place_targeted_block",
+      "place_nearest_block",
+      "place_block_at_selected_position",
+      "exact_place_align",
+      "exact_place_finish",
+      "exact_place_verify",
+      "harvest_crop"
+    ],
+    "Navigation": [
+      "approach_target_block",
+      "wait_for_approach",
+      "wait_for_target_block",
+      "explore_for_block",
+      "wait_for_exploration",
+      "vertical_scaffold_to_target",
+      "wait_for_vertical_scaffold",
+      "vertical_scaffold_descend",
+      "wait_for_scaffold_descent"
+    ],
+    "Waypoint": [
+      "remember_waypoint",
+      "remember_target_waypoint",
+      "select_waypoint",
+      "forget_waypoint",
+      "forget_failed_waypoint"
+    ],
+    "Spatial": [
+      "select_waypoint_offset",
+      "remember_offset_waypoint",
+      "remember_surface_offset_waypoint",
+      "scan_adjacent_blocks",
+      "select_adjacent_block",
+      "spatial_clear"
+    ],
+    "Food": [
+      "eat_best_food"
+    ],
+    "Container": [
+      "open_container",
+      "wait_for_container",
+      "wait_for_screen_profile",
+      "close_container",
+      "container_click_slot",
+      "container_shift_click_slot",
+      "container_insert_item",
+      "container_take_slot",
+      "wait_for_container_slot"
+    ],
+    "Queue": [
+      "delay",
+      "sequence",
+      "enqueue_action",
+      "queue_clear",
+      "random_action"
+    ],
+    "Crafting": [
+      "craft_recipe",
+      "craft_take_result"
+    ],
+    "Objective": [
+      "objective_execute"
+    ],
+    "Flow": [
+      "stop_if_failure",
+      "stop_if_success",
+      "run_if_failure",
+      "run_if_success"
+    ],
+    "Customization": [
+      "customization_event",
+      "customization_activate",
+      "customization_deactivate",
+      "sound_play",
+      "sound_stop",
+      "music_play",
+      "music_stop",
+      "hud_show",
+      "hud_hide",
+      "render_profile_apply",
+      "render_profile_clear",
+      "structure_place",
+      "feature_place",
+      "loot_grant",
+      "currency_add",
+      "currency_take",
+      "currency_set",
+      "shop_open",
+      "shop_purchase",
+      "dialogue_start",
+      "dialogue_choose",
+      "dialogue_end",
+      "quest_start",
+      "quest_advance",
+      "quest_complete",
+      "quest_fail",
+      "faction_join",
+      "faction_leave",
+      "biome_apply",
+      "dimension_transfer",
+      "rules_apply",
+      "rules_clear",
+      "vehicle_spawn",
+      "vehicle_despawn",
+      "vehicle_mount",
+      "vehicle_dismount",
+      "interactive_use",
+      "fluid_apply",
+      "fluid_remove",
+      "environment_enter",
+      "environment_exit"
+    ]
+  },
+  "conditions": {
+    "Advancement": [
+      "advancement_complete",
+      "advancement_category_complete"
+    ],
+    "Block": [
+      "block_at_offset",
+      "targeted_block_exists",
+      "targeted_block",
+      "targeted_block_breakable",
+      "targeted_block_air",
+      "block_below",
+      "block_above",
+      "block_at_feet",
+      "target_block_selected"
+    ],
+    "Combat": [
+      "attack_cooldown",
+      "attack_ready",
+      "player_blocking",
+      "player_recently_hurt",
+      "player_hurt_time",
+      "target_in_melee_reach"
+    ],
+    "Config": [
+      "config_value"
+    ],
+    "Customization": [
+      "customization_exists",
+      "customization_active",
+      "customization_count"
+    ],
+    "Effect": [
+      "player_effect_exists",
+      "player_effect_duration",
+      "player_effect_amplifier",
+      "target_effect_exists",
+      "target_effect_duration",
+      "target_effect_amplifier"
+    ],
+    "Entity": [
+      "target_entity_type",
+      "target_is_living",
+      "target_is_player",
+      "target_is_hostile",
+      "target_is_animal",
+      "target_is_baby",
+      "target_is_adult",
+      "target_name",
+      "target_custom_name",
+      "target_has_custom_name"
+    ],
+    "Environment": [
+      "biome",
+      "biome_tag",
+      "fluid_at_feet",
+      "fluid_below",
+      "player_underwater",
+      "player_in_rain",
+      "player_in_powder_snow",
+      "underground",
+      "open_sky",
+      "sky_light",
+      "block_light"
+    ],
+    "Equipment": [
+      "equipment_item",
+      "equipment_empty",
+      "equipment_stack_size",
+      "equipment_durability",
+      "equipment_damage",
+      "equipment_max_damage"
+    ],
+    "Extension": [
+      "state",
+      "state_exists",
+      "capability",
+      "reference_exists",
+      "reference_type",
+      "reference_age",
+      "reference_distance",
+      "reference_entity_alive",
+      "attribute",
+      "attribute_exists",
+      "attribute_modifier",
+      "native_attribute",
+      "native_attribute_modifier",
+      "animation_playing",
+      "animation_finished",
+      "animation_paused",
+      "animation_tick",
+      "content_exists",
+      "content_active",
+      "content_kind",
+      "content_tag",
+      "content_capability",
+      "item_component_exists",
+      "item_component_json",
+      "block_entity_state",
+      "block_entity_state_exists",
+      "block_entity_slot_item",
+      "block_entity_slot_count",
+      "held_content",
+      "holding_content"
+    ],
+    "Geometry": [
+      "player_facing_target",
+      "target_in_front",
+      "target_behind",
+      "target_left",
+      "target_right",
+      "horizontal_angle_to_target",
+      "vertical_angle_to_target",
+      "distance_to_position"
+    ],
+    "Input": [
+      "keybind_exists",
+      "keybind_held",
+      "keybind_pressed",
+      "keybind_released",
+      "raw_key_exists",
+      "raw_key_held",
+      "raw_key_pressed",
+      "raw_key_released"
+    ],
+    "Inventory": [
+      "holding_item",
+      "offhand_item",
+      "inventory_has_space",
+      "selected_hotbar_slot",
+      "mainhand_empty",
+      "offhand_empty",
+      "container_has_item",
+      "recipe_unlocked"
+    ],
+    "Item": [
+      "inventory_item_count",
+      "mainhand_stack_size",
+      "offhand_stack_size",
+      "mainhand_damage",
+      "mainhand_max_damage",
+      "mainhand_durability",
+      "offhand_damage",
+      "offhand_max_damage",
+      "offhand_durability"
+    ],
+    "Knowledge": [
+      "biome_known",
+      "structure_known"
+    ],
+    "Mode": [
+      "player_game_mode",
+      "player_survival",
+      "player_creative",
+      "player_adventure",
+      "player_spectator",
+      "player_flying",
+      "player_can_fly",
+      "player_invulnerable",
+      "player_instabuild",
+      "player_may_build"
+    ],
+    "Movement": [
+      "player_moving",
+      "player_stationary",
+      "player_in_air",
+      "player_falling",
+      "player_rising",
+      "player_horizontal_speed",
+      "player_vertical_speed",
+      "player_speed",
+      "player_swimming",
+      "player_fall_flying",
+      "player_climbing"
+    ],
+    "Movement Progress": [
+      "player_stuck",
+      "distance_moved_recently"
+    ],
+    "Navigation": [
+      "path_forward_clear",
+      "path_forward_step_up",
+      "path_forward_blocked",
+      "path_forward_safe_drop",
+      "path_forward_dangerous_drop",
+      "path_forward_lava",
+      "path_forward_safe",
+      "player_has_jump_headroom",
+      "path_forward_elevation",
+      "path_forward_uphill",
+      "path_forward_downhill"
+    ],
+    "Nearby": [
+      "nearby_recognition",
+      "nearby_entity_count",
+      "nearest_entity_distance"
+    ],
+    "Nearby Item": [
+      "nearby_item_count",
+      "nearest_item_distance",
+      "nearby_experience_orb_count",
+      "nearest_experience_orb_distance"
+    ],
+    "Player": [
+      "input_attack_held",
+      "input_use_held",
+      "player_exists",
+      "player_alive",
+      "player_health",
+      "player_on_ground",
+      "player_sprinting",
+      "player_sneaking",
+      "player_using_item",
+      "player_hunger",
+      "player_air",
+      "player_in_water",
+      "player_in_lava",
+      "player_on_fire"
+    ],
+    "Position": [
+      "player_x",
+      "player_y",
+      "player_z",
+      "player_block_x",
+      "player_block_y",
+      "player_block_z",
+      "player_yaw",
+      "player_pitch",
+      "player_facing",
+      "target_x",
+      "target_y",
+      "target_z",
+      "target_above_player",
+      "target_below_player",
+      "target_height_difference"
+    ],
+    "Reaction": [
+      "reaction_active",
+      "reaction_event",
+      "reaction_phase",
+      "reaction_has_entity",
+      "reaction_entity_type",
+      "reaction_has_block",
+      "reaction_block_id",
+      "reaction_block_x",
+      "reaction_block_y",
+      "reaction_block_z",
+      "reaction_has_item",
+      "reaction_item_id",
+      "reaction_item_model",
+      "reaction_entity_living",
+      "reaction_entity_health"
+    ],
+    "Registry": [
+      "always",
+      "never"
+    ],
+    "Scaffold": [
+      "approach_last_success",
+      "approach_last_failed",
+      "scaffold_last_success",
+      "scaffold_last_failed",
+      "scaffold_active",
+      "scaffold_used_count",
+      "scaffold_material_count"
+    ],
+    "Server": [
+      "dai_server_available",
+      "server_dai_available",
+      "server_authority_available"
+    ],
+    "Spatial": [
+      "block_at_waypoint_offset",
+      "waypoint_offset_air",
+      "waypoint_offset_strict_air",
+      "waypoint_offset_house_plank",
+      "waypoint_offset_traversable",
+      "selected_block",
+      "selected_block_air",
+      "selected_block_traversable",
+      "spatial_scan_available",
+      "spatial_scan_size",
+      "adjacent_block",
+      "adjacent_block_air",
+      "adjacent_block_traversable",
+      "adjacent_block_count"
+    ],
+    "Status": [
+      "last_action_running",
+      "last_action_success",
+      "last_action_failure",
+      "last_action_cancelled",
+      "last_action_timed_out"
+    ],
+    "Tag": [
+      "holding_item_tag",
+      "offhand_item_tag",
+      "inventory_item_tag_count",
+      "equipment_item_tag",
+      "targeted_block_tag"
+    ],
+    "Target": [
+      "target_exists",
+      "target_alive",
+      "target_health",
+      "target_distance",
+      "target_visible"
+    ],
+    "Ui": [
+      "mouse_x",
+      "mouse_y",
+      "mouse_delta_x",
+      "mouse_delta_y",
+      "mouse_button_held",
+      "mouse_button_pressed",
+      "mouse_button_released",
+      "overlay_exists",
+      "mouse_over_overlay",
+      "mouse_near_overlay",
+      "mouse_distance_to_overlay",
+      "gui_width",
+      "gui_height",
+      "overlay_transform_locked"
+    ],
+    "Waypoint": [
+      "waypoint_known",
+      "waypoint_in_dimension",
+      "distance_to_waypoint",
+      "at_waypoint"
+    ],
+    "World": [
+      "world_time",
+      "game_time",
+      "day_count",
+      "is_day",
+      "is_night",
+      "is_raining",
+      "is_thundering",
+      "dimension",
+      "sky_visible",
+      "light_level"
+    ]
+  },
+  "content_kinds": [
+    {
+      "id": "item",
+      "folder": "dai_items"
+    },
+    {
+      "id": "block",
+      "folder": "dai_blocks"
+    },
+    {
+      "id": "weapon",
+      "folder": "dai_weapons"
+    },
+    {
+      "id": "armor",
+      "folder": "dai_armor"
+    },
+    {
+      "id": "effect",
+      "folder": "dai_effects"
+    },
+    {
+      "id": "potion",
+      "folder": "dai_potions"
+    },
+    {
+      "id": "projectile",
+      "folder": "dai_projectiles"
+    },
+    {
+      "id": "particle",
+      "folder": "dai_particles"
+    },
+    {
+      "id": "enchantment",
+      "folder": "dai_enchantments"
+    },
+    {
+      "id": "entity",
+      "folder": "dai_entities"
+    }
+  ],
+  "customization_kinds": [
+    {
+      "id": "sound",
+      "folder": "dai_sounds"
+    },
+    {
+      "id": "music",
+      "folder": "dai_music"
+    },
+    {
+      "id": "hud",
+      "folder": "dai_hud"
+    },
+    {
+      "id": "render_profile",
+      "folder": "dai_render_profiles"
+    },
+    {
+      "id": "structure",
+      "folder": "dai_structures"
+    },
+    {
+      "id": "feature",
+      "folder": "dai_features"
+    },
+    {
+      "id": "loot",
+      "folder": "dai_loot"
+    },
+    {
+      "id": "currency",
+      "folder": "dai_currencies"
+    },
+    {
+      "id": "shop",
+      "folder": "dai_shops"
+    },
+    {
+      "id": "skill",
+      "folder": "dai_skills"
+    },
+    {
+      "id": "dialogue",
+      "folder": "dai_dialogues"
+    },
+    {
+      "id": "quest",
+      "folder": "dai_quests"
+    },
+    {
+      "id": "faction",
+      "folder": "dai_factions"
+    },
+    {
+      "id": "biome",
+      "folder": "dai_biomes"
+    },
+    {
+      "id": "dimension_type",
+      "folder": "dai_dimension_types"
+    },
+    {
+      "id": "dimension",
+      "folder": "dai_dimensions"
+    },
+    {
+      "id": "timeline",
+      "folder": "dai_timelines"
+    },
+    {
+      "id": "ruleset",
+      "folder": "dai_rules"
+    },
+    {
+      "id": "vehicle",
+      "folder": "dai_vehicles"
+    },
+    {
+      "id": "portal",
+      "folder": "dai_portals"
+    },
+    {
+      "id": "interactive",
+      "folder": "dai_interactives"
+    },
+    {
+      "id": "fluid",
+      "folder": "dai_fluids"
+    },
+    {
+      "id": "physics",
+      "folder": "dai_physics"
+    },
+    {
+      "id": "environment",
+      "folder": "dai_environments"
+    }
+  ],
+  "mojang_bridge_folders": [
+    {
+      "folder": "dai_world_clocks",
+      "output": "world_clock"
+    },
+    {
+      "folder": "dai_dialogs",
+      "output": "dialog"
+    },
+    {
+      "folder": "dai_enchantments_native",
+      "output": "enchantment"
+    },
+    {
+      "folder": "dai_paintings",
+      "output": "painting_variant"
+    },
+    {
+      "folder": "dai_jukebox_songs",
+      "output": "jukebox_song"
+    },
+    {
+      "folder": "dai_instruments",
+      "output": "instrument"
+    },
+    {
+      "folder": "dai_damage_types",
+      "output": "damage_type"
+    },
+    {
+      "folder": "dai_chat_types",
+      "output": "chat_type"
+    },
+    {
+      "folder": "dai_banner_patterns",
+      "output": "banner_pattern"
+    },
+    {
+      "folder": "dai_trim_materials",
+      "output": "trim_material"
+    },
+    {
+      "folder": "dai_trim_patterns",
+      "output": "trim_pattern"
+    },
+    {
+      "folder": "dai_test_instances",
+      "output": "test_instance"
+    },
+    {
+      "folder": "dai_test_environments",
+      "output": "test_environment"
+    },
+    {
+      "folder": "dai_recipes_native",
+      "output": "recipe"
+    },
+    {
+      "folder": "dai_loot_tables_native",
+      "output": "loot_table"
+    },
+    {
+      "folder": "dai_advancements_native",
+      "output": "advancement"
+    },
+    {
+      "folder": "dai_predicates_native",
+      "output": "predicate"
+    },
+    {
+      "folder": "dai_item_modifiers_native",
+      "output": "item_modifier"
+    },
+    {
+      "folder": "dai_villager_trades",
+      "output": "villager_trade"
+    },
+    {
+      "folder": "dai_trade_sets",
+      "output": "trade_set"
+    },
+    {
+      "folder": "dai_cat_sound_variants",
+      "output": "cat_sound_variant"
+    },
+    {
+      "folder": "dai_pig_sound_variants",
+      "output": "pig_sound_variant"
+    },
+    {
+      "folder": "dai_cow_sound_variants",
+      "output": "cow_sound_variant"
+    },
+    {
+      "folder": "dai_chicken_sound_variants",
+      "output": "chicken_sound_variant"
+    },
+    {
+      "folder": "dai_wolf_sound_variants",
+      "output": "wolf_sound_variant"
+    },
+    {
+      "folder": "dai_cat_variants",
+      "output": "cat_variant"
+    },
+    {
+      "folder": "dai_pig_variants",
+      "output": "pig_variant"
+    },
+    {
+      "folder": "dai_cow_variants",
+      "output": "cow_variant"
+    },
+    {
+      "folder": "dai_chicken_variants",
+      "output": "chicken_variant"
+    },
+    {
+      "folder": "dai_wolf_variants",
+      "output": "wolf_variant"
+    },
+    {
+      "folder": "dai_frog_variants",
+      "output": "frog_variant"
+    },
+    {
+      "folder": "dai_noise",
+      "output": "worldgen/noise"
+    },
+    {
+      "folder": "dai_noise_settings",
+      "output": "worldgen/noise_settings"
+    },
+    {
+      "folder": "dai_density_functions",
+      "output": "worldgen/density_function"
+    },
+    {
+      "folder": "dai_configured_features",
+      "output": "worldgen/configured_feature"
+    },
+    {
+      "folder": "dai_placed_features",
+      "output": "worldgen/placed_feature"
+    },
+    {
+      "folder": "dai_structure_sets",
+      "output": "worldgen/structure_set"
+    },
+    {
+      "folder": "dai_processor_lists",
+      "output": "worldgen/processor_list"
+    },
+    {
+      "folder": "dai_template_pools",
+      "output": "worldgen/template_pool"
+    },
+    {
+      "folder": "dai_native_structures",
+      "output": "worldgen/structure"
+    },
+    {
+      "folder": "dai_world_presets_native",
+      "output": "worldgen/world_preset"
+    },
+    {
+      "folder": "dai_flat_presets",
+      "output": "worldgen/flat_level_generator_preset"
+    },
+    {
+      "folder": "dai_multi_noise_parameters",
+      "output": "worldgen/multi_noise_biome_source_parameter_list"
+    }
+  ],
+  "open_bridges": {
+    "registry": "dai_registry",
+    "server_data": "dai_data"
+  },
+  "entity_behavior": {
+    "actions": [
+      "move_to",
+      "approach",
+      "follow",
+      "follow_player",
+      "move_to_target",
+      "approach_target",
+      "chase_target",
+      "look_at",
+      "look_at_player",
+      "face_player",
+      "look_at_target",
+      "face_target",
+      "stop",
+      "stop_moving",
+      "jump",
+      "target_player",
+      "acquire_player",
+      "attack",
+      "melee_attack",
+      "attack_target",
+      "clear_target",
+      "flee_player",
+      "avoid_player",
+      "wander",
+      "function",
+      "run_function",
+      "server_run_function",
+      "command",
+      "run_command",
+      "server_command",
+      "projectile_spawn",
+      "server_projectile_spawn",
+      "particle_emit",
+      "server_particle_emit",
+      "effect_apply",
+      "server_effect_apply",
+      "effect_remove",
+      "server_effect_remove",
+      "potion_apply",
+      "server_potion_apply",
+      "content_event",
+      "emit_content_event",
+      "wait",
+      "idle",
+      "noop"
+    ],
+    "conditions": [
+      "entity_health",
+      "actor_health",
+      "entity_health_percent",
+      "actor_health_percent",
+      "entity_age_ticks",
+      "actor_age_ticks",
+      "nearest_player_distance",
+      "player_distance",
+      "entity_has_target",
+      "actor_has_target",
+      "entity_target_alive",
+      "actor_target_alive",
+      "entity_target_distance",
+      "actor_target_distance",
+      "target_distance",
+      "entity_can_see_target",
+      "actor_can_see_target",
+      "entity_on_ground",
+      "actor_on_ground",
+      "entity_in_water",
+      "actor_in_water",
+      "random_chance"
+    ]
+  },
+  "reaction_events": [
+    "player_attack_input",
+    "player_input_tick",
+    "player_attack_entity",
+    "player_use_block",
+    "player_use_item",
+    "player_interact_entity",
+    "player_start_break_block"
+  ],
+  "key_mappings": [
+    "attack",
+    "use",
+    "forward",
+    "backward",
+    "left",
+    "right",
+    "jump",
+    "sneak",
+    "sprint",
+    "drop",
+    "inventory",
+    "swap_offhand",
+    "pick_block",
+    "chat",
+    "player_list",
+    "command",
+    "screenshot",
+    "toggle_perspective",
+    "smooth_camera",
+    "fullscreen",
+    "spectator_outlines",
+    "save_toolbar",
+    "load_toolbar",
+    "advancements",
+    "hotbar_1",
+    "hotbar_2",
+    "hotbar_3",
+    "hotbar_4",
+    "hotbar_5",
+    "hotbar_6",
+    "hotbar_7",
+    "hotbar_8",
+    "hotbar_9"
+  ],
+  "server_action_aliases": [
+    "function",
+    "server_run_function",
+    "command",
+    "server_command",
+    "run_server_command",
+    "set_block",
+    "server_set_block",
+    "break_block",
+    "server_break_block",
+    "give_item",
+    "server_give_item",
+    "projectile_spawn",
+    "server_projectile_spawn",
+    "skill_cast",
+    "server_skill_cast",
+    "particle_emit",
+    "server_particle_emit",
+    "effect_apply",
+    "server_effect_apply",
+    "effect_remove",
+    "server_effect_remove",
+    "potion_apply",
+    "server_potion_apply",
+    "take_item",
+    "server_take_item",
+    "experience_startup_dispatched",
+    "state_set",
+    "state_add",
+    "state_toggle",
+    "state_clear",
+    "item_component_set",
+    "item_component_remove",
+    "item_component_copy",
+    "block_entity_set_boolean",
+    "block_entity_set_number",
+    "block_entity_set_string",
+    "block_entity_add_number",
+    "block_entity_toggle_boolean",
+    "block_entity_clear",
+    "block_entity_slot_set",
+    "block_entity_slot_clear",
+    "customization_event",
+    "add",
+    "take",
+    "set",
+    "spawn",
+    "mount",
+    "despawn",
+    "toggle",
+    "clear",
+    "number",
+    "string"
+  ],
+  "state": {
+    "types": [
+      "boolean",
+      "number",
+      "string"
+    ],
+    "scopes": [
+      "client_session",
+      "player",
+      "entity",
+      "dimension",
+      "world",
+      "server"
+    ],
+    "folder": "dai_state"
+  },
+  "learning_agents": {
+    "folder": "learning/agents",
+    "fields": [
+      "name",
+      "enabled",
+      "autonomy_default",
+      "decision_interval",
+      "learning_rate",
+      "discount",
+      "exploration",
+      "success_reward",
+      "failure_reward",
+      "observations",
+      "choices",
+      "rewards",
+      "imitation",
+      "dialogue",
+      "grounding",
+      "knowledge"
+    ]
+  },
+  "cinematics": {
+    "folder": "dai_cinematics",
+    "modes": [
+      "2D",
+      "3D"
+    ]
+  },
+  "skills": {
+    "folder": "dai_skills",
+    "numbers": [
+      "cooldown_ticks",
+      "resource_cost",
+      "required_level",
+      "required_rank",
+      "max_rank",
+      "projectile_count",
+      "projectile_spread",
+      "projectile_speed",
+      "projectile_forward_offset"
+    ],
+    "properties": [
+      "cooldown_group",
+      "resource_state",
+      "level_state",
+      "job_state",
+      "required_job",
+      "rank_state",
+      "required_tag",
+      "blocked_tag",
+      "projectile"
+    ],
+    "events": [
+      "cast"
+    ]
+  }
+}
