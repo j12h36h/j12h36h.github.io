@@ -15,7 +15,9 @@ const state = {
   statusUnsub: null,
   creditUnsub: null,
   creditBalance: 0,
-  ready: false
+  ready: false,
+  identityBusy: false,
+  identityError: ''
 };
 
 const STATUS_META = {
@@ -82,7 +84,14 @@ function renderHeader() {
   const area=$('#portalAuthArea'); if(!area)return;
   if(!state.ready){area.innerHTML='<div class="portal-auth-loading">CHECKING ACCOUNT…</div>';return;}
   if(!state.user){area.innerHTML='<button class="portal-signin portal-google-signin" data-account-signin type="button"><span class="portal-google-mark" aria-hidden="true">G</span><span>SIGN IN WITH GOOGLE</span></button>';return;}
-  if(!state.profileId || !state.profile){area.innerHTML='<div class="portal-auth-loading">LINKING PROFILE…</div>';return;}
+  if(!state.profileId || !state.profile){
+    if(state.identityError){
+      area.innerHTML='<button class="portal-signin portal-google-signin" data-account-retry type="button"><span class="portal-google-mark" aria-hidden="true">↻</span><span>RETRY PROFILE LINK</span></button>';
+    }else{
+      area.innerHTML='<div class="portal-auth-loading">LINKING PROFILE…</div>';
+    }
+    return;
+  }
   const name=state.profile.displayName||generatedName(state.profileId);
   area.innerHTML=`<div class="portal-auth-user"><a class="portal-account-main" href="/account/">${avatarMarkup(state.profile,'portal-auth-avatar')}<span class="portal-account-copy"><b>${escapeHtml(name)}</b><small>${publicGlobalBadges()||'ACCOUNT'} · ◈ ${formatCredits(state.creditBalance)}</small></span></a><button class="portal-signout" data-account-signout type="button" aria-label="Sign out">↪</button></div>`;
 }
@@ -107,23 +116,61 @@ function renderAll(){renderHeader();renderPage();}
 
 async function ensureIdentity(){
   if(!state.user||!state.db)return;
-  const {doc,getDoc,setDoc,serverTimestamp,onSnapshot,collection,query,where,limit}=state.fs;
-  const accountRef=doc(state.db,'privateAccounts',state.user.uid);
-  let account=await getDoc(accountRef); let pid=account.exists()?account.data().publicProfileId:'';
-  if(!pid){pid=crypto.randomUUID();await setDoc(accountRef,{publicProfileId:pid,securityVersion:6,createdAt:serverTimestamp()});}
+  const user=state.user;
+  const uid=user.uid;
+  const {doc,getDoc,setDoc,serverTimestamp,onSnapshot,collection,query,where,limit,runTransaction}=state.fs;
+  const accountRef=doc(state.db,'privateAccounts',uid);
+
+  // Assign the public profile ID atomically. This prevents two overlapping
+  // account-link attempts (slow network, multiple tabs, auth callbacks) from
+  // generating different profile IDs for the same Google/Firebase user.
+  const pid=await runTransaction(state.db,async transaction=>{
+    const account=await transaction.get(accountRef);
+    const existing=account.exists()?String(account.data().publicProfileId||''):'';
+    if(existing)return existing;
+    const created=crypto.randomUUID();
+    transaction.set(accountRef,{publicProfileId:created,securityVersion:6,createdAt:serverTimestamp()},{merge:true});
+    return created;
+  });
+
+  if(state.user?.uid!==uid)return;
   state.profileId=pid;
-  const profileRef=doc(state.db,'publicProfiles',pid); let profileSnap=await getDoc(profileRef);
+
+  const profileRef=doc(state.db,'publicProfiles',pid);
+  let profileSnap=await getDoc(profileRef);
   if(!profileSnap.exists()){
-    await setDoc(profileRef,{displayName:generatedName(pid),bio:'',createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    await setDoc(profileRef,{displayName:generatedName(pid),bio:'',createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});
     profileSnap=await getDoc(profileRef);
   }
+
+  if(state.user?.uid!==uid)return;
   state.profile={id:pid,...profileSnap.data()};
   state.profileUnsub?.(); state.statusUnsub?.(); state.creditUnsub?.();
-  state.profileUnsub=onSnapshot(profileRef,s=>{if(s.exists()){state.profile={id:s.id,...s.data()};renderAll();}});
+  state.profileUnsub=onSnapshot(profileRef,s=>{if(s.exists()&&state.user?.uid===uid){state.profile={id:s.id,...s.data()};renderAll();}});
   const statusQ=query(collection(state.db,'statusAssignments'),where('profileId','==',pid),limit(200));
-  state.statusUnsub=onSnapshot(statusQ,s=>{state.statuses=s.docs.map(d=>({id:d.id,...d.data()}));renderAll();},e=>{console.debug('Account Status subscription',e?.code||e);state.statuses=[];renderAll();});
-  state.creditUnsub=watchCreditWallet(state.db,state.fs,pid,balance=>{state.creditBalance=balance;renderAll();},e=>console.debug('Account credit wallet',e?.code||e));
+  state.statusUnsub=onSnapshot(statusQ,s=>{if(state.user?.uid!==uid)return;state.statuses=s.docs.map(d=>({id:d.id,...d.data()}));renderAll();},e=>{console.debug('Account Status subscription',e?.code||e);if(state.user?.uid!==uid)return;state.statuses=[];renderAll();});
+  state.creditUnsub=watchCreditWallet(state.db,state.fs,pid,balance=>{if(state.user?.uid!==uid)return;state.creditBalance=balance;renderAll();},e=>console.debug('Account credit wallet',e?.code||e));
   renderAll();
+}
+
+async function linkIdentity(){
+  if(!state.user||!state.db||state.identityBusy)return;
+  state.identityBusy=true;
+  state.identityError='';
+  renderAll();
+  try{
+    await ensureIdentity();
+    if(state.user&&state.profile){
+      setMessage('Signed in with Google.','ok');
+    }
+  }catch(e){
+    console.error('Identity restore',e);
+    state.identityError=String(e?.code||e?.message||'unknown error');
+    setMessage(`Could not restore LCS profile: ${state.identityError}`,'error');
+  }finally{
+    state.identityBusy=false;
+    renderAll();
+  }
 }
 
 async function waitForFirebaseAuthUser(timeoutMs=7000){
@@ -149,10 +196,9 @@ async function signIn(){
     return;
   }
   try{
+    state.identityError='';
     setMessage('Opening Google account selection…');
 
-    // Keep this deliberately identical to the working LCS authentication path:
-    // GoogleAuthProvider -> browserLocalPersistence -> signInWithPopup.
     const provider=new state.authMod.GoogleAuthProvider();
     provider.setCustomParameters({prompt:'select_account'});
     await state.authMod.setPersistence(state.auth,state.authMod.browserLocalPersistence);
@@ -166,10 +212,15 @@ async function signIn(){
       throw error;
     }
 
-    state.user=user;
-    await ensureIdentity();
-    setMessage('Signed in with Google.','ok');
-    toast('Signed in with Google.');
+    // onAuthStateChanged is the single automatic owner of profile linking.
+    // Do not call ensureIdentity() here; doing both created a first-login race
+    // that was much easier to hit on higher-latency international connections.
+    if(state.profile){
+      setMessage('Signed in with Google.','ok');
+      toast('Signed in with Google.');
+    }else{
+      setMessage('Google sign-in accepted. Linking profile…');
+    }
   }catch(e){
     console.error('Account Google sign-in',e);
     const code=String(e?.code||'');
@@ -198,7 +249,13 @@ async function saveAvatar(){
 }
 
 function bind(){
-  document.addEventListener('click',e=>{const t=e.target.closest('[data-account-signin],[data-account-signout]');if(!t)return;if(t.matches('[data-account-signin]'))signIn();else signOut();});
+  document.addEventListener('click',e=>{
+    const t=e.target.closest('[data-account-signin],[data-account-signout],[data-account-retry]');
+    if(!t)return;
+    if(t.matches('[data-account-signin]'))signIn();
+    else if(t.matches('[data-account-retry]'))linkIdentity();
+    else signOut();
+  });
   $('#accountProfileForm')?.addEventListener('submit',saveProfile);
   $('#accountBio')?.addEventListener('input',()=>{$('#accountBioCount').textContent=`${$('#accountBio').value.length} / 240`;});
   $('#avatarJsonEditor')?.addEventListener('input',e=>{e.currentTarget.dataset.touched='1';renderAvatarPreview();});
@@ -219,7 +276,25 @@ async function init(){
     state.auth=authMod.getAuth(app);state.authMod=authMod;state.db=fs.getFirestore(app);state.fs=fs;
     authMod.useDeviceLanguage(state.auth);
     try{await authMod.setPersistence(state.auth,authMod.browserLocalPersistence);}catch(e){console.debug('Account persistence',e?.code||e);}
-    authMod.onAuthStateChanged(state.auth,async user=>{state.user=user||null;state.ready=true;if(!user){state.profileId='';state.profile=null;state.statuses=[];state.creditBalance=0;state.profileUnsub?.();state.statusUnsub?.();state.creditUnsub?.();renderAll();return;}renderAll();try{await ensureIdentity();}catch(e){console.error('Identity restore',e);setMessage(`Could not restore LCS profile: ${e?.code||e?.message||'unknown error'}`,'error');}});
+    authMod.onAuthStateChanged(state.auth,async user=>{
+      state.user=user||null;
+      state.ready=true;
+      state.identityError='';
+      if(!user){
+        state.profileId='';
+        state.profile=null;
+        state.statuses=[];
+        state.creditBalance=0;
+        state.identityBusy=false;
+        state.profileUnsub?.();
+        state.statusUnsub?.();
+        state.creditUnsub?.();
+        renderAll();
+        return;
+      }
+      renderAll();
+      await linkIdentity();
+    });
     if(typeof state.auth.authStateReady==='function')await state.auth.authStateReady();
   }catch(e){console.error('Account Firebase init',e);state.ready=true;renderAll();setMessage('Could not connect to Firebase.','error');}
 }
