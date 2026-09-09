@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Commands &amp; .mcfunction · DAI Engine 3.3</title><meta content="Learn Minecraft command functions, selectors, coordinates, execute, scoreboards, load/tick tags and how DAI dispatches into functions." name="description"/><link href="/dai/assets/css/site.css" rel="stylesheet"/><link href="/dai/guides/assets/guides.css" rel="stylesheet"/><link href="/dai/guides/assets/start-here.css" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header><main><div class="guide-shell"><aside class="guide-sidebar"><strong>DAI 3.3 · START FROM ZERO</strong>
+<a href="/dai/guides/">Choose Guide Type</a>
+<a href="/dai/guides/tutorials/">Tutorial Hub</a>
+<a href="/dai/guides/tutorials/start-here/">Start From Zero</a>
+<span class="tutorial-side-label">Foundation course</span>
+<a href="/dai/guides/tutorials/start-here/files-folders-zips/">1. Files, Folders &amp; ZIPs</a>
+<a href="/dai/guides/tutorials/start-here/project-anatomy/">2. Project Anatomy</a>
+<a href="/dai/guides/tutorials/start-here/json-basics/">3. JSON From Zero</a>
+<a href="/dai/guides/tutorials/start-here/functions-commands/">4. Commands &amp; .mcfunction</a>
+<a href="/dai/guides/tutorials/start-here/creator-first-project/">5. First DAI Project</a>
+<a href="/dai/guides/tutorials/start-here/debugging-testing/">6. Debugging &amp; Testing</a>
+<a href="/dai/guides/tutorials/start-here/packaging-installation/">7. Packaging &amp; Installation</a>
+<a href="/dai/guides/tutorials/start-here/glossary/">8. Beginner Glossary</a>
+<span class="tutorial-side-label">After Level 0</span>
+<a href="/dai/guides/modules/">Module Guide</a>
+<a href="/dai/guides/tutorials/create-anything/">Create Anything</a>
+<a href="/dai/guides/full/">Full Creator Guide</a></aside><article class="guide-content"><section class="guide-hero tutorial-hero"><div class="eyebrow">DAI 3.3 · LEVEL 0 · CHAPTER 4</div><h1>Commands &amp; .mcfunction</h1><p>Learn Minecraft command functions, selectors, coordinates, execute, scoreboards, load/tick tags and how DAI dispatches into functions.</p><div class="tutorial-meta"><span>No coding experience required</span><span>Copyable examples</span><span>DAI 3.3</span></div></section>
+<section class="guide-section"><h2>A function is a text file full of Minecraft commands.</h2><p>Instead of typing the same commands manually, save them in <code>.mcfunction</code>. Each non-empty line is executed as a command. Inside a function, do <strong>not</strong> include the leading slash.</p><div class="guide-code"><div class="label">data/my_first_dai/function/hello.mcfunction</div><pre>say Hello
+particle minecraft:happy_villager ~ ~1 ~ 0.2 0.2 0.2 0 6
+function my_first_dai:another_function</pre></div></section>
+<section class="guide-section"><h2>Function IDs come from paths</h2><div class="guide-code"><pre>File:
+data/my_first_dai/function/player/heal.mcfunction
+
+Function ID:
+my_first_dai:player/heal
+
+Call it:
+/function my_first_dai:player/heal</pre></div></section>
+<section class="guide-section"><h2>Selectors: who does the command affect?</h2><div class="guide-table-wrap"><table class="guide-table"><tr><th>Selector</th><th>Plain meaning</th></tr><tr><td><code>@s</code></td><td>The current command executor.</td></tr><tr><td><code>@p</code></td><td>Nearest player.</td></tr><tr><td><code>@a</code></td><td>All players.</td></tr><tr><td><code>@e</code></td><td>Entities; normally narrow this with selector arguments.</td></tr></table></div><p>Example: <code>effect give @s minecraft:speed 5 0</code> affects the executor for five seconds.</p></section>
+<section class="guide-section"><h2>Coordinates: where?</h2><div class="guide-table-wrap"><table class="guide-table"><tr><th>Form</th><th>Meaning</th></tr><tr><td><code>10 64 -20</code></td><td>Absolute world coordinates.</td></tr><tr><td><code>~ ~ ~</code></td><td>Relative to current position.</td></tr><tr><td><code>~ ~1 ~</code></td><td>One block above current position.</td></tr><tr><td><code>^ ^ ^1</code></td><td>Local coordinates relative to facing direction.</td></tr></table></div></section>
+<section class="guide-section"><h2><code>execute</code>: change the context, then run something</h2><div class="guide-code"><pre>execute as @a at @s if block ~ ~-1 ~ minecraft:grass_block run say I am standing on grass</pre></div><p>Read it left to right: <strong>as every player → at that player's position → if the block below is grass → run the command.</strong></p></section>
+<section class="guide-section"><h2>Scoreboards: simple numeric game state</h2><div class="guide-code"><pre>scoreboard objectives add my_score dummy
+scoreboard players add @s my_score 1
+execute if score @s my_score matches 10.. run say Ten or more!</pre></div><p>Scoreboards are useful for counters, phases, cooldowns and progression. DAI also has richer state systems; use the simplest authoritative state that fits the feature.</p></section>
+<section class="guide-section"><h2>Load functions: run once when data loads</h2><p>Put the tag at <code>data/minecraft/tags/function/load.json</code>:</p><div class="guide-code"><pre>{
+  &quot;values&quot;: [
+    &quot;my_first_dai:load&quot;
+  ]
+}</pre></div><p>Then create <code>data/my_first_dai/function/load.mcfunction</code>:</p><div class="guide-code"><pre>say My First DAI Project loaded
+scoreboard objectives add my_first_dai_state dummy</pre></div><p>Load is for setup that is safe to repeat after <code>/reload</code>. Avoid granting rewards here unless they are protected against duplication.</p></section>
+<section class="guide-section"><h2>Tick functions: run every game tick</h2><p>Put the tag at <code>data/minecraft/tags/function/tick.json</code>:</p><div class="guide-code"><pre>{
+  &quot;values&quot;: [
+    &quot;my_first_dai:tick&quot;
+  ]
+}</pre></div><div class="guide-callout warning"><strong>Do not put everything in tick.</strong> Minecraft runs 20 game ticks per second under normal conditions. Prefer reactions/events and scheduled/bounded work when possible.</div></section>
+<section class="guide-section"><h2>Connect DAI to a function</h2><p>A DAI logic definition can dispatch a command that calls your function:</p><div class="guide-code"><div class="label">data/my_first_dai/logics/definitions/hello_action.json</div><pre>{
+  &quot;type&quot;: &quot;sequence&quot;,
+  &quot;sequence&quot;: [
+    {
+      &quot;type&quot;: &quot;run_command&quot;,
+      &quot;action&quot;: &quot;function my_first_dai:hello&quot;
+    }
+  ]
+}</pre></div><p>This is the core bridge: <strong>DAI decides when/why → Minecraft function performs authoritative world logic.</strong></p></section>
+<section class="guide-section"><h2>Client vs server in beginner terms</h2><div class="foundation-do-dont"><div><h3>Presentation/client</h3><p>Camera, local input, menus, overlays and visual feedback.</p></div><div><h3>Authority/server</h3><p>Inventory grants, damage, progression, world edits, costs and persistent state.</p></div></div><p>If cheating/duplication would matter, the final decision belongs on the authoritative server side.</p></section>
+<section class="guide-section"><h2>Checkpoint</h2><p>You are ready when you can turn a file path into a function ID, call one function from another, and explain the difference between load and tick.</p></section>
+<div class="guide-pager"><a href="../json-basics/">← Chapter 3: JSON From Zero</a><a href="../creator-first-project/">Chapter 5: Your First DAI Project →</a></div></article></div></main><footer class="footer">DAI Engine · Level 0 creator foundations</footer><script src="/dai/assets/js/lcs-bridge.js" defer></script></body></html>

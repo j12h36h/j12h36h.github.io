@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Project Anatomy · DAI Engine 3.3</title><meta content="Understand datapacks, resource packs, namespaces, DAI folders, MAIN experiences and ADDONs before authoring content." name="description"/><link href="/dai/assets/css/site.css" rel="stylesheet"/><link href="/dai/guides/assets/guides.css" rel="stylesheet"/><link href="/dai/guides/assets/start-here.css" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header><main><div class="guide-shell"><aside class="guide-sidebar"><strong>DAI 3.3 · START FROM ZERO</strong>
+<a href="/dai/guides/">Choose Guide Type</a>
+<a href="/dai/guides/tutorials/">Tutorial Hub</a>
+<a href="/dai/guides/tutorials/start-here/">Start From Zero</a>
+<span class="tutorial-side-label">Foundation course</span>
+<a href="/dai/guides/tutorials/start-here/files-folders-zips/">1. Files, Folders &amp; ZIPs</a>
+<a href="/dai/guides/tutorials/start-here/project-anatomy/">2. Project Anatomy</a>
+<a href="/dai/guides/tutorials/start-here/json-basics/">3. JSON From Zero</a>
+<a href="/dai/guides/tutorials/start-here/functions-commands/">4. Commands &amp; .mcfunction</a>
+<a href="/dai/guides/tutorials/start-here/creator-first-project/">5. First DAI Project</a>
+<a href="/dai/guides/tutorials/start-here/debugging-testing/">6. Debugging &amp; Testing</a>
+<a href="/dai/guides/tutorials/start-here/packaging-installation/">7. Packaging &amp; Installation</a>
+<a href="/dai/guides/tutorials/start-here/glossary/">8. Beginner Glossary</a>
+<span class="tutorial-side-label">After Level 0</span>
+<a href="/dai/guides/modules/">Module Guide</a>
+<a href="/dai/guides/tutorials/create-anything/">Create Anything</a>
+<a href="/dai/guides/full/">Full Creator Guide</a></aside><article class="guide-content"><section class="guide-hero tutorial-hero"><div class="eyebrow">DAI 3.3 · LEVEL 0 · CHAPTER 2</div><h1>Project Anatomy</h1><p>Understand datapacks, resource packs, namespaces, DAI folders, MAIN experiences and ADDONs before authoring content.</p><div class="tutorial-meta"><span>No coding experience required</span><span>Copyable examples</span><span>DAI 3.3</span></div></section>
+<section class="guide-section"><h2>What is a DAI project?</h2><p>A project is not one special “DAI file.” It is a normal Minecraft datapack and, when needed, a normal resource pack containing DAI definitions in known folders. DAI reads those definitions and connects them to engine features.</p><div class="guide-code"><div class="label">Mental model</div><pre>DAI Engine = runtime/framework
+Your datapack = rules, state, functions, DAI definitions
+Your resource pack = textures, models, sounds, sprites, UI art
+Minecraft = world, entities, inventory, commands, registries</pre></div></section>
+<section class="guide-section"><h2>Namespaces: your project's address</h2><p>A namespace is the first half of an ID. In <code>my_game:hello</code>, <code>my_game</code> is the namespace and <code>hello</code> is the path/ID.</p><div class="guide-code"><pre>my_game:hello
+   │      └─ resource path / ID
+   └──────── namespace (who owns it)</pre></div><p>Use your own stable namespace for original content. <code>minecraft:</code> belongs to vanilla Minecraft. <code>decisions_and_impulses:</code> belongs to DAI.</p></section>
+<section class="guide-section"><h2>Minimal datapack anatomy</h2><div class="guide-code"><pre>MyGame/
+├─ pack.mcmeta
+└─ data/
+   ├─ minecraft/
+   │  └─ tags/
+   │     └─ function/
+   │        ├─ load.json
+   │        └─ tick.json
+   └─ my_game/
+      ├─ function/
+      ├─ logics/
+      ├─ reactions/
+      ├─ dai_items/
+      ├─ dai_entities/
+      ├─ dai_experiences/
+      └─ ...</pre></div><p class="foundation-tree-note">You do not need every folder. Create only the folders your project actually uses.</p></section>
+<section class="guide-section"><h2>Minimal resource-pack anatomy</h2><div class="guide-code"><pre>MyGame_Resources/
+├─ pack.mcmeta
+└─ assets/
+   └─ my_game/
+      ├─ textures/
+      ├─ models/
+      ├─ sounds/
+      └─ dai/
+         └─ models/</pre></div><p>Gameplay should remain server-authoritative; visuals should represent state rather than secretly define it.</p></section>
+<section class="guide-section"><h2>What the common folders mean</h2><div class="guide-table-wrap"><table class="guide-table"><tr><th>Folder</th><th>Purpose</th></tr><tr><td><code>function/</code></td><td>Minecraft command scripts (<code>.mcfunction</code>).</td></tr><tr><td><code>logics/definitions/</code></td><td>Reusable DAI action/logic definitions.</td></tr><tr><td><code>reactions/</code></td><td>Responses to gameplay events.</td></tr><tr><td><code>dai_items/</code></td><td>DAI item definitions.</td></tr><tr><td><code>dai_blocks/</code></td><td>DAI block definitions.</td></tr><tr><td><code>dai_entities/</code></td><td>DAI entity definitions.</td></tr><tr><td><code>dai_experiences/</code></td><td>MAIN experience/save ownership and lifecycle.</td></tr><tr><td><code>dai_worldgen/</code></td><td>Experience/world construction definitions.</td></tr><tr><td><code>dai_title_screens/</code></td><td>Experience title-screen definitions.</td></tr><tr><td><code>menus/</code></td><td>DAI menu resources/overrides where documented.</td></tr><tr><td><code>assets/&lt;namespace&gt;/</code></td><td>Client presentation in a resource pack.</td></tr></table></div></section>
+<section class="guide-section"><h2>MAIN vs ADDON</h2><div class="foundation-do-dont"><div><h3>MAIN</h3><p>Owns a complete DAI game/experience: save bootstrap, title/presentation, world lifecycle and progression.</p></div><div><h3>ADDON</h3><p>Adds reusable content or mechanics to a normal world or compatible MAIN without claiming the whole game.</p></div></div></section>
+<section class="guide-section"><h2>Translate an idea into files</h2><div class="guide-table-wrap"><table class="guide-table"><tr><th>Player-visible idea</th><th>Likely project surfaces</th></tr><tr><td>“I want a custom sword.”</td><td>Item/weapon definition + reaction/function + optional resource model.</td></tr><tr><td>“I want a quest.”</td><td>Objective/logic + conditions + functions/reactions + persistence.</td></tr><tr><td>“I want a custom mob.”</td><td>Entity definition + behavior/attributes + optional render assets.</td></tr><tr><td>“I want a new complete game.”</td><td>MAIN experience + worldgen + progression + recovery + optional companion resource pack.</td></tr><tr><td>“I want a button to do something.”</td><td>Menu definition → action/logic definition → server function/action.</td></tr><tr><td>“I want custom art only.”</td><td>Resource pack; no gameplay authority.</td></tr></table></div></section>
+<section class="guide-section"><h2>Checkpoint</h2><p>You are ready when <code>my_game:hello</code> makes sense as an address and you can explain why gameplay definitions usually live under <code>data/</code> while textures/models live under <code>assets/</code>.</p></section>
+<div class="guide-pager"><a href="../files-folders-zips/">← Chapter 1: Files, Folders & ZIPs</a><a href="../json-basics/">Chapter 3: JSON From Zero →</a></div></article></div></main><footer class="footer">DAI Engine · Level 0 creator foundations</footer><script src="/dai/assets/js/lcs-bridge.js" defer></script></body></html>

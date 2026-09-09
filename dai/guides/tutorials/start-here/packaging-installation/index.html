@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Packaging &amp; Installation · DAI Engine 3.3</title><meta content="Package datapacks/resource packs correctly, install them in the right location, preserve stable identity, and avoid nested-ZIP releases." name="description"/><link href="/dai/assets/css/site.css" rel="stylesheet"/><link href="/dai/guides/assets/guides.css" rel="stylesheet"/><link href="/dai/guides/assets/start-here.css" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header><main><div class="guide-shell"><aside class="guide-sidebar"><strong>DAI 3.3 · START FROM ZERO</strong>
+<a href="/dai/guides/">Choose Guide Type</a>
+<a href="/dai/guides/tutorials/">Tutorial Hub</a>
+<a href="/dai/guides/tutorials/start-here/">Start From Zero</a>
+<span class="tutorial-side-label">Foundation course</span>
+<a href="/dai/guides/tutorials/start-here/files-folders-zips/">1. Files, Folders &amp; ZIPs</a>
+<a href="/dai/guides/tutorials/start-here/project-anatomy/">2. Project Anatomy</a>
+<a href="/dai/guides/tutorials/start-here/json-basics/">3. JSON From Zero</a>
+<a href="/dai/guides/tutorials/start-here/functions-commands/">4. Commands &amp; .mcfunction</a>
+<a href="/dai/guides/tutorials/start-here/creator-first-project/">5. First DAI Project</a>
+<a href="/dai/guides/tutorials/start-here/debugging-testing/">6. Debugging &amp; Testing</a>
+<a href="/dai/guides/tutorials/start-here/packaging-installation/">7. Packaging &amp; Installation</a>
+<a href="/dai/guides/tutorials/start-here/glossary/">8. Beginner Glossary</a>
+<span class="tutorial-side-label">After Level 0</span>
+<a href="/dai/guides/modules/">Module Guide</a>
+<a href="/dai/guides/tutorials/create-anything/">Create Anything</a>
+<a href="/dai/guides/full/">Full Creator Guide</a></aside><article class="guide-content"><section class="guide-hero tutorial-hero"><div class="eyebrow">DAI 3.3 · LEVEL 0 · CHAPTER 7</div><h1>Packaging &amp; Installation</h1><p>Package datapacks/resource packs correctly, install them in the right location, preserve stable identity, and avoid nested-ZIP releases.</p><div class="tutorial-meta"><span>No coding experience required</span><span>Copyable examples</span><span>DAI 3.3</span></div></section>
+<section class="guide-section"><h2>Packaging is mostly about the ZIP root.</h2><p>Before distribution, open the ZIP itself. Do not trust the filename. The first level should immediately contain the pack metadata and its <code>data/</code> or <code>assets/</code> folder.</p></section>
+<section class="guide-section"><h2>Datapack ZIP</h2><div class="foundation-do-dont"><div><h3>Correct</h3><div class="guide-code"><pre>MyGame_Datapack_v1.0.0.zip
+├─ pack.mcmeta
+└─ data/
+   └─ my_game/</pre></div></div><div><h3>Wrong</h3><div class="guide-code"><pre>MyGame_Datapack_v1.0.0.zip
+└─ MyGame_Datapack_v1.0.0/
+   ├─ pack.mcmeta
+   └─ data/</pre></div></div></div></section>
+<section class="guide-section"><h2>Resource-pack ZIP</h2><div class="guide-code"><pre>MyGame_ResourcePack_v1.0.0.zip
+├─ pack.mcmeta
+└─ assets/
+   └─ my_game/</pre></div><p>A complete DAI game commonly ships a datapack ZIP and a separate companion resource-pack ZIP. The two artifacts can be presented as one combo in DAI's official pack system without physically nesting one inside the other.</p></section>
+<section class="guide-section"><h2>Where packs go</h2><div class="guide-table-wrap"><table class="guide-table"><tr><th>Artifact</th><th>Location</th><th>Meaning</th></tr><tr><td>DAI global datapack library</td><td><code>&lt;gameDir&gt;/datapacks/</code></td><td>DAI MAIN/ADDON installation/update source.</td></tr><tr><td>Normal world-local datapack</td><td><code>&lt;gameDir&gt;/saves/&lt;world&gt;/datapacks/</code></td><td>Standard Minecraft world datapack location.</td></tr><tr><td>Resource pack</td><td><code>&lt;gameDir&gt;/resourcepacks/</code></td><td>Client presentation packs.</td></tr></table></div></section>
+<section class="guide-section"><h2>Stable identity vs filename</h2><p>The downloadable filename can change each release. The logical identity should not.</p><div class="guide-code"><pre>File: MyGame_v1.0.0.zip  → dai.pack_id: &quot;my_game&quot;
+File: MyGame_v1.1.0.zip  → dai.pack_id: &quot;my_game&quot;
+
+Same project identity; newer version.</pre></div><p>Advance <code>dai.version</code>; keep <code>dai.pack_id</code> stable.</p></section>
+<section class="guide-section"><h2>MAIN vs ADDON packaging</h2><p>Declare the intended role in <code>pack.mcmeta</code> for new DAI projects:</p><div class="guide-code"><div class="label">MAIN example</div><pre>&quot;dai&quot;: {
+  &quot;role&quot;: &quot;main&quot;,
+  &quot;pack_id&quot;: &quot;my_game&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;
+}</pre></div><div class="guide-code"><div class="label">ADDON example</div><pre>&quot;dai&quot;: {
+  &quot;role&quot;: &quot;addon&quot;,
+  &quot;pack_id&quot;: &quot;my_addon&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;
+}</pre></div></section>
+<section class="guide-section"><h2>Companion resource packs</h2><p>For an auto-enabled companion, keep its stable companion identity even when the ZIP filename changes:</p><div class="guide-code"><pre>&quot;dai&quot;: {
+  &quot;auto_enable&quot;: true,
+  &quot;companion_id&quot;: &quot;my_game&quot;
+}</pre></div></section>
+<section class="guide-section"><h2>Release checklist</h2><ul class="foundation-checklist"><li>Open the final ZIP and confirm the root is correct.</li><li>No editor backups, source PSDs, temporary logs, test exports or duplicate old files are included unless intentionally distributed.</li><li>Fresh install works.</li><li><code>/reload</code> / save-reload path works where applicable.</li><li>Previous-version save migration works when the project has already shipped.</li><li>Two-player test passes for multiplayer-capable systems.</li><li>Optional resource pack can be disabled without breaking gameplay if it is advertised as optional.</li><li>Changelog describes player-visible behavior and whether a fresh world is required.</li><li>Official-pack registry entry is published only after every referenced download is actually public.</li></ul></section>
+<section class="guide-section"><h2>Drag-and-drop packaging rule</h2><p>If you are distributing a site/repository patch instead of a Minecraft pack, mirror the repository root inside the ZIP. A patch containing <code>dai/guides/...</code> should be dropped at the site's repository root so those paths merge in place. Do not wrap it in another deployment folder.</p></section>
+<section class="guide-section"><h2>Checkpoint</h2><p>You are ready when you can inspect a ZIP without extracting it and immediately tell whether Minecraft/DAI will see the correct root files.</p></section>
+<div class="guide-pager"><a href="../debugging-testing/">← Chapter 6: Debugging & Testing</a><a href="../glossary/">Chapter 8: Beginner Glossary →</a></div></article></div></main><footer class="footer">DAI Engine · Level 0 creator foundations</footer><script src="/dai/assets/js/lcs-bridge.js" defer></script></body></html>

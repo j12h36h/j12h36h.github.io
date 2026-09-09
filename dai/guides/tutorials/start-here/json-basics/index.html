@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>JSON From Zero · DAI Engine 3.3</title><meta content="Learn the JSON syntax DAI uses, how to read nested definitions, and how to fix the most common syntax failures." name="description"/><link href="/dai/assets/css/site.css" rel="stylesheet"/><link href="/dai/guides/assets/guides.css" rel="stylesheet"/><link href="/dai/guides/assets/start-here.css" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header><main><div class="guide-shell"><aside class="guide-sidebar"><strong>DAI 3.3 · START FROM ZERO</strong>
+<a href="/dai/guides/">Choose Guide Type</a>
+<a href="/dai/guides/tutorials/">Tutorial Hub</a>
+<a href="/dai/guides/tutorials/start-here/">Start From Zero</a>
+<span class="tutorial-side-label">Foundation course</span>
+<a href="/dai/guides/tutorials/start-here/files-folders-zips/">1. Files, Folders &amp; ZIPs</a>
+<a href="/dai/guides/tutorials/start-here/project-anatomy/">2. Project Anatomy</a>
+<a href="/dai/guides/tutorials/start-here/json-basics/">3. JSON From Zero</a>
+<a href="/dai/guides/tutorials/start-here/functions-commands/">4. Commands &amp; .mcfunction</a>
+<a href="/dai/guides/tutorials/start-here/creator-first-project/">5. First DAI Project</a>
+<a href="/dai/guides/tutorials/start-here/debugging-testing/">6. Debugging &amp; Testing</a>
+<a href="/dai/guides/tutorials/start-here/packaging-installation/">7. Packaging &amp; Installation</a>
+<a href="/dai/guides/tutorials/start-here/glossary/">8. Beginner Glossary</a>
+<span class="tutorial-side-label">After Level 0</span>
+<a href="/dai/guides/modules/">Module Guide</a>
+<a href="/dai/guides/tutorials/create-anything/">Create Anything</a>
+<a href="/dai/guides/full/">Full Creator Guide</a></aside><article class="guide-content"><section class="guide-hero tutorial-hero"><div class="eyebrow">DAI 3.3 · LEVEL 0 · CHAPTER 3</div><h1>JSON From Zero</h1><p>Learn the JSON syntax DAI uses, how to read nested definitions, and how to fix the most common syntax failures.</p><div class="tutorial-meta"><span>No coding experience required</span><span>Copyable examples</span><span>DAI 3.3</span></div></section>
+<section class="guide-section"><h2>JSON is structured data, not mysterious code.</h2><p>DAI uses JSON to describe things: actions, entities, items, experiences, UI, rules and more. JSON does not “run” by itself; DAI or Minecraft reads it and interprets the fields.</p></section>
+<section class="guide-section"><h2>The six pieces you need first</h2><div class="guide-table-wrap"><table class="guide-table"><tr><th>Syntax</th><th>Name</th><th>Meaning</th></tr><tr><td><code>{ }</code></td><td>Object</td><td>A group of named fields.</td></tr><tr><td><code>[ ]</code></td><td>Array</td><td>An ordered list of values.</td></tr><tr><td><code>"text"</code></td><td>String</td><td>Text, including IDs and names.</td></tr><tr><td><code>42</code></td><td>Number</td><td>Numeric value; no quotes.</td></tr><tr><td><code>true</code> / <code>false</code></td><td>Boolean</td><td>On/off or yes/no value; no quotes.</td></tr><tr><td><code>:</code> and <code>,</code></td><td>Separators</td><td>Colon joins a key to its value; comma separates entries.</td></tr></table></div></section>
+<section class="guide-section"><h2>Read this one field at a time</h2><div class="guide-code"><div class="label">data/my_first_dai/logics/definitions/hello.json</div><pre>{
+  &quot;type&quot;: &quot;sequence&quot;,
+  &quot;sequence&quot;: [
+    {
+      &quot;type&quot;: &quot;run_command&quot;,
+      &quot;action&quot;: &quot;say Hello from my DAI pack&quot;
+    }
+  ]
+}</pre></div><ol class="tutorial-steps"><li><strong>The outer <code>{ }</code></strong><span>contains one DAI definition.</span></li><li><strong><code>"type": "sequence"</code></strong><span>says the definition contains ordered actions.</span></li><li><strong><code>"sequence": [ ]</code></strong><span>is a list.</span></li><li><strong>The inner <code>{ }</code></strong><span>is one action in that list.</span></li><li><strong><code>run_command</code></strong><span>tells DAI which action primitive to use.</span></li></ol></section>
+<section class="guide-section"><h2>Commas: the most common first error</h2><div class="foundation-do-dont"><div><h3>Valid</h3><div class="guide-code"><pre>{
+  &quot;name&quot;: &quot;Example&quot;,
+  &quot;enabled&quot;: true,
+  &quot;cost&quot;: 5
+}</pre></div></div><div><h3>Invalid trailing/missing comma</h3><div class="guide-code"><pre>{
+  &quot;name&quot;: &quot;Example&quot;
+  &quot;enabled&quot;: true,
+  &quot;cost&quot;: 5,
+}</pre></div></div></div></section>
+<section class="guide-section"><h2>Strings must use double quotes</h2><p>Standard JSON uses double quotes. <code>'single quotes'</code> are not valid JSON strings. Do not add comments such as <code>// note</code> inside ordinary JSON unless a specific loader explicitly supports them.</p></section>
+<section class="guide-section"><h2>IDs are usually strings</h2><p><code>"my_game:hello"</code> is a string containing a namespaced ID. Treat IDs like permanent addresses: change display text freely, but avoid changing stable IDs after release.</p></section>
+<section class="guide-section"><h2>How to edit safely</h2><ol class="tutorial-steps"><li><strong>Start from a known-good example.</strong><span>Copy the closest documented definition.</span></li><li><strong>Change one field.</strong><span>Do not rewrite ten things before testing.</span></li><li><strong>Validate JSON.</strong><span>DAI Creator validation or a code editor can catch syntax before Minecraft reloads.</span></li><li><strong>Reload and test.</strong><span>Syntax-valid JSON can still contain wrong IDs or unsupported values.</span></li></ol></section>
+<section class="guide-section"><h2>Error translation</h2><div class="guide-table-wrap"><table class="guide-table"><tr><th>Message family</th><th>What to inspect first</th></tr><tr><td>Expected comma / delimiter</td><td>Two entries are touching or a comma is misplaced.</td></tr><tr><td>Unexpected end of input</td><td>A closing <code>}</code> or <code>]</code> is probably missing.</td></tr><tr><td>Expected property name</td><td>A key may be unquoted, malformed, or preceded by an extra comma.</td></tr><tr><td>Unknown action/type</td><td>The JSON parsed, but DAI does not know the requested ID/type.</td></tr><tr><td>Missing reference</td><td>The file points to another ID/path that does not exist.</td></tr></table></div></section>
+<section class="guide-section"><h2>Checkpoint</h2><p>You are ready when you can identify an object, array, string and boolean and can fix a missing comma without guessing.</p></section>
+<div class="guide-pager"><a href="../project-anatomy/">← Chapter 2: Project Anatomy</a><a href="../functions-commands/">Chapter 4: Commands & .mcfunction →</a></div></article></div></main><footer class="footer">DAI Engine · Level 0 creator foundations</footer><script src="/dai/assets/js/lcs-bridge.js" defer></script></body></html>

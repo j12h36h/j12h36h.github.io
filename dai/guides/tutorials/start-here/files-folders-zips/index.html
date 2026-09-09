@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Files, Folders &amp; ZIPs · DAI Engine 3.3</title><meta content="Learn the basic computer/file skills that datapacks, resource packs and DAI projects assume." name="description"/><link href="/dai/assets/css/site.css" rel="stylesheet"/><link href="/dai/guides/assets/guides.css" rel="stylesheet"/><link href="/dai/guides/assets/start-here.css" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header><main><div class="guide-shell"><aside class="guide-sidebar"><strong>DAI 3.3 · START FROM ZERO</strong>
+<a href="/dai/guides/">Choose Guide Type</a>
+<a href="/dai/guides/tutorials/">Tutorial Hub</a>
+<a href="/dai/guides/tutorials/start-here/">Start From Zero</a>
+<span class="tutorial-side-label">Foundation course</span>
+<a href="/dai/guides/tutorials/start-here/files-folders-zips/">1. Files, Folders &amp; ZIPs</a>
+<a href="/dai/guides/tutorials/start-here/project-anatomy/">2. Project Anatomy</a>
+<a href="/dai/guides/tutorials/start-here/json-basics/">3. JSON From Zero</a>
+<a href="/dai/guides/tutorials/start-here/functions-commands/">4. Commands &amp; .mcfunction</a>
+<a href="/dai/guides/tutorials/start-here/creator-first-project/">5. First DAI Project</a>
+<a href="/dai/guides/tutorials/start-here/debugging-testing/">6. Debugging &amp; Testing</a>
+<a href="/dai/guides/tutorials/start-here/packaging-installation/">7. Packaging &amp; Installation</a>
+<a href="/dai/guides/tutorials/start-here/glossary/">8. Beginner Glossary</a>
+<span class="tutorial-side-label">After Level 0</span>
+<a href="/dai/guides/modules/">Module Guide</a>
+<a href="/dai/guides/tutorials/create-anything/">Create Anything</a>
+<a href="/dai/guides/full/">Full Creator Guide</a></aside><article class="guide-content"><section class="guide-hero tutorial-hero"><div class="eyebrow">DAI 3.3 · LEVEL 0 · CHAPTER 1</div><h1>Files, Folders &amp; ZIPs</h1><p>Learn the basic computer/file skills that datapacks, resource packs and DAI projects assume.</p><div class="tutorial-meta"><span>No coding experience required</span><span>Copyable examples</span><span>DAI 3.3</span></div></section>
+<section class="guide-section"><h2>Files are the building blocks.</h2><p>A DAI project is mostly ordinary folders and text files. Minecraft does not care whether you made them in Notepad, VS Code, DAI Creator or another editor; it cares about the <strong>exact filename, extension, path and contents</strong>.</p></section>
+<section class="guide-section"><h2>1. Know the filename and the extension</h2><div class="guide-table-wrap"><table class="guide-table"><tr><th>Example</th><th>What it is</th><th>Correct for that purpose</th></tr><tr><td><code>hello.json</code></td><td>JSON data file</td><td>Yes</td></tr><tr><td><code>hello.mcfunction</code></td><td>Minecraft function</td><td>Yes</td></tr><tr><td><code>pack.mcmeta</code></td><td>Pack metadata</td><td>Yes</td></tr><tr><td><code>hello.json.txt</code></td><td>Text file pretending to be JSON</td><td>No</td></tr></table></div><div class="guide-callout warning"><strong>Windows users:</strong> enable file-name extensions in File Explorer. Otherwise Windows can hide <code>.txt</code> and make a broken <code>hello.json.txt</code> look like <code>hello.json</code>.</div></section>
+<section class="guide-section"><h2>2. Use a plain-text editor</h2><p>JSON and functions are plain text. Use DAI Creator, Notepad, VS Code, Notepad++, or another plain-text/code editor. Do not use Word/Google Docs rich-text formatting for pack files.</p></section>
+<section class="guide-section"><h2>3. Folder paths are instructions</h2><p>When a guide says <code>data/my_game/logics/definitions/hello.json</code>, it means:</p><div class="guide-code"><div class="label">Create every folder in this order</div><pre>data/
+└─ my_game/
+   └─ logics/
+      └─ definitions/
+         └─ hello.json</pre></div><p>A slash (<code>/</code>) in documentation means “inside this folder.”</p></section>
+<section class="guide-section"><h2>4. ZIP files preserve a project tree</h2><p>A ZIP is a container. The most common beginner packaging error is adding one extra folder level.</p><div class="foundation-do-dont"><div><h3>Correct ZIP root</h3><div class="guide-code"><pre>MyPack.zip
+├─ pack.mcmeta
+└─ data/</pre></div></div><div><h3>Wrong nested root</h3><div class="guide-code"><pre>MyPack.zip
+└─ MyPack/
+   ├─ pack.mcmeta
+   └─ data/</pre></div></div></div><p>Minecraft opens the ZIP and expects to find <code>pack.mcmeta</code> at the pack root.</p></section>
+<section class="guide-section"><h2>5. Naming rules that prevent pain</h2><ul><li>Use lowercase letters, numbers, underscores and hyphens for namespaces/IDs unless a specific schema says otherwise.</li><li>Avoid spaces in namespaces and resource IDs.</li><li>Keep a stable ID after release even if the display name changes.</li><li>Do not rename folders merely to make them prettier; paths are part of the program.</li></ul></section>
+<section class="guide-section"><h2>Checkpoint</h2><p>You are ready for Chapter 2 when you can create a folder tree from a slash-separated path and can verify that a file really ends in <code>.json</code> or <code>.mcfunction</code>.</p></section>
+<div class="guide-pager"><a href="/dai/guides/tutorials/start-here/">← Start From Zero</a><a href="../project-anatomy/">Chapter 2: Project Anatomy →</a></div></article></div></main><footer class="footer">DAI Engine · Level 0 creator foundations</footer><script src="/dai/assets/js/lcs-bridge.js" defer></script></body></html>

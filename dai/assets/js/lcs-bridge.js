@@ -45,6 +45,45 @@
   }, true);
 
   const path = location.pathname.toLowerCase();
+
+  // Level 0 documentation recovery path. Every page using the shared DAI bridge
+  // gains a consistent "Start From Zero" entry without duplicating sidebar edits
+  // across dozens of static guide files. Tutorial leaves also get a prerequisite
+  // notice when they otherwise assume datapack/JSON/file literacy.
+  const wireFoundationNavigation = () => {
+    if (!path.startsWith('/dai/guides/')) return;
+    const foundationHref = '/dai/guides/tutorials/start-here/';
+    document.querySelectorAll('.guide-sidebar').forEach(sidebar => {
+      if (sidebar.querySelector('[data-dai-foundations], a[href="/dai/guides/tutorials/start-here/"]')) return;
+      const link = document.createElement('a');
+      link.href = foundationHref;
+      link.textContent = 'Start From Zero';
+      link.dataset.daiFoundations = '1';
+      link.title = 'No coding, JSON, datapack or packaging knowledge required';
+      const heading = sidebar.querySelector(':scope > strong');
+      if (heading) heading.after(link); else sidebar.prepend(link);
+    });
+
+    const isFoundation = path.startsWith('/dai/guides/tutorials/start-here/');
+    const tutorialLeaf = path.startsWith('/dai/guides/tutorials/') &&
+      path !== '/dai/guides/tutorials/' && path !== '/dai/guides/tutorials' && !isFoundation;
+    const firstMenu = path.includes('/dai/guides/modules/first-menu');
+    if ((tutorialLeaf || firstMenu) && !document.querySelector('[data-dai-zero-banner]')) {
+      const hero = document.querySelector('.guide-content .guide-hero');
+      if (hero) {
+        const notice = document.createElement('div');
+        notice.className = 'guide-callout';
+        notice.dataset.daiZeroBanner = '1';
+        notice.innerHTML = '<strong>New to coding or datapacks?</strong> If <code>pack.mcmeta</code>, namespaces, JSON, <code>.mcfunction</code>, load/tick tags or ZIP roots are unfamiliar, complete <a href="' + foundationHref + '">Start From Zero</a> first. This guide can then focus only on the feature you came to build.';
+        hero.after(notice);
+      }
+    }
+  };
+  wireFoundationNavigation();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireFoundationNavigation, { once: true });
+  }
+
   const title = (document.querySelector('h1')?.textContent || document.title || 'DAI').trim().replace(/\s+/g,' ').slice(0,140);
   const touchMobile = matchMedia('(max-width: 820px)').matches && (navigator.maxTouchPoints || 0) > 0;
   const lcsBase = touchMobile ? '/lcs-mobile/' : '/logicalcommunicationservice/';

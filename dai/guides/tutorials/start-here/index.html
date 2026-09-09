@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Start From Zero · DAI Engine 3.3</title><meta content="Build DAI projects from scratch with no coding, datapack, JSON or packaging knowledge assumed." name="description"/><link href="/dai/assets/css/site.css" rel="stylesheet"/><link href="/dai/guides/assets/guides.css" rel="stylesheet"/><link href="/dai/guides/assets/start-here.css" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a aria-current="page" class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a><a href="https://www.curseforge.com/minecraft/mc-mods/decisions-and-impulses" rel="noopener noreferrer" target="_blank">Download</a></div></nav></header><main><div class="guide-shell"><aside class="guide-sidebar"><strong>DAI 3.3 · START FROM ZERO</strong>
+<a href="/dai/guides/">Choose Guide Type</a>
+<a href="/dai/guides/tutorials/">Tutorial Hub</a>
+<a href="/dai/guides/tutorials/start-here/">Start From Zero</a>
+<span class="tutorial-side-label">Foundation course</span>
+<a href="/dai/guides/tutorials/start-here/files-folders-zips/">1. Files, Folders &amp; ZIPs</a>
+<a href="/dai/guides/tutorials/start-here/project-anatomy/">2. Project Anatomy</a>
+<a href="/dai/guides/tutorials/start-here/json-basics/">3. JSON From Zero</a>
+<a href="/dai/guides/tutorials/start-here/functions-commands/">4. Commands &amp; .mcfunction</a>
+<a href="/dai/guides/tutorials/start-here/creator-first-project/">5. First DAI Project</a>
+<a href="/dai/guides/tutorials/start-here/debugging-testing/">6. Debugging &amp; Testing</a>
+<a href="/dai/guides/tutorials/start-here/packaging-installation/">7. Packaging &amp; Installation</a>
+<a href="/dai/guides/tutorials/start-here/glossary/">8. Beginner Glossary</a>
+<span class="tutorial-side-label">After Level 0</span>
+<a href="/dai/guides/modules/">Module Guide</a>
+<a href="/dai/guides/tutorials/create-anything/">Create Anything</a>
+<a href="/dai/guides/full/">Full Creator Guide</a></aside><article class="guide-content"><section class="guide-hero tutorial-hero"><div class="eyebrow">DAI 3.3 · LEVEL 0</div><h1>Start From Zero</h1><p>Build DAI projects from scratch with no coding, datapack, JSON or packaging knowledge assumed.</p><div class="tutorial-meta"><span>No coding experience required</span><span>Copyable examples</span><span>DAI 3.3</span></div></section>
+<section class="guide-section"><h2>This course starts before coding.</h2><div class="guide-callout"><strong>Use this path if any of these are unfamiliar:</strong> file extensions, ZIP roots, <code>pack.mcmeta</code>, namespaces, JSON, <code>.mcfunction</code>, load/tick tags, datapacks, resource packs, or where Minecraft looks for them.</div><p class="guide-lead">The rest of the DAI documentation can stay technical because this foundation teaches the vocabulary and mechanics once. You do not need Java, a programming background, or prior datapack experience.</p></section>
+<section class="guide-section"><h2>What you will be able to do</h2><ul class="foundation-checklist"><li>Create folders and real <code>.json</code>/<code>.mcfunction</code> files instead of accidental <code>.txt</code> files.</li><li>Explain the difference between a datapack, resource pack, DAI MAIN experience and DAI ADDON.</li><li>Read a namespaced ID such as <code>my_game:hello</code> and know exactly which folder/file it refers to.</li><li>Read and safely edit JSON without guessing where commas or braces belong.</li><li>Create and call Minecraft functions, including load/tick entry points.</li><li>Build a tiny working DAI addon by hand or in Creator.</li><li>Diagnose a broken reload instead of rebuilding the project blindly.</li><li>Package a release ZIP with the correct root structure.</li></ul></section>
+<section class="guide-section"><h2>Level 0 curriculum</h2><div class="foundation-path">
+<a class="foundation-step" href="files-folders-zips/"><small>Chapter 1</small><strong>Files, Folders &amp; ZIPs</strong><span>The operating-system skills packs assume.</span></a>
+<a class="foundation-step" href="project-anatomy/"><small>Chapter 2</small><strong>Project Anatomy</strong><span>What every folder means and how DAI finds content.</span></a>
+<a class="foundation-step" href="json-basics/"><small>Chapter 3</small><strong>JSON From Zero</strong><span>Objects, arrays, values, IDs and syntax errors.</span></a>
+<a class="foundation-step" href="functions-commands/"><small>Chapter 4</small><strong>Commands &amp; .mcfunction</strong><span>Reusable Minecraft logic, selectors, coordinates, load and tick.</span></a>
+<a class="foundation-step" href="creator-first-project/"><small>Chapter 5</small><strong>Your First DAI Project</strong><span>A known-good tiny addon with a visible result.</span></a>
+<a class="foundation-step" href="debugging-testing/"><small>Chapter 6</small><strong>Debugging &amp; Testing</strong><span>Reload, logs, validation and failure isolation.</span></a>
+<a class="foundation-step" href="packaging-installation/"><small>Chapter 7</small><strong>Packaging &amp; Installation</strong><span>Correct ZIP roots, install locations and releases.</span></a>
+<a class="foundation-step" href="glossary/"><small>Chapter 8</small><strong>Beginner Glossary</strong><span>Plain-language definitions for the terms used everywhere else.</span></a>
+</div></section>
+<section class="guide-section"><h2>Creator or manual files?</h2><div class="foundation-do-dont"><div><h3>Visual Creator</h3><p>Use Creator when a dedicated editor exists. It reduces syntax mistakes and writes normal pack files for you.</p></div><div><h3>Manual / Universal Files</h3><p>Use normal files when learning, copying a documented example, or authoring a Minecraft/DAI surface the guided editor does not expose yet.</p></div></div><p>These are two ways to author the <strong>same project</strong>, not two incompatible project types.</p></section>
+<section class="guide-section"><h2>The one rule to remember</h2><div class="guide-code"><div class="label">DAI beginner workflow</div><pre>Your idea
+  ↓
+Choose the state/behavior that represents it
+  ↓
+Put that definition in the correct namespace + folder
+  ↓
+Validate
+  ↓
+Reload/test in Minecraft
+  ↓
+Package only after the loop works</pre></div></section>
+<div class="guide-pager"><span></span><a href="files-folders-zips/">Chapter 1: Files, Folders & ZIPs →</a></div></article></div></main><footer class="footer">DAI Engine · Level 0 creator foundations</footer><script src="/dai/assets/js/lcs-bridge.js" defer></script></body></html>
