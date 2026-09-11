@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Animated Scene Environments · DAI Engine 3.9</title><meta name="description" content="Use a data-defined scene anywhere DAI accepts a scene background or scene-view."/><link href="/dai/assets/css/site.css" rel="stylesheet"/><link href="/dai/guides/assets/guides.css" rel="stylesheet"/><link href="/dai/guides/assets/guide-modes.css" rel="stylesheet"/><link href="/dai/guides/assets/guide-39.css?v=20260910-39" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a></div></nav></header><main><div class="guide-shell"><aside class="guide-sidebar"><strong>DAI 3.9 · GUIDE MAP</strong><a href="/dai/guides/tutorials/start-here/">Start From Zero</a><a href="/dai/guides/version-3-9/">What Changed in 3.9</a><a href="/dai/guides/how-to/">How-To Guide Index</a><a href="/dai/guides/capabilities/">Complete Capabilities</a><a href="/dai/guides/creator-workflow/">Creator Workflow</a></aside><article class="guide-content"><section class="guide-hero"><div class="eyebrow">DAI 3.9 · scene_environments</div><h1>Animated Scene Environments</h1><p>Use a data-defined scene anywhere DAI accepts a scene background or scene-view.</p></section><section class="guide-section"><h2>Folder</h2><pre>data/&lt;namespace&gt;/scene_environments/&lt;id&gt;.json</pre><h2>Starter</h2><pre>{
+  "enabled": true,
+  "background": {"type":"gradient","top":"#17101f","bottom":"#05070d"},
+  "camera": {
+    "duration_ticks": 1200,
+    "loop": true,
+    "fov": 60,
+    "interpolation": "smooth",
+    "motion": {"drift":0.02,"shake":0.0},
+    "keyframes": [
+      {"tick":0,"position":[0,1,10],"look_at":[0,0,0]},
+      {"tick":1200,"position":[2,1,10],"look_at":[0,0,0]}
+    ]
+  },
+  "elements": []
+}</pre><p>Textures/models/audio referenced by the scene belong in the resource pack. The engine renderer is generic; the scene definition decides what is shown.</p></section></article></div></main><footer class="footer">DAI Engine · DAI 3.9 creator documentation</footer><script src="/dai/assets/js/lcs-bridge.js" defer></script></body></html>

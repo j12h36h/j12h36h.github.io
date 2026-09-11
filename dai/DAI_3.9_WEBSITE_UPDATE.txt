@@ -1,0 +1,17 @@
+DAI Engine 3.9 Website Update
+=============================
+
+This folder updates the DAI website from the supplied package to the current 3.9 architecture.
+
+Highlights
+- Browser Creator 3.9 Visual Studio generated from the current Creator schema concepts.
+- 45 built-in engine Creator schemas represented, plus web authoring for creator_schemas and creator_presets.
+- 14 current starter presets exposed.
+- 38 runtime module gates documented.
+- New guides: 3.9 update, Scene Environments, Screen Overrides, Story Archives, Input Profiles, Feature Modules, Creator Schemas/Presets.
+- New machine-readable /api/capabilities-3.9.json and /api/guides-3.9.json.
+- Current public version source updated to DAI 3.9.
+- Historical 3.8 API/update documentation retained.
+
+Install
+Copy/merge the included dai/ folder over the existing website dai/ folder.

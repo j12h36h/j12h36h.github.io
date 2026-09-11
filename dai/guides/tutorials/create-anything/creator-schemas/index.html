@@ -1,0 +1,12 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Creator Schemas & Presets · DAI Engine 3.9</title><meta name="description" content="Extend the Creator itself through datapack JSON."/><link href="/dai/assets/css/site.css" rel="stylesheet"/><link href="/dai/guides/assets/guides.css" rel="stylesheet"/><link href="/dai/guides/assets/guide-modes.css" rel="stylesheet"/><link href="/dai/guides/assets/guide-39.css?v=20260910-39" rel="stylesheet"/></head><body><header class="site-header"><nav class="nav"><a class="brand" href="/dai/">DAI <span>ENGINE</span></a><div class="nav-links"><a href="/dai/">Home</a><a href="/dai/info/">Info</a><a class="active" href="/dai/guides/">Guides</a><a href="/dai/creator/">Creator</a><a href="/dai/packs/">Official Packs</a></div></nav></header><main><div class="guide-shell"><aside class="guide-sidebar"><strong>DAI 3.9 · GUIDE MAP</strong><a href="/dai/guides/tutorials/start-here/">Start From Zero</a><a href="/dai/guides/version-3-9/">What Changed in 3.9</a><a href="/dai/guides/how-to/">How-To Guide Index</a><a href="/dai/guides/capabilities/">Complete Capabilities</a><a href="/dai/guides/creator-workflow/">Creator Workflow</a></aside><article class="guide-content"><section class="guide-hero"><div class="eyebrow">DAI 3.9 · creator_schemas</div><h1>Creator Schemas & Presets</h1><p>Extend the Creator itself through datapack JSON.</p></section><section class="guide-section"><h2>Folders</h2><pre>data/&lt;namespace&gt;/creator_schemas/&lt;id&gt;.json
+data/&lt;namespace&gt;/creator_presets/&lt;id&gt;.json</pre><p>A schema declares the display name, output folder, category, progressive fields, template, preview adapter and optional layout preferences. Presets apply reusable patches to a schema.</p><h2>Minimal schema</h2><pre>{
+  "display_name": "My Module",
+  "folder": "my_modules",
+  "rail": "experience",
+  "category": "SYSTEMS",
+  "fields": [
+    {"path":"enabled","label":"Enabled","type":"boolean","default":"true","level":0}
+  ],
+  "template": {"enabled":true},
+  "preview": {"type":"json"}
+}</pre><p>The 3.9 engine ships 45 built-in schemas and starter presets, but the catalog is not a closed Java enum.</p></section></article></div></main><footer class="footer">DAI Engine · DAI 3.9 creator documentation</footer><script src="/dai/assets/js/lcs-bridge.js" defer></script></body></html>
