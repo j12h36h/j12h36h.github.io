@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#100d05">
+  <meta name="description" content="Founder-only E.R.A.S. Asset Library publisher.">
+  <title>Founder Asset Publisher — Project E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="/account/assets/css/account-button.css">
+  <link rel="stylesheet" href="./founder-assets.css?v=1.0.0">
+</head>
+<body class="founder-assets-page">
+  <div class="universe-frame" aria-hidden="true">
+    <i class="uf-corner uf-tl"></i><i class="uf-corner uf-tr"></i>
+    <i class="uf-corner uf-bl"></i><i class="uf-corner uf-br"></i>
+    <span class="uf-line uf-top"></span><span class="uf-line uf-bottom"></span>
+    <span class="uf-line uf-left"></span><span class="uf-line uf-right"></span>
+    <span class="uf-ticks uf-ticks-top"></span><span class="uf-ticks uf-ticks-bottom"></span>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="/content/">
+      <span class="brand-mark"></span>
+      <span>PROJECT E.R.A.S. <b>: FOUNDER ASSETS</b></span>
+    </a>
+    <div class="portal-auth-area" id="portalAuthArea">
+      <div class="portal-auth-loading">VERIFYING FOUNDER…</div>
+    </div>
+  </header>
+
+  <main class="founder-assets-shell">
+    <section class="founder-access-card" id="founderGate">
+      <small>SYSTEM AUTHORITY // ROOT FOUNDER</small>
+      <h1>ASSET LIBRARY PUBLISHER</h1>
+      <p id="founderGateMessage">VERIFYING SERVER-SIDE FOUNDER AUTHORITY…</p>
+      <a href="/content/">RETURN TO ASSET LIBRARY</a>
+    </section>
+
+    <section id="founderWorkspace" class="founder-workspace" hidden>
+      <header class="founder-workspace-head">
+        <div>
+          <small>FOUNDER // MANUAL PUBLICATION</small>
+          <h1>ASSET LIBRARY PUBLISHER</h1>
+          <p>Upload an asset directly into the public E.R.A.S. library. Files are stored by the backend and become available without rebuilding the static catalog.</p>
+        </div>
+        <a href="/content/">ASSET LIBRARY →</a>
+      </header>
+
+      <section class="founder-grid">
+        <form id="founderAssetForm" class="founder-panel founder-form">
+          <header><span>01</span><b>PUBLISH ASSET</b></header>
+
+          <div class="founder-field-grid">
+            <label>
+              <span>DISPLAY NAME</span>
+              <input id="assetNameInput" maxlength="100" required placeholder="New E.R.A.S. Asset">
+            </label>
+            <label>
+              <span>ASSET ID</span>
+              <input id="assetIdInput" maxlength="110" placeholder="eras:new_asset">
+            </label>
+            <label>
+              <span>CATEGORY</span>
+              <select id="assetCategoryInput">
+                <option>Sprite</option>
+                <option>Audio</option>
+                <option>Mode</option>
+                <option>World</option>
+                <option>Effect</option>
+                <option>Icon</option>
+                <option>Supplies</option>
+              </select>
+            </label>
+            <label>
+              <span>PRICE // CREDITS</span>
+              <input id="assetPriceInput" type="number" min="0" max="100000" value="0">
+            </label>
+          </div>
+
+          <label>
+            <span>DESCRIPTION</span>
+            <textarea id="assetDescriptionInput" maxlength="1200" rows="4" placeholder="What is this asset for?"></textarea>
+          </label>
+
+          <div class="founder-field-grid">
+            <label>
+              <span>TAGS // COMMA SEPARATED</span>
+              <input id="assetTagsInput" maxlength="600" placeholder="sprite, game, public">
+            </label>
+            <label>
+              <span>LICENSE LABEL</span>
+              <input id="assetLicenseInput" maxlength="120" value="E.R.A.S. Founder-Published Asset">
+            </label>
+          </div>
+
+          <section id="standardFilesPanel" class="founder-upload-block">
+            <header><b>ASSET FILES</b><small>MAX 6 MB EACH</small></header>
+            <label class="founder-file">
+              <span>MAIN ASSET FILE</span>
+              <input id="assetMainFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,audio/*,application/json,text/plain">
+            </label>
+            <label class="founder-file">
+              <span>THUMBNAIL // OPTIONAL</span>
+              <input id="assetThumbnailFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+            </label>
+          </section>
+
+          <section id="supplyFilesPanel" class="founder-upload-block" hidden>
+            <header><b>SUPPLIES PACKAGE</b><small>BRUSH / SPRITE / IMAGE</small></header>
+            <label class="founder-file">
+              <span>PACKAGE FILES</span>
+              <input id="assetSupplyFiles" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+            </label>
+            <div id="supplyFileRows" class="founder-supply-rows">
+              <p>SELECT IMAGE FILES TO BUILD THIS SUPPLIES PACKAGE.</p>
+            </div>
+            <label class="founder-file">
+              <span>PACKAGE THUMBNAIL // OPTIONAL</span>
+              <input id="supplyThumbnailFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+            </label>
+          </section>
+
+          <details class="founder-advanced">
+            <summary>ADVANCED CATALOG JSON</summary>
+            <p>Optional category-specific metadata such as tinting, variantPolicy, iconJson, ruleName, or effect configuration. Protected publication fields are overwritten by the server.</p>
+            <textarea id="assetExtraJson" rows="12" spellcheck="false" placeholder='{"tintable":true,"defaultTint":"#65d67c"}'>{}</textarea>
+          </details>
+
+          <label class="founder-check">
+            <input id="assetPublishNow" type="checkbox" checked>
+            <span>PUBLISH IMMEDIATELY</span>
+          </label>
+
+          <div class="founder-submit-row">
+            <button id="publishAssetButton" type="submit">PUBLISH ASSET</button>
+            <button id="clearAssetButton" type="button">CLEAR FORM</button>
+          </div>
+          <p id="founderPublishStatus" class="founder-status" aria-live="polite">READY.</p>
+        </form>
+
+        <aside class="founder-panel founder-list-panel">
+          <header><span>02</span><b>FOUNDER-PUBLISHED ASSETS</b></header>
+          <div id="founderAssetList" class="founder-asset-list">
+            <p class="founder-empty">LOADING…</p>
+          </div>
+        </aside>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="/account/assets/js/account.js"></script>
+  <script type="module" src="./founder-assets.js?v=1.0.0"></script>
+</body>
+</html>

@@ -82,6 +82,59 @@ function token(value){return String(value||'').trim().toLowerCase().replace(/[^a
 function sameNumber(a,b,epsilon=.001){return Math.abs(Number(a)-Number(b))<=epsilon;}
 function pitchPreset(rate){let best=null,distance=Infinity;for(const [name,value] of PITCH_PRESETS){const d=Math.abs(Number(rate)-value);if(d<distance){best={name,value};distance=d;}}return{best,distance};}
 
+function publishedAssetDocId(assetId){
+  return crypto.createHash('sha256').update(String(assetId||'')).digest('hex').slice(0,40);
+}
+function publishedCategory(asset={}){
+  const raw=String(asset.type||asset.category||'').toLowerCase();
+  if(raw.includes('suppl'))return 'Supplies';
+  if(raw.includes('audio')||raw.includes('music')||raw.includes('sound'))return 'Audio';
+  if(raw.includes('mode'))return 'Mode';
+  if(raw.includes('world')||raw.includes('map'))return 'World';
+  if(raw.includes('effect')||raw.includes('vfx'))return 'Effect';
+  if(raw.includes('icon'))return 'Icon';
+  return 'Sprite';
+}
+async function publishedCatalogAsset(assetId){
+  const snap=await db.doc(`founderPublicAssets/${publishedAssetDocId(assetId)}`).get();
+  if(!snap.exists)return null;
+  const data=snap.data()||{};
+  if(data.published!==true)return null;
+  const asset=data.catalogAsset;
+  if(!asset||typeof asset!=='object'||String(asset.id||'')!==assetId)return null;
+  return asset;
+}
+function normalizePublishedVariant(assetId,asset,raw={}){
+  const kind=publishedCategory(asset);
+  if(kind==='Supplies')throw new HttpsError('failed-precondition','Supplies install locally and are not Collection holdings.');
+  const basePrice=Math.max(0,Math.floor(Number(asset.priceCredits||asset.price||0)||0));
+
+  if(kind==='Sprite'){
+    const fallback=safeHex(asset.defaultTint,'#ffffff');
+    const tint=safeHex(raw.tint,fallback);
+    return{storage:tint,custom:false,price:basePrice,label:tint.toUpperCase()};
+  }
+  if(kind==='Audio'){
+    const rate=Math.max(.5,Math.min(1.5,Number(raw.pitchRate??1)));
+    return{storage:`audio|rate=${rate.toFixed(2)}`,custom:false,price:basePrice,label:`${rate.toFixed(2)}x`,runtime:{pitchRate:rate}};
+  }
+  if(kind==='Mode'){
+    const rule=String(raw.rule||asset.ruleName||'Highest Score').trim().slice(0,80)||'Highest Score';
+    return{storage:`mode|rule=${token(rule)}`,custom:false,price:basePrice,label:rule};
+  }
+  if(kind==='World'){
+    const skin=String(raw.skin||asset.skinName||asset.worldName||'Default').trim().slice(0,80)||'Default';
+    return{storage:`world|skin=${token(skin)}`,custom:false,price:basePrice,label:skin};
+  }
+  if(kind==='Effect'){
+    return{storage:'effect|published',custom:false,price:basePrice,label:String(asset.impactName||'Default Impact').slice(0,80)};
+  }
+  if(kind==='Icon'){
+    return{storage:'icon|published',custom:false,price:basePrice,label:'Published Icon'};
+  }
+  return{storage:'published|default',custom:false,price:basePrice,label:'Default'};
+}
+
 function normalizeVariant(assetId,raw={}){
   const asset=ASSETS[assetId];
   if(!asset)throw new HttpsError('invalid-argument','Unknown E.R.A.S. Asset Library asset.');
@@ -149,7 +202,14 @@ async function acquireEscapePodVariant(profileId,normalized){
 exports.acquireEscapePodStyle=onCall(async request=>{const uid=requireAuth(request),profileId=await callerProfile(uid),style=token(request.data?.style||'standard'),normalized=normalizeVariant('eras:escape_pod',{style});return acquireEscapePodVariant(profileId,normalized);});
 
 exports.acquireAssetVariant=onCall(async request=>{
-  const uid=requireAuth(request),profileId=await callerProfile(uid),assetId=String(request.data?.assetId||''),normalized=normalizeVariant(assetId,request.data?.variant||{});
+  const uid=requireAuth(request),profileId=await callerProfile(uid),assetId=String(request.data?.assetId||'');
+  let normalized;
+  if(ASSETS[assetId]) normalized=normalizeVariant(assetId,request.data?.variant||{});
+  else {
+    const published=await publishedCatalogAsset(assetId);
+    if(!published)throw new HttpsError('invalid-argument','Unknown E.R.A.S. Asset Library asset.');
+    normalized=normalizePublishedVariant(assetId,published,request.data?.variant||{});
+  }
   if(assetId==='eras:escape_pod')return acquireEscapePodVariant(profileId,normalized);
   const holdingId=deterministicId(profileId,assetId,normalized.storage),holdingRef=db.doc(`assetHoldings/${holdingId}`),receiptRef=db.doc(`assetVariantPurchases/${holdingId}`),walletRef=db.doc(`creditWallets/${profileId}`);let charged=0,duplicate=false;
   await db.runTransaction(async tx=>{

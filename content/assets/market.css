@@ -29,3 +29,14 @@ body.market-page{overflow:auto;background:#02090b}.market-page .site-header{posi
 .supply-pack-item b{color:#caa27c;font:800 6px/1 var(--mono);letter-spacing:.1em}
 .supply-pack-item span{color:#789396;font:700 7px/1.25 var(--mono)}
 @media(max-width:680px){.supply-pack-list{min-width:0;width:100%}}
+
+.founder-content-upload{
+  color:#ffd36b!important;
+  border-color:rgba(255,211,107,.34)!important;
+  background:rgba(84,62,12,.12)!important;
+}
+.founder-content-upload:hover{
+  color:#fff3c7!important;
+  border-color:rgba(255,211,107,.65)!important;
+  background:rgba(109,82,18,.20)!important;
+}

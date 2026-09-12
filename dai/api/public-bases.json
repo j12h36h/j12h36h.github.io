@@ -21,7 +21,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/AutoCraft_MineShaft_v2.2.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/AutoCraft_MineShaft_v2.2.0.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "DUNGEON RPG"
     },
     {
       "id": "decisions_and_impulses:boxhead",
@@ -48,7 +54,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Boxhead_Resource_v0.3.0_HD.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Boxhead_Resource_v0.3.0_HD.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "ARCADE SURVIVAL"
     },
     {
       "id": "decisions_and_impulses:claygrounds",
@@ -75,7 +87,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/ClayGrounds_Resource_v0.7.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/ClayGrounds_Resource_v0.7.0.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "RPG"
     },
     {
       "id": "decisions_and_impulses:comic_effects",
@@ -102,7 +120,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/DAI_ComicEffects_Resource_v1.5.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/DAI_ComicEffects_Resource_v1.5.0.zip"
         }
-      ]
+      ],
+      "pack_class": "addon",
+      "stackable": true,
+      "engine_4_section": "addons",
+      "role": "stackable_addon",
+      "engine_line": "4.0",
+      "display_tag": "VISUAL FX"
     },
     {
       "id": "decisions_and_impulses:damage_indicators",
@@ -121,7 +145,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Damage_Indicators_v1.6.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Damage_Indicators_v1.6.0.zip"
         }
-      ]
+      ],
+      "pack_class": "addon",
+      "stackable": true,
+      "engine_4_section": "addons",
+      "role": "stackable_addon",
+      "engine_line": "4.0",
+      "display_tag": "COMBAT FEEDBACK"
     },
     {
       "id": "decisions_and_impulses:fun_survival",
@@ -140,7 +170,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Fun_v0.6.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Fun_v0.6.0.zip"
         }
-      ]
+      ],
+      "pack_class": "addon",
+      "stackable": true,
+      "engine_4_section": "addons",
+      "role": "stackable_addon",
+      "engine_line": "4.0",
+      "display_tag": "SURVIVAL AUTOMATION"
     },
     {
       "id": "decisions_and_impulses:kittys_dagger",
@@ -159,7 +195,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Kittys_Dagger_Data_v0.6.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Kittys_Dagger_Data_v0.6.0.zip"
         }
-      ]
+      ],
+      "pack_class": "addon",
+      "stackable": true,
+      "engine_4_section": "addons",
+      "role": "stackable_addon",
+      "engine_line": "4.0",
+      "display_tag": "COMBAT INPUT"
     },
     {
       "id": "decisions_and_impulses:survival_interface",
@@ -178,7 +220,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Survival_Interface_v0.4.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Survival_Interface_v0.4.0.zip"
         }
-      ]
+      ],
+      "pack_class": "addon",
+      "stackable": true,
+      "engine_4_section": "addons",
+      "role": "stackable_addon",
+      "engine_line": "4.0",
+      "display_tag": "HUD / TARGETING"
     },
     {
       "id": "decisions_and_impulses:dirtbikelife",
@@ -205,7 +253,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/DirtBikeLife_Resource_v0.1.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/DirtBikeLife_Resource_v0.1.0.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "VEHICLE EXPERIENCE"
     },
     {
       "id": "decisions_and_impulses:echo_time",
@@ -224,7 +278,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/EchoTime_v1.2.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/EchoTime_v1.2.0.zip"
         }
-      ]
+      ],
+      "pack_class": "addon",
+      "stackable": true,
+      "engine_4_section": "addons",
+      "role": "stackable_addon",
+      "engine_line": "4.0",
+      "display_tag": "TIME"
     },
     {
       "id": "decisions_and_impulses:hollow_spiral",
@@ -251,7 +311,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/HollowSpiral_Resource_v0.7.1.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/HollowSpiral_Resource_v0.7.1.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "SURVIVAL"
     },
     {
       "id": "decisions_and_impulses:minetrigger",
@@ -278,7 +344,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/MineTrigger_Resource_v0.9.5.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/MineTrigger_Resource_v0.9.5.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "COMBAT"
     },
     {
       "id": "decisions_and_impulses:musashi_story",
@@ -305,7 +377,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/MusashiStory_Resource_v1.4.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/MusashiStory_Resource_v1.4.0.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "SAMURAI RPG"
     },
     {
       "id": "decisions_and_impulses:patch_and_release",
@@ -324,7 +402,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Patch_and_Release_DAI_v0.2.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Patch_and_Release_DAI_v0.2.0.zip"
         }
-      ]
+      ],
+      "pack_class": "addon",
+      "stackable": true,
+      "engine_4_section": "addons",
+      "role": "stackable_addon",
+      "engine_line": "4.0",
+      "display_tag": "DEVELOPMENT / RELEASE"
     },
     {
       "id": "decisions_and_impulses:space_between_blocks",
@@ -351,7 +435,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Space_Between_Blocks_Resource_v0.2.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Space_Between_Blocks_Resource_v0.2.0.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "SPACE RPG"
     },
     {
       "id": "decisions_and_impulses:tamacrafti",
@@ -378,7 +468,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/TamaCrafti_Resource_v2.4.10.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/TamaCrafti_Resource_v2.4.10.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "VIRTUAL PET"
     },
     {
       "id": "decisions_and_impulses:tower_of_dlc",
@@ -405,7 +501,13 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Tower_of_DLC_Resource_v0.2.0.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Tower_of_DLC_Resource_v0.2.0.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "TOWER"
     },
     {
       "id": "decisions_and_impulses:world_of_addons",
@@ -424,7 +526,37 @@
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/World_of_Addons_Data_v0.3.1.zip",
           "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/World_of_Addons_Data_v0.3.1.zip"
         }
-      ]
+      ],
+      "pack_class": "experience",
+      "stackable": false,
+      "engine_4_section": "experience_packs",
+      "role": "primary_experience",
+      "engine_line": "4.0",
+      "display_tag": "ADDON-DRIVEN WORLD"
     }
-  ]
+  ],
+  "engine_4_sections": {
+    "experience_packs": [
+      "decisions_and_impulses:autocraft_mineshaft",
+      "decisions_and_impulses:boxhead",
+      "decisions_and_impulses:claygrounds",
+      "decisions_and_impulses:dirtbikelife",
+      "decisions_and_impulses:hollow_spiral",
+      "decisions_and_impulses:minetrigger",
+      "decisions_and_impulses:musashi_story",
+      "decisions_and_impulses:space_between_blocks",
+      "decisions_and_impulses:tamacrafti",
+      "decisions_and_impulses:tower_of_dlc",
+      "decisions_and_impulses:world_of_addons"
+    ],
+    "addons": [
+      "decisions_and_impulses:comic_effects",
+      "decisions_and_impulses:damage_indicators",
+      "decisions_and_impulses:fun_survival",
+      "decisions_and_impulses:kittys_dagger",
+      "decisions_and_impulses:survival_interface",
+      "decisions_and_impulses:echo_time",
+      "decisions_and_impulses:patch_and_release"
+    ]
+  }
 }

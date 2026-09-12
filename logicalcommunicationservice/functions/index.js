@@ -742,3 +742,13 @@ exports.acquireAssetVariant = assetLibrarySecurity.acquireAssetVariant;
 exports.acquireEscapePodStyle = assetLibrarySecurity.acquireEscapePodStyle;
 exports.getModerationCapabilities = assetLibrarySecurity.getModerationCapabilities;
 exports.createModeTestLobby = assetLibrarySecurity.createModeTestLobby;
+
+// Founder-only manual Asset Library publishing.
+// Root Founder identity is re-verified server-side against systemPrivate/founder.
+const founderAssetLibrary = require('./founder-asset-library.js');
+exports.getFounderAssetUploadAccess = founderAssetLibrary.getFounderAssetUploadAccess;
+exports.listFounderAssetAdmin = founderAssetLibrary.listFounderAssetAdmin;
+exports.publishFounderAsset = founderAssetLibrary.publishFounderAsset;
+exports.setFounderAssetPublished = founderAssetLibrary.setFounderAssetPublished;
+exports.deleteFounderAsset = founderAssetLibrary.deleteFounderAsset;
+exports.listFounderPublishedAssets = founderAssetLibrary.listFounderPublishedAssets;

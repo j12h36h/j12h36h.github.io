@@ -13,6 +13,7 @@ import {
   assetStylePreset,
   assetStyleId
 } from '/game/assets/js/catalog-assets.js?v=1.4.0';
+import { loadPublicAssetCatalog } from '/game/assets/js/public-asset-catalog.js?v=1.0.0';
 import {
   installDrawSupplyPack,
   isDrawSupplyPackInstalled,
@@ -1236,9 +1237,7 @@ async function testMode() {
 }
 
 async function loadCatalog() {
-  const response=await fetch('/public-assets/catalog.json',{cache:'no-store'});
-  if (!response.ok) throw new Error(`Catalog HTTP ${response.status}`);
-  state.catalog=await response.json();
+  state.catalog=await loadPublicAssetCatalog();
 
   const assets=state.catalog.assets||[];
   const counts={Sprite:0,Audio:0,Mode:0,World:0,Effect:0,Icon:0,Supplies:0};

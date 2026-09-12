@@ -221,3 +221,35 @@ body::before{
 /* DAI ↔ LCS correlation bridge — suggestions, never forced relationships */
 .lcs-correlation-dock{position:fixed;right:18px;bottom:18px;z-index:9999;width:min(360px,calc(100vw - 32px));padding:13px 14px;border:1px solid rgba(255,187,71,.28);border-radius:15px;background:linear-gradient(135deg,rgba(18,12,32,.96),rgba(33,19,43,.96));box-shadow:0 18px 60px rgba(0,0,0,.38);backdrop-filter:blur(16px);color:#f6f0ff}.lcs-correlation-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.lcs-correlation-head span{font-size:9px;font-weight:900;letter-spacing:.14em;color:#ffbd58}.lcs-correlation-head b{font-size:10px;color:#d6bfff}.lcs-correlation-dock p{font-size:9px!important;line-height:1.45!important;color:#b8aec7!important;margin:7px 0 10px!important}.lcs-correlation-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.lcs-correlation-actions a,.matrix-lcs-link{border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:7px 5px;text-align:center;text-decoration:none!important;color:#d9d0e6!important;background:rgba(255,255,255,.035);font-size:8px!important;font-weight:850!important;letter-spacing:.03em}.lcs-correlation-actions a:hover,.matrix-lcs-link:hover{border-color:rgba(255,187,71,.45);background:rgba(255,187,71,.08);color:#fff!important}.lcs-correlation-min{position:absolute;right:7px;top:-25px;width:25px;height:25px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#160f22;color:#bcb2ca;cursor:pointer}.lcs-correlation-dock.minimized{width:auto;padding:9px 12px}.lcs-correlation-dock.minimized p,.lcs-correlation-dock.minimized .lcs-correlation-actions,.lcs-correlation-dock.minimized .lcs-correlation-head b{display:none}.system-matrix>div{position:relative}.matrix-lcs-link{display:inline-flex!important;margin-top:12px;padding:6px 8px!important;width:max-content}.lcs-correlation-note{border:1px solid rgba(255,187,71,.16);border-radius:12px;background:rgba(255,187,71,.045);padding:10px 12px;color:#bfb4cd;font-size:10px;line-height:1.5}
 @media(max-width:700px){.lcs-correlation-dock{right:9px;bottom:9px;width:calc(100vw - 18px)}.lcs-correlation-actions{grid-template-columns:repeat(2,1fr)}.lcs-correlation-dock.minimized{width:auto}.matrix-lcs-link{font-size:7px!important}}
+
+
+/* =========================================================
+   DAI Engine 4.0 Pack Registry
+   ========================================================= */
+.dai4-pack-overview{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:18px;
+}
+.dai4-pack-overview article{
+  padding:14px 15px;
+  border:1px solid rgba(118,207,214,.16);
+  background:rgba(5,16,19,.62);
+}
+.dai4-pack-overview article:first-child{border-color:rgba(115,170,255,.25);background:rgba(42,74,125,.08)}
+.dai4-pack-overview article:last-child{border-color:rgba(103,232,167,.25);background:rgba(38,111,78,.08)}
+.dai4-pack-overview b{display:block;color:#edfafa;font:700 11px/1.1 var(--mono,monospace);letter-spacing:.09em}
+.dai4-pack-overview small{display:block;margin-top:7px;color:#789396;font:600 8px/1.5 var(--mono,monospace)}
+.dai4-pack-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:10px}
+.dai4-pack-section-head h2{margin-bottom:0}
+.dai4-pack-count{color:#8ee8ed;font:700 9px/1 var(--mono,monospace);letter-spacing:.12em}
+.dai4-experience{border-color:rgba(115,170,255,.18)!important}
+.dai4-addon{border-color:rgba(103,232,167,.18)!important}
+.dai4-pack-card .dai4-pack-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.dai4-pack-card .dai4-pack-meta b{padding:4px 6px;border:1px solid rgba(131,224,227,.11);color:#67888b;background:rgba(2,10,12,.45);font:700 6px/1 var(--mono,monospace);letter-spacing:.07em}
+.dai4-experience .dai4-pack-meta b:nth-child(2){color:#8fb6ff;border-color:rgba(115,170,255,.21)}
+.dai4-addon .dai4-pack-meta b:nth-child(2){color:#7fdfa9;border-color:rgba(103,232,167,.21)}
+.dai4-pack-empty{grid-column:1/-1;padding:18px;border:1px dashed rgba(131,224,227,.13);color:#617b7e;font:700 8px/1.5 var(--mono,monospace);letter-spacing:.08em}
+.dai4-registry-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+@media(max-width:720px){.dai4-pack-overview{grid-template-columns:1fr}.dai4-pack-section-head{align-items:flex-start;flex-direction:column;gap:5px}}

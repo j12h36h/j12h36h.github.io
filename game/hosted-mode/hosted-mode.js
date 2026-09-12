@@ -4,6 +4,7 @@ import { hostedMode } from '/game/config/hosted-modes.js?v=1.4.0';
 import { offersForLobby, purchaseHostedOffer, entitlementUsable } from '/game/assets/js/hosted-commerce.js?v=1.1.0';
 import { obtainLobbyEntitlement, createLobbyMembership, maintainLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1.1.0';
 import { assetPreviewUrl, hydrateVariantPreviewImage } from '/game/assets/js/catalog-assets.js?v=1.3.0';
+import { loadPublicAssetCatalog } from '/game/assets/js/public-asset-catalog.js?v=1.0.0';
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
@@ -15,7 +16,7 @@ const acquireAssetVariantCall=httpsCallable(functions,'acquireAssetVariant');
 const acquireEscapePodStyleCall=httpsCallable(functions,'acquireEscapePodStyle');
 const setScore=v=>{state.score=Math.max(0,Math.floor(Number(v)||0));$('#runScore').textContent=state.score.toLocaleString();};
 const meta=id=>state.catalog.assets.find(a=>a.id===id)||{name:id||'Asset',source:'/public-assets/textures/slime_monochrome.png',thumbnail:'/public-assets/textures/slime_monochrome.png'};
-async function loadCatalog(){try{const r=await fetch('/public-assets/catalog.json',{cache:'no-store'});if(r.ok)state.catalog=await r.json();}catch(_){}}
+async function loadCatalog(){try{state.catalog=await loadPublicAssetCatalog();}catch(_){}}
 const ESCAPE_POD_ASSET_ID='eras:escape_pod';
 const LEGACY_ESCAPE_POD_ASSET_ID='eras:mode_escape_pod_dash';
 const ESCAPE_POD_SKINS=Object.freeze([

@@ -4,6 +4,7 @@ import { writeBatch, increment } from 'https://www.gstatic.com/firebasejs/12.18.
 import { openOptionPicker } from '/game/assets/js/hosted-option-picker.js?v=1.0.0';
 import { createHostedOffer, publicBundleOffers, purchaseHostedOffer } from '/game/assets/js/hosted-commerce.js?v=1.0.0';
 import { assetPreviewUrl, hydrateVariantPreviewImage } from '/game/assets/js/catalog-assets.js?v=1.1.0';
+import { loadPublicAssetCatalog } from '/game/assets/js/public-asset-catalog.js?v=1.0.0';
 
 const $ = s => document.querySelector(s);
 const state = {
@@ -39,7 +40,7 @@ function toast(message) { const root=$('#tradeToastRegion'); if(!root)return; co
 function feedback(selector,message,tone='') { const el=$(selector); if(!el)return; el.textContent=String(message).toUpperCase();el.dataset.tone=tone; }
 
 async function loadCatalog() {
-  try { const r=await fetch('/public-assets/catalog.json',{cache:'no-store'}); if(r.ok)state.catalog=await r.json(); } catch(_) {}
+  try { state.catalog=await loadPublicAssetCatalog(); } catch(_) {}
 }
 
 async function hydrateProfile(profileId) {

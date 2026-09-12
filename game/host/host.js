@@ -5,6 +5,7 @@ import { createLobbyMembership } from '/game/assets/js/hosted-join-compat.js?v=1
 import { openOptionPicker, optionTriggerMarkup } from '/game/assets/js/hosted-option-picker.js?v=1.0.1';
 import { createHostedOffer, deactivateHostedOffer } from '/game/assets/js/hosted-commerce.js?v=1.0.0';
 import { assetPreviewUrl } from '/game/assets/js/catalog-assets.js?v=1.0.0';
+import { loadPublicAssetCatalog } from '/game/assets/js/public-asset-catalog.js?v=1.0.0';
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
@@ -24,7 +25,7 @@ function currentModeOption(){return modeOptionList().find(option=>option.id===cu
 function accessOption(id){return ACCESS_MODE_OPTIONS.find(o=>o.id===id)||ACCESS_MODE_OPTIONS[0];}
 function visibilityOption(id){return VISIBILITY_OPTIONS.find(o=>o.id===id)||VISIBILITY_OPTIONS[0];}
 function catalogMeta(assetId=''){return state.catalog.assets.find(a=>a.id===assetId)||{name:assetId||'Asset',thumbnail:'/public-assets/textures/slime_monochrome.png',source:'/public-assets/textures/slime_monochrome.png'};}
-async function loadCatalog(){try{const r=await fetch('/public-assets/catalog.json',{cache:'no-store'});if(r.ok)state.catalog=await r.json();}catch(_){}}
+async function loadCatalog(){try{state.catalog=await loadPublicAssetCatalog();}catch(_){}}
 function updatePickerButtons(){
   const gm=$('#gameModePicker');if(gm)gm.innerHTML=optionTriggerMarkup(currentModeOption(),'SELECT GAME MODE');
   const vis=$('#visibilityPicker');if(vis)vis.innerHTML=optionTriggerMarkup(visibilityOption($('#visibility')?.value),'SELECT VISIBILITY');
