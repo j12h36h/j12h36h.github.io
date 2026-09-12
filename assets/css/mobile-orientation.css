@@ -1,0 +1,873 @@
+/*
+  Project E.R.A.S. — Mobile Orientation + Creator Workspaces
+  2026-09-12
+
+  Goals:
+  - Preserve desktop layouts.
+  - Give phones independent portrait and landscape layouts.
+  - Keep the same underlying editor controls/features.
+  - Improve landscape behavior site-wide through the shared site chrome.
+*/
+
+/* ---------- global mobile landscape safety ---------- */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  html {
+    min-width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-width: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  .universe-frame {
+    inset:
+      max(4px, env(safe-area-inset-top))
+      max(4px, env(safe-area-inset-right))
+      max(4px, env(safe-area-inset-bottom))
+      max(4px, env(safe-area-inset-left)) !important;
+  }
+
+  .uf-top,.uf-bottom { left: 24px !important; right: 24px !important; }
+  .uf-left,.uf-right { top: 24px !important; bottom: 24px !important; }
+  .uf-corner { width: 22px !important; height: 22px !important; }
+  .uf-ticks { width: 128px !important; }
+
+  .site-header {
+    left: max(12px, calc(env(safe-area-inset-left) + 8px)) !important;
+    right: max(12px, calc(env(safe-area-inset-right) + 8px)) !important;
+    top: max(7px, calc(env(safe-area-inset-top) + 4px)) !important;
+    height: 40px !important;
+    gap: 8px !important;
+  }
+
+  .site-header .brand {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    gap: 10px !important;
+    font-size: 12px !important;
+    letter-spacing: .08em !important;
+  }
+
+  .site-header .brand-mark {
+    width: 14px !important;
+    height: 14px !important;
+    border-width: 2px !important;
+    flex: 0 0 auto !important;
+  }
+
+  .site-header .brand > span:last-child {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .site-header .portal-auth-area {
+    min-height: 38px !important;
+    max-width: 38vw !important;
+    flex: 0 0 auto !important;
+  }
+
+  .site-header .portal-auth-user {
+    height: 38px !important;
+  }
+
+  .site-header .portal-auth-avatar {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .site-header .portal-account-copy {
+    display: none !important;
+  }
+
+  .site-header .portal-signout {
+    width: 32px !important;
+  }
+
+  dialog {
+    max-width: calc(100vw - 18px) !important;
+    max-height: calc(100dvh - 14px) !important;
+  }
+
+  dialog[open] {
+    overflow: auto !important;
+  }
+
+  /* Common E.R.A.S. landing/workspace classes */
+  .info-page,
+  .options-page,
+  .social-page,
+  .creator-page {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .info-landing,
+  .options-landing,
+  .social-landing,
+  .creator-landing {
+    min-height: 100dvh !important;
+  }
+
+  .eras-action-wrap {
+    right: max(12px, calc(env(safe-area-inset-right) + 8px)) !important;
+    bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px)) !important;
+  }
+}
+
+/* ---------- Universe homepage: true phone landscape ---------- */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  body.universe-main-page {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  body.universe-main-page .universe-landing {
+    height: auto !important;
+    min-height: calc(100dvh + 470px) !important;
+    overflow: visible !important;
+  }
+
+  .universe-main-page .system-stage {
+    left: 50% !important;
+    top: 52dvh !important;
+    width: min(78dvh, 390px) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 1 / 1 !important;
+    transform: translate(-50%, -50%) !important;
+    overflow: visible !important;
+  }
+
+  .universe-main-page .universe-core {
+    display: grid !important;
+    width: min(47dvh, 190px) !important;
+    height: min(47dvh, 190px) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .universe-main-page .core-planet {
+    display: block !important;
+    width: min(33dvh, 134px) !important;
+    height: min(33dvh, 134px) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .universe-main-page .world-node {
+    display: grid !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 96px !important;
+    min-width: 0 !important;
+    gap: 2px !important;
+    z-index: 10 !important;
+  }
+
+  .universe-main-page .world-node b {
+    width: 8px !important;
+    height: 8px !important;
+    margin-bottom: 3px !important;
+  }
+
+  .universe-main-page .world-node span {
+    display: block !important;
+    font-size: 8px !important;
+    line-height: 1.05 !important;
+  }
+
+  .universe-main-page .world-node small {
+    display: inline-block !important;
+    max-width: 96px !important;
+    font-size: 5.2px !important;
+    line-height: 1.18 !important;
+    letter-spacing: .11em !important;
+    white-space: normal !important;
+  }
+
+  .universe-main-page .node-play {
+    left: 50% !important;
+    right: auto !important;
+    top: -2% !important;
+    bottom: auto !important;
+    width: 142px !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+    justify-items: center !important;
+  }
+
+  .universe-main-page .node-play small { max-width: 142px !important; }
+
+  .universe-main-page .node-options {
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: -3% !important;
+    width: 134px !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+    justify-items: center !important;
+  }
+
+  .universe-main-page .node-options small { max-width: 134px !important; }
+
+  .universe-main-page .node-content {
+    left: -24% !important; right: auto !important; top: 14% !important; bottom: auto !important;
+    transform: none !important; text-align: left !important; justify-items: start !important;
+  }
+
+  .universe-main-page .node-social {
+    left: -34% !important; right: auto !important; top: 47% !important; bottom: auto !important;
+    transform: translateY(-50%) !important; text-align: left !important; justify-items: start !important;
+  }
+
+  .universe-main-page .node-information {
+    left: -24% !important; right: auto !important; top: auto !important; bottom: 11% !important;
+    transform: none !important; text-align: left !important; justify-items: start !important;
+  }
+
+  .universe-main-page .node-animation {
+    right: -24% !important; left: auto !important; top: 14% !important; bottom: auto !important;
+    transform: none !important; text-align: right !important; justify-items: end !important;
+  }
+
+  .universe-main-page .node-draw {
+    right: -34% !important; left: auto !important; top: 47% !important; bottom: auto !important;
+    transform: translateY(-50%) !important; text-align: right !important; justify-items: end !important;
+  }
+
+  .universe-main-page .node-code {
+    right: -24% !important; left: auto !important; top: auto !important; bottom: 11% !important;
+    transform: none !important; text-align: right !important; justify-items: end !important;
+  }
+
+  .universe-main-page .platform-line {
+    display: none !important;
+  }
+
+  .universe-main-page .universe-dashboard {
+    top: calc(100dvh + 4px) !important;
+    width: calc(100vw - 28px) !important;
+    max-width: none !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .universe-main-page .universe-data-panel {
+    min-width: 0 !important;
+  }
+}
+
+/* ---------- shared mobile creator controls ---------- */
+.eras-mobile-creator-dock,
+.eras-mobile-workspace-backdrop {
+  display: none;
+}
+
+@media (pointer: coarse) and (max-width: 900px),
+       (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  html {
+    --eras-mobile-workspace-height: 100dvh;
+  }
+
+  body.sad-page,
+  body.draw-page,
+  body.code-page {
+    width: 100%;
+    height: var(--eras-mobile-workspace-height);
+    min-height: 0 !important;
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  body.sad-page .site-header,
+  body.draw-page .site-header,
+  body.code-page .site-header {
+    z-index: 230 !important;
+  }
+
+  .eras-mobile-workspace-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 198;
+    display: block;
+    background: rgba(0,0,0,.46);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .16s ease, visibility .16s ease;
+  }
+
+  body.eras-mobile-panel-active .eras-mobile-workspace-backdrop {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .eras-mobile-creator-dock {
+    position: fixed;
+    z-index: 220;
+    display: flex;
+    border: 1px solid rgba(220,240,240,.16);
+    background: rgba(7,11,12,.88);
+    box-shadow: 0 12px 34px rgba(0,0,0,.42);
+    backdrop-filter: blur(13px);
+    -webkit-backdrop-filter: blur(13px);
+  }
+
+  .eras-mobile-creator-dock button {
+    min-width: 0;
+    border: 0;
+    color: #bed0d0;
+    background: transparent;
+    font: 800 7px/1 var(--mono, monospace);
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .eras-mobile-creator-dock button b {
+    display: block;
+    margin-bottom: 5px;
+    color: #eefafa;
+    font: 700 16px/1 var(--mono, monospace);
+  }
+
+  .eras-mobile-creator-dock button.is-active {
+    color: #fff;
+    background: rgba(255,255,255,.08);
+    box-shadow: inset 0 2px 0 currentColor;
+  }
+
+  .eras-mobile-panel {
+    z-index: 205 !important;
+    margin: 0 !important;
+    overflow: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .16s ease, transform .18s ease, visibility .16s ease;
+  }
+
+  .eras-mobile-panel.eras-mobile-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  body.sad-page .sad-titlebar,
+  body.draw-page .draw-titlebar,
+  body.code-page .code-titlebar {
+    display: none !important;
+  }
+
+  body.sad-page .sad-shell,
+  body.draw-page .draw-shell,
+  body.code-page .code-shell {
+    width: 100%;
+    max-width: none;
+    height: var(--eras-mobile-workspace-height);
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Larger touch targets inside opened modular panels */
+  .eras-mobile-panel button,
+  .eras-mobile-panel select,
+  .eras-mobile-panel input[type="text"],
+  .eras-mobile-panel input[type="number"],
+  .eras-mobile-panel input:not([type]),
+  .eras-mobile-panel textarea {
+    min-height: 42px;
+  }
+
+  /* -------- Animation Designer -------- */
+  body.sad-page .sad-workspace {
+    width: 100%;
+    max-width: none;
+    min-height: 0 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  body.sad-page .sad-preview-panel {
+    width: 100%;
+    height: 100%;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: 38px minmax(0, 1fr) auto;
+  }
+
+  body.sad-page .sad-preview-panel > header {
+    min-height: 38px;
+    padding: 7px 9px;
+  }
+
+  body.sad-page .sad-stage-wrap {
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
+    padding: 6px;
+  }
+
+  body.sad-page #animationCanvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  body.sad-page .sad-drop-hint {
+    display: none !important;
+  }
+
+  body.sad-page .sad-player {
+    flex-wrap: nowrap !important;
+    min-height: 50px;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 6px !important;
+    gap: 5px !important;
+    scrollbar-width: none;
+  }
+
+  body.sad-page .sad-player::-webkit-scrollbar { display: none; }
+
+  body.sad-page .sad-player > #timeline {
+    min-width: 160px !important;
+    flex: 1 0 180px !important;
+  }
+
+  body.sad-page .sad-player button,
+  body.sad-page .sad-player select,
+  body.sad-page .sad-player label {
+    flex: 0 0 auto;
+  }
+
+  body.sad-page #jsonEditor {
+    min-height: 44dvh !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+
+  body.sad-page .sad-reference-panel {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* -------- DRAW -------- */
+  body.draw-page .draw-workspace {
+    width: 100%;
+    max-width: none;
+    min-height: 0 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    display: block !important;
+    border: 1px solid var(--wood-line);
+  }
+
+  body.draw-page .draw-canvas-panel {
+    width: 100%;
+    height: 100%;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: 38px minmax(0,1fr) 50px !important;
+  }
+
+  body.draw-page .draw-canvas-panel > header {
+    min-height: 38px !important;
+    padding: 0 8px !important;
+  }
+
+  body.draw-page .draw-canvas-status {
+    gap: 6px !important;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  body.draw-page .draw-stage {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 12px !important;
+    overflow: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.draw-page #displayCanvas {
+    touch-action: none !important;
+  }
+
+  body.draw-page .draw-viewport-toolbar {
+    min-height: 50px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 5px 7px !important;
+    scrollbar-width: none;
+  }
+
+  body.draw-page .draw-viewport-toolbar::-webkit-scrollbar { display: none; }
+
+  body.draw-page .draw-viewport-toolbar button {
+    min-width: 42px;
+    min-height: 40px;
+    flex: 0 0 auto;
+  }
+
+  body.draw-page .draw-viewport-toolbar input[type=range] {
+    min-width: 120px;
+    width: 34vw !important;
+    flex: 0 0 auto;
+  }
+
+  body.draw-page .draw-viewport-toolbar label {
+    min-height: 40px;
+    padding: 0 5px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  body.draw-page .draw-tool-grid {
+    grid-template-columns: repeat(4, minmax(0,1fr)) !important;
+  }
+
+  body.draw-page .draw-tool-grid button {
+    min-height: 62px !important;
+  }
+
+  body.draw-page .draw-properties-panel {
+    max-height: none !important;
+  }
+
+  /* -------- CODE -------- */
+  body.code-page .code-workspace {
+    width: 100%;
+    max-width: none;
+    min-height: 0 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    display: block !important;
+    border: 1px solid var(--code-line);
+  }
+
+  body.code-page .code-editor-column {
+    width: 100%;
+    height: 100%;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: auto auto minmax(0,1fr) auto !important;
+  }
+
+  body.code-page .code-tabs {
+    min-height: 36px !important;
+    scrollbar-width: none;
+  }
+
+  body.code-page .code-tabs::-webkit-scrollbar { display: none; }
+
+  body.code-page .code-tab {
+    height: 36px !important;
+    min-width: 112px !important;
+  }
+
+  body.code-page .code-search-panel {
+    max-width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+
+  body.code-page .code-search-panel::-webkit-scrollbar { display: none; }
+
+  body.code-page .code-editor-host {
+    min-height: 0 !important;
+    height: auto !important;
+    grid-template-columns: 38px minmax(0,1fr) 34px !important;
+  }
+
+  body.code-page .code-line-numbers {
+    padding-left: 2px !important;
+    padding-right: 5px !important;
+  }
+
+  body.code-page .code-minimap {
+    padding: 3px !important;
+  }
+
+  body.code-page .code-highlight,
+  body.code-page .code-editor {
+    padding: 10px 8px 42px !important;
+    font-size: var(--editor-font-size, 14px) !important;
+  }
+
+  body.code-page .code-statusbar {
+    min-height: 27px !important;
+    max-width: 100%;
+    gap: 9px !important;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+
+  body.code-page .code-statusbar::-webkit-scrollbar { display: none; }
+
+  body.code-page .code-explorer,
+  body.code-page .code-inspector {
+    max-height: none !important;
+  }
+
+  body.code-page .code-bottom-panel.eras-mobile-panel {
+    display: block !important;
+  }
+}
+
+/* ---------- portrait creator workspace ---------- */
+@media (pointer: coarse) and (orientation: portrait) and (max-width: 900px) {
+  body.sad-page .sad-shell,
+  body.draw-page .draw-shell,
+  body.code-page .code-shell {
+    padding:
+      max(58px, calc(env(safe-area-inset-top) + 52px))
+      7px
+      calc(72px + env(safe-area-inset-bottom))
+      7px !important;
+  }
+
+  .eras-mobile-creator-dock {
+    left: max(7px, env(safe-area-inset-left));
+    right: max(7px, env(safe-area-inset-right));
+    bottom: max(7px, env(safe-area-inset-bottom));
+    height: 58px;
+    flex-direction: row;
+    border-radius: 13px;
+    overflow: hidden;
+  }
+
+  .eras-mobile-creator-dock button {
+    flex: 1 1 0;
+    height: 100%;
+    padding: 5px 2px;
+  }
+
+  .eras-mobile-panel {
+    position: fixed !important;
+    left: max(7px, env(safe-area-inset-left)) !important;
+    right: max(7px, env(safe-area-inset-right)) !important;
+    top: auto !important;
+    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: min(64dvh, 580px) !important;
+    transform: translateY(22px) scale(.985);
+    border: 1px solid rgba(220,240,240,.18) !important;
+    border-radius: 14px 14px 9px 9px !important;
+    box-shadow: 0 20px 62px rgba(0,0,0,.58) !important;
+  }
+
+  .eras-mobile-panel.eras-mobile-open {
+    transform: translateY(0) scale(1);
+  }
+
+  /* tool/action bars become modular sheets rather than taking workspace height */
+  body.sad-page .sad-toolbar.eras-mobile-panel,
+  body.draw-page .draw-toolbar.eras-mobile-panel,
+  body.code-page .code-toolbar.eras-mobile-panel {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center;
+    gap: 6px !important;
+    padding: 10px !important;
+    background: rgba(10,10,10,.96) !important;
+  }
+
+  body.sad-page .sad-editor-panel.eras-mobile-panel {
+    min-height: min(62dvh, 560px) !important;
+  }
+
+  body.sad-page #jsonEditor {
+    height: 48dvh !important;
+    min-height: 300px !important;
+  }
+
+  body.draw-page .draw-tools-panel.eras-mobile-panel,
+  body.draw-page .draw-properties-panel.eras-mobile-panel,
+  body.code-page .code-explorer.eras-mobile-panel,
+  body.code-page .code-inspector.eras-mobile-panel {
+    background-color: rgba(12,12,12,.97) !important;
+  }
+
+  body.code-page .code-bottom-panel.eras-mobile-panel {
+    min-height: 190px;
+  }
+}
+
+/* ---------- landscape creator workspace ---------- */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  body.sad-page .sad-shell,
+  body.draw-page .draw-shell,
+  body.code-page .code-shell {
+    padding:
+      max(51px, calc(env(safe-area-inset-top) + 47px))
+      calc(68px + env(safe-area-inset-right))
+      max(6px, env(safe-area-inset-bottom))
+      max(7px, env(safe-area-inset-left)) !important;
+  }
+
+  .eras-mobile-creator-dock {
+    top: max(51px, calc(env(safe-area-inset-top) + 47px));
+    right: max(7px, env(safe-area-inset-right));
+    bottom: max(7px, env(safe-area-inset-bottom));
+    width: 57px;
+    flex-direction: column;
+    border-radius: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+
+  .eras-mobile-creator-dock::-webkit-scrollbar { display:none; }
+
+  .eras-mobile-creator-dock button {
+    flex: 0 0 48px;
+    width: 100%;
+    padding: 4px 1px;
+  }
+
+  .eras-mobile-creator-dock button b {
+    font-size: 14px;
+    margin-bottom: 3px;
+  }
+
+  .eras-mobile-panel {
+    position: fixed !important;
+    top: max(51px, calc(env(safe-area-inset-top) + 47px)) !important;
+    bottom: max(7px, env(safe-area-inset-bottom)) !important;
+    height: auto !important;
+    max-height: none !important;
+    width: min(42vw, 350px) !important;
+    border: 1px solid rgba(220,240,240,.18) !important;
+    box-shadow: 0 18px 60px rgba(0,0,0,.62) !important;
+  }
+
+  .eras-mobile-panel[data-eras-side="left"] {
+    left: max(7px, env(safe-area-inset-left)) !important;
+    right: auto !important;
+    transform: translateX(-20px) scale(.985);
+  }
+
+  .eras-mobile-panel[data-eras-side="right"] {
+    right: calc(70px + env(safe-area-inset-right)) !important;
+    left: auto !important;
+    transform: translateX(20px) scale(.985);
+  }
+
+  .eras-mobile-panel[data-eras-side="bottom"] {
+    left: max(7px, env(safe-area-inset-left)) !important;
+    right: calc(70px + env(safe-area-inset-right)) !important;
+    top: auto !important;
+    bottom: max(7px, env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: 48dvh !important;
+    transform: translateY(18px) scale(.99);
+  }
+
+  .eras-mobile-panel.eras-mobile-open {
+    transform: translate(0,0) scale(1) !important;
+  }
+
+  body.sad-page .sad-toolbar.eras-mobile-panel,
+  body.draw-page .draw-toolbar.eras-mobile-panel,
+  body.code-page .code-toolbar.eras-mobile-panel {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+    padding: 8px !important;
+    background: rgba(8,9,9,.97) !important;
+  }
+
+  body.sad-page .sad-player {
+    min-height: 42px !important;
+    padding: 4px !important;
+  }
+
+  body.sad-page .sad-player button,
+  body.sad-page .sad-player select {
+    min-height: 30px !important;
+  }
+
+  body.sad-page #jsonEditor {
+    height: calc(var(--eras-mobile-workspace-height) - 120px) !important;
+    min-height: 190px !important;
+    font-size: 13px !important;
+  }
+
+  body.draw-page .draw-canvas-panel {
+    grid-template-rows: 32px minmax(0,1fr) 44px !important;
+  }
+
+  body.draw-page .draw-canvas-panel > header {
+    min-height: 32px !important;
+  }
+
+  body.draw-page .draw-stage {
+    padding: 8px !important;
+  }
+
+  body.draw-page .draw-viewport-toolbar {
+    min-height: 44px !important;
+  }
+
+  body.code-page .code-editor-host {
+    grid-template-columns: 36px minmax(0,1fr) 30px !important;
+  }
+
+  body.code-page .code-bottom-panel.eras-mobile-panel {
+    min-height: 150px;
+  }
+}
+
+/* very short landscape devices */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 430px) {
+  .site-header {
+    top: max(5px, env(safe-area-inset-top)) !important;
+    height: 36px !important;
+  }
+
+  body.sad-page .sad-shell,
+  body.draw-page .draw-shell,
+  body.code-page .code-shell {
+    padding-top: max(43px, calc(env(safe-area-inset-top) + 40px)) !important;
+  }
+
+  .eras-mobile-creator-dock,
+  .eras-mobile-panel {
+    top: max(43px, calc(env(safe-area-inset-top) + 40px)) !important;
+  }
+
+  .eras-mobile-creator-dock button {
+    flex-basis: 43px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eras-mobile-panel,
+  .eras-mobile-workspace-backdrop {
+    transition: none !important;
+  }
+}
