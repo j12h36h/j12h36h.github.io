@@ -871,3 +871,134 @@
     transition: none !important;
   }
 }
+
+/* =========================================================
+   LANDSCAPE VISIBLE-VIEWPORT CORRECTION — 2026-09-12
+   Android Chrome can report a layout/dynamic viewport taller
+   than the actually visible region while the URL bar is shown.
+   The homepage JS writes pixel values from visualViewport.
+   ========================================================= */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  body.universe-main-page {
+    --eras-home-visible-height: 360px;
+    --eras-home-stage-size: 300px;
+    --eras-home-stage-top: 190px;
+    --eras-home-core-size: 165px;
+    --eras-home-planet-size: 116px;
+  }
+
+  body.universe-main-page .universe-landing {
+    min-height: calc(var(--eras-home-visible-height) + 470px) !important;
+  }
+
+  .universe-main-page .system-stage {
+    top: var(--eras-home-stage-top) !important;
+    width: var(--eras-home-stage-size) !important;
+    max-width: min(48vw, 360px) !important;
+  }
+
+  .universe-main-page .universe-core {
+    width: var(--eras-home-core-size) !important;
+    height: var(--eras-home-core-size) !important;
+  }
+
+  .universe-main-page .core-planet {
+    width: var(--eras-home-planet-size) !important;
+    height: var(--eras-home-planet-size) !important;
+  }
+
+  /* Keep the top diagonal nodes below browser/header chrome. */
+  .universe-main-page .node-content {
+    left: -28% !important;
+    top: 23% !important;
+  }
+
+  .universe-main-page .node-animation {
+    right: -28% !important;
+    top: 23% !important;
+  }
+
+  .universe-main-page .node-social {
+    left: -38% !important;
+    top: 50% !important;
+  }
+
+  .universe-main-page .node-draw {
+    right: -38% !important;
+    top: 50% !important;
+  }
+
+  .universe-main-page .node-information {
+    left: -28% !important;
+    bottom: 16% !important;
+  }
+
+  .universe-main-page .node-code {
+    right: -28% !important;
+    bottom: 16% !important;
+  }
+
+  .universe-main-page .node-play {
+    top: 4% !important;
+  }
+
+  .universe-main-page .node-options {
+    bottom: 7% !important;
+  }
+
+  /* Compact the fixed site chrome in landscape. */
+  .universe-main-page .site-header {
+    top: max(5px, calc(env(safe-area-inset-top) + 3px)) !important;
+    height: 34px !important;
+  }
+
+  .universe-main-page .site-header .brand {
+    font-size: 10px !important;
+    gap: 8px !important;
+    letter-spacing: .07em !important;
+  }
+
+  .universe-main-page .site-header .brand-mark {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .universe-main-page .portal-auth-area {
+    min-height: 34px !important;
+  }
+
+  .universe-main-page .portal-auth-user {
+    height: 34px !important;
+  }
+
+  .universe-main-page .portal-auth-avatar {
+    width: 27px !important;
+    height: 27px !important;
+  }
+
+  .universe-main-page .portal-signout {
+    width: 29px !important;
+  }
+
+  /* Match the floating action button more closely to the account icon. */
+  .universe-main-page .eras-action-toggle {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .universe-main-page .eras-action-toggle svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .universe-main-page .eras-action-wrap {
+    right: max(12px, calc(env(safe-area-inset-right) + 8px)) !important;
+    bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px)) !important;
+  }
+
+  /* Start the social dashboard after the ACTUAL visible landscape viewport. */
+  .universe-main-page .universe-dashboard {
+    top: calc(var(--eras-home-visible-height) + 4px) !important;
+  }
+}
+

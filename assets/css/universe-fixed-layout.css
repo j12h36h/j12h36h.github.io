@@ -1,0 +1,386 @@
+/*
+  Project E.R.A.S. — Fixed Universe Homepage Layout
+  2026-09-12
+
+  Restores the no-scroll desktop homepage and applies the same spatial model
+  to phone landscape: the Universe occupies a reduced central field while the
+  social dashboard uses the unused side gutters.
+*/
+
+/* =========================================================
+   DESKTOP / TABLET LANDSCAPE
+   Override the old <=1320px rule that stacked the dashboard
+   below the Universe and created page scrolling.
+   ========================================================= */
+@media (orientation: landscape) and (min-width: 761px) {
+  body.universe-main-page {
+    overflow: hidden !important;
+  }
+
+  body.universe-main-page .universe-landing {
+    width: 100% !important;
+    height: 100svh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .universe-main-page .system-stage {
+    top: 50% !important;
+  }
+
+  .universe-main-page .platform-line {
+    top: auto !important;
+    bottom: 18px !important;
+  }
+
+  .universe-main-page .universe-dashboard {
+    position: absolute !important;
+    inset: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    display: block !important;
+    transform: none !important;
+    pointer-events: none !important;
+  }
+
+  .universe-main-page .universe-data-panel {
+    position: absolute !important;
+    display: flex !important;
+    pointer-events: auto !important;
+  }
+
+  .universe-main-page .alerts-panel {
+    left: clamp(24px, 3.2vw, 72px) !important;
+    right: auto !important;
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translateY(-42%) !important;
+  }
+
+  .universe-main-page .friends-panel {
+    left: auto !important;
+    right: clamp(24px, 3.2vw, 72px) !important;
+    top: clamp(88px, 12vh, 132px) !important;
+    bottom: auto !important;
+    transform: none !important;
+  }
+
+  .universe-main-page .friend-activity-panel {
+    left: auto !important;
+    right: clamp(24px, 3.2vw, 72px) !important;
+    top: auto !important;
+    bottom: clamp(54px, 6vh, 78px) !important;
+    transform: none !important;
+  }
+}
+
+/* Compact fixed desktop layout for narrower landscape monitors/tablets. */
+@media (orientation: landscape) and (min-width: 761px) and (max-width: 1320px) {
+  .universe-main-page .system-stage {
+    width: min(54vw, 620px, calc(100svh - 96px)) !important;
+  }
+
+  .universe-main-page .universe-data-panel {
+    width: clamp(178px, 17vw, 224px) !important;
+    height: clamp(164px, 25vh, 218px) !important;
+  }
+
+  .universe-main-page .udp-head {
+    padding: 10px 11px 8px !important;
+  }
+
+  .universe-main-page .udp-footer-link {
+    padding: 7px 11px 8px !important;
+  }
+
+  .universe-main-page .alerts-panel {
+    left: 18px !important;
+  }
+
+  .universe-main-page .friends-panel,
+  .universe-main-page .friend-activity-panel {
+    right: 18px !important;
+  }
+}
+
+/* =========================================================
+   PHONE LANDSCAPE
+   KEEP THE CURRENT NODE/TEXT SIZES.
+   Shrink only the central Universe navigation field.
+   ========================================================= */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  body.universe-main-page {
+    --eras-visible-w: 800px;
+    --eras-visible-h: 360px;
+    --eras-landscape-stage: 268px;
+    --eras-landscape-stage-top: 202px;
+    --eras-landscape-core: 150px;
+    --eras-landscape-planet: 106px;
+    --eras-side-panel-w: 136px;
+    --eras-side-panel-h: 100px;
+
+    width: 100% !important;
+    height: var(--eras-visible-h) !important;
+    min-height: var(--eras-visible-h) !important;
+    overflow: hidden !important;
+  }
+
+  body.universe-main-page .universe-landing {
+    width: 100% !important;
+    height: var(--eras-visible-h) !important;
+    min-height: var(--eras-visible-h) !important;
+    max-height: var(--eras-visible-h) !important;
+    overflow: hidden !important;
+  }
+
+  /* The orbit field becomes smaller while node controls retain their size. */
+  .universe-main-page .system-stage {
+    left: 50% !important;
+    top: var(--eras-landscape-stage-top) !important;
+    width: var(--eras-landscape-stage) !important;
+    height: var(--eras-landscape-stage) !important;
+    min-height: 0 !important;
+    aspect-ratio: 1 / 1 !important;
+    transform: translate(-50%, -50%) !important;
+    overflow: visible !important;
+  }
+
+  .universe-main-page .universe-core {
+    width: var(--eras-landscape-core) !important;
+    height: var(--eras-landscape-core) !important;
+  }
+
+  .universe-main-page .core-planet {
+    width: var(--eras-landscape-planet) !important;
+    height: var(--eras-landscape-planet) !important;
+  }
+
+  /*
+    Do NOT reduce .world-node width/font sizes here.
+    The anchor positions are pulled inward around the smaller stage instead.
+  */
+  .universe-main-page .node-play {
+    left: 50% !important;
+    right: auto !important;
+    top: -3% !important;
+    bottom: auto !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+    justify-items: center !important;
+  }
+
+  .universe-main-page .node-options {
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: -4% !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+    justify-items: center !important;
+  }
+
+  .universe-main-page .node-content {
+    left: 4% !important;
+    right: auto !important;
+    top: 12% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: left !important;
+    justify-items: start !important;
+  }
+
+  .universe-main-page .node-animation {
+    right: 4% !important;
+    left: auto !important;
+    top: 12% !important;
+    bottom: auto !important;
+    transform: none !important;
+    text-align: right !important;
+    justify-items: end !important;
+  }
+
+  .universe-main-page .node-social {
+    left: -12% !important;
+    right: auto !important;
+    top: 47% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    text-align: left !important;
+    justify-items: start !important;
+  }
+
+  .universe-main-page .node-draw {
+    right: -12% !important;
+    left: auto !important;
+    top: 47% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    text-align: right !important;
+    justify-items: end !important;
+  }
+
+  .universe-main-page .node-information {
+    left: 4% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: 10% !important;
+    transform: none !important;
+    text-align: left !important;
+    justify-items: start !important;
+  }
+
+  .universe-main-page .node-code {
+    right: 4% !important;
+    left: auto !important;
+    top: auto !important;
+    bottom: 10% !important;
+    transform: none !important;
+    text-align: right !important;
+    justify-items: end !important;
+  }
+
+  .universe-main-page .platform-line {
+    display: none !important;
+  }
+
+  /* Social dashboard stays inside the same visible screen. */
+  .universe-main-page .universe-dashboard {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: var(--eras-visible-h) !important;
+    display: block !important;
+    transform: none !important;
+    pointer-events: none !important;
+  }
+
+  .universe-main-page .universe-data-panel {
+    position: absolute !important;
+    width: var(--eras-side-panel-w) !important;
+    height: var(--eras-side-panel-h) !important;
+    min-width: 0 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+
+  .universe-main-page .alerts-panel {
+    left: max(8px, env(safe-area-inset-left)) !important;
+    right: auto !important;
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+  }
+
+  .universe-main-page .friends-panel {
+    left: auto !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
+    top: max(48px, calc(env(safe-area-inset-top) + 42px)) !important;
+    bottom: auto !important;
+  }
+
+  .universe-main-page .friend-activity-panel {
+    left: auto !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
+    top: auto !important;
+    bottom: max(52px, calc(env(safe-area-inset-bottom) + 46px)) !important;
+  }
+
+  /* Compress only dashboard chrome/content, never Universe node controls. */
+  .universe-main-page .udp-head {
+    padding: 6px 7px 5px !important;
+  }
+
+  .universe-main-page .udp-head > span {
+    margin-bottom: 3px !important;
+    font-size: 5px !important;
+  }
+
+  .universe-main-page .udp-head h2 {
+    font-size: 7px !important;
+  }
+
+  .universe-main-page .udp-head b {
+    min-width: 14px !important;
+    font-size: 7px !important;
+  }
+
+  .universe-main-page .udp-empty {
+    padding: 7px !important;
+    font-size: 5.4px !important;
+    line-height: 1.35 !important;
+  }
+
+  .universe-main-page .friend-row,
+  .universe-main-page .activity-row,
+  .universe-main-page .alert-row {
+    min-height: 31px !important;
+    padding: 5px 6px !important;
+    gap: 5px !important;
+  }
+
+  .universe-main-page .friend-copy b,
+  .universe-main-page .activity-copy b,
+  .universe-main-page .alert-copy b {
+    font-size: 6px !important;
+  }
+
+  .universe-main-page .friend-copy small,
+  .universe-main-page .activity-copy small,
+  .universe-main-page .alert-copy small {
+    margin-top: 2px !important;
+    font-size: 4.7px !important;
+  }
+
+  .universe-main-page .activity-row,
+  .universe-main-page .alert-row {
+    grid-template-columns: 14px 1fr auto !important;
+  }
+
+  .universe-main-page .activity-icon,
+  .universe-main-page .alert-icon {
+    width: 14px !important;
+    height: 14px !important;
+    font-size: 6px !important;
+  }
+
+  .universe-main-page .activity-row time,
+  .universe-main-page .alert-row time,
+  .universe-main-page .friend-state {
+    font-size: 4.5px !important;
+  }
+
+  .universe-main-page .udp-footer-link {
+    padding: 5px 7px 6px !important;
+    font-size: 5px !important;
+  }
+
+  /* Leave a strip beneath the bottom-right social panel for the action button. */
+  .universe-main-page .eras-action-wrap {
+    right: max(10px, calc(env(safe-area-inset-right) + 7px)) !important;
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .universe-main-page .eras-action-toggle {
+    width: 34px !important;
+    height: 34px !important;
+  }
+}
+
+/* Extremely short landscape displays: tighten the stage further, not the nodes. */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 390px) {
+  body.universe-main-page {
+    --eras-side-panel-h: 92px;
+  }
+
+  .universe-main-page .friends-panel {
+    top: max(43px, calc(env(safe-area-inset-top) + 38px)) !important;
+  }
+
+  .universe-main-page .friend-activity-panel {
+    bottom: max(46px, calc(env(safe-area-inset-bottom) + 41px)) !important;
+  }
+}
