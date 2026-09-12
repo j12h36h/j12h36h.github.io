@@ -1,0 +1,132 @@
+/*
+  E.R.A.S. Universe — Combined Activity + Mobile Node Description Cleanup
+  2026-09-12
+*/
+
+/* The legacy Friend Activity panel remains in the DOM only as a data source. */
+.universe-main-page .eras-feed-source {
+  display: none !important;
+}
+
+/* With Friend Activity merged into Activity, both visible side panels can use
+   more of the available fixed viewport. */
+@media (orientation: landscape) and (min-width: 761px) {
+  .universe-main-page .combined-activity-panel {
+    top: 50% !important;
+    height: clamp(300px, 52vh, 500px) !important;
+    transform: translateY(-46%) !important;
+  }
+
+  .universe-main-page .friends-panel {
+    top: 50% !important;
+    bottom: auto !important;
+    height: clamp(300px, 52vh, 500px) !important;
+    transform: translateY(-46%) !important;
+  }
+}
+
+/* Compact fixed layouts still get one large panel per side instead of
+   two stacked right-side panels. */
+@media (orientation: landscape) and (min-width: 761px) and (max-width: 1320px) {
+  .universe-main-page .combined-activity-panel,
+  .universe-main-page .friends-panel {
+    height: clamp(230px, 56vh, 420px) !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+   PHONE LANDSCAPE
+   Keep the main node labels at their readable size.
+   Only the secondary description pills become short mobile aliases.
+   ------------------------------------------------------------------ */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  .universe-main-page .combined-activity-panel {
+    left: max(8px, env(safe-area-inset-left)) !important;
+    right: auto !important;
+    top: 52% !important;
+    bottom: auto !important;
+    width: var(--eras-side-panel-w) !important;
+    height: calc(var(--eras-visible-h) - 104px) !important;
+    min-height: 150px !important;
+    transform: translateY(-50%) !important;
+  }
+
+  .universe-main-page .friends-panel {
+    left: auto !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
+    top: 52% !important;
+    bottom: auto !important;
+    width: var(--eras-side-panel-w) !important;
+    height: calc(var(--eras-visible-h) - 104px) !important;
+    min-height: 150px !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* Retain the full desktop description in the DOM/accessibility tree while
+     showing a much shorter visual alias on small landscape screens. */
+  .universe-main-page .world-node small[data-mobile-label] {
+    display: inline-flex !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 92px !important;
+    min-height: 17px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 3px 7px !important;
+    margin-top: 2px !important;
+    overflow: hidden !important;
+    border-radius: 5px !important;
+    white-space: nowrap !important;
+    text-overflow: clip !important;
+    font-size: 0 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .universe-main-page .world-node small[data-mobile-label]::after {
+    content: attr(data-mobile-label);
+    display: block;
+    overflow: hidden;
+    color: inherit;
+    font: 700 5.2px/1 var(--mono, monospace);
+    letter-spacing: .08em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Center-axis descriptions can be a touch wider without colliding. */
+  .universe-main-page .node-play small[data-mobile-label],
+  .universe-main-page .node-options small[data-mobile-label] {
+    max-width: 80px !important;
+  }
+
+  /* Pull the secondary descriptions tight to their node labels. */
+  .universe-main-page .world-node {
+    gap: 1px !important;
+  }
+
+  .universe-main-page .world-node span {
+    margin-bottom: 0 !important;
+  }
+
+  /* Two visible dashboard panels means the action menu can sit under Friends
+     without competing with a second panel. */
+  .universe-main-page .eras-action-wrap {
+    z-index: 40 !important;
+  }
+}
+
+/* Extra-short Android landscape: leave a little more air around the orbit. */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 390px) {
+  .universe-main-page .combined-activity-panel,
+  .universe-main-page .friends-panel {
+    height: calc(var(--eras-visible-h) - 92px) !important;
+    min-height: 142px !important;
+  }
+
+  .universe-main-page .world-node small[data-mobile-label] {
+    min-height: 15px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+  }
+}

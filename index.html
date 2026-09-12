@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="/assets/css/mobile-universe-repair.css?v=20260907-1">
   <link rel="stylesheet" href="/assets/css/mobile-orientation.css?v=20260912-2">
   <link rel="stylesheet" href="/assets/css/universe-fixed-layout.css?v=20260912-2">
+  <link rel="stylesheet" href="/assets/css/universe-activity-cleanup.css?v=20260912-1">
   <link rel="stylesheet" href="/assets/css/action-menu.css?v=20260912-1">
 </head>
 <body class="universe-home universe-main-page">
@@ -56,31 +57,31 @@
       <div class="orbit orbit-inner" aria-hidden="true"></div>
       <div class="scan-ring" aria-hidden="true"></div>
       <a class="world-node node-play" href="/game/" aria-label="Play">
-        <b aria-hidden="true"></b><span>PLAY</span><small>External Reality Access System</small>
+        <b aria-hidden="true"></b><span>PLAY</span><small data-mobile-label="E.R.A.S.">External Reality Access System</small>
       </a>
 
       <a class="world-node node-content" href="/content/" aria-label="Content">
-        <b aria-hidden="true"></b><span>CONTENT</span><small>Public Asset Library</small>
+        <b aria-hidden="true"></b><span>CONTENT</span><small data-mobile-label="ASSETS">Public Asset Library</small>
       </a>
       <a class="world-node node-social" href="/logicalcommunicationservice/" aria-label="Social">
-        <b aria-hidden="true"></b><span>SOCIAL</span><small>Logical Communication Service</small>
+        <b aria-hidden="true"></b><span>SOCIAL</span><small data-mobile-label="LCS">Logical Communication Service</small>
       </a>
       <a class="world-node node-information" href="/dai/" aria-label="Information">
-        <b aria-hidden="true"></b><span>D.A.I. Engine</span><small>Minecraft Game Engine</small>
+        <b aria-hidden="true"></b><span>D.A.I. Engine</span><small data-mobile-label="MC ENGINE">Minecraft Game Engine</small>
       </a>
 
       <a class="world-node node-animation" href="/animation-engine/" aria-label="Simple Animation Designer">
-        <b aria-hidden="true"></b><span>ANIMATION</span><small>Simple Animation Designer</small>
+        <b aria-hidden="true"></b><span>ANIMATION</span><small data-mobile-label="ANIMATOR">Simple Animation Designer</small>
       </a>
-      <a class="world-node node-draw" href="/draw/" aria-label="Creative Graphic Editor">
-        <b aria-hidden="true"></b><span>DRAW</span><small>Creative Graphic Editor</small>
+      <a class="world-node node-draw" href="/draw/" aria-label="Creative Graphic Canvas">
+        <b aria-hidden="true"></b><span>DRAW</span><small data-mobile-label="GRAPHIC CANVAS">Creative Graphic Canvas</small>
       </a>
       <a class="world-node node-code" href="/code/" aria-label="Advanced Text Editor">
-        <b aria-hidden="true"></b><span>CODE</span><small>Advanced Text Editor</small>
+        <b aria-hidden="true"></b><span>CODE</span><small data-mobile-label="TEXT EDITOR">Advanced Text Editor</small>
       </a>
 
       <a class="world-node node-options" href="/options/" aria-label="Options">
-        <b aria-hidden="true"></b><span>OPTIONS</span><small>General User Settings</small>
+        <b aria-hidden="true"></b><span>OPTIONS</span><small data-mobile-label="SETTINGS">General User Settings</small>
       </a>
 
       <div class="universe-core" data-parallax-item>
@@ -110,26 +111,34 @@
         <a class="udp-footer-link" href="/game/social/">OPEN SOCIAL NETWORK →</a>
       </aside>
 
-      <aside class="universe-data-panel friend-activity-panel" aria-labelledby="erasFriendActivityTitle">
+      <!-- Hidden source panel retained for the existing dashboard data renderer. -->
+      <aside class="universe-data-panel friend-activity-panel eras-feed-source" aria-hidden="true">
         <header class="udp-head">
           <span>NETWORK // 02</span>
-          <div><h2 id="erasFriendActivityTitle">FRIEND ACTIVITY</h2><b data-activity-count>0</b></div>
+          <div><h2>FRIEND ACTIVITY</h2><b data-activity-count>0</b></div>
         </header>
         <div class="udp-list activity-list" data-friend-activity>
           <p class="udp-empty">WAITING FOR ACTIVITY…</p>
         </div>
-        <a class="udp-footer-link" href="/logicalcommunicationservice/">OPEN LCS →</a>
       </aside>
 
-      <aside class="universe-data-panel alerts-panel" aria-labelledby="erasAlertsTitle">
+      <aside class="universe-data-panel alerts-panel combined-activity-panel" aria-labelledby="erasActivityTitle">
         <header class="udp-head">
-          <span>NETWORK // 03</span>
-          <div><h2 id="erasAlertsTitle">ALERTS</h2><b data-alert-count>0</b></div>
+          <span>NETWORK // ACTIVITY</span>
+          <div><h2 id="erasActivityTitle">ACTIVITY</h2><b data-combined-activity-count>0</b></div>
         </header>
-        <div class="udp-list alerts-list" data-alerts-list>
-          <p class="udp-empty">CHECKING PERSONAL ALERTS…</p>
+        <div class="udp-list combined-activity-list" data-combined-activity>
+          <p class="udp-empty">CHECKING NETWORK ACTIVITY…</p>
         </div>
-        <a class="udp-footer-link" href="/logicalcommunicationservice/">OPEN NOTIFICATIONS →</a>
+        <a class="udp-footer-link" href="/logicalcommunicationservice/">OPEN LCS →</a>
+
+        <!-- Hidden source retained for personal alerts generated by universe-dashboard.js. -->
+        <div class="eras-feed-source" aria-hidden="true">
+          <b data-alert-count>0</b>
+          <div class="alerts-list" data-alerts-list>
+            <p class="udp-empty">CHECKING PERSONAL ALERTS…</p>
+          </div>
+        </div>
       </aside>
     </section>
   </main>
@@ -137,6 +146,7 @@
   <script src="/game/assets/js/site.js"></script>
   <script type="module" src="/account/assets/js/account.js"></script>
   <script type="module" src="/assets/js/universe-dashboard.js?v=20260905-u1"></script>
+  <script src="/assets/js/universe-activity-merge.js?v=20260912-1"></script>
   <script src="/assets/js/action-menu.js?v=20260912-1"></script>
   <script src="/assets/js/universe-fixed-layout.js?v=20260912-2"></script>
 </body>
