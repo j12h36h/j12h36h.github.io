@@ -1,0 +1,76 @@
+.eras-share-fab{
+  position:fixed;
+  z-index:140;
+  right:calc(22px + env(safe-area-inset-right, 0px));
+  bottom:calc(24px + env(safe-area-inset-bottom, 0px));
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1px solid rgba(151,239,241,.46);
+  border-radius:50%;
+  background:rgba(4,12,14,.72);
+  color:#dff9fa;
+  box-shadow:0 7px 24px rgba(0,0,0,.34),0 0 18px rgba(88,214,220,.08);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  cursor:pointer;
+  pointer-events:auto;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .16s ease,border-color .16s ease,background-color .16s ease,box-shadow .16s ease;
+}
+.eras-share-fab:hover,
+.eras-share-fab:focus-visible{
+  border-color:rgba(151,239,241,.9);
+  background:rgba(131,224,227,.13);
+  box-shadow:0 8px 27px rgba(0,0,0,.38),0 0 22px rgba(88,214,220,.14);
+  outline:none;
+}
+.eras-share-fab:active{transform:scale(.94)}
+.eras-share-fab svg{
+  width:20px;
+  height:20px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.eras-share-toast{
+  position:fixed;
+  z-index:141;
+  right:calc(22px + env(safe-area-inset-right, 0px));
+  bottom:calc(76px + env(safe-area-inset-bottom, 0px));
+  max-width:min(250px,calc(100vw - 44px));
+  padding:8px 10px;
+  border:1px solid rgba(151,239,241,.35);
+  background:rgba(4,12,14,.92);
+  color:#dff9fa;
+  font:600 9px/1.2 var(--mono,monospace);
+  letter-spacing:.1em;
+  box-shadow:0 8px 28px rgba(0,0,0,.34);
+  opacity:0;
+  transform:translateY(6px);
+  pointer-events:none;
+  transition:opacity .16s ease,transform .16s ease;
+}
+.eras-share-toast.is-visible{opacity:1;transform:translateY(0)}
+@media(max-width:620px){
+  .eras-share-fab{
+    right:calc(16px + env(safe-area-inset-right, 0px));
+    bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+    width:40px;
+    height:40px;
+  }
+  .eras-share-fab svg{width:19px;height:19px}
+  .eras-share-toast{
+    right:calc(16px + env(safe-area-inset-right, 0px));
+    bottom:calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .eras-share-fab,.eras-share-toast{transition:none}
+}

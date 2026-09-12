@@ -1,0 +1,177 @@
+.eras-action-wrap{
+  position:fixed;
+  z-index:145;
+  right:calc(22px + env(safe-area-inset-right, 0px));
+  bottom:calc(24px + env(safe-area-inset-bottom, 0px));
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+  pointer-events:none;
+}
+.eras-action-toggle,
+.eras-action-item{
+  pointer-events:auto;
+  border:1px solid rgba(151,239,241,.46);
+  background:rgba(4,12,14,.78);
+  color:#dff9fa;
+  box-shadow:0 7px 24px rgba(0,0,0,.34),0 0 18px rgba(88,214,220,.08);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.eras-action-toggle{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border-radius:50%;
+  transition:transform .16s ease,border-color .16s ease,background-color .16s ease,box-shadow .16s ease;
+}
+.eras-action-toggle svg{
+  width:19px;
+  height:19px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.eras-action-toggle:hover,
+.eras-action-toggle:focus-visible,
+.eras-action-wrap.is-open .eras-action-toggle{
+  border-color:rgba(151,239,241,.9);
+  background:rgba(131,224,227,.13);
+  box-shadow:0 8px 27px rgba(0,0,0,.38),0 0 22px rgba(88,214,220,.14);
+  outline:none;
+}
+.eras-action-toggle:active{transform:scale(.94)}
+.eras-action-menu{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:7px;
+  opacity:0;
+  transform:translateY(8px) scale(.98);
+  pointer-events:none;
+  transition:opacity .16s ease,transform .16s ease;
+}
+.eras-action-wrap.is-open .eras-action-menu{
+  opacity:1;
+  transform:translateY(0) scale(1);
+  pointer-events:auto;
+}
+.eras-action-item{
+  min-width:116px;
+  height:38px;
+  padding:0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:9px;
+  border-radius:8px;
+  font:700 10px/1 var(--mono,monospace);
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+.eras-action-item:hover,
+.eras-action-item:focus-visible{
+  border-color:rgba(151,239,241,.9);
+  background:rgba(131,224,227,.12);
+  outline:none;
+}
+.eras-action-item svg{
+  width:17px;
+  height:17px;
+  flex:0 0 auto;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.eras-action-item[disabled]{
+  opacity:.5;
+  cursor:default;
+}
+.eras-action-toast{
+  position:fixed;
+  z-index:146;
+  right:calc(22px + env(safe-area-inset-right, 0px));
+  bottom:calc(76px + env(safe-area-inset-bottom, 0px));
+  max-width:min(270px,calc(100vw - 44px));
+  padding:8px 10px;
+  border:1px solid rgba(151,239,241,.35);
+  background:rgba(4,12,14,.94);
+  color:#dff9fa;
+  font:600 9px/1.35 var(--mono,monospace);
+  letter-spacing:.08em;
+  box-shadow:0 8px 28px rgba(0,0,0,.34);
+  opacity:0;
+  transform:translateY(6px);
+  pointer-events:none;
+  transition:opacity .16s ease,transform .16s ease;
+}
+.eras-action-toast.is-visible{opacity:1;transform:translateY(0)}
+.eras-install-help{
+  position:fixed;
+  z-index:147;
+  left:50%;
+  bottom:calc(88px + env(safe-area-inset-bottom, 0px));
+  width:min(360px,calc(100vw - 32px));
+  transform:translateX(-50%) translateY(8px);
+  padding:14px;
+  border:1px solid rgba(151,239,241,.44);
+  background:rgba(3,10,12,.96);
+  color:#e9ffff;
+  box-shadow:0 14px 42px rgba(0,0,0,.46);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .16s ease,transform .16s ease;
+}
+.eras-install-help.is-visible{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+  pointer-events:auto;
+}
+.eras-install-help b{
+  display:block;
+  margin-bottom:8px;
+  font:700 12px/1.2 var(--mono,monospace);
+  letter-spacing:.12em;
+}
+.eras-install-help p{
+  margin:0;
+  color:#a9cacc;
+  font:500 11px/1.55 var(--sans,system-ui,sans-serif);
+}
+.eras-install-help button{
+  margin-top:12px;
+  width:100%;
+  height:36px;
+  border:1px solid rgba(151,239,241,.38);
+  background:rgba(131,224,227,.07);
+  color:#e9ffff;
+  font:700 10px/1 var(--mono,monospace);
+  letter-spacing:.12em;
+  cursor:pointer;
+}
+@media(max-width:620px){
+  .eras-action-wrap{
+    right:calc(16px + env(safe-area-inset-right, 0px));
+    bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+  .eras-action-toggle{width:40px;height:40px}
+  .eras-action-toggle svg{width:18px;height:18px}
+  .eras-action-toast{
+    right:calc(16px + env(safe-area-inset-right, 0px));
+    bottom:calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .eras-action-toggle,.eras-action-menu,.eras-action-toast,.eras-install-help{transition:none}
+}
