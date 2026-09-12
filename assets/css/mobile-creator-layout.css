@@ -1,0 +1,482 @@
+/*
+  E.R.A.S. DRAW + Animation — deterministic mobile workspace v3
+
+  This layer activates from JS body classes instead of relying on
+  pointer/coarse + width/height media-query combinations.
+*/
+
+.eras-mobile-creator-dock-v3,
+.eras-mobile-workspace-backdrop-v3 {
+  display: none;
+}
+
+body.eras-creator-mobile {
+  width: var(--eras-creator-vw,100vw) !important;
+  height: var(--eras-creator-vh,100dvh) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+body.eras-creator-mobile .draw-titlebar,
+body.eras-creator-mobile .sad-titlebar {
+  display: none !important;
+}
+
+body.eras-creator-mobile .draw-feedback {
+  display: none !important;
+}
+
+body.eras-creator-mobile .site-header {
+  z-index: 260 !important;
+}
+
+body.eras-creator-mobile .draw-shell,
+body.eras-creator-mobile .sad-shell {
+  position: fixed !important;
+  inset: 0 !important;
+  box-sizing: border-box !important;
+  width: var(--eras-creator-vw,100vw) !important;
+  height: var(--eras-creator-vh,100dvh) !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+/* The main workspaces become one full-size canvas/preview surface. */
+body.eras-creator-mobile .draw-workspace,
+body.eras-creator-mobile .sad-workspace {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+/* ---------------- shared dock ---------------- */
+body.eras-creator-mobile .eras-mobile-creator-dock-v3 {
+  position: fixed;
+  z-index: 245;
+  display: flex;
+  border: 1px solid rgba(220,240,240,.17);
+  background: rgba(7,11,12,.91);
+  box-shadow: 0 12px 34px rgba(0,0,0,.46);
+  backdrop-filter: blur(13px);
+  -webkit-backdrop-filter: blur(13px);
+  overflow: hidden;
+}
+
+body.eras-creator-mobile .eras-mobile-creator-dock-v3 button {
+  min-width: 0;
+  border: 0;
+  color: #9fb8b9;
+  background: transparent;
+  font: 800 6.5px/1 var(--mono,monospace);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+body.eras-creator-mobile .eras-mobile-creator-dock-v3 button b {
+  display: block;
+  margin-bottom: 3px;
+  color: #eefafa;
+  font: 700 14px/1 var(--mono,monospace);
+}
+
+body.eras-creator-mobile .eras-mobile-creator-dock-v3 button.is-active {
+  color: #fff;
+  background: rgba(255,255,255,.08);
+  box-shadow: inset 0 2px 0 currentColor;
+}
+
+body.eras-creator-mobile .eras-mobile-workspace-backdrop-v3 {
+  position: fixed;
+  inset: 0;
+  z-index: 228;
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(0,0,0,.42);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  transition: opacity .15s ease, visibility .15s ease;
+}
+
+body.eras-creator-mobile.eras-mobile-panel-active .eras-mobile-workspace-backdrop-v3 {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------------- modular drawers ---------------- */
+body.eras-creator-mobile .eras-mobile-panel-v3 {
+  position: fixed !important;
+  z-index: 235 !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  max-height: none !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  border: 1px solid rgba(220,240,240,.18) !important;
+  background-color: rgba(10,11,11,.98) !important;
+  box-shadow: 0 18px 58px rgba(0,0,0,.62) !important;
+  transition: opacity .15s ease, transform .18s ease, visibility .15s ease !important;
+}
+
+body.eras-creator-mobile .eras-mobile-panel-v3.eras-mobile-open {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+body.eras-creator-mobile .eras-mobile-panel-v3 button,
+body.eras-creator-mobile .eras-mobile-panel-v3 select,
+body.eras-creator-mobile .eras-mobile-panel-v3 input,
+body.eras-creator-mobile .eras-mobile-panel-v3 textarea {
+  min-height: 36px;
+}
+
+/* ---------------- DRAW: canvas first ---------------- */
+body.draw-page.eras-creator-mobile .draw-canvas-panel {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: 32px minmax(0,1fr) 44px !important;
+}
+
+body.draw-page.eras-creator-mobile .draw-canvas-panel > header {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 8px !important;
+}
+
+body.draw-page.eras-creator-mobile .draw-canvas-status {
+  min-width: 0;
+  gap: 6px !important;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+body.draw-page.eras-creator-mobile .draw-stage {
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 8px !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.draw-page.eras-creator-mobile #displayCanvas,
+body.draw-page.eras-creator-mobile #previewCanvas {
+  touch-action: none !important;
+}
+
+body.draw-page.eras-creator-mobile .draw-viewport-toolbar {
+  min-height: 44px !important;
+  height: 44px !important;
+  padding: 3px 6px !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 4px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none;
+}
+
+body.draw-page.eras-creator-mobile .draw-viewport-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+body.draw-page.eras-creator-mobile .draw-viewport-toolbar button {
+  min-width: 36px !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 0 8px !important;
+  flex: 0 0 auto;
+}
+
+body.draw-page.eras-creator-mobile .draw-viewport-toolbar input[type=range] {
+  width: 110px !important;
+  min-width: 110px !important;
+  flex: 0 0 auto;
+}
+
+body.draw-page.eras-creator-mobile .draw-viewport-toolbar label {
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  flex: 0 0 auto;
+}
+
+body.draw-page.eras-creator-mobile .draw-toolbar.eras-mobile-panel-v3 {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-content: flex-start !important;
+  gap: 5px !important;
+  padding: 8px !important;
+}
+
+body.draw-page.eras-creator-mobile .draw-toolbar.eras-mobile-panel-v3 button {
+  width: auto !important;
+  min-width: 92px !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 10px !important;
+}
+
+body.draw-page.eras-creator-mobile .draw-toolbar-sep {
+  display: none !important;
+}
+
+body.draw-page.eras-creator-mobile .draw-tool-grid {
+  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  gap: 5px !important;
+}
+
+body.draw-page.eras-creator-mobile .draw-tool-grid button {
+  min-height: 54px !important;
+  padding: 6px 3px !important;
+}
+
+body.draw-page.eras-creator-mobile .draw-shortcuts {
+  display: none !important;
+}
+
+/* ---------------- Animation: preview first ---------------- */
+body.sad-page.eras-creator-mobile .sad-preview-panel {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: 32px minmax(0,1fr) 44px !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-preview-panel > header {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 5px 8px !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-stage-wrap {
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 6px !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+body.sad-page.eras-creator-mobile #animationCanvas {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-drop-hint {
+  display: none !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-player {
+  min-height: 44px !important;
+  height: 44px !important;
+  padding: 3px 5px !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 4px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none;
+}
+
+body.sad-page.eras-creator-mobile .sad-player::-webkit-scrollbar {
+  display: none;
+}
+
+body.sad-page.eras-creator-mobile .sad-player button,
+body.sad-page.eras-creator-mobile .sad-player select {
+  min-height: 32px !important;
+  height: 32px !important;
+  flex: 0 0 auto !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-player > #timeline {
+  min-width: 150px !important;
+  flex: 1 0 150px !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-player label,
+body.sad-page.eras-creator-mobile .sad-player output {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-toolbar.eras-mobile-panel-v3 {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-content: flex-start !important;
+  gap: 5px !important;
+  padding: 8px !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-toolbar.eras-mobile-panel-v3 button {
+  min-width: 96px !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 10px !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-toolbar-spacer {
+  display: none !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-editor-panel.eras-mobile-panel-v3 {
+  display: grid !important;
+  grid-template-rows: auto minmax(0,1fr) auto !important;
+}
+
+body.sad-page.eras-creator-mobile #jsonEditor {
+  width: 100% !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+body.sad-page.eras-creator-mobile .sad-reference-panel.eras-mobile-panel-v3 {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 7px !important;
+  padding: 7px !important;
+}
+
+/* ---------------- LANDSCAPE ---------------- */
+body.eras-creator-mobile.eras-creator-landscape .draw-shell,
+body.eras-creator-mobile.eras-creator-landscape .sad-shell {
+  padding:
+    max(45px,calc(env(safe-area-inset-top) + 41px))
+    max(6px,env(safe-area-inset-right))
+    max(6px,env(safe-area-inset-bottom))
+    calc(60px + env(safe-area-inset-left)) !important;
+}
+
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-creator-dock-v3 {
+  left: max(6px,env(safe-area-inset-left));
+  top: max(45px,calc(env(safe-area-inset-top) + 41px));
+  bottom: max(6px,env(safe-area-inset-bottom));
+  width: 50px;
+  flex-direction: column;
+  border-radius: 11px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-creator-dock-v3::-webkit-scrollbar {
+  display: none;
+}
+
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-creator-dock-v3 button {
+  flex: 1 0 44px;
+  width: 100%;
+  padding: 4px 1px;
+}
+
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel-v3 {
+  top: max(45px,calc(env(safe-area-inset-top) + 41px)) !important;
+  bottom: max(6px,env(safe-area-inset-bottom)) !important;
+}
+
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel-v3[data-eras-side="left"] {
+  left: calc(60px + env(safe-area-inset-left)) !important;
+  right: auto !important;
+  width: min(38vw,320px) !important;
+  transform: translateX(-18px) scale(.985);
+}
+
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel-v3[data-eras-side="right"] {
+  right: max(6px,env(safe-area-inset-right)) !important;
+  left: auto !important;
+  width: min(40vw,340px) !important;
+  transform: translateX(18px) scale(.985);
+}
+
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel-v3[data-eras-side="bottom"] {
+  left: calc(60px + env(safe-area-inset-left)) !important;
+  right: max(6px,env(safe-area-inset-right)) !important;
+  top: auto !important;
+  bottom: max(6px,env(safe-area-inset-bottom)) !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: 46vh !important;
+  transform: translateY(18px) scale(.99);
+}
+
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel-v3.eras-mobile-open {
+  transform: none !important;
+}
+
+/* ---------------- PORTRAIT ---------------- */
+body.eras-creator-mobile.eras-creator-portrait .draw-shell,
+body.eras-creator-mobile.eras-creator-portrait .sad-shell {
+  padding:
+    max(54px,calc(env(safe-area-inset-top) + 50px))
+    max(6px,env(safe-area-inset-right))
+    calc(64px + env(safe-area-inset-bottom))
+    max(6px,env(safe-area-inset-left)) !important;
+}
+
+body.eras-creator-mobile.eras-creator-portrait .eras-mobile-creator-dock-v3 {
+  left: max(6px,env(safe-area-inset-left));
+  right: max(6px,env(safe-area-inset-right));
+  bottom: max(6px,env(safe-area-inset-bottom));
+  height: 52px;
+  flex-direction: row;
+  border-radius: 12px;
+}
+
+body.eras-creator-mobile.eras-creator-portrait .eras-mobile-creator-dock-v3 button {
+  flex: 1 1 0;
+  height: 100%;
+  padding: 4px 2px;
+}
+
+body.eras-creator-mobile.eras-creator-portrait .eras-mobile-panel-v3 {
+  left: max(6px,env(safe-area-inset-left)) !important;
+  right: max(6px,env(safe-area-inset-right)) !important;
+  top: auto !important;
+  bottom: calc(64px + env(safe-area-inset-bottom)) !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: min(64vh,590px) !important;
+  transform: translateY(20px) scale(.985);
+  border-radius: 12px 12px 8px 8px !important;
+}
+
+body.eras-creator-mobile.eras-creator-portrait .eras-mobile-panel-v3.eras-mobile-open {
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion:reduce) {
+  body.eras-creator-mobile .eras-mobile-panel-v3,
+  body.eras-creator-mobile .eras-mobile-workspace-backdrop-v3 {
+    transition: none !important;
+  }
+}
