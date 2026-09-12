@@ -1,176 +1,139 @@
+/* E.R.A.S. shared utility hub — Share / Install|Website / Chat / Note / Help */
 .eras-action-wrap{
-  position:fixed;
-  z-index:145;
-  right:calc(22px + env(safe-area-inset-right, 0px));
-  bottom:calc(24px + env(safe-area-inset-bottom, 0px));
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:8px;
-  pointer-events:none;
+  position:fixed;z-index:9000;
+  right:calc(22px + env(safe-area-inset-right,0px));
+  bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+  pointer-events:none;font-family:var(--mono,ui-monospace,monospace);
 }
-.eras-action-toggle,
-.eras-action-item{
-  pointer-events:auto;
-  border:1px solid rgba(151,239,241,.46);
-  background:rgba(4,12,14,.78);
-  color:#dff9fa;
+.eras-action-toggle,.eras-action-item{
+  pointer-events:auto;border:1px solid rgba(151,239,241,.46);
+  background:rgba(4,12,14,.86);color:#dff9fa;
   box-shadow:0 7px 24px rgba(0,0,0,.34),0 0 18px rgba(88,214,220,.08);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-  touch-action:manipulation;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
 }
 .eras-action-toggle{
-  width:42px;
-  height:42px;
-  display:grid;
-  place-items:center;
-  padding:0;
-  border-radius:50%;
-  transition:transform .16s ease,border-color .16s ease,background-color .16s ease,box-shadow .16s ease;
+  width:42px;height:42px;display:grid;place-items:center;padding:0;border-radius:50%;
+  transition:transform .16s ease,border-color .16s ease,background-color .16s ease;
 }
-.eras-action-toggle svg{
-  width:19px;
-  height:19px;
-  display:block;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-}
-.eras-action-toggle:hover,
-.eras-action-toggle:focus-visible,
-.eras-action-wrap.is-open .eras-action-toggle{
-  border-color:rgba(151,239,241,.9);
-  background:rgba(131,224,227,.13);
-  box-shadow:0 8px 27px rgba(0,0,0,.38),0 0 22px rgba(88,214,220,.14);
-  outline:none;
+.eras-action-toggle svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.eras-action-toggle:hover,.eras-action-toggle:focus-visible,.eras-action-wrap.is-open .eras-action-toggle{
+  border-color:rgba(151,239,241,.92);background:rgba(131,224,227,.14);outline:none
 }
 .eras-action-toggle:active{transform:scale(.94)}
 .eras-action-menu{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:7px;
-  opacity:0;
-  transform:translateY(8px) scale(.98);
-  pointer-events:none;
+  display:grid;grid-template-columns:1fr;gap:6px;
+  opacity:0;transform:translateY(8px) scale(.98);pointer-events:none;
   transition:opacity .16s ease,transform .16s ease;
 }
-.eras-action-wrap.is-open .eras-action-menu{
-  opacity:1;
-  transform:translateY(0) scale(1);
-  pointer-events:auto;
-}
+.eras-action-wrap.is-open .eras-action-menu{opacity:1;transform:none;pointer-events:auto}
 .eras-action-item{
-  min-width:116px;
-  height:38px;
-  padding:0 12px;
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  gap:9px;
-  border-radius:8px;
-  font:700 10px/1 var(--mono,monospace);
-  letter-spacing:.11em;
-  text-transform:uppercase;
+  min-width:122px;height:38px;padding:0 12px;display:flex;align-items:center;gap:9px;
+  border-radius:8px;font:700 10px/1 var(--mono,ui-monospace,monospace);
+  letter-spacing:.1em;text-transform:uppercase;
 }
-.eras-action-item:hover,
-.eras-action-item:focus-visible{
-  border-color:rgba(151,239,241,.9);
-  background:rgba(131,224,227,.12);
-  outline:none;
-}
-.eras-action-item svg{
-  width:17px;
-  height:17px;
-  flex:0 0 auto;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-}
-.eras-action-item[disabled]{
-  opacity:.5;
-  cursor:default;
-}
+.eras-action-item:hover,.eras-action-item:focus-visible{border-color:rgba(151,239,241,.9);background:rgba(131,224,227,.12);outline:none}
+.eras-action-item svg{width:17px;height:17px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.eras-action-badge{margin-left:auto;min-width:17px;height:17px;padding:0 4px;display:grid;place-items:center;border-radius:9px;background:#ff5f79;color:#fff;font:800 8px/1 var(--mono,monospace)}
+.eras-action-badge[hidden]{display:none}
 .eras-action-toast{
-  position:fixed;
-  z-index:146;
-  right:calc(22px + env(safe-area-inset-right, 0px));
-  bottom:calc(76px + env(safe-area-inset-bottom, 0px));
-  max-width:min(270px,calc(100vw - 44px));
-  padding:8px 10px;
-  border:1px solid rgba(151,239,241,.35);
-  background:rgba(4,12,14,.94);
-  color:#dff9fa;
-  font:600 9px/1.35 var(--mono,monospace);
-  letter-spacing:.08em;
-  box-shadow:0 8px 28px rgba(0,0,0,.34);
-  opacity:0;
-  transform:translateY(6px);
-  pointer-events:none;
-  transition:opacity .16s ease,transform .16s ease;
+  position:fixed;z-index:9050;
+  right:calc(22px + env(safe-area-inset-right,0px));
+  bottom:calc(76px + env(safe-area-inset-bottom,0px));
+  max-width:min(300px,calc(100vw - 44px));padding:8px 10px;
+  border:1px solid rgba(151,239,241,.35);background:rgba(4,12,14,.96);color:#dff9fa;
+  font:600 9px/1.35 var(--mono,monospace);letter-spacing:.08em;
+  opacity:0;transform:translateY(6px);pointer-events:none;transition:.16s ease;
 }
-.eras-action-toast.is-visible{opacity:1;transform:translateY(0)}
+.eras-action-toast.is-visible{opacity:1;transform:none}
 .eras-install-help{
-  position:fixed;
-  z-index:147;
-  left:50%;
-  bottom:calc(88px + env(safe-area-inset-bottom, 0px));
-  width:min(360px,calc(100vw - 32px));
-  transform:translateX(-50%) translateY(8px);
-  padding:14px;
-  border:1px solid rgba(151,239,241,.44);
-  background:rgba(3,10,12,.96);
-  color:#e9ffff;
-  box-shadow:0 14px 42px rgba(0,0,0,.46);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .16s ease,transform .16s ease;
+  position:fixed;z-index:9060;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));
+  width:min(360px,calc(100vw - 32px));transform:translateX(-50%) translateY(8px);
+  padding:14px;border:1px solid rgba(151,239,241,.44);background:rgba(3,10,12,.98);color:#e9ffff;
+  box-shadow:0 14px 42px rgba(0,0,0,.46);opacity:0;pointer-events:none;transition:.16s ease;
 }
-.eras-install-help.is-visible{
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
-  pointer-events:auto;
+.eras-install-help.is-visible{opacity:1;transform:translateX(-50%);pointer-events:auto}
+.eras-install-help b{display:block;margin-bottom:8px;font:700 12px/1.2 var(--mono,monospace);letter-spacing:.12em}
+.eras-install-help p{margin:0;color:#a9cacc;font:500 11px/1.55 system-ui,sans-serif}
+.eras-install-help button{margin-top:12px;width:100%;height:36px;border:1px solid rgba(151,239,241,.38);background:rgba(131,224,227,.07);color:#e9ffff;font:700 10px/1 var(--mono,monospace);cursor:pointer}
+
+/* Shared modal surfaces used by Notes and Help */
+.eras-utility-backdrop{
+  position:fixed;inset:0;z-index:9100;display:none;place-items:center;
+  padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+  background:rgba(0,0,0,.62);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
 }
-.eras-install-help b{
-  display:block;
-  margin-bottom:8px;
-  font:700 12px/1.2 var(--mono,monospace);
-  letter-spacing:.12em;
+.eras-utility-backdrop.is-open{display:grid}
+.eras-utility-window{
+  width:min(760px,100%);max-height:min(760px,calc(100dvh - 28px));overflow:hidden;
+  border:1px solid rgba(139,226,230,.38);border-radius:12px;
+  background:rgba(5,12,14,.98);color:#e9fafa;box-shadow:0 22px 70px rgba(0,0,0,.62);
+  display:grid;grid-template-rows:auto minmax(0,1fr);
+  font-family:system-ui,sans-serif;
 }
-.eras-install-help p{
-  margin:0;
-  color:#a9cacc;
-  font:500 11px/1.55 var(--sans,system-ui,sans-serif);
+.eras-utility-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(139,226,230,.18)}
+.eras-utility-head div{min-width:0}
+.eras-utility-head b{display:block;font:800 12px/1.2 var(--mono,monospace);letter-spacing:.12em}
+.eras-utility-head small{display:block;margin-top:4px;color:#78999b;font:600 8px/1.2 var(--mono,monospace);letter-spacing:.08em}
+.eras-utility-close{width:36px;height:36px;border:1px solid rgba(139,226,230,.25);background:transparent;color:#dff9fa;border-radius:7px;font-size:18px;cursor:pointer}
+.eras-utility-body{min-height:0;overflow:auto;padding:12px}
+.eras-utility-button{min-height:38px;padding:0 12px;border:1px solid rgba(139,226,230,.28);border-radius:7px;background:rgba(139,226,230,.07);color:#e9fafa;font:700 9px/1 var(--mono,monospace);letter-spacing:.09em;cursor:pointer}
+.eras-utility-button.is-primary{background:rgba(110,221,224,.17);border-color:rgba(139,226,230,.58)}
+.eras-utility-button.is-danger{border-color:rgba(255,108,125,.35);color:#ffb2bd}
+.eras-utility-field{display:grid;gap:5px}
+.eras-utility-field>span{font:700 8px/1 var(--mono,monospace);color:#86a8aa;letter-spacing:.08em}
+.eras-utility-field input,.eras-utility-field textarea,.eras-utility-field select{
+  width:100%;box-sizing:border-box;border:1px solid rgba(139,226,230,.22);border-radius:7px;
+  background:#071114;color:#e9fafa;padding:9px 10px;font:500 13px/1.4 system-ui,sans-serif;
 }
-.eras-install-help button{
-  margin-top:12px;
-  width:100%;
-  height:36px;
-  border:1px solid rgba(151,239,241,.38);
-  background:rgba(131,224,227,.07);
-  color:#e9ffff;
-  font:700 10px/1 var(--mono,monospace);
-  letter-spacing:.12em;
-  cursor:pointer;
-}
+.eras-utility-field textarea{min-height:110px;resize:vertical}
+
+/* Sticky notes */
+.eras-notes-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:12px;min-height:430px}
+.eras-notes-list{display:flex;flex-direction:column;gap:7px;min-height:0}
+.eras-notes-list-head{display:flex;gap:6px}
+.eras-notes-list-head button{flex:1}
+.eras-note-list-items{display:grid;gap:6px;overflow:auto;min-height:0}
+.eras-note-card{padding:9px;border:1px solid rgba(255,255,255,.18);border-left:5px solid var(--note,#ffd66b);border-radius:7px;background:rgba(255,255,255,.035);color:#e9fafa;text-align:left;cursor:pointer}
+.eras-note-card.is-active{background:rgba(255,255,255,.10)}
+.eras-note-card b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.eras-note-card small{display:block;margin-top:4px;color:#8ea7a8;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eras-note-editor{display:grid;align-content:start;gap:10px}
+.eras-note-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.eras-note-colors{display:flex;gap:7px;flex-wrap:wrap}
+.eras-note-color{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;background:var(--note-color)}
+.eras-note-color.is-active{border-color:#fff;box-shadow:0 0 0 2px rgba(139,226,230,.35)}
+.eras-note-actions{display:flex;gap:7px;flex-wrap:wrap}
+.eras-note-timer{font:700 10px/1.3 var(--mono,monospace);color:#9be6e8}
+.eras-note-notice{padding:8px 10px;border:1px solid rgba(139,226,230,.16);border-radius:7px;color:#8da8aa;font-size:11px;line-height:1.4}
+
+/* Help assistant */
+.eras-help-layout{display:grid;grid-template-rows:minmax(240px,1fr) auto;gap:10px;min-height:440px}
+.eras-help-messages{overflow:auto;padding:4px;display:flex;flex-direction:column;gap:8px}
+.eras-help-msg{max-width:86%;padding:9px 11px;border-radius:10px;font-size:12px;line-height:1.45;white-space:pre-wrap}
+.eras-help-msg.is-user{align-self:flex-end;background:rgba(112,218,222,.16);border:1px solid rgba(139,226,230,.25)}
+.eras-help-msg.is-ai{align-self:flex-start;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10)}
+.eras-help-compose{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:end}
+.eras-help-compose textarea{min-height:70px}
+.eras-help-status{color:#86a4a6;font:600 9px/1.4 var(--mono,monospace);letter-spacing:.04em}
+
 @media(max-width:620px){
-  .eras-action-wrap{
-    right:calc(16px + env(safe-area-inset-right, 0px));
-    bottom:calc(18px + env(safe-area-inset-bottom, 0px));
-  }
-  .eras-action-toggle{width:40px;height:40px}
-  .eras-action-toggle svg{width:18px;height:18px}
-  .eras-action-toast{
-    right:calc(16px + env(safe-area-inset-right, 0px));
-    bottom:calc(68px + env(safe-area-inset-bottom, 0px));
-  }
+  .eras-action-wrap{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+  .eras-action-toggle{width:40px;height:40px}.eras-action-toggle svg{width:18px;height:18px}
+  .eras-action-toast{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(68px + env(safe-area-inset-bottom,0px))}
+  .eras-notes-layout{grid-template-columns:1fr;min-height:0}
+  .eras-note-list-items{max-height:150px}
+  .eras-note-grid{grid-template-columns:1fr}
+  .eras-help-compose{grid-template-columns:1fr 1fr}
+  .eras-help-compose .eras-utility-field{grid-column:1/-1}
+}
+@media(pointer:coarse) and (orientation:landscape) and (max-height:650px){
+  .eras-action-menu{grid-template-columns:repeat(2,minmax(112px,1fr))}
+  .eras-action-item{min-width:112px}
+  .eras-utility-window{max-height:calc(100dvh - 12px)}
+  .eras-notes-layout{grid-template-columns:220px minmax(0,1fr);min-height:250px}
+  .eras-help-layout{min-height:250px}
 }
 @media(prefers-reduced-motion:reduce){
   .eras-action-toggle,.eras-action-menu,.eras-action-toast,.eras-install-help{transition:none}

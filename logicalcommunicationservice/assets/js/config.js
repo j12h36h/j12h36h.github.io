@@ -10,6 +10,9 @@
 // Shared live-presence counter for LCS desktop + mobile.
 import '/assets/js/site-presence.js?v=20260904-p1';
 
+// Shared E.R.A.S. utility hub: Share / Install-or-Website / Chat / Note / Help.
+import '/assets/js/action-menu.js?v=20260912-2';
+
 // Channel deletion hotfix. Loaded here so desktop and /lcs-mobile/ both inherit it.
 import './channel-delete-fix.js?v=20260905-delete3';
 
@@ -17,9 +20,6 @@ export const LCS_CONFIG = {
   appName: "Logical Communication Service",
   canonicalUrl: "https://j12h36h.github.io/logicalcommunicationservice/",
 
-  // Paste the Firebase Web App config from:
-  // Firebase Console -> Project settings -> Your apps -> Web app -> SDK setup and configuration.
-  // This production build requires Firebase for shared authentication and realtime network data.
   firebase: {
     apiKey: "AIzaSyAyoCH-n3rgJ1TgLRa_qxoef9sibggFYOE",
     authDomain: "logicalcommunicationservice.firebaseapp.com",
@@ -27,7 +27,6 @@ export const LCS_CONFIG = {
     appId: "1:752872197816:web:d13177e2b26f757438ee4d",
   },
 
-  // Public client behavior only. No provider PII, tokens, secrets, or private account data belong in this repository.
   allowedReasoningTypes: [
     "unclassified",
     "observation",

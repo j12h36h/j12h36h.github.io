@@ -6,3 +6,4 @@
  */
 Object.assign(exports, require('./index.js'));
 Object.assign(exports, require('./global-premade-functions.js'));
+Object.assign(exports, require('./help-chat.js'));
