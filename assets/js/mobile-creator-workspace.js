@@ -1,41 +1,48 @@
 (() => {
   const body = document.body;
-  if (!body || body.dataset.erasCreatorWorkspaceV3 === '1') return;
+  if (!body || body.dataset.erasCreatorMobileV5 === '1') return;
 
   const isDraw = body.classList.contains('draw-page');
   const isAnimation = body.classList.contains('sad-page');
-  if (!isDraw && !isAnimation) return;
+  const isCode = body.classList.contains('code-page');
+  if (!isDraw && !isAnimation && !isCode) return;
 
-  body.dataset.erasCreatorWorkspaceV3 = '1';
+  body.dataset.erasCreatorMobileV5 = '1';
 
   const configs = isDraw ? [
-    { label: 'Canvas',  symbol: '▣', closeOnly: true },
-    { label: 'Tools',   symbol: '✎', target: '.draw-tools-panel', side: 'left' },
-    { label: 'Layers',  symbol: '▤', target: '.draw-properties-panel', side: 'right', scrollTo: '.draw-layers' },
-    { label: 'Frames',  symbol: '▥', target: '.draw-properties-panel', side: 'right', scrollTo: '.draw-frames' },
+    { label: 'Canvas', symbol: '▣', closeOnly: true },
+    { label: 'Tools', symbol: '✎', target: '.draw-tools-panel', side: 'left' },
+    { label: 'Layers', symbol: '▤', target: '.draw-properties-panel', side: 'right', scrollTo: '.draw-layers' },
+    { label: 'Frames', symbol: '▥', target: '.draw-properties-panel', side: 'right', scrollTo: '.draw-frames' },
     { label: 'Actions', symbol: '⌘', target: '.draw-toolbar', side: 'bottom' }
-  ] : [
-    { label: 'View',    symbol: '▣', closeOnly: true },
+  ] : isAnimation ? [
+    { label: 'View', symbol: '▣', closeOnly: true },
     { label: 'Actions', symbol: '⌘', target: '.sad-toolbar', side: 'bottom' },
-    { label: 'Source',  symbol: '{}', target: '.sad-editor-panel', side: 'left' },
-    { label: 'Info',    symbol: '≡', target: '.sad-reference-panel', side: 'right' }
+    { label: 'Source', symbol: '{}', target: '.sad-editor-panel', side: 'left' },
+    { label: 'Info', symbol: '≡', target: '.sad-reference-panel', side: 'right' }
+  ] : [
+    { label: 'Editor', symbol: '▣', closeOnly: true },
+    { label: 'Files', symbol: '≡', target: '.code-explorer', side: 'left' },
+    { label: 'Actions', symbol: '⌘', target: '.code-toolbar', side: 'bottom' },
+    { label: 'Inspect', symbol: '{}', target: '.code-inspector', side: 'right' },
+    { label: 'Output', symbol: '›_', target: '.code-bottom-panel', side: 'bottom' }
   ];
 
   const dock = document.createElement('nav');
-  dock.className = 'eras-mobile-creator-dock eras-mobile-creator-dock-v3';
-  dock.setAttribute('aria-label', isDraw ? 'DRAW mobile controls' : 'Animation mobile controls');
+  dock.className = 'eras-mobile-creator-dock eras-mobile-creator-dock-crisp';
+  dock.setAttribute('aria-label', 'Mobile editor controls');
 
   const backdrop = document.createElement('div');
-  backdrop.className = 'eras-mobile-workspace-backdrop eras-mobile-workspace-backdrop-v3';
+  backdrop.className = 'eras-mobile-workspace-backdrop eras-mobile-workspace-backdrop-crisp';
   backdrop.setAttribute('aria-hidden', 'true');
 
   const panels = new Set();
   const buttons = [];
-  let baseButton = null;
-  let mobileActive = false;
+  let homeButton = null;
+  let activeMobile = false;
   let resizeTimer = 0;
 
-  function viewport() {
+  function dims() {
     const vv = window.visualViewport;
     return {
       width: Math.max(1, Math.round(vv?.width || window.innerWidth || 1)),
@@ -43,139 +50,123 @@
     };
   }
 
-  function shouldUseMobileWorkspace() {
-    const { width, height } = viewport();
+  function shouldMobile() {
+    const { width, height } = dims();
     const shortSide = Math.min(width, height);
     const longSide = Math.max(width, height);
     const touch =
       navigator.maxTouchPoints > 0 ||
       'ontouchstart' in window ||
-      window.matchMedia?.('(pointer: coarse)').matches;
-
-    // Explicit touch + viewport test. This does not depend on one fragile CSS
-    // media query, and excludes normal desktop monitors/touch displays.
-    return Boolean(touch && shortSide <= 900 && longSide <= 1600);
+      window.matchMedia?.('(pointer:coarse)').matches;
+    return !!(touch && shortSide <= 900 && longSide <= 1600);
   }
 
-  function resolveTarget(config) {
+  function targetFor(config) {
     if (!config.target) return null;
-    const target = document.querySelector(config.target);
-    if (!target) return null;
-
-    target.classList.add('eras-mobile-panel-v3');
-    target.dataset.erasSide = config.side || 'bottom';
-    panels.add(target);
-    return target;
+    const el = document.querySelector(config.target);
+    if (!el) return null;
+    el.classList.add('eras-mobile-panel', 'eras-mobile-panel-crisp');
+    el.dataset.erasSide = config.side || 'bottom';
+    panels.add(el);
+    return el;
   }
 
-  function markBaseActive() {
-    buttons.forEach(button => button.classList.remove('is-active'));
-    baseButton?.classList.add('is-active');
+  function markHome() {
+    buttons.forEach(b => b.classList.remove('is-active'));
+    homeButton?.classList.add('is-active');
   }
 
-  function closeAll() {
-    panels.forEach(panel => panel.classList.remove('eras-mobile-open'));
+  function closePanels() {
+    panels.forEach(p => p.classList.remove('eras-mobile-open'));
     body.classList.remove('eras-mobile-panel-active');
     backdrop.setAttribute('aria-hidden', 'true');
-    markBaseActive();
+    markHome();
   }
 
-  function openConfig(config, button) {
-    if (!mobileActive || config.closeOnly) {
-      closeAll();
+  function openPanel(config, button) {
+    if (!activeMobile || config.closeOnly) {
+      closePanels();
       return;
     }
 
-    const target = resolveTarget(config);
-    if (!target) return;
+    const panel = targetFor(config);
+    if (!panel) return;
 
-    const alreadyOpen =
-      target.classList.contains('eras-mobile-open') &&
+    const wasOpen =
+      panel.classList.contains('eras-mobile-open') &&
       button.classList.contains('is-active');
 
-    panels.forEach(panel => panel.classList.remove('eras-mobile-open'));
-    buttons.forEach(btn => btn.classList.remove('is-active'));
+    panels.forEach(p => p.classList.remove('eras-mobile-open'));
+    buttons.forEach(b => b.classList.remove('is-active'));
 
-    if (alreadyOpen) {
-      markBaseActive();
-      body.classList.remove('eras-mobile-panel-active');
-      backdrop.setAttribute('aria-hidden', 'true');
+    if (wasOpen) {
+      closePanels();
       return;
     }
 
-    target.classList.add('eras-mobile-open');
+    panel.classList.add('eras-mobile-open');
     button.classList.add('is-active');
     body.classList.add('eras-mobile-panel-active');
     backdrop.setAttribute('aria-hidden', 'false');
 
     if (config.scrollTo) {
       requestAnimationFrame(() => {
-        const section = target.querySelector(config.scrollTo);
+        const section = panel.querySelector(config.scrollTo);
         if (!section) return;
-        const y = Math.max(0, section.offsetTop - 8);
-        try { target.scrollTo({ top: y, behavior: 'smooth' }); }
-        catch { target.scrollTop = y; }
+        panel.scrollTop = Math.max(0, section.offsetTop - 8);
       });
     }
   }
 
   configs.forEach((config, index) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.innerHTML = `<b aria-hidden="true">${config.symbol}</b><span>${config.label}</span>`;
-    button.setAttribute('aria-label', config.label);
-    button.addEventListener('click', () => openConfig(config, button));
-
-    if (config.closeOnly || index === 0) baseButton = button;
-    buttons.push(button);
-    dock.appendChild(button);
-    resolveTarget(config);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = `<b aria-hidden="true">${config.symbol}</b><span>${config.label}</span>`;
+    b.setAttribute('aria-label', config.label);
+    b.addEventListener('click', () => openPanel(config, b));
+    if (index === 0 || config.closeOnly) homeButton = b;
+    buttons.push(b);
+    dock.appendChild(b);
+    targetFor(config);
   });
 
-  backdrop.addEventListener('click', closeAll);
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && mobileActive) closeAll();
+  backdrop.addEventListener('click', closePanels);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && activeMobile) closePanels();
   });
 
   document.body.append(backdrop, dock);
 
-  function refitDrawCanvas() {
-    if (!isDraw || !mobileActive) return;
-    [40, 180, 420].forEach(delay => {
-      window.setTimeout(() => document.querySelector('#fitCanvas')?.click(), delay);
-    });
+  function refitDraw() {
+    if (!isDraw || !activeMobile) return;
+    [50, 180, 420].forEach(ms => setTimeout(() => {
+      document.querySelector('#fitCanvas')?.click();
+    }, ms));
   }
 
-  function syncMode() {
-    const { width, height } = viewport();
-    document.documentElement.style.setProperty('--eras-creator-vw', `${width}px`);
-    document.documentElement.style.setProperty('--eras-creator-vh', `${height}px`);
+  function sync() {
+    const { width, height } = dims();
+    document.documentElement.style.setProperty('--eras-editor-vw', `${width}px`);
+    document.documentElement.style.setProperty('--eras-editor-vh', `${height}px`);
 
-    const nextMobile = shouldUseMobileWorkspace();
+    const next = shouldMobile();
     const landscape = width > height;
 
-    body.classList.toggle('eras-creator-mobile', nextMobile);
-    body.classList.toggle('eras-creator-landscape', nextMobile && landscape);
-    body.classList.toggle('eras-creator-portrait', nextMobile && !landscape);
+    body.classList.toggle('eras-creator-mobile', next);
+    body.classList.toggle('eras-creator-landscape', next && landscape);
+    body.classList.toggle('eras-creator-portrait', next && !landscape);
 
-    if (nextMobile !== mobileActive) {
-      mobileActive = nextMobile;
-      closeAll();
-      if (mobileActive) refitDrawCanvas();
-    } else if (mobileActive) {
-      closeAll();
-      refitDrawCanvas();
-    }
+    activeMobile = next;
+    closePanels();
+    if (next) refitDraw();
   }
 
   function scheduleSync() {
     clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(syncMode, 60);
+    resizeTimer = setTimeout(sync, 50);
   }
 
-  syncMode();
-  markBaseActive();
-
+  sync();
   window.addEventListener('resize', scheduleSync, { passive: true });
   window.addEventListener('orientationchange', scheduleSync, { passive: true });
   window.visualViewport?.addEventListener('resize', scheduleSync, { passive: true });

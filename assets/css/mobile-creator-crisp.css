@@ -1,0 +1,302 @@
+/*
+  E.R.A.S. — all editor mobile crisp UI
+  DRAW + Animation Designer + CODE
+*/
+
+/* Dim, never blur. */
+body.eras-creator-mobile .eras-mobile-workspace-backdrop,
+body.eras-creator-mobile .eras-mobile-workspace-backdrop-crisp {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 520 !important;
+  display: block !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  background: rgba(0,0,0,.54) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  transition: opacity .13s ease, visibility .13s ease !important;
+}
+
+body.eras-creator-mobile.eras-mobile-panel-active .eras-mobile-workspace-backdrop,
+body.eras-creator-mobile.eras-mobile-panel-active .eras-mobile-workspace-backdrop-crisp {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Drawer is fully opaque and always above the dim layer. */
+body.eras-creator-mobile .eras-mobile-panel,
+body.eras-creator-mobile .eras-mobile-panel-crisp {
+  position: fixed !important;
+  z-index: 540 !important;
+  box-sizing: border-box !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  overflow: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: #090c0d !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  border: 1px solid rgba(160,230,232,.34) !important;
+  box-shadow: 0 18px 56px rgba(0,0,0,.72) !important;
+  transition: opacity .13s ease, transform .16s ease, visibility .13s ease !important;
+}
+
+body.draw-page.eras-creator-mobile .eras-mobile-panel {
+  background: #140d08 !important;
+  color: #f1d2b2 !important;
+}
+body.sad-page.eras-creator-mobile .eras-mobile-panel { background: #120d05 !important; }
+body.code-page.eras-creator-mobile .eras-mobile-panel { background: #07110d !important; }
+
+body.eras-creator-mobile .eras-mobile-panel.eras-mobile-open {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+body.eras-creator-mobile {
+  width: var(--eras-editor-vw,100vw) !important;
+  height: var(--eras-editor-vh,100dvh) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+body.eras-creator-mobile .draw-titlebar,
+body.eras-creator-mobile .sad-titlebar,
+body.eras-creator-mobile .code-titlebar,
+body.eras-creator-mobile .draw-feedback,
+body.eras-creator-mobile .code-feedback {
+  display: none !important;
+}
+
+body.eras-creator-mobile .draw-shell,
+body.eras-creator-mobile .sad-shell,
+body.eras-creator-mobile .code-shell {
+  position: fixed !important;
+  inset: 0 !important;
+  width: var(--eras-editor-vw,100vw) !important;
+  height: var(--eras-editor-vh,100dvh) !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+body.eras-creator-mobile .eras-mobile-creator-dock,
+body.eras-creator-mobile .eras-mobile-creator-dock-crisp {
+  position: fixed !important;
+  z-index: 560 !important;
+  display: flex !important;
+  overflow: hidden !important;
+  background: #071012 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid rgba(160,230,232,.28) !important;
+  box-shadow: 0 10px 32px rgba(0,0,0,.54) !important;
+}
+
+body.eras-creator-mobile .eras-mobile-creator-dock button {
+  min-width: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #a9c0c1 !important;
+  font: 800 6.5px/1 var(--mono,monospace) !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+}
+body.eras-creator-mobile .eras-mobile-creator-dock button b {
+  display: block !important;
+  margin-bottom: 3px !important;
+  color: #f2ffff !important;
+  font: 700 14px/1 var(--mono,monospace) !important;
+}
+body.eras-creator-mobile .eras-mobile-creator-dock button.is-active {
+  background: rgba(255,255,255,.09) !important;
+  color: #fff !important;
+  box-shadow: inset 0 2px 0 currentColor !important;
+}
+
+/* main workspaces */
+body.draw-page.eras-creator-mobile .draw-workspace,
+body.sad-page.eras-creator-mobile .sad-workspace,
+body.code-page.eras-creator-mobile .code-workspace {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+/* DRAW */
+body.draw-page.eras-creator-mobile .draw-canvas-panel {
+  width:100% !important;height:100% !important;min-height:0 !important;
+  display:grid !important;grid-template-rows:32px minmax(0,1fr) 44px !important;
+}
+body.draw-page.eras-creator-mobile .draw-canvas-panel>header {
+  min-height:32px !important;height:32px !important;padding:0 8px !important;
+}
+body.draw-page.eras-creator-mobile .draw-stage {
+  min-height:0 !important;height:auto !important;padding:8px !important;
+  overflow:auto !important;touch-action:pan-x pan-y !important;
+}
+body.draw-page.eras-creator-mobile #displayCanvas,
+body.draw-page.eras-creator-mobile #previewCanvas { touch-action:none !important; }
+body.draw-page.eras-creator-mobile .draw-viewport-toolbar {
+  height:44px !important;min-height:44px !important;display:flex !important;
+  flex-wrap:nowrap !important;gap:4px !important;padding:3px 6px !important;
+  overflow-x:auto !important;overflow-y:hidden !important;
+}
+body.draw-page.eras-creator-mobile .draw-toolbar-sep,
+body.draw-page.eras-creator-mobile .draw-shortcuts { display:none !important; }
+body.draw-page.eras-creator-mobile .draw-tool-grid {
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:5px !important;
+}
+
+/* Animation */
+body.sad-page.eras-creator-mobile .sad-preview-panel {
+  width:100% !important;height:100% !important;min-height:0 !important;
+  display:grid !important;grid-template-rows:32px minmax(0,1fr) 44px !important;
+}
+body.sad-page.eras-creator-mobile .sad-preview-panel>header {
+  min-height:32px !important;height:32px !important;padding:5px 8px !important;
+}
+body.sad-page.eras-creator-mobile .sad-stage-wrap {
+  min-height:0 !important;height:auto !important;padding:6px !important;
+  overflow:hidden !important;display:grid !important;place-items:center !important;
+}
+body.sad-page.eras-creator-mobile #animationCanvas {
+  width:auto !important;height:auto !important;max-width:100% !important;max-height:100% !important;
+}
+body.sad-page.eras-creator-mobile .sad-drop-hint { display:none !important; }
+body.sad-page.eras-creator-mobile .sad-player {
+  min-height:44px !important;height:44px !important;padding:3px 5px !important;
+  display:flex !important;flex-wrap:nowrap !important;gap:4px !important;
+  overflow-x:auto !important;overflow-y:hidden !important;
+}
+body.sad-page.eras-creator-mobile .sad-toolbar-spacer { display:none !important; }
+body.sad-page.eras-creator-mobile #jsonEditor {
+  min-height:0 !important;height:100% !important;width:100% !important;
+  font-size:12px !important;line-height:1.45 !important;
+}
+
+/* CODE */
+body.code-page.eras-creator-mobile .code-editor-column {
+  width:100% !important;height:100% !important;min-height:0 !important;
+  display:grid !important;grid-template-rows:auto auto minmax(0,1fr) auto !important;
+}
+body.code-page.eras-creator-mobile .code-editor-host {
+  min-height:0 !important;height:auto !important;
+  grid-template-columns:38px minmax(0,1fr) 30px !important;
+}
+body.code-page.eras-creator-mobile .code-statusbar {
+  overflow-x:auto !important;white-space:nowrap !important;
+}
+body.code-page.eras-creator-mobile .code-toolbar-sep { display:none !important; }
+
+/* portrait */
+body.eras-creator-mobile.eras-creator-portrait .draw-shell,
+body.eras-creator-mobile.eras-creator-portrait .sad-shell,
+body.eras-creator-mobile.eras-creator-portrait .code-shell {
+  padding:max(54px,calc(env(safe-area-inset-top) + 50px))
+    max(6px,env(safe-area-inset-right))
+    calc(64px + env(safe-area-inset-bottom))
+    max(6px,env(safe-area-inset-left)) !important;
+}
+body.eras-creator-mobile.eras-creator-portrait .eras-mobile-creator-dock {
+  left:max(6px,env(safe-area-inset-left)) !important;
+  right:max(6px,env(safe-area-inset-right)) !important;
+  bottom:max(6px,env(safe-area-inset-bottom)) !important;
+  height:52px !important;flex-direction:row !important;border-radius:12px !important;
+}
+body.eras-creator-mobile.eras-creator-portrait .eras-mobile-creator-dock button {
+  flex:1 1 0 !important;height:100% !important;padding:4px 2px !important;
+}
+body.eras-creator-mobile.eras-creator-portrait .eras-mobile-panel {
+  left:max(8px,env(safe-area-inset-left)) !important;
+  right:max(8px,env(safe-area-inset-right)) !important;
+  top:auto !important;bottom:calc(66px + env(safe-area-inset-bottom)) !important;
+  width:auto !important;height:auto !important;max-height:min(64vh,580px) !important;
+  transform:translateY(16px) scale(.99) !important;border-radius:14px 14px 8px 8px !important;
+}
+body.eras-creator-mobile.eras-creator-portrait .eras-mobile-panel.eras-mobile-open {
+  transform:none !important;
+}
+
+/* utility toggle no longer covers Actions */
+body.eras-creator-mobile.eras-creator-portrait .eras-action-wrap {
+  right:max(10px,calc(env(safe-area-inset-right) + 8px)) !important;
+  bottom:calc(72px + env(safe-area-inset-bottom)) !important;
+  z-index:570 !important;
+}
+body.eras-creator-mobile.eras-creator-portrait .eras-action-toggle {
+  width:36px !important;height:36px !important;
+}
+
+/* landscape */
+body.eras-creator-mobile.eras-creator-landscape .draw-shell,
+body.eras-creator-mobile.eras-creator-landscape .sad-shell,
+body.eras-creator-mobile.eras-creator-landscape .code-shell {
+  padding:max(45px,calc(env(safe-area-inset-top) + 41px))
+    max(6px,env(safe-area-inset-right))
+    max(6px,env(safe-area-inset-bottom))
+    calc(60px + env(safe-area-inset-left)) !important;
+}
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-creator-dock {
+  left:max(6px,env(safe-area-inset-left)) !important;
+  top:max(45px,calc(env(safe-area-inset-top) + 41px)) !important;
+  bottom:max(6px,env(safe-area-inset-bottom)) !important;
+  width:50px !important;flex-direction:column !important;border-radius:11px !important;
+}
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-creator-dock button {
+  flex:1 0 44px !important;width:100% !important;padding:4px 1px !important;
+}
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel {
+  top:max(45px,calc(env(safe-area-inset-top) + 41px)) !important;
+  bottom:max(6px,env(safe-area-inset-bottom)) !important;
+}
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel[data-eras-side="left"] {
+  left:calc(60px + env(safe-area-inset-left)) !important;right:auto !important;
+  width:min(39vw,330px) !important;transform:translateX(-16px) scale(.99) !important;
+}
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel[data-eras-side="right"] {
+  right:max(6px,env(safe-area-inset-right)) !important;left:auto !important;
+  width:min(40vw,350px) !important;transform:translateX(16px) scale(.99) !important;
+}
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel[data-eras-side="bottom"] {
+  left:calc(60px + env(safe-area-inset-left)) !important;
+  right:max(6px,env(safe-area-inset-right)) !important;
+  top:auto !important;bottom:max(6px,env(safe-area-inset-bottom)) !important;
+  width:auto !important;height:auto !important;max-height:48vh !important;
+  transform:translateY(16px) scale(.99) !important;
+}
+body.eras-creator-mobile.eras-creator-landscape .eras-mobile-panel.eras-mobile-open {
+  transform:none !important;
+}
+
+/* compact action panes */
+body.draw-page.eras-creator-mobile .draw-toolbar.eras-mobile-panel,
+body.sad-page.eras-creator-mobile .sad-toolbar.eras-mobile-panel,
+body.code-page.eras-creator-mobile .code-toolbar.eras-mobile-panel {
+  display:flex !important;flex-wrap:wrap !important;align-content:flex-start !important;
+  gap:5px !important;padding:8px !important;
+}
+body.code-page.eras-creator-mobile .code-bottom-panel.eras-mobile-panel {
+  display:block !important;min-height:160px !important;
+}
+
+@media(prefers-reduced-motion:reduce){
+  body.eras-creator-mobile .eras-mobile-panel,
+  body.eras-creator-mobile .eras-mobile-workspace-backdrop { transition:none !important; }
+}
