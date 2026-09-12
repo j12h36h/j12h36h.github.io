@@ -3,7 +3,7 @@
 // Loading this config also starts the shared site presence counter.
 import '/assets/js/site-presence.js?v=20260904-p1';
 import '/game/assets/js/game-controls.js?v=1.0.0';
-import '/assets/js/action-menu.js?v=20260912-2';
+import '/assets/js/action-menu.js?v=20260912-4';
 
 export const ACCOUNT_CONFIG = {
   firebase: {

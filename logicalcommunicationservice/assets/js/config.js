@@ -11,7 +11,7 @@
 import '/assets/js/site-presence.js?v=20260904-p1';
 
 // Shared E.R.A.S. utility hub: Share / Install-or-Website / Chat / Note / Help.
-import '/assets/js/action-menu.js?v=20260912-2';
+import '/assets/js/action-menu.js?v=20260912-4';
 
 // Channel deletion hotfix. Loaded here so desktop and /lcs-mobile/ both inherit it.
 import './channel-delete-fix.js?v=20260905-delete3';

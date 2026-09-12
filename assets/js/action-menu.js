@@ -6,7 +6,35 @@
     const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='/assets/css/action-menu.css?v=20260912-2';document.head.appendChild(link);
   }
 
+  // Chat is a site-wide utility now, so load its shared skin once and put the
+  // landscape-phone correction AFTER it. Existing LCS/game Chat styles remain compatible.
+  if(!document.querySelector('link[href*="direct-messaging.css"]')){
+    const dm=document.createElement('link');dm.rel='stylesheet';dm.href='/assets/css/direct-messaging.css?v=20260912-dm7';document.head.appendChild(dm);
+  }
+  if(!document.getElementById('eras-chat-mobile-landscape-style')){
+    const dmMobile=document.createElement('link');dmMobile.id='eras-chat-mobile-landscape-style';dmMobile.rel='stylesheet';dmMobile.href='/assets/css/chat-mobile-landscape.css?v=20260912-1';document.head.appendChild(dmMobile);
+  }
+
   let deferredInstallPrompt=null,toastTimer=0,chatMessenger=null,chatIdentity=null;
+
+
+  const syncChatViewport=()=>{
+    const vv=window.visualViewport;
+    const w=Math.max(320,Math.round(vv?.width||window.innerWidth||320));
+    const h=Math.max(220,Math.round(vv?.height||window.innerHeight||220));
+    document.documentElement.style.setProperty('--eras-chat-vw',`${w}px`);
+    document.documentElement.style.setProperty('--eras-chat-vh',`${h}px`);
+  };
+  let chatViewportTimer=0;
+  const scheduleChatViewport=()=>{
+    clearTimeout(chatViewportTimer);
+    chatViewportTimer=setTimeout(syncChatViewport,24);
+  };
+  syncChatViewport();
+  window.addEventListener('resize',scheduleChatViewport,{passive:true});
+  window.addEventListener('orientationchange',scheduleChatViewport,{passive:true});
+  window.visualViewport?.addEventListener('resize',scheduleChatViewport,{passive:true});
+  window.visualViewport?.addEventListener('scroll',scheduleChatViewport,{passive:true});
 
   const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
   const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -52,10 +80,6 @@
   async function ensureChat(){
     const existing=document.querySelector('#messagesButton');
     if(existing){existing.click();return;}
-
-    if(!document.querySelector('link[href*="direct-messaging.css"]')){
-      const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/css/direct-messaging.css?v=20260901-dm6';document.head.appendChild(link);
-    }
 
     const eras=await import('/game/assets/js/eras-data.js?v=20260912-hub1');
     if(!eras.auth.currentUser){showToast('Sign in to use Chat.');return;}
@@ -116,7 +140,7 @@
   });
 
   chat.addEventListener('click',async()=>{setOpen(false);try{await ensureChat();}catch(e){console.error(e);showToast('Unable to open Chat.');}});
-  note.addEventListener('click',async()=>{setOpen(false);try{await openModule('/assets/js/sticky-notes.js?v=20260912-1','ERASStickyNotes');}catch(e){console.error(e);showToast('Unable to open Notes.');}});
+  note.addEventListener('click',async()=>{setOpen(false);try{await openModule('/assets/js/sticky-notes.js?v=20260912-2','ERASStickyNotes');}catch(e){console.error(e);showToast('Unable to open Notes.');}});
   help.addEventListener('click',async()=>{setOpen(false);try{await openModule('/assets/js/help-assistant.js?v=20260912-1','ERASHelp');}catch(e){console.error(e);showToast('Unable to open Help.');}});
 
   installHelp.querySelector('button').addEventListener('click',()=>installHelp.classList.remove('is-visible'));

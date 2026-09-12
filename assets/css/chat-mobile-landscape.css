@@ -1,0 +1,284 @@
+/*
+  E.R.A.S. Chat — mobile landscape workspace
+  Screenshot-driven correction for Android Chrome / installed PWA.
+  Portrait and desktop Chat layouts are unchanged.
+*/
+
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  .eras-dm-root {
+    width: var(--eras-chat-vw, 100vw) !important;
+    height: var(--eras-chat-vh, 100dvh) !important;
+    inset: 0 auto auto 0 !important;
+    padding: 0 !important;
+    place-items: stretch !important;
+    overflow: hidden !important;
+  }
+
+  .eras-dm-window {
+    width: var(--eras-chat-vw, 100vw) !important;
+    height: var(--eras-chat-vh, 100dvh) !important;
+    max-width: none !important;
+    max-height: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+
+    grid-template-columns: 106px minmax(0, 1fr) !important;
+    grid-template-rows: 44px minmax(0, 1fr) auto !important;
+  }
+
+  /* Compact title strip. */
+  .eras-dm-header {
+    min-height: 0 !important;
+    padding: 5px 8px 5px 10px !important;
+    gap: 6px !important;
+  }
+
+  .eras-dm-header-copy {
+    gap: 1px !important;
+  }
+
+  .eras-dm-header-copy b {
+    font-size: 9px !important;
+    line-height: 1 !important;
+  }
+
+  .eras-dm-header-copy span {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 6px !important;
+    line-height: 1 !important;
+  }
+
+  .eras-dm-close {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 7px !important;
+    font-size: 17px !important;
+  }
+
+  /* Narrower conversation rail. */
+  .eras-dm-sidebar {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .eras-dm-sidebar-title {
+    padding: 7px 7px !important;
+    font-size: 5.5px !important;
+    line-height: 1.15 !important;
+    letter-spacing: .09em !important;
+  }
+
+  .eras-dm-person {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    min-height: 37px !important;
+    padding: 6px 7px !important;
+    gap: 4px !important;
+  }
+
+  .eras-dm-person-avatar {
+    display: none !important;
+  }
+
+  .eras-dm-person-copy {
+    gap: 1px !important;
+  }
+
+  .eras-dm-person-copy b {
+    font-size: 7px !important;
+  }
+
+  .eras-dm-person-copy small {
+    display: none !important;
+  }
+
+  .eras-dm-person-alert {
+    min-width: 15px !important;
+    height: 15px !important;
+    padding: 0 4px !important;
+    font-size: 6px !important;
+  }
+
+  .eras-dm-empty {
+    padding: 10px 7px !important;
+    font-size: 6px !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Main Chat area: controls / messages / compose. */
+  .eras-dm-main {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    overflow: hidden !important;
+  }
+
+  /* Turn the huge language area into a compact toolbar. */
+  .eras-dm-toolbar {
+    grid-template-columns: minmax(82px, 1fr) minmax(82px, 1fr) auto !important;
+    grid-template-rows: 27px 13px !important;
+    gap: 4px 6px !important;
+    padding: 5px 7px 4px !important;
+    min-height: 0 !important;
+  }
+
+  .eras-dm-toolbar > label:not(.eras-dm-translate-toggle) {
+    display: none !important;
+  }
+
+  .eras-dm-toolbar select {
+    height: 27px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 0 6px !important;
+    border-radius: 6px !important;
+    font-size: 7px !important;
+  }
+
+  .eras-dm-translate-toggle {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    align-self: center !important;
+    gap: 4px !important;
+    max-width: 115px !important;
+    margin: 0 !important;
+    font-size: 5.2px !important;
+    line-height: 1.1 !important;
+    letter-spacing: .035em !important;
+  }
+
+  .eras-dm-translate-toggle input {
+    width: 13px !important;
+    height: 13px !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+  }
+
+  .eras-dm-translation-status {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 5px !important;
+    line-height: 1 !important;
+  }
+
+  /* Messages receive nearly all of the remaining height. */
+  .eras-dm-messages {
+    min-height: 0 !important;
+    padding: 7px 8px !important;
+    gap: 6px !important;
+    overscroll-behavior: contain;
+  }
+
+  .eras-dm-message {
+    max-width: 82% !important;
+    gap: 3px !important;
+    padding: 6px 8px !important;
+    border-radius: 9px 9px 9px 3px !important;
+  }
+
+  .eras-dm-message.is-own {
+    border-radius: 9px 9px 3px 9px !important;
+  }
+
+  .eras-dm-message-meta {
+    gap: 5px !important;
+    font-size: 5.5px !important;
+  }
+
+  .eras-dm-message-text,
+  .eras-dm-translation {
+    font-size: 10px !important;
+    line-height: 1.32 !important;
+  }
+
+  .eras-dm-translation {
+    padding-top: 4px !important;
+  }
+
+  /* Compose is always visible immediately above the safety strip. */
+  .eras-dm-compose {
+    grid-template-columns: minmax(0, 1fr) 72px !important;
+    gap: 6px !important;
+    padding: 5px 7px !important;
+  }
+
+  .eras-dm-compose textarea {
+    min-height: 38px !important;
+    height: 38px !important;
+    max-height: 72px !important;
+    padding: 6px 7px !important;
+    border-radius: 7px !important;
+    resize: none !important;
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+  }
+
+  .eras-dm-send {
+    min-width: 0 !important;
+    width: 72px !important;
+    min-height: 38px !important;
+    border-radius: 7px !important;
+    font-size: 7px !important;
+  }
+
+  /*
+    Keep the complete Chat Safety notice permanently visible, but make it a
+    compact footer rather than consuming a large portion of the phone screen.
+  */
+  .eras-dm-safety {
+    grid-column: 1 / -1 !important;
+    max-height: 39px !important;
+    overflow: hidden !important;
+    padding: 4px 8px 5px !important;
+    font-size: 5.1px !important;
+    line-height: 1.22 !important;
+    letter-spacing: .01em !important;
+  }
+}
+
+/* Especially short landscape browser viewports. */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 410px) {
+  .eras-dm-window {
+    grid-template-columns: 92px minmax(0, 1fr) !important;
+    grid-template-rows: 38px minmax(0, 1fr) auto !important;
+  }
+
+  .eras-dm-header {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .eras-dm-close {
+    width: 27px !important;
+    height: 27px !important;
+    font-size: 15px !important;
+  }
+
+  .eras-dm-toolbar {
+    grid-template-rows: 24px 11px !important;
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+  }
+
+  .eras-dm-toolbar select {
+    height: 24px !important;
+  }
+
+  .eras-dm-compose textarea,
+  .eras-dm-send {
+    min-height: 32px !important;
+    height: 32px !important;
+  }
+
+  .eras-dm-safety {
+    max-height: 32px !important;
+    font-size: 4.6px !important;
+    line-height: 1.14 !important;
+  }
+}
