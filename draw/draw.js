@@ -1,3 +1,11 @@
+import {
+  listDrawSupplies,
+  getDrawSupply,
+  deleteDrawSupply,
+  importDrawSupplyFiles,
+  onDrawSuppliesChanged
+} from '/assets/js/draw-supplies.js?v=1.0.0';
+
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
@@ -20,7 +28,11 @@ const state={
   last:null,
   undo:[],
   redo:[],
-  maxHistory:40
+  maxHistory:40,
+  selectedSupplyId:'',
+  supplyPreviewUrls:[],
+  customBrush:null,
+  customBrushName:''
 };
 
 const display=$('#displayCanvas'),preview=$('#previewCanvas');
@@ -182,10 +194,50 @@ function prepareCtx(ctx,erase=false){
   ctx.strokeStyle=state.primary;ctx.fillStyle=state.primary;ctx.globalCompositeOperation=erase?'destination-out':'source-over';
   ctx.imageSmoothingEnabled=!state.pixelPerfect;
 }
+function customBrushCanvas(){
+  const brush=state.customBrush;
+  if(!brush)return null;
+  const source=brush.canvas;
+  const longest=Math.max(source.width,source.height,1);
+  const scale=Math.max(1,state.brushSize)/longest;
+  const width=Math.max(1,Math.round(source.width*scale));
+  const height=Math.max(1,Math.round(source.height*scale));
+  if(brush.scaled&&brush.scaled.width===width&&brush.scaled.height===height)return brush.scaled;
+  const scaled=document.createElement('canvas');scaled.width=width;scaled.height=height;
+  const sctx=scaled.getContext('2d');
+  sctx.imageSmoothingEnabled=false;
+  sctx.drawImage(source,0,0,width,height);
+  brush.scaled=scaled;
+  return scaled;
+}
+function stampCustomBrush(ctx,p,erase=false){
+  const mask=customBrushCanvas();if(!mask)return;
+  const x=Math.round(p.x-mask.width/2),y=Math.round(p.y-mask.height/2);
+  ctx.save();
+  ctx.globalAlpha=state.toolOpacity;
+  if(erase){
+    ctx.globalCompositeOperation='destination-out';
+    ctx.drawImage(mask,x,y);
+  }else{
+    const tinted=document.createElement('canvas');tinted.width=mask.width;tinted.height=mask.height;
+    const tctx=tinted.getContext('2d');tctx.drawImage(mask,0,0);
+    tctx.globalCompositeOperation='source-in';tctx.fillStyle=state.primary;tctx.fillRect(0,0,tinted.width,tinted.height);
+    ctx.globalCompositeOperation='source-over';ctx.drawImage(tinted,x,y);
+  }
+  ctx.restore();
+}
 function drawDot(ctx,p,erase=false){
+  if(state.customBrush&&(state.tool==='pencil'||state.tool==='eraser')){stampCustomBrush(ctx,p,erase);return}
   prepareCtx(ctx,erase);ctx.beginPath();ctx.arc(p.x+.5,p.y+.5,Math.max(.5,state.brushSize/2),0,Math.PI*2);ctx.fill();
 }
 function drawSegment(ctx,a,b,erase=false){
+  if(state.customBrush&&(state.tool==='pencil'||state.tool==='eraser')){
+    const distance=Math.hypot(b.x-a.x,b.y-a.y);
+    const step=Math.max(1,state.brushSize*.22);
+    const count=Math.max(1,Math.ceil(distance/step));
+    for(let i=1;i<=count;i++)stampCustomBrush(ctx,{x:a.x+(b.x-a.x)*i/count,y:a.y+(b.y-a.y)*i/count},erase);
+    return;
+  }
   prepareCtx(ctx,erase);ctx.beginPath();ctx.moveTo(a.x+.5,a.y+.5);ctx.lineTo(b.x+.5,b.y+.5);ctx.stroke();
 }
 function constrainPoint(a,b,tool,e){
@@ -237,7 +289,7 @@ function hexToRgba(hex,a=255){
 }
 function setTool(tool){
   state.tool=tool;$$('[data-tool]').forEach(b=>b.classList.toggle('is-active',b.dataset.tool===tool));
-  $('#activeToolLabel').textContent=tool.toUpperCase();display.style.cursor=tool==='eyedropper'?'crosshair':tool==='text'?'text':'crosshair';
+  $('#activeToolLabel').textContent=(tool==='pencil'&&state.customBrushName)?`BRUSH // ${state.customBrushName.toUpperCase()}`:tool.toUpperCase();display.style.cursor=tool==='eyedropper'?'crosshair':tool==='text'?'text':'crosshair';
 }
 function textTool(p){
   const text=prompt('Text to place:','TEXT');if(!text)return;
@@ -302,6 +354,93 @@ function loadImageFile(file,mode='document'){
     };img.src=String(reader.result)
   };reader.readAsDataURL(file)
 }
+function revokeSupplyPreviewUrls(){
+  for(const url of state.supplyPreviewUrls)URL.revokeObjectURL(url);
+  state.supplyPreviewUrls=[];
+}
+async function renderSupplyLibrary(){
+  const root=$('#drawSupplyList');if(!root)return;
+  revokeSupplyPreviewUrls();
+  const items=await listDrawSupplies().catch(error=>{console.error(error);return[]});
+  root.innerHTML='';
+  if(!items.length){
+    root.innerHTML='<p class="draw-supplies-empty">NO LOCAL SUPPLIES YET. IMPORT FROM THIS DEVICE OR INSTALL A PUBLIC PACK.</p>';
+    state.selectedSupplyId='';
+    $('#useSupply').disabled=true;$('#deleteSupply').disabled=true;
+    return;
+  }
+  for(const item of items){
+    const row=document.createElement('button');row.type='button';
+    row.className=`draw-supply-item${item.id===state.selectedSupplyId?' is-active':''}`;
+    const img=document.createElement('img');
+    const url=URL.createObjectURL(item.blob);state.supplyPreviewUrls.push(url);
+    img.src=url;img.alt='';
+    const copy=document.createElement('span');
+    copy.innerHTML=`<b>${String(item.name||'Supply')}</b><small>${String(item.kind||'image').toUpperCase()} // ${item.origin==='public'?'PUBLIC PACK':'THIS DEVICE'}${item.packName?` // ${String(item.packName)}`:''}</small>`;
+    row.append(img,copy);
+    row.addEventListener('click',()=>{
+      state.selectedSupplyId=item.id;
+      renderSupplyLibrary();
+    });
+    root.append(row);
+  }
+  if(state.selectedSupplyId&&!items.some(item=>item.id===state.selectedSupplyId))state.selectedSupplyId='';
+  $('#useSupply').disabled=!state.selectedSupplyId;
+  $('#deleteSupply').disabled=!state.selectedSupplyId;
+  const selected=items.find(item=>item.id===state.selectedSupplyId);
+  $('#useSupply').textContent=selected?.kind==='brush'?'USE AS BRUSH':'ADD TO CANVAS';
+}
+async function blobImage(blob){
+  const url=URL.createObjectURL(blob);
+  try{
+    const img=new Image();img.decoding='async';img.src=url;await img.decode();return img;
+  }finally{URL.revokeObjectURL(url)}
+}
+async function useSelectedSupply(){
+  const item=await getDrawSupply(state.selectedSupplyId);
+  if(!item)return;
+  const img=await blobImage(item.blob);
+  if(item.kind==='brush'){
+    const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+    canvas.getContext('2d').drawImage(img,0,0);
+    state.customBrush={canvas,scaled:null};state.customBrushName=item.name||'Custom Brush';
+    setTool('pencil');$('#activeToolLabel').textContent=`BRUSH // ${String(state.customBrushName).toUpperCase()}`;
+    say(`Brush loaded // ${state.customBrushName}`,'ok');return;
+  }
+  pushHistory();
+  const next=makeLayer(item.name||'Supply');
+  const scale=Math.min(1,state.width/img.naturalWidth,state.height/img.naturalHeight);
+  const w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
+  const x=Math.floor((state.width-w)/2),y=Math.floor((state.height-h)/2);
+  const ctx=next.canvas.getContext('2d');ctx.imageSmoothingEnabled=!state.pixelPerfect;ctx.drawImage(img,x,y,w,h);
+  frame().layers.push(next);state.layerIndex=frame().layers.length-1;renderAll();
+  say(`${item.kind==='sprite'?'Sprite':'Image'} added from Supplies // ${item.name}`,'ok');
+}
+function resetCustomBrush(){
+  state.customBrush=null;state.customBrushName='';
+  if(state.tool==='pencil')$('#activeToolLabel').textContent='PENCIL';
+  say('Round brush restored','ok');
+}
+async function importSupplyFiles(input,kind){
+  const files=input.files;if(!files?.length)return;
+  const results=await importDrawSupplyFiles(files,kind);
+  input.value='';
+  const good=results.filter(result=>result.ok).length;
+  if(good)say(`Imported ${good} local ${kind}${good===1?'':'s'} // device only`,'ok');
+  else say(results[0]?.error||`Could not import ${kind}`,'error');
+  await renderSupplyLibrary();
+}
+async function deleteSelectedSupply(){
+  if(!state.selectedSupplyId)return;
+  await deleteDrawSupply(state.selectedSupplyId);
+  state.selectedSupplyId='';
+  await renderSupplyLibrary();
+  say('Local Supply deleted','ok');
+}
+function openSuppliesPanel(){
+  const section=$('#drawSupplies');section?.scrollIntoView({block:'start',behavior:'smooth'});
+  location.hash='supplies';
+}
 function drawDataUrl(canvas,url){
   return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{canvas.getContext('2d').drawImage(img,0,0);resolve()};img.onerror=reject;img.src=url})
 }
@@ -364,6 +503,13 @@ $('#createDocument').addEventListener('click',e=>{e.preventDefault();newDocument
 $('#openProject').addEventListener('click',()=>$('#projectFileInput').click());
 $('#openImage').addEventListener('click',()=>$('#imageFileInput').click());
 $('#importLayer').addEventListener('click',()=>$('#layerFileInput').click());
+$('#openSupplies').addEventListener('click',openSuppliesPanel);
+$('#importBrushSupply').addEventListener('click',()=>$('#brushSupplyInput').click());
+$('#importSpriteSupply').addEventListener('click',()=>$('#spriteSupplyInput').click());
+$('#importImageSupply').addEventListener('click',()=>$('#imageSupplyInput').click());
+$('#useSupply').addEventListener('click',()=>useSelectedSupply().catch(error=>say(error?.message||error,'error')));
+$('#resetBrushSupply').addEventListener('click',resetCustomBrush);
+$('#deleteSupply').addEventListener('click',()=>deleteSelectedSupply().catch(error=>say(error?.message||error,'error')));
 $('#saveProject').addEventListener('click',saveProject);
 $('#exportPng').addEventListener('click',exportPng);
 $('#exportSheet').addEventListener('click',exportSheet);
@@ -377,6 +523,9 @@ $$('[data-size]').forEach(b=>b.addEventListener('click',()=>{$('#docWidth').valu
 $('#projectFileInput').addEventListener('change',e=>{openProjectFile(e.target.files?.[0]);e.target.value=''});
 $('#imageFileInput').addEventListener('change',e=>{loadImageFile(e.target.files?.[0],'document');e.target.value=''});
 $('#layerFileInput').addEventListener('change',e=>{loadImageFile(e.target.files?.[0],'layer');e.target.value=''});
+$('#brushSupplyInput').addEventListener('change',e=>importSupplyFiles(e.target,'brush'));
+$('#spriteSupplyInput').addEventListener('change',e=>importSupplyFiles(e.target,'sprite'));
+$('#imageSupplyInput').addEventListener('change',e=>importSupplyFiles(e.target,'image'));
 
 display.addEventListener('pointerdown',pointerDown);display.addEventListener('pointermove',pointerMove);display.addEventListener('pointerup',pointerUp);display.addEventListener('pointercancel',pointerUp);
 display.addEventListener('contextmenu',e=>e.preventDefault());
@@ -394,5 +543,9 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Minus'||e.code==='NumpadSubtract'){e.preventDefault();setZoom(state.zoom*100-50)}
 });
 
+onDrawSuppliesChanged(()=>renderSupplyLibrary());
+window.addEventListener('beforeunload',revokeSupplyPreviewUrls);
 newDocument('Untitled Sprite',128,128,'transparent');
 setTool('pencil');
+renderSupplyLibrary();
+if(location.hash==='#supplies')setTimeout(openSuppliesPanel,80);

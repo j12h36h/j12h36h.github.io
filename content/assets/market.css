@@ -21,3 +21,11 @@ body.market-page{overflow:auto;background:#02090b}.market-page .site-header{posi
   .market-nav .market-panel-title{position:sticky;top:66px;z-index:3;background:#030c0e}
   .market-filter#chooseAsset{min-height:48px;font-size:9px}
 }
+
+.market-filter-local{cursor:pointer!important;border-color:rgba(154,99,60,.22)!important;color:#caa27c!important}
+.market-filter-local:hover{border-color:rgba(215,166,110,.5)!important;color:#fff1df!important;background:rgba(112,67,39,.18)!important}
+.supply-pack-list{display:grid;gap:5px;min-width:min(360px,42vw)}
+.supply-pack-item{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:8px;padding:7px 9px;border:1px solid rgba(131,224,227,.1);background:rgba(255,255,255,.018)}
+.supply-pack-item b{color:#caa27c;font:800 6px/1 var(--mono);letter-spacing:.1em}
+.supply-pack-item span{color:#789396;font:700 7px/1.25 var(--mono)}
+@media(max-width:680px){.supply-pack-list{min-width:0;width:100%}}

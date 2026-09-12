@@ -192,3 +192,17 @@ body.draw-page{
   .draw-tool-grid button{min-height:58px}
   .draw-stage{min-height:420px;padding:22px}
 }
+
+.draw-supplies-note{margin:0;padding:8px;color:#80614c;font:700 5.5px/1.45 var(--mono);letter-spacing:.07em;border-bottom:1px solid var(--wood-line)}
+.draw-supply-actions,.draw-supply-use-actions{display:flex;gap:4px;padding:8px}
+.draw-supply-actions button,.draw-supply-use-actions button{flex:1;min-width:0;padding:0 5px}
+.draw-supply-list{display:grid;gap:4px;max-height:260px;overflow:auto;padding:0 8px 8px}
+.draw-supply-item{width:100%;min-height:48px;display:grid!important;grid-template-columns:38px minmax(0,1fr)!important;align-items:center!important;gap:7px!important;padding:5px!important;text-align:left!important;border:1px solid rgba(189,130,80,.10)!important;background:rgba(34,19,10,.48)!important}
+.draw-supply-item:hover,.draw-supply-item.is-active{border-color:rgba(215,166,110,.42)!important;background:rgba(111,65,36,.22)!important}
+.draw-supply-item img{width:34px;height:34px;object-fit:contain;image-rendering:pixelated;background:linear-gradient(45deg,#30251d 25%,transparent 25%),linear-gradient(-45deg,#30251d 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#30251d 75%),linear-gradient(-45deg,transparent 75%,#30251d 75%),#211914;background-size:8px 8px;background-position:0 0,0 4px,4px -4px,-4px 0}
+.draw-supply-item span{min-width:0}
+.draw-supply-item b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d0ad8e;font:800 6.5px/1.2 var(--mono);letter-spacing:.05em}
+.draw-supply-item small{display:block;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#725641;font:700 5px/1 var(--mono)}
+.draw-supplies-empty{margin:0;padding:12px 8px;color:#6f5543;font:700 5.5px/1.45 var(--mono);letter-spacing:.06em}
+.draw-supplies-library-link{display:block;margin:0 8px 9px;padding:9px;text-align:center;text-decoration:none;border:1px solid rgba(189,130,80,.20);color:#c8a382;background:rgba(40,22,12,.54);font:800 6px/1 var(--mono);letter-spacing:.08em}
+.draw-supplies-library-link:hover{border-color:rgba(215,166,110,.5);color:#f0d8bf}

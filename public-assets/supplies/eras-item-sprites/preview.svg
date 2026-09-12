@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<rect width="512" height="512" fill="#071416"/>
+<rect x="28" y="28" width="456" height="456" fill="none" stroke="#65c97c" stroke-width="3"/>
+<g stroke="#65c97c" stroke-width="6" fill="none">
+<rect x="94" y="100" width="120" height="120" rx="18"/><rect x="298" y="100" width="120" height="120" rx="18"/>
+<rect x="94" y="292" width="120" height="120" rx="18"/><rect x="298" y="292" width="120" height="120" rx="18"/>
+</g>
+<g fill="#65c97c">
+<circle cx="154" cy="160" r="31"/><path d="M346 126h24l20 34-20 34h-24l-20-34z"/>
+<path d="M122 340q32-35 64 0v44h-64z"/><path d="M326 332h64v60h-64z"/>
+</g>
+<text x="256" y="470" text-anchor="middle" font-family="monospace" font-size="18" letter-spacing="4" fill="#8ee5a2">E.R.A.S. ITEM SPRITES</text>
+</svg>

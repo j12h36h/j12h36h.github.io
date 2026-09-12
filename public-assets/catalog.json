@@ -1,13 +1,14 @@
 {
-  "version": 7,
-  "updatedAt": "2026-09-06",
+  "version": 8,
+  "updatedAt": "2026-09-12",
   "categories": [
     "Sprite",
     "Audio",
     "Mode",
     "World",
     "Effect",
-    "Icon"
+    "Icon",
+    "Supplies"
   ],
   "defaults": {
     "gameMusicAssetId": "eras:audio_turn_based_theme",
@@ -433,7 +434,7 @@
         "background": "#071416",
         "layers": [
           {
-            "char": "\u2316",
+            "char": "⌖",
             "x": 64,
             "y": 64,
             "fontSize": 74,
@@ -449,7 +450,7 @@
             "align": "middle"
           },
           {
-            "char": "\u00d7",
+            "char": "×",
             "x": 64,
             "y": 65,
             "fontSize": 32,
@@ -506,7 +507,7 @@
         "background": "#100d1e",
         "layers": [
           {
-            "char": "\u25c9",
+            "char": "◉",
             "x": 64,
             "y": 64,
             "fontSize": 74,
@@ -522,7 +523,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2726",
+            "char": "✦",
             "x": 64,
             "y": 64,
             "fontSize": 30,
@@ -579,7 +580,7 @@
         "background": "#071512",
         "layers": [
           {
-            "char": "\u25a6",
+            "char": "▦",
             "x": 64,
             "y": 64,
             "fontSize": 70,
@@ -595,7 +596,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2022",
+            "char": "•",
             "x": 64,
             "y": 64,
             "fontSize": 24,
@@ -652,7 +653,7 @@
         "background": "#12100b",
         "layers": [
           {
-            "char": "\u25b0",
+            "char": "▰",
             "x": 64,
             "y": 40,
             "fontSize": 48,
@@ -668,7 +669,7 @@
             "align": "middle"
           },
           {
-            "char": "\u25b0",
+            "char": "▰",
             "x": 64,
             "y": 65,
             "fontSize": 48,
@@ -684,7 +685,7 @@
             "align": "middle"
           },
           {
-            "char": "\u25b0",
+            "char": "▰",
             "x": 64,
             "y": 90,
             "fontSize": 48,
@@ -741,7 +742,7 @@
         "background": "#171006",
         "layers": [
           {
-            "char": "\u263c",
+            "char": "☼",
             "x": 64,
             "y": 64,
             "fontSize": 78,
@@ -757,7 +758,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2022",
+            "char": "•",
             "x": 64,
             "y": 64,
             "fontSize": 23,
@@ -814,7 +815,7 @@
         "background": "#071016",
         "layers": [
           {
-            "char": "\u25a6",
+            "char": "▦",
             "x": 64,
             "y": 64,
             "fontSize": 76,
@@ -887,7 +888,7 @@
         "background": "#10090c",
         "layers": [
           {
-            "char": "\u27a4",
+            "char": "➤",
             "x": 61,
             "y": 64,
             "fontSize": 74,
@@ -903,7 +904,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2261",
+            "char": "≡",
             "x": 91,
             "y": 65,
             "fontSize": 26,
@@ -961,7 +962,7 @@
         "background": "#16080a",
         "layers": [
           {
-            "char": "\u2694",
+            "char": "⚔",
             "x": 64,
             "y": 64,
             "fontSize": 72,
@@ -977,7 +978,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2022",
+            "char": "•",
             "x": 64,
             "y": 64,
             "fontSize": 17,
@@ -1059,7 +1060,7 @@
         "background": "#07111b",
         "layers": [
           {
-            "char": "\u2b21",
+            "char": "⬡",
             "x": 64,
             "y": 64,
             "fontSize": 76,
@@ -1075,7 +1076,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2022",
+            "char": "•",
             "x": 64,
             "y": 64,
             "fontSize": 21,
@@ -1157,7 +1158,7 @@
         "background": "#07140d",
         "layers": [
           {
-            "char": "\u271a",
+            "char": "✚",
             "x": 64,
             "y": 64,
             "fontSize": 72,
@@ -1173,7 +1174,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2022",
+            "char": "•",
             "x": 64,
             "y": 64,
             "fontSize": 17,
@@ -1255,7 +1256,7 @@
         "background": "#071416",
         "layers": [
           {
-            "char": "\u27a4",
+            "char": "➤",
             "x": 64,
             "y": 64,
             "fontSize": 76,
@@ -1337,7 +1338,7 @@
         "background": "#151006",
         "layers": [
           {
-            "char": "\u2301",
+            "char": "⌁",
             "x": 64,
             "y": 64,
             "fontSize": 78,
@@ -1353,7 +1354,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2022",
+            "char": "•",
             "x": 64,
             "y": 64,
             "fontSize": 16,
@@ -1435,7 +1436,7 @@
         "background": "#100b19",
         "layers": [
           {
-            "char": "\u25ce",
+            "char": "◎",
             "x": 64,
             "y": 64,
             "fontSize": 78,
@@ -1451,7 +1452,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2726",
+            "char": "✦",
             "x": 64,
             "y": 64,
             "fontSize": 22,
@@ -1533,7 +1534,7 @@
         "background": "#160f07",
         "layers": [
           {
-            "char": "\u25a3",
+            "char": "▣",
             "x": 64,
             "y": 64,
             "fontSize": 72,
@@ -1549,7 +1550,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2022",
+            "char": "•",
             "x": 64,
             "y": 64,
             "fontSize": 16,
@@ -1631,7 +1632,7 @@
         "background": "#071319",
         "layers": [
           {
-            "char": "\u25cc",
+            "char": "◌",
             "x": 64,
             "y": 60,
             "fontSize": 70,
@@ -1647,7 +1648,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2026",
+            "char": "…",
             "x": 64,
             "y": 70,
             "fontSize": 28,
@@ -1729,7 +1730,7 @@
         "background": "#18200d",
         "layers": [
           {
-            "char": "\u265c",
+            "char": "♜",
             "x": 64,
             "y": 62,
             "fontSize": 72,
@@ -1745,7 +1746,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2318",
+            "char": "⌘",
             "x": 64,
             "y": 75,
             "fontSize": 26,
@@ -1837,7 +1838,7 @@
         "background": "#1a0709",
         "layers": [
           {
-            "char": "\u2726",
+            "char": "✦",
             "x": 64,
             "y": 64,
             "fontSize": 82,
@@ -1853,7 +1854,7 @@
             "align": "middle"
           },
           {
-            "char": "\u00d7",
+            "char": "×",
             "x": 64,
             "y": 64,
             "fontSize": 30,
@@ -1916,7 +1917,7 @@
         "background": "#07170e",
         "layers": [
           {
-            "char": "\u271a",
+            "char": "✚",
             "x": 64,
             "y": 64,
             "fontSize": 76,
@@ -1932,7 +1933,7 @@
             "align": "middle"
           },
           {
-            "char": "\u25cb",
+            "char": "○",
             "x": 64,
             "y": 64,
             "fontSize": 94,
@@ -1995,7 +1996,7 @@
         "background": "#10091c",
         "layers": [
           {
-            "char": "\u2727",
+            "char": "✧",
             "x": 64,
             "y": 64,
             "fontSize": 82,
@@ -2011,7 +2012,7 @@
             "align": "middle"
           },
           {
-            "char": "\u2022",
+            "char": "•",
             "x": 64,
             "y": 64,
             "fontSize": 20,
@@ -2074,7 +2075,7 @@
         "background": "#07161a",
         "layers": [
           {
-            "char": "\u279f",
+            "char": "➟",
             "x": 64,
             "y": 64,
             "fontSize": 78,
@@ -2138,7 +2139,7 @@
         "background": "#0a1117",
         "layers": [
           {
-            "char": "\u266a",
+            "char": "♪",
             "x": 64,
             "y": 62,
             "fontSize": 82,
@@ -2154,7 +2155,7 @@
             "align": "middle"
           },
           {
-            "char": "\u00b7",
+            "char": "·",
             "x": 89,
             "y": 83,
             "fontSize": 28,
@@ -2247,7 +2248,7 @@
         "background": "#0a1117",
         "layers": [
           {
-            "char": "\u266a",
+            "char": "♪",
             "x": 64,
             "y": 62,
             "fontSize": 82,
@@ -2263,7 +2264,7 @@
             "align": "middle"
           },
           {
-            "char": "\u00b7",
+            "char": "·",
             "x": 89,
             "y": 83,
             "fontSize": 28,
@@ -2354,7 +2355,7 @@
         "background": "#0a1117",
         "layers": [
           {
-            "char": "\u266a",
+            "char": "♪",
             "x": 64,
             "y": 62,
             "fontSize": 82,
@@ -2370,7 +2371,7 @@
             "align": "middle"
           },
           {
-            "char": "\u00b7",
+            "char": "·",
             "x": 89,
             "y": 83,
             "fontSize": 28,
@@ -2461,7 +2462,7 @@
         "background": "#0a1117",
         "layers": [
           {
-            "char": "\u266a",
+            "char": "♪",
             "x": 64,
             "y": 62,
             "fontSize": 82,
@@ -2477,7 +2478,7 @@
             "align": "middle"
           },
           {
-            "char": "\u00b7",
+            "char": "·",
             "x": 89,
             "y": 83,
             "fontSize": 28,
@@ -2553,6 +2554,102 @@
         "minPitchRate": 0.5,
         "maxPitchRate": 1.5,
         "step": 0.01
+      }
+    },
+    {
+      "id": "eras:supplies_brush_basics",
+      "name": "Brush Basics",
+      "type": "supplies",
+      "category": "supplies",
+      "description": "Four reusable local DRAW brushes: round, soft round, square, and cross. Installing stores them only in this browser.",
+      "source": "/public-assets/supplies/brush-basics/preview.svg",
+      "thumbnail": "/public-assets/supplies/brush-basics/preview.svg",
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Supplies Pack",
+      "tags": [
+        "supplies",
+        "draw",
+        "brushes",
+        "local",
+        "canvas"
+      ],
+      "supplyData": {
+        "items": [
+          {
+            "id": "round",
+            "name": "Round Brush",
+            "kind": "brush",
+            "source": "/public-assets/supplies/brush-basics/round.png"
+          },
+          {
+            "id": "soft_round",
+            "name": "Soft Round Brush",
+            "kind": "brush",
+            "source": "/public-assets/supplies/brush-basics/soft-round.png"
+          },
+          {
+            "id": "square",
+            "name": "Square Brush",
+            "kind": "brush",
+            "source": "/public-assets/supplies/brush-basics/square.png"
+          },
+          {
+            "id": "cross",
+            "name": "Cross Brush",
+            "kind": "brush",
+            "source": "/public-assets/supplies/brush-basics/cross.png"
+          }
+        ]
+      }
+    },
+    {
+      "id": "eras:supplies_eras_item_sprites",
+      "name": "E.R.A.S. Item Sprite Supplies",
+      "type": "supplies",
+      "category": "supplies",
+      "description": "A local DRAW supply pack containing reusable E.R.A.S. starter sprites for composition, mockups, and editing.",
+      "source": "/public-assets/supplies/eras-item-sprites/preview.svg",
+      "thumbnail": "/public-assets/supplies/eras-item-sprites/preview.svg",
+      "price": 0,
+      "priceCredits": 0,
+      "currency": "FREE",
+      "licenseLabel": "Free E.R.A.S. Supplies Pack",
+      "tags": [
+        "supplies",
+        "draw",
+        "sprites",
+        "eras",
+        "local"
+      ],
+      "supplyData": {
+        "items": [
+          {
+            "id": "slime",
+            "name": "Slime Sprite",
+            "kind": "sprite",
+            "source": "/public-assets/textures/slime_monochrome.png"
+          },
+          {
+            "id": "health_potion",
+            "name": "Health Potion Sprite",
+            "kind": "sprite",
+            "source": "/public-assets/textures/health_potion.png"
+          },
+          {
+            "id": "slime_juice",
+            "name": "Slime Juice Sprite",
+            "kind": "sprite",
+            "source": "/public-assets/textures/slime_juice.png"
+          },
+          {
+            "id": "hand_wraps",
+            "name": "Hand Wraps Sprite",
+            "kind": "sprite",
+            "source": "/public-assets/textures/hand_wraps.png"
+          }
+        ]
       }
     }
   ],

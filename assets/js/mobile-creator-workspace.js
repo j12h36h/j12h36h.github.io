@@ -12,6 +12,7 @@
   const configs = isDraw ? [
     { label: 'Canvas', symbol: '▣', closeOnly: true },
     { label: 'Tools', symbol: '✎', target: '.draw-tools-panel', side: 'left' },
+    { label: 'Supplies', symbol: '◆', target: '.draw-properties-panel', side: 'right', scrollTo: '.draw-supplies' },
     { label: 'Layers', symbol: '▤', target: '.draw-properties-panel', side: 'right', scrollTo: '.draw-layers' },
     { label: 'Frames', symbol: '▥', target: '.draw-properties-panel', side: 'right', scrollTo: '.draw-frames' },
     { label: 'Actions', symbol: '⌘', target: '.draw-toolbar', side: 'bottom' }

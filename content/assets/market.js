@@ -12,7 +12,12 @@ import {
   assetCatalogVariantLabel,
   assetStylePreset,
   assetStyleId
-} from '/game/assets/js/catalog-assets.js?v=1.3.0';
+} from '/game/assets/js/catalog-assets.js?v=1.4.0';
+import {
+  installDrawSupplyPack,
+  isDrawSupplyPackInstalled,
+  supplyItemCount
+} from '/assets/js/draw-supplies.js?v=1.0.0';
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
@@ -41,7 +46,9 @@ const state = {
   audioTest: null,
   audioTestActive: false,
   effectTestActive: false,
-  iconTestActive: false
+  iconTestActive: false,
+  supplyPackInstalled: false,
+  supplyInstallBusy: false
 };
 
 function say(message, tone='') {
@@ -83,6 +90,13 @@ function holdingSpriteVariant(asset, holding) {
 function defaultVariant(asset) {
   const kind = assetKind(asset);
   const p = policy(asset);
+
+  if (kind === 'Supplies') return { pack:true };
+
+  if (kind === 'Supplies') {
+    const count=supplyItemCount(asset);
+    return {custom:false,price:0,label:count?`${count} Item${count===1?'':'s'}`:'Pack',payload:{pack:true}};
+  }
 
   if (kind === 'Sprite') {
     if (Array.isArray(p.stylePresets) && p.stylePresets.length) {
@@ -240,6 +254,7 @@ function normalizeVariantPayload(asset, variant) {
   const kind = assetKind(asset);
   const p = policy(asset);
 
+  if (kind === 'Supplies') return {pack:true};
   if (kind === 'Sprite') {
     if (Array.isArray(p.stylePresets) && p.stylePresets.length) return { style:assetStyleId(asset,variant) };
     return { tint:safeAssetTint(variant.tint || assetDefaultTint(asset)) };
@@ -280,6 +295,7 @@ function storagePreview(asset, variant) {
   const kind = assetKind(asset);
   const p = policy(asset);
 
+  if (kind === 'Supplies') return 'supplies|local';
   if (kind === 'Sprite') {
     if (Array.isArray(p.stylePresets) && p.stylePresets.length) return `sprite|style=${token(assetStyleId(asset,variant))}`;
     return safeAssetTint(variant.tint || assetDefaultTint(asset));
@@ -425,6 +441,25 @@ function chooseAsset() {
   });
 }
 
+function chooseSupplyAsset() {
+  const assets=(state.catalog.assets||[]).filter(asset=>assetKind(asset)==='Supplies');
+  openOptionPicker({
+    title:'Select DRAW Supplies pack',
+    options:assets.map(asset=>({
+      id:asset.id,
+      name:assetDisplayLabel(asset),
+      description:asset.description||'',
+      image:assetPreviewUrl(asset),
+      tags:['DRAW','LOCAL']
+    })),
+    selected:state.asset && assetKind(state.asset)==='Supplies' ? state.asset.id : '',
+    onSelect:id=>{
+      const asset=assetById(id);
+      if (asset) selectBrowseAsset(asset);
+    }
+  });
+}
+
 function renderVariantEditor() {
   const root=$('#assetVariantControls');
   const tests=$('#assetTestControls');
@@ -441,7 +476,25 @@ function renderVariantEditor() {
   const kind=assetKind(asset);
   const p=policy(asset);
 
-  if (kind==='Sprite') {
+  if (kind==='Supplies') {
+    const items=Array.isArray(asset?.supplyData?.items)?asset.supplyData.items:[];
+    const list=document.createElement('div');
+    list.className='supply-pack-list';
+    for (const item of items) {
+      const row=document.createElement('div');
+      row.className='supply-pack-item';
+      row.innerHTML=`<b>${escapeHtml(String(item.kind||'image').toUpperCase())}</b><span>${escapeHtml(String(item.name||item.id||'Supply'))}</span>`;
+      list.append(row);
+    }
+    root.append(list);
+    const note=document.createElement('small');
+    note.className='variant-note';
+    note.textContent='SUPPLIES INSTALL DIRECTLY INTO THIS BROWSER\'S LOCAL DRAW LIBRARY. NO ACCOUNT, CREDIT, OR FIRESTORE HOLDING IS CREATED.';
+    root.append(note);
+    addTestButton(tests,'OPEN DRAW',()=>{location.href='/draw/#supplies'},'openDrawSuppliesButton');
+  }
+
+  else if (kind==='Sprite') {
     if (Array.isArray(p.stylePresets) && p.stylePresets.length) {
       const select=document.createElement('select');
       select.className='variant-select';
@@ -758,7 +811,13 @@ async function renderSelectedAsset() {
   const image=$('#assetImagePreview');
   const kind=assetKind();
 
-  if (kind==='Sprite') {
+  if (kind==='Supplies') {
+    canvas.hidden=true;
+    image.hidden=false;
+    image.src=assetPreviewUrl(state.asset);
+    image.alt=`${assetDisplayLabel(state.asset)} preview`;
+    state.supplyPackInstalled=await isDrawSupplyPackInstalled(state.asset.id).catch(()=>false);
+  } else if (kind==='Sprite') {
     canvas.hidden=false;
     image.hidden=true;
     const spriteVariant=state.selectedHolding
@@ -773,7 +832,10 @@ async function renderSelectedAsset() {
   }
 
   const price=$('#assetPriceTag');
-  if (state.selectedHolding) {
+  if (kind==='Supplies') {
+    price.textContent=state.supplyPackInstalled?'LOCAL':'FREE';
+    price.classList.remove('is-paid');
+  } else if (state.selectedHolding) {
     price.textContent='OWNED';
     price.classList.remove('is-paid');
   } else {
@@ -789,6 +851,14 @@ async function renderSelectedAsset() {
 function updateObtainState() {
   const button=$('#obtainAsset');
   if (!button || !state.asset) return;
+
+  if (assetKind()==='Supplies') {
+    button.disabled=state.supplyInstallBusy;
+    button.textContent=state.supplyInstallBusy
+      ? 'INSTALLING LOCALLY…'
+      : (state.supplyPackInstalled?'REINSTALL TO DRAW':'INSTALL TO DRAW · LOCAL');
+    return;
+  }
 
   if (state.selectedHolding) {
     button.disabled=true;
@@ -821,6 +891,24 @@ function updateObtainState() {
 }
 
 async function acquireSelectedAsset() {
+  if (state.asset && assetKind()==='Supplies' && !state.selectedHolding) {
+    if (state.supplyInstallBusy) return;
+    state.supplyInstallBusy=true;
+    updateObtainState();
+    try {
+      const result=await installDrawSupplyPack(state.asset);
+      state.supplyPackInstalled=true;
+      say(`${result.installed} local Supply item${result.installed===1?'':'s'} installed. Open DRAW → SUPPLIES.`,'ok');
+    } catch (error) {
+      console.error('Install DRAW Supplies',error);
+      say(`Could not install Supplies: ${error?.message||error}`,'error');
+    } finally {
+      state.supplyInstallBusy=false;
+      updateObtainState();
+    }
+    return;
+  }
+
   if (!state.identity?.profileId || !auth.currentUser || !state.asset || state.selectedHolding) {
     return say('Select a Browse asset and sign in first.','error');
   }
@@ -1153,7 +1241,7 @@ async function loadCatalog() {
   state.catalog=await response.json();
 
   const assets=state.catalog.assets||[];
-  const counts={Sprite:0,Audio:0,Mode:0,World:0,Effect:0,Icon:0};
+  const counts={Sprite:0,Audio:0,Mode:0,World:0,Effect:0,Icon:0,Supplies:0};
   for (const asset of assets) {
     const kind=assetKind(asset);
     if (kind in counts) counts[kind]++;
@@ -1166,6 +1254,7 @@ async function loadCatalog() {
   $('#worldAssetCount').textContent=String(counts.World).padStart(2,'0');
   $('#effectAssetCount').textContent=String(counts.Effect).padStart(2,'0');
   $('#iconAssetCount').textContent=String(counts.Icon).padStart(2,'0');
+  $('#suppliesAssetCount').textContent=String(counts.Supplies).padStart(2,'0');
   $('#gameAssetCount').textContent=String(counts.Mode).padStart(2,'0');
 
   if (!assets.length) throw new Error('No public assets are available.');
@@ -1173,6 +1262,7 @@ async function loadCatalog() {
 }
 
 $('#chooseAsset')?.addEventListener('click',chooseAsset);
+$('#chooseSupplyAsset')?.addEventListener('click',chooseSupplyAsset);
 $('#obtainAsset')?.addEventListener('click',acquireSelectedAsset);
 $('#inventoryViewButton')?.addEventListener('click',()=>{
   state.archiveView=false;

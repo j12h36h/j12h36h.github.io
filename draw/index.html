@@ -39,6 +39,7 @@
       <button type="button" id="openProject">OPEN PROJECT</button>
       <button type="button" id="openImage">OPEN IMAGE</button>
       <button type="button" id="importLayer">IMPORT LAYER</button>
+      <button type="button" id="openSupplies">SUPPLIES</button>
       <button type="button" id="saveProject">SAVE PROJECT</button>
       <span class="draw-toolbar-sep"></span>
       <button type="button" id="undoButton">UNDO</button>
@@ -119,7 +120,25 @@
           <button type="button" id="resizeDocument">RESIZE CANVAS</button>
         </section>
 
-        <section class="draw-side-section draw-layers">
+
+        <section class="draw-side-section draw-supplies" id="drawSupplies">
+          <header><span>LOCAL</span><b>SUPPLIES</b></header>
+          <p class="draw-supplies-note">BRUSHES, SPRITES, AND IMAGES STAY IN THIS BROWSER. DEVICE IMPORTS ARE NEVER UPLOADED.</p>
+          <div class="draw-supply-actions">
+            <button id="importBrushSupply" type="button">+ BRUSH</button>
+            <button id="importSpriteSupply" type="button">+ SPRITE</button>
+            <button id="importImageSupply" type="button">+ IMAGE</button>
+          </div>
+          <div id="drawSupplyList" class="draw-supply-list"><p class="draw-supplies-empty">NO LOCAL SUPPLIES YET.</p></div>
+          <div class="draw-supply-use-actions">
+            <button id="useSupply" type="button" disabled>USE SELECTED</button>
+            <button id="resetBrushSupply" type="button">ROUND BRUSH</button>
+            <button id="deleteSupply" type="button" disabled>DELETE</button>
+          </div>
+          <a class="draw-supplies-library-link" href="/content/">OPEN PUBLIC SUPPLIES →</a>
+        </section>
+
+        <section class="draw-side-section draw-layers>
           <header><span>FRAME <b id="activeFrameNumber">01</b></span><b>LAYERS</b></header>
           <div class="draw-layer-actions">
             <button id="addLayer" type="button">+</button>
@@ -166,9 +185,12 @@
   <input id="projectFileInput" type="file" accept=".erasdraw.json,application/json,.json" hidden>
   <input id="imageFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
   <input id="layerFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+  <input id="brushSupplyInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+  <input id="spriteSupplyInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+  <input id="imageSupplyInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
 
   <script type="module" src="/account/assets/js/account.js"></script>
-  <script type="module" src="./draw.js?v=1.0.0"></script>
-  <script src="/assets/js/mobile-creator-workspace.js?v=20260912-6"></script>
+  <script type="module" src="./draw.js?v=1.1.0"></script>
+  <script src="/assets/js/mobile-creator-workspace.js?v=20260912-7"></script>
 </body>
 </html>

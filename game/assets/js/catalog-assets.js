@@ -23,6 +23,7 @@ export function assetCategory(asset) {
   const rawCategory = String(asset?.category || '').trim().toLowerCase();
   const id = String(asset?.id || '').trim().toLowerCase();
 
+  if (['supplies','supply','supply-pack','brush-pack','sprite-pack'].includes(rawType) || ['supplies','drawing-supplies','canvas-supplies'].includes(rawCategory)) return 'Supplies';
   if (rawCategory === 'game-mode-icons' || id.includes('mode_') || rawType === 'mode') return 'Mode';
   if (['audio','sound','music'].includes(rawType) || ['audio','sounds','music'].includes(rawCategory)) return 'Audio';
 
@@ -71,6 +72,10 @@ export function assetCatalogVariantLabel(asset) {
     const value = String(asset?.colorName || asset?.color || asset?.variantColor || '').trim();
     return value ? titleWords(value) : 'Undefined';
   }
+  if (kind === 'Supplies') {
+    const count=Array.isArray(asset?.supplyData?.items) ? asset.supplyData.items.length : 0;
+    return count ? `${count} Item${count===1?'':'s'}` : 'Pack';
+  }
   if (kind === 'Icon') {
     const value = String(asset?.colorName || asset?.color || asset?.variantColor || '').trim();
     return value ? titleWords(value) : 'Undefined';
@@ -99,6 +104,7 @@ export function assetCanFillRole(asset, requiredRole='') {
   const kind = assetCategory(asset);
   const role = String(requiredRole || '').trim().toLowerCase();
 
+  if (role === 'supplies' || role === 'supply') return kind === 'Supplies';
   if (role === 'sprite') return kind === 'Sprite' || kind === 'Icon';
   if (role === 'icon') return kind === 'Icon';
   if (role === 'model' || role === '3d-object') return kind === 'Object' || kind === 'Structure';

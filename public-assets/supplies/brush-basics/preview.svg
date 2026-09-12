@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<rect width="512" height="512" fill="#140d08"/>
+<rect x="28" y="28" width="456" height="456" fill="none" stroke="#9a633c" stroke-width="3"/>
+<g fill="#d8aa79">
+<circle cx="146" cy="150" r="58"/>
+<rect x="300" y="94" width="112" height="112"/>
+<rect x="136" y="294" width="20" height="116"/><rect x="88" y="342" width="116" height="20"/>
+<circle cx="356" cy="352" r="70" opacity=".22"/><circle cx="356" cy="352" r="44" opacity=".48"/><circle cx="356" cy="352" r="20"/>
+</g>
+<text x="256" y="470" text-anchor="middle" font-family="monospace" font-size="22" letter-spacing="5" fill="#d8aa79">BRUSH BASICS</text>
+</svg>
