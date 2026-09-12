@@ -1,0 +1,45 @@
+{
+  "id": "/",
+  "name": "Project E.R.A.S.",
+  "short_name": "E.R.A.S.",
+  "description": "External Reality Access System — one installable runtime for Play, LCS, D.A.I., creation tools, and the E.R.A.S. Universe.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#02090b",
+  "theme_color": "#02090b",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "categories": ["social", "games", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/assets/icons/eras-app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/eras-app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Logical Communication Service",
+      "short_name": "LCS",
+      "url": "/logicalcommunicationservice/"
+    },
+    {
+      "name": "Play",
+      "short_name": "Play",
+      "url": "/game/"
+    },
+    {
+      "name": "D.A.I. Engine",
+      "short_name": "D.A.I.",
+      "url": "/dai/"
+    }
+  ]
+}
