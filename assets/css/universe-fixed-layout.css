@@ -116,10 +116,10 @@
   body.universe-main-page {
     --eras-visible-w: 800px;
     --eras-visible-h: 360px;
-    --eras-landscape-stage: 268px;
-    --eras-landscape-stage-top: 202px;
-    --eras-landscape-core: 150px;
-    --eras-landscape-planet: 106px;
+    --eras-landscape-stage: 214px;
+    --eras-landscape-stage-top: 158px;
+    --eras-landscape-core: 120px;
+    --eras-landscape-planet: 86px;
     --eras-side-panel-w: 136px;
     --eras-side-panel-h: 100px;
 
@@ -166,7 +166,7 @@
   .universe-main-page .node-play {
     left: 50% !important;
     right: auto !important;
-    top: -3% !important;
+    top: 0% !important;
     bottom: auto !important;
     transform: translateX(-50%) !important;
     text-align: center !important;
@@ -177,7 +177,7 @@
     left: 50% !important;
     right: auto !important;
     top: auto !important;
-    bottom: -4% !important;
+    bottom: 0% !important;
     transform: translateX(-50%) !important;
     text-align: center !important;
     justify-items: center !important;
@@ -227,7 +227,7 @@
     left: 4% !important;
     right: auto !important;
     top: auto !important;
-    bottom: 10% !important;
+    bottom: 13% !important;
     transform: none !important;
     text-align: left !important;
     justify-items: start !important;
@@ -237,7 +237,7 @@
     right: 4% !important;
     left: auto !important;
     top: auto !important;
-    bottom: 10% !important;
+    bottom: 13% !important;
     transform: none !important;
     text-align: right !important;
     justify-items: end !important;

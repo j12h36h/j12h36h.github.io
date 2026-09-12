@@ -41,21 +41,22 @@
     const verticalRoom = Math.max(220, h - 74);
 
     const stage = Math.round(Math.max(
-      220,
+      184,
       Math.min(
-        300,
-        verticalRoom * 0.88,
-        horizontalRoom * 0.78
+        250,
+        verticalRoom * 0.76,
+        horizontalRoom * 0.70
       )
     ));
 
-    const headerClearance = Math.max(44, Math.round(h * 0.12));
-    const stageTop = Math.round(
-      headerClearance + Math.max(stage / 2, (h - headerClearance) / 2)
-    );
+    const headerClearance = Math.max(42, Math.round(h * 0.11));
+    const stageTop = Math.round(Math.max(
+      headerClearance + stage / 2 + 2,
+      h * 0.53
+    ));
 
-    const core = Math.round(Math.min(stage * 0.56, 164));
-    const planet = Math.round(Math.min(stage * 0.40, 116));
+    const core = Math.round(Math.min(stage * 0.56, 142));
+    const planet = Math.round(Math.min(stage * 0.40, 101));
 
     body.style.setProperty('--eras-visible-w', `${w}px`);
     body.style.setProperty('--eras-visible-h', `${h}px`);
