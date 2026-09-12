@@ -2073,9 +2073,9 @@ function publicBaseStatus(message,level="ok"){
 }
 async function publicBaseRegistryLoad(){
   if(publicBaseRegistry)return publicBaseRegistry;
-  let response=await fetch("../api/public-bases.json",{cache:"no-store"});
+  let response=await fetch("../api/packs-4.0.json",{cache:"no-store"});
   if(!response.ok){
-    response=await fetch("../api/packs.json",{cache:"no-store"});
+    response=await fetch("../api/public-bases.json",{cache:"no-store"});
     if(!response.ok)throw new Error(`Registry HTTP ${response.status}`);
   }
   publicBaseRegistry=await response.json();return publicBaseRegistry;

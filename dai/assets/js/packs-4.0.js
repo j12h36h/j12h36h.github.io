@@ -16,7 +16,7 @@
 
   function firstSourcePage(pack) {
     const component = Array.isArray(pack?.components) ? pack.components[0] : null;
-    return component?.source_page || pack?.info_url || '#';
+    return component?.source_page || component?.download_url || pack?.info_url || '#';
   }
 
   function componentSummary(pack) {
@@ -64,8 +64,13 @@
       const response = await fetch(REGISTRY_URL, { cache: 'no-store' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const registry = await response.json();
-      const experiences = registry?.sections?.experience_packs || [];
-      const addons = registry?.sections?.addons || [];
+      const canonicalPacks = Array.isArray(registry?.packs) ? registry.packs : [];
+      const experiences = canonicalPacks.length
+        ? canonicalPacks.filter(pack => ['experience_pack','experience','world','game'].includes(String(pack?.public_type || pack?.kind || '').toLowerCase()))
+        : (registry?.sections?.experience_packs || []);
+      const addons = canonicalPacks.length
+        ? canonicalPacks.filter(pack => ['addon','add-on','add_on','extension','module'].includes(String(pack?.public_type || pack?.kind || '').toLowerCase()))
+        : (registry?.sections?.addons || []);
 
       renderGrid(EXPERIENCE_GRID, experiences, 'experience');
       renderGrid(ADDON_GRID, addons, 'addon');

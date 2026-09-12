@@ -1,6 +1,6 @@
 {
-  "schema": 2,
-  "source": "github",
+  "schema": 3,
+  "source": "github+canonical-dai-4-network",
   "repository": "https://github.com/j12h36h/decisions_and_impulses",
   "repository_api": "https://api.github.com/repos/j12h36h/decisions_and_impulses/contents",
   "packs": [
@@ -19,7 +19,9 @@
           "file_name": "AutoCraft_MineShaft_v2.2.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/AutoCraft_MineShaft_v2.2.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/AutoCraft_MineShaft_v2.2.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/AutoCraft_MineShaft_v2.2.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/AutoCraft_MineShaft_v2.2.0.zip",
+          "version": "2.2.0"
         }
       ],
       "pack_class": "experience",
@@ -27,12 +29,13 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "DUNGEON RPG"
+      "display_tag": "DUNGEON RPG",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:boxhead",
       "name": "Boxhead",
-      "version": "0.3.0 HD",
+      "version": "0.3.6",
       "type": "combo",
       "featured": true,
       "summary": "Current public Boxhead snapshot from the DAI GitHub repository.",
@@ -41,18 +44,22 @@
         {
           "id": "boxhead_data",
           "type": "datapack",
-          "file_name": "Boxhead_Data_v0.3.0_HD.zip",
+          "file_name": "Boxhead_Data_v0.3.6.zip",
           "source": "github",
-          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Boxhead_Data_v0.3.0_HD.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Boxhead_Data_v0.3.0_HD.zip"
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Boxhead_Data_v0.3.6.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Boxhead_Data_v0.3.6.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Boxhead_Data_v0.3.6.zip",
+          "version": "0.3.6"
         },
         {
           "id": "boxhead_resource",
           "type": "resource_pack",
-          "file_name": "Boxhead_Resource_v0.3.0_HD.zip",
+          "file_name": "Boxhead_Resource_v0.3.4.zip",
           "source": "github",
-          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Boxhead_Resource_v0.3.0_HD.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Boxhead_Resource_v0.3.0_HD.zip"
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Boxhead_Resource_v0.3.4.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Boxhead_Resource_v0.3.4.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Boxhead_Resource_v0.3.4.zip",
+          "version": "0.3.4"
         }
       ],
       "pack_class": "experience",
@@ -60,7 +67,8 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "ARCADE SURVIVAL"
+      "display_tag": "ARCADE SURVIVAL",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:claygrounds",
@@ -77,7 +85,9 @@
           "file_name": "ClayGrounds_Data_v0.7.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/ClayGrounds_Data_v0.7.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/ClayGrounds_Data_v0.7.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/ClayGrounds_Data_v0.7.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/ClayGrounds_Data_v0.7.0.zip",
+          "version": "0.7.0"
         },
         {
           "id": "claygrounds_resource",
@@ -85,7 +95,9 @@
           "file_name": "ClayGrounds_Resource_v0.7.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/ClayGrounds_Resource_v0.7.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/ClayGrounds_Resource_v0.7.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/ClayGrounds_Resource_v0.7.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/ClayGrounds_Resource_v0.7.0.zip",
+          "version": "0.7.0"
         }
       ],
       "pack_class": "experience",
@@ -93,7 +105,8 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "RPG"
+      "display_tag": "RPG",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:comic_effects",
@@ -110,7 +123,9 @@
           "file_name": "DAI_ComicEffects_Data_v1.5.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_ComicEffects_Data_v1.5.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_ComicEffects_Data_v1.5.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_ComicEffects_Data_v1.5.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_ComicEffects_Data_v1.5.0.zip",
+          "version": "1.5.0"
         },
         {
           "id": "comic_effects_resource",
@@ -118,7 +133,9 @@
           "file_name": "DAI_ComicEffects_Resource_v1.5.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/DAI_ComicEffects_Resource_v1.5.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/DAI_ComicEffects_Resource_v1.5.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/DAI_ComicEffects_Resource_v1.5.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/DAI_ComicEffects_Resource_v1.5.0.zip",
+          "version": "1.5.0"
         }
       ],
       "pack_class": "addon",
@@ -126,7 +143,8 @@
       "engine_4_section": "addons",
       "role": "stackable_addon",
       "engine_line": "4.0",
-      "display_tag": "VISUAL FX"
+      "display_tag": "VISUAL FX",
+      "public_type": "addon"
     },
     {
       "id": "decisions_and_impulses:damage_indicators",
@@ -143,7 +161,9 @@
           "file_name": "DAI_Damage_Indicators_v1.6.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Damage_Indicators_v1.6.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Damage_Indicators_v1.6.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Damage_Indicators_v1.6.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Damage_Indicators_v1.6.0.zip",
+          "version": "1.6.0"
         }
       ],
       "pack_class": "addon",
@@ -151,7 +171,8 @@
       "engine_4_section": "addons",
       "role": "stackable_addon",
       "engine_line": "4.0",
-      "display_tag": "COMBAT FEEDBACK"
+      "display_tag": "COMBAT FEEDBACK",
+      "public_type": "addon"
     },
     {
       "id": "decisions_and_impulses:fun_survival",
@@ -168,7 +189,9 @@
           "file_name": "DAI_Fun_v0.6.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Fun_v0.6.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Fun_v0.6.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Fun_v0.6.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Fun_v0.6.0.zip",
+          "version": "0.6.0"
         }
       ],
       "pack_class": "addon",
@@ -176,7 +199,8 @@
       "engine_4_section": "addons",
       "role": "stackable_addon",
       "engine_line": "4.0",
-      "display_tag": "SURVIVAL AUTOMATION"
+      "display_tag": "SURVIVAL AUTOMATION",
+      "public_type": "addon"
     },
     {
       "id": "decisions_and_impulses:kittys_dagger",
@@ -193,7 +217,9 @@
           "file_name": "DAI_Kittys_Dagger_Data_v0.6.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Kittys_Dagger_Data_v0.6.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Kittys_Dagger_Data_v0.6.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Kittys_Dagger_Data_v0.6.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Kittys_Dagger_Data_v0.6.0.zip",
+          "version": "0.6.0"
         }
       ],
       "pack_class": "addon",
@@ -201,7 +227,8 @@
       "engine_4_section": "addons",
       "role": "stackable_addon",
       "engine_line": "4.0",
-      "display_tag": "COMBAT INPUT"
+      "display_tag": "COMBAT INPUT",
+      "public_type": "addon"
     },
     {
       "id": "decisions_and_impulses:survival_interface",
@@ -218,7 +245,9 @@
           "file_name": "DAI_Survival_Interface_v0.4.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Survival_Interface_v0.4.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Survival_Interface_v0.4.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DAI_Survival_Interface_v0.4.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DAI_Survival_Interface_v0.4.0.zip",
+          "version": "0.4.0"
         }
       ],
       "pack_class": "addon",
@@ -226,7 +255,8 @@
       "engine_4_section": "addons",
       "role": "stackable_addon",
       "engine_line": "4.0",
-      "display_tag": "HUD / TARGETING"
+      "display_tag": "HUD / TARGETING",
+      "public_type": "addon"
     },
     {
       "id": "decisions_and_impulses:dirtbikelife",
@@ -243,7 +273,9 @@
           "file_name": "DirtBikeLife_Data_v0.1.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DirtBikeLife_Data_v0.1.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DirtBikeLife_Data_v0.1.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/DirtBikeLife_Data_v0.1.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/DirtBikeLife_Data_v0.1.0.zip",
+          "version": "0.1.0"
         },
         {
           "id": "dirtbikelife_resource",
@@ -251,7 +283,9 @@
           "file_name": "DirtBikeLife_Resource_v0.1.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/DirtBikeLife_Resource_v0.1.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/DirtBikeLife_Resource_v0.1.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/DirtBikeLife_Resource_v0.1.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/DirtBikeLife_Resource_v0.1.0.zip",
+          "version": "0.1.0"
         }
       ],
       "pack_class": "experience",
@@ -259,7 +293,8 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "VEHICLE EXPERIENCE"
+      "display_tag": "VEHICLE EXPERIENCE",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:echo_time",
@@ -276,7 +311,9 @@
           "file_name": "EchoTime_v1.2.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/EchoTime_v1.2.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/EchoTime_v1.2.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/EchoTime_v1.2.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/EchoTime_v1.2.0.zip",
+          "version": "1.2.0"
         }
       ],
       "pack_class": "addon",
@@ -284,7 +321,8 @@
       "engine_4_section": "addons",
       "role": "stackable_addon",
       "engine_line": "4.0",
-      "display_tag": "TIME"
+      "display_tag": "TIME",
+      "public_type": "addon"
     },
     {
       "id": "decisions_and_impulses:hollow_spiral",
@@ -301,7 +339,9 @@
           "file_name": "HollowSpiral_Data_v0.7.1.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/HollowSpiral_Data_v0.7.1.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/HollowSpiral_Data_v0.7.1.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/HollowSpiral_Data_v0.7.1.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/HollowSpiral_Data_v0.7.1.zip",
+          "version": "0.7.1"
         },
         {
           "id": "hollow_spiral_resource",
@@ -309,7 +349,9 @@
           "file_name": "HollowSpiral_Resource_v0.7.1.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/HollowSpiral_Resource_v0.7.1.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/HollowSpiral_Resource_v0.7.1.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/HollowSpiral_Resource_v0.7.1.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/HollowSpiral_Resource_v0.7.1.zip",
+          "version": "0.7.1"
         }
       ],
       "pack_class": "experience",
@@ -317,7 +359,8 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "SURVIVAL"
+      "display_tag": "SURVIVAL",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:minetrigger",
@@ -334,7 +377,9 @@
           "file_name": "MineTrigger_Data_v0.9.5.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/MineTrigger_Data_v0.9.5.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/MineTrigger_Data_v0.9.5.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/MineTrigger_Data_v0.9.5.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/MineTrigger_Data_v0.9.5.zip",
+          "version": "0.9.5"
         },
         {
           "id": "minetrigger_resource",
@@ -342,7 +387,9 @@
           "file_name": "MineTrigger_Resource_v0.9.5.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/MineTrigger_Resource_v0.9.5.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/MineTrigger_Resource_v0.9.5.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/MineTrigger_Resource_v0.9.5.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/MineTrigger_Resource_v0.9.5.zip",
+          "version": "0.9.5"
         }
       ],
       "pack_class": "experience",
@@ -350,12 +397,13 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "COMBAT"
+      "display_tag": "COMBAT",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:musashi_story",
       "name": "Musashi Story",
-      "version": "1.4.0",
+      "version": "1.5.0",
       "type": "combo",
       "featured": true,
       "summary": "Current public Musashi Story snapshot from the DAI GitHub repository.",
@@ -364,18 +412,22 @@
         {
           "id": "musashi_story_data",
           "type": "datapack",
-          "file_name": "MusashiStory_Data_v1.4.0.zip",
+          "file_name": "MusashiStory_Data_v1.5.0.zip",
           "source": "github",
-          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/MusashiStory_Data_v1.4.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/MusashiStory_Data_v1.4.0.zip"
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/MusashiStory_Data_v1.5.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/MusashiStory_Data_v1.5.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/MusashiStory_Data_v1.5.0.zip",
+          "version": "1.5.0"
         },
         {
           "id": "musashi_story_resource",
           "type": "resource_pack",
-          "file_name": "MusashiStory_Resource_v1.4.0.zip",
+          "file_name": "MusashiStory_Resource_v1.5.0.zip",
           "source": "github",
-          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/MusashiStory_Resource_v1.4.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/MusashiStory_Resource_v1.4.0.zip"
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/MusashiStory_Resource_v1.5.0.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/MusashiStory_Resource_v1.5.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/MusashiStory_Resource_v1.5.0.zip",
+          "version": "1.5.0"
         }
       ],
       "pack_class": "experience",
@@ -383,7 +435,8 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "SAMURAI RPG"
+      "display_tag": "SAMURAI RPG",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:patch_and_release",
@@ -400,7 +453,9 @@
           "file_name": "Patch_and_Release_DAI_v0.2.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Patch_and_Release_DAI_v0.2.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Patch_and_Release_DAI_v0.2.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Patch_and_Release_DAI_v0.2.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Patch_and_Release_DAI_v0.2.0.zip",
+          "version": "0.2.0"
         }
       ],
       "pack_class": "addon",
@@ -408,12 +463,13 @@
       "engine_4_section": "addons",
       "role": "stackable_addon",
       "engine_line": "4.0",
-      "display_tag": "DEVELOPMENT / RELEASE"
+      "display_tag": "DEVELOPMENT / RELEASE",
+      "public_type": "addon"
     },
     {
       "id": "decisions_and_impulses:space_between_blocks",
       "name": "Space Between Blocks",
-      "version": "0.2.0",
+      "version": "0.4.11",
       "type": "combo",
       "featured": true,
       "summary": "Current public Space Between Blocks snapshot from the DAI GitHub repository.",
@@ -422,18 +478,22 @@
         {
           "id": "space_between_blocks_data",
           "type": "datapack",
-          "file_name": "Space_Between_Blocks_Data_v0.2.0.zip",
+          "file_name": "Space_Between_Blocks_Data_v0.4.11.zip",
           "source": "github",
-          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Space_Between_Blocks_Data_v0.2.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Space_Between_Blocks_Data_v0.2.0.zip"
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Space_Between_Blocks_Data_v0.4.11.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Space_Between_Blocks_Data_v0.4.11.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Space_Between_Blocks_Data_v0.4.11.zip",
+          "version": "0.4.11"
         },
         {
           "id": "space_between_blocks_resource",
           "type": "resource_pack",
-          "file_name": "Space_Between_Blocks_Resource_v0.2.0.zip",
+          "file_name": "Space_Between_Blocks_Resource_v0.4.11.zip",
           "source": "github",
-          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Space_Between_Blocks_Resource_v0.2.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Space_Between_Blocks_Resource_v0.2.0.zip"
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Space_Between_Blocks_Resource_v0.4.11.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Space_Between_Blocks_Resource_v0.4.11.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Space_Between_Blocks_Resource_v0.4.11.zip",
+          "version": "0.4.11"
         }
       ],
       "pack_class": "experience",
@@ -441,12 +501,13 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "SPACE RPG"
+      "display_tag": "SPACE RPG",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:tamacrafti",
       "name": "TamaCrafti",
-      "version": "2.4.10",
+      "version": "2.4.18",
       "type": "combo",
       "featured": true,
       "summary": "Current public TamaCrafti snapshot from the DAI GitHub repository.",
@@ -455,18 +516,22 @@
         {
           "id": "tamacrafti_data",
           "type": "datapack",
-          "file_name": "TamaCrafti_Data_v2.4.10.zip",
+          "file_name": "TamaCrafti_Data_v2.4.18.zip",
           "source": "github",
-          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/TamaCrafti_Data_v2.4.10.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/TamaCrafti_Data_v2.4.10.zip"
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/TamaCrafti_Data_v2.4.18.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/TamaCrafti_Data_v2.4.18.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/TamaCrafti_Data_v2.4.18.zip",
+          "version": "2.4.18"
         },
         {
           "id": "tamacrafti_resource",
           "type": "resource_pack",
-          "file_name": "TamaCrafti_Resource_v2.4.10.zip",
+          "file_name": "TamaCrafti_Resource_v2.4.18.zip",
           "source": "github",
-          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/TamaCrafti_Resource_v2.4.10.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/TamaCrafti_Resource_v2.4.10.zip"
+          "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/TamaCrafti_Resource_v2.4.18.zip",
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/TamaCrafti_Resource_v2.4.18.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/TamaCrafti_Resource_v2.4.18.zip",
+          "version": "2.4.18"
         }
       ],
       "pack_class": "experience",
@@ -474,7 +539,8 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "VIRTUAL PET"
+      "display_tag": "VIRTUAL PET",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:tower_of_dlc",
@@ -491,7 +557,9 @@
           "file_name": "Tower_of_DLC_Data_v0.2.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Tower_of_DLC_Data_v0.2.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Tower_of_DLC_Data_v0.2.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/Tower_of_DLC_Data_v0.2.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/Tower_of_DLC_Data_v0.2.0.zip",
+          "version": "0.2.0"
         },
         {
           "id": "tower_of_dlc_resource",
@@ -499,7 +567,9 @@
           "file_name": "Tower_of_DLC_Resource_v0.2.0.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Tower_of_DLC_Resource_v0.2.0.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Tower_of_DLC_Resource_v0.2.0.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/resource/Tower_of_DLC_Resource_v0.2.0.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/resource/Tower_of_DLC_Resource_v0.2.0.zip",
+          "version": "0.2.0"
         }
       ],
       "pack_class": "experience",
@@ -507,7 +577,8 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "TOWER"
+      "display_tag": "TOWER",
+      "public_type": "experience_pack"
     },
     {
       "id": "decisions_and_impulses:world_of_addons",
@@ -524,7 +595,9 @@
           "file_name": "World_of_Addons_Data_v0.3.1.zip",
           "source": "github",
           "source_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/World_of_Addons_Data_v0.3.1.zip",
-          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/World_of_Addons_Data_v0.3.1.zip"
+          "source_page": "https://github.com/j12h36h/decisions_and_impulses/blob/main/data/World_of_Addons_Data_v0.3.1.zip",
+          "download_url": "https://raw.githubusercontent.com/j12h36h/decisions_and_impulses/main/data/World_of_Addons_Data_v0.3.1.zip",
+          "version": "0.3.1"
         }
       ],
       "pack_class": "experience",
@@ -532,7 +605,8 @@
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
       "engine_line": "4.0",
-      "display_tag": "ADDON-DRIVEN WORLD"
+      "display_tag": "ADDON-DRIVEN WORLD",
+      "public_type": "experience_pack"
     }
   ],
   "engine_4_sections": {
@@ -558,5 +632,7 @@
       "decisions_and_impulses:echo_time",
       "decisions_and_impulses:patch_and_release"
     ]
-  }
+  },
+  "canonical_registry": "/dai/api/packs-4.0.json",
+  "updated_at": "2026-09-12T21:14:00Z"
 }

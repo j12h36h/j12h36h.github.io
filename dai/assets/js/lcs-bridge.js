@@ -14,7 +14,7 @@
     script.dataset.daiShared = key;
     document.head.appendChild(script);
   };
-  addModule('/dai/assets/js/dai-version.js?v=20260910-v39', 'version');
+  addModule('/dai/assets/js/dai-version.js?v=20260912-v40-network', 'version');
   addModule('/assets/js/site-presence.js?v=20260904-p1', 'presence');
 
   // DAI shell navigation rule:

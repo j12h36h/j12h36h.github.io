@@ -1,6 +1,6 @@
 // Single browser-facing DAI version source.
 // Update this one value when the public engine version advances.
-export const DAI_VERSION = '3.9';
+export const DAI_VERSION = '4.0';
 export const DAI_VERSION_LABEL = `DAI ${DAI_VERSION}`;
 
 const SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA']);
