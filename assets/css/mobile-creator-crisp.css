@@ -300,3 +300,72 @@ body.code-page.eras-creator-mobile .code-bottom-panel.eras-mobile-panel {
   body.eras-creator-mobile .eras-mobile-panel,
   body.eras-creator-mobile .eras-mobile-workspace-backdrop { transition:none !important; }
 }
+
+
+/* =========================================================
+   v2 — INTERACTION FIX
+   Secondary editor panels are mounted directly under <body> on mobile.
+   No full-screen dimming/click-blocking layer is used.
+   ========================================================= */
+
+body.eras-creator-mobile .eras-mobile-workspace-backdrop,
+body.eras-creator-mobile .eras-mobile-workspace-backdrop-crisp {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Body-mounted panels are no longer trapped inside the editor workspace's
+   clipping/stacking context. */
+body.eras-creator-mobile > .eras-mobile-panel,
+body.eras-creator-mobile > .eras-mobile-panel-crisp {
+  z-index: 920 !important;
+  pointer-events: none !important;
+  isolation: isolate !important;
+}
+
+body.eras-creator-mobile > .eras-mobile-panel.eras-mobile-open,
+body.eras-creator-mobile > .eras-mobile-panel-crisp.eras-mobile-open {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Preserve the appropriate layout for editor/tool panels once moved to body. */
+body.draw-page.eras-creator-mobile > .draw-tools-panel.eras-mobile-open,
+body.draw-page.eras-creator-mobile > .draw-properties-panel.eras-mobile-open,
+body.code-page.eras-creator-mobile > .code-explorer.eras-mobile-open,
+body.code-page.eras-creator-mobile > .code-inspector.eras-mobile-open {
+  display: block !important;
+}
+
+body.sad-page.eras-creator-mobile > .sad-editor-panel.eras-mobile-open {
+  display: grid !important;
+  grid-template-rows: auto minmax(0,1fr) auto !important;
+}
+
+body.sad-page.eras-creator-mobile > .sad-reference-panel.eras-mobile-open {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 7px !important;
+}
+
+body.draw-page.eras-creator-mobile > .draw-toolbar.eras-mobile-open,
+body.sad-page.eras-creator-mobile > .sad-toolbar.eras-mobile-open,
+body.code-page.eras-creator-mobile > .code-toolbar.eras-mobile-open {
+  display: flex !important;
+}
+
+body.code-page.eras-creator-mobile > .code-bottom-panel.eras-mobile-open {
+  display: block !important;
+}
+
+/* Keep dock and utility hub above body-mounted panels. */
+body.eras-creator-mobile .eras-mobile-creator-dock {
+  z-index: 940 !important;
+}
+body.eras-creator-mobile .eras-action-wrap {
+  z-index: 950 !important;
+}

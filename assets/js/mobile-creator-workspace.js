@@ -1,13 +1,13 @@
 (() => {
   const body = document.body;
-  if (!body || body.dataset.erasCreatorMobileV5 === '1') return;
+  if (!body || body.dataset.erasCreatorMobileV6 === '1') return;
 
   const isDraw = body.classList.contains('draw-page');
   const isAnimation = body.classList.contains('sad-page');
   const isCode = body.classList.contains('code-page');
   if (!isDraw && !isAnimation && !isCode) return;
 
-  body.dataset.erasCreatorMobileV5 = '1';
+  body.dataset.erasCreatorMobileV6 = '1';
 
   const configs = isDraw ? [
     { label: 'Canvas', symbol: '▣', closeOnly: true },
@@ -32,14 +32,13 @@
   dock.className = 'eras-mobile-creator-dock eras-mobile-creator-dock-crisp';
   dock.setAttribute('aria-label', 'Mobile editor controls');
 
-  const backdrop = document.createElement('div');
-  backdrop.className = 'eras-mobile-workspace-backdrop eras-mobile-workspace-backdrop-crisp';
-  backdrop.setAttribute('aria-hidden', 'true');
-
   const panels = new Set();
+  const panelSlots = new Map();
   const buttons = [];
   let homeButton = null;
+  let activePanel = null;
   let activeMobile = false;
+  let lastLandscape = null;
   let resizeTimer = 0;
 
   function dims() {
@@ -58,6 +57,7 @@
       navigator.maxTouchPoints > 0 ||
       'ontouchstart' in window ||
       window.matchMedia?.('(pointer:coarse)').matches;
+
     return !!(touch && shortSide <= 900 && longSide <= 1600);
   }
 
@@ -65,21 +65,63 @@
     if (!config.target) return null;
     const el = document.querySelector(config.target);
     if (!el) return null;
+
     el.classList.add('eras-mobile-panel', 'eras-mobile-panel-crisp');
     el.dataset.erasSide = config.side || 'bottom';
     panels.add(el);
+
+    if (!panelSlots.has(el)) {
+      panelSlots.set(el, {
+        parent: el.parentNode,
+        next: el.nextSibling,
+        placeholder: null
+      });
+    }
+
     return el;
   }
 
+  function mountPanelsToBody() {
+    panels.forEach(panel => {
+      if (panel.parentNode === document.body) return;
+
+      const slot = panelSlots.get(panel);
+      if (!slot) return;
+
+      if (!slot.placeholder || !slot.placeholder.isConnected) {
+        slot.placeholder = document.createComment('eras-mobile-panel-slot');
+        panel.parentNode?.insertBefore(slot.placeholder, panel);
+      }
+
+      document.body.appendChild(panel);
+    });
+  }
+
+  function restorePanels() {
+    panels.forEach(panel => {
+      const slot = panelSlots.get(panel);
+      if (!slot) return;
+
+      if (slot.placeholder?.parentNode) {
+        slot.placeholder.parentNode.insertBefore(panel, slot.placeholder);
+        slot.placeholder.remove();
+        slot.placeholder = null;
+      } else if (slot.parent?.isConnected) {
+        if (slot.next?.parentNode === slot.parent) slot.parent.insertBefore(panel, slot.next);
+        else slot.parent.appendChild(panel);
+      }
+    });
+  }
+
   function markHome() {
-    buttons.forEach(b => b.classList.remove('is-active'));
+    buttons.forEach(button => button.classList.remove('is-active'));
     homeButton?.classList.add('is-active');
   }
 
   function closePanels() {
-    panels.forEach(p => p.classList.remove('eras-mobile-open'));
+    panels.forEach(panel => panel.classList.remove('eras-mobile-open'));
+    activePanel = null;
     body.classList.remove('eras-mobile-panel-active');
-    backdrop.setAttribute('aria-hidden', 'true');
     markHome();
   }
 
@@ -92,12 +134,15 @@
     const panel = targetFor(config);
     if (!panel) return;
 
+    mountPanelsToBody();
+
     const wasOpen =
+      panel === activePanel &&
       panel.classList.contains('eras-mobile-open') &&
       button.classList.contains('is-active');
 
-    panels.forEach(p => p.classList.remove('eras-mobile-open'));
-    buttons.forEach(b => b.classList.remove('is-active'));
+    panels.forEach(item => item.classList.remove('eras-mobile-open'));
+    buttons.forEach(item => item.classList.remove('is-active'));
 
     if (wasOpen) {
       closePanels();
@@ -106,8 +151,8 @@
 
     panel.classList.add('eras-mobile-open');
     button.classList.add('is-active');
+    activePanel = panel;
     body.classList.add('eras-mobile-panel-active');
-    backdrop.setAttribute('aria-hidden', 'false');
 
     if (config.scrollTo) {
       requestAnimationFrame(() => {
@@ -119,29 +164,38 @@
   }
 
   configs.forEach((config, index) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.innerHTML = `<b aria-hidden="true">${config.symbol}</b><span>${config.label}</span>`;
-    b.setAttribute('aria-label', config.label);
-    b.addEventListener('click', () => openPanel(config, b));
-    if (index === 0 || config.closeOnly) homeButton = b;
-    buttons.push(b);
-    dock.appendChild(b);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.innerHTML = `<b aria-hidden="true">${config.symbol}</b><span>${config.label}</span>`;
+    button.setAttribute('aria-label', config.label);
+    button.addEventListener('click', () => openPanel(config, button));
+
+    if (index === 0 || config.closeOnly) homeButton = button;
+    buttons.push(button);
+    dock.appendChild(button);
     targetFor(config);
   });
 
-  backdrop.addEventListener('click', closePanels);
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && activeMobile) closePanels();
-  });
+  document.body.appendChild(dock);
 
-  document.body.append(backdrop, dock);
+  // Tap outside an open panel to dismiss it, but NEVER intercept the tap.
+  // The user's tap can still reach the canvas/editor beneath after dismissal.
+  document.addEventListener('pointerdown', event => {
+    if (!activeMobile || !activePanel) return;
+    if (activePanel.contains(event.target) || dock.contains(event.target)) return;
+    if (event.target.closest?.('.eras-action-wrap,.eras-utility-backdrop,dialog')) return;
+    closePanels();
+  }, true);
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && activeMobile) closePanels();
+  });
 
   function refitDraw() {
     if (!isDraw || !activeMobile) return;
-    [50, 180, 420].forEach(ms => setTimeout(() => {
-      document.querySelector('#fitCanvas')?.click();
-    }, ms));
+    [50, 180, 420].forEach(delay => {
+      window.setTimeout(() => document.querySelector('#fitCanvas')?.click(), delay);
+    });
   }
 
   function sync() {
@@ -149,26 +203,42 @@
     document.documentElement.style.setProperty('--eras-editor-vw', `${width}px`);
     document.documentElement.style.setProperty('--eras-editor-vh', `${height}px`);
 
-    const next = shouldMobile();
+    const nextMobile = shouldMobile();
     const landscape = width > height;
+    const modeChanged = nextMobile !== activeMobile || landscape !== lastLandscape;
 
-    body.classList.toggle('eras-creator-mobile', next);
-    body.classList.toggle('eras-creator-landscape', next && landscape);
-    body.classList.toggle('eras-creator-portrait', next && !landscape);
+    body.classList.toggle('eras-creator-mobile', nextMobile);
+    body.classList.toggle('eras-creator-landscape', nextMobile && landscape);
+    body.classList.toggle('eras-creator-portrait', nextMobile && !landscape);
 
-    activeMobile = next;
-    closePanels();
-    if (next) refitDraw();
+    if (nextMobile) {
+      mountPanelsToBody();
+    } else {
+      closePanels();
+      restorePanels();
+    }
+
+    activeMobile = nextMobile;
+
+    if (modeChanged) {
+      closePanels();
+      refitDraw();
+    }
+
+    lastLandscape = landscape;
   }
 
   function scheduleSync() {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(sync, 50);
+    resizeTimer = window.setTimeout(sync, 50);
   }
 
   sync();
+
   window.addEventListener('resize', scheduleSync, { passive: true });
   window.addEventListener('orientationchange', scheduleSync, { passive: true });
   window.visualViewport?.addEventListener('resize', scheduleSync, { passive: true });
-  window.visualViewport?.addEventListener('scroll', scheduleSync, { passive: true });
+
+  // Intentionally no visualViewport "scroll" listener:
+  // Android browser chrome/keyboard movement must not close an active drawer.
 })();

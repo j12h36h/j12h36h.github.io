@@ -1,0 +1,43 @@
+/*
+  E.R.A.S. Universe — mobile touch target alignment
+
+  The visible node content is the interaction geometry.
+  Fixed-width invisible anchor boxes are removed on touch devices.
+*/
+
+body.eras-universe-touch-nav .system-stage {
+  pointer-events: none !important;
+}
+
+body.eras-universe-touch-nav .world-node {
+  width: fit-content !important;
+  min-width: 0 !important;
+  max-width: 112px !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent;
+  isolation: isolate;
+}
+
+body.eras-universe-touch-nav .node-play {
+  max-width: 112px !important;
+}
+
+body.eras-universe-touch-nav .node-options {
+  max-width: 108px !important;
+}
+
+/* Child graphics/text never form independent hit targets. The anchor itself
+   receives the tap, matching what the user sees. */
+body.eras-universe-touch-nav .world-node > b,
+body.eras-universe-touch-nav .world-node > span,
+body.eras-universe-touch-nav .world-node > small {
+  pointer-events: none !important;
+}
+
+body.eras-universe-touch-nav .universe-core,
+body.eras-universe-touch-nav .orbit,
+body.eras-universe-touch-nav .scan-ring,
+body.eras-universe-touch-nav .axis {
+  pointer-events: none !important;
+}
