@@ -1,0 +1,10 @@
+DAI 4.1 WEBSITE / CREATOR UPDATE
+
+- Site-wide current release branding moved to DAI Engine 4.1.
+- Browser Creator moved to 4.1 schema bundle and Visual Studio integration.
+- Creator schema parity added for reaction-event remapping, screen hide/overlay modes, data-screen styles and skill client_callable.
+- Added capabilities-4.1.json and guides-4.1.json.
+- Added packs-4.1.json as the current public registry while retaining packs-4.0.json as a compatibility endpoint.
+- Added 4.1 release guide and server-authority guide.
+- Updated current tutorials/guides to 4.1 branding while preserving explicit historical version pages.
+- Added documentation for dedicated-server presentation sync and JSON-owned gameplay/presentation mapping.

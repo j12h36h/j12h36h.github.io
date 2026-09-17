@@ -26,7 +26,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "DUNGEON RPG"
     },
     {
@@ -59,7 +59,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "ARCADE SURVIVAL"
     },
     {
@@ -92,7 +92,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "RPG"
     },
     {
@@ -125,7 +125,7 @@
       "stackable": true,
       "engine_4_section": "addons",
       "role": "stackable_addon",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "VISUAL FX"
     },
     {
@@ -150,7 +150,7 @@
       "stackable": true,
       "engine_4_section": "addons",
       "role": "stackable_addon",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "COMBAT FEEDBACK"
     },
     {
@@ -175,7 +175,7 @@
       "stackable": true,
       "engine_4_section": "addons",
       "role": "stackable_addon",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "SURVIVAL AUTOMATION"
     },
     {
@@ -200,7 +200,7 @@
       "stackable": true,
       "engine_4_section": "addons",
       "role": "stackable_addon",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "COMBAT INPUT"
     },
     {
@@ -225,7 +225,7 @@
       "stackable": true,
       "engine_4_section": "addons",
       "role": "stackable_addon",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "HUD / TARGETING"
     },
     {
@@ -258,7 +258,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "VEHICLE EXPERIENCE"
     },
     {
@@ -283,7 +283,7 @@
       "stackable": true,
       "engine_4_section": "addons",
       "role": "stackable_addon",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "TIME"
     },
     {
@@ -316,7 +316,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "SURVIVAL"
     },
     {
@@ -349,7 +349,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "COMBAT"
     },
     {
@@ -382,7 +382,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "SAMURAI RPG"
     },
     {
@@ -407,7 +407,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "DEVELOPMENT / RELEASE"
     },
     {
@@ -440,7 +440,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "SPACE RPG"
     },
     {
@@ -473,7 +473,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "VIRTUAL PET"
     },
     {
@@ -506,7 +506,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "TOWER"
     },
     {
@@ -531,7 +531,7 @@
       "stackable": false,
       "engine_4_section": "experience_packs",
       "role": "primary_experience",
-      "engine_line": "4.0",
+      "engine_line": "4.1",
       "display_tag": "ADDON-DRIVEN WORLD"
     }
   ],

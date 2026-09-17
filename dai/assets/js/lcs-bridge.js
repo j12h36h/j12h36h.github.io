@@ -66,7 +66,7 @@
       };
       const foundation = addGuideLink(foundationHref, 'Start From Zero', 'foundations', 'No coding, JSON, datapack or packaging knowledge required');
       const howto = addGuideLink('/dai/guides/how-to/', 'How-To Guide Index', 'howto', 'Build a DAI capability from scratch');
-      const capabilities = addGuideLink('/dai/guides/capabilities/', 'Complete 3.9 Capabilities', 'capabilities', 'DAI 3.9 runtime + data-driven framework inventory');
+      const capabilities = addGuideLink('/dai/guides/capabilities/', 'Complete 4.1 Capabilities', 'capabilities', 'DAI 4.1 runtime + data-driven framework inventory');
       const links = [foundation, howto, capabilities].filter(Boolean);
       if (!links.length) return;
       if (heading) {
@@ -97,7 +97,7 @@
     document.addEventListener('DOMContentLoaded', wireFoundationNavigation, { once: true });
   }
 
-  // DAI 3.9 home-page capability refresh without duplicating the large universe page.
+  // DAI 4.1 home-page capability refresh without duplicating the large universe page.
   // The static page keeps the existing world/project constellation; this shared layer
   // upgrades the engine summary and exposes the new source-derived documentation.
   const wire39Home = () => {
@@ -105,14 +105,14 @@
     const heroCopy = document.querySelector('.universe-hero-copy p');
     if (heroCopy && !heroCopy.dataset.dai39Summary) {
       heroCopy.dataset.dai39Summary = '1';
-      heroCopy.textContent = "DAI 3.9 turns datapacks, resource packs and JSON into a modular Minecraft game-development layer for complete experiences and reusable systems. 3.9 adds data-defined screen replacement, animated scene environments, story/archive profiles, input profiles, schema-driven Creator tooling and granular runtime module gating alongside DAI's existing content, world, automation, state, skills, cinematic and Mojang-bridge systems.";
+      heroCopy.textContent = "DAI 4.1 turns datapacks, resource packs and JSON into a modular Minecraft game-development layer for complete experiences and reusable systems. 4.1 adds server-authoritative multiplayer, replaceable/remappable reaction hooks, JSON screen replace/skin/overlay/hide, data-screen styling, dedicated-server presentation sync, schema-driven Creator tooling and granular runtime module gating alongside DAI's existing content, world, automation, state, skills, cinematic and Mojang-bridge systems.";
     }
     const actions = document.querySelector('.universe-hero-copy .hero-actions');
     if (actions && !actions.querySelector('a[href="/dai/guides/capabilities/"]')) {
       const link = document.createElement('a');
       link.className = 'button';
       link.href = '/dai/guides/capabilities/';
-      link.textContent = 'DAI 3.9 Capabilities';
+      link.textContent = 'DAI 4.1 Capabilities';
       actions.appendChild(link);
     }
     const releaseGrid = document.querySelector('.universe-release-grid, .release-grid');
@@ -120,7 +120,7 @@
       const card = document.createElement('div');
       card.className = 'release-item';
       card.dataset.dai39Release = '1';
-      card.innerHTML = '<span class="system-tag">DAI 3.9</span><strong>Presentation and story systems are now pack-defined engine primitives</strong><p>Screen overrides, animated scene environments, story/archive compilation, input profiles and the schema-driven Creator extend DAI without hardcoding project-specific behavior into the engine.</p>';
+      card.innerHTML = '<span class="system-tag">DAI 4.1</span><strong>Presentation and story systems are now pack-defined engine primitives</strong><p>Screen overrides, animated scene environments, story/archive compilation, input profiles and the schema-driven Creator extend DAI without hardcoding project-specific behavior into the engine.</p>';
       releaseGrid.prepend(card);
     }
   };
@@ -157,5 +157,5 @@
     if(el.closest('.lcs-context-inline')) return;
   });
 
-  // DAI 3.9 Creator parity is implemented by /dai/creator/assets/creator-3.9.js.
+  // DAI 4.1 Creator parity is implemented by /dai/creator/assets/creator-4.1.js.
 })();

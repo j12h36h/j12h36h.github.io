@@ -1,11 +1,12 @@
 // Single browser-facing DAI version source.
 // Update this one value when the public engine version advances.
-export const DAI_VERSION = '4.0';
+export const DAI_VERSION = '4.1';
 export const DAI_VERSION_LABEL = `DAI ${DAI_VERSION}`;
 
 const SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA']);
 const HISTORICAL_PATHS = [
   '/dai/guides/version-3-8',
+  '/dai/guides/version-3-9',
   '/dai/guides/runtime-dispatch-2-2',
   '/dai/guides/runtime-dispatch-3-0',
   '/dai/guides/runtime-dispatch-3-3',
@@ -17,17 +18,17 @@ function isHistoricalPage(){
 }
 
 const replacements = [
-  [/DAI Engine 3\.(?:3|5|8|9)/g, `DAI Engine ${DAI_VERSION}`],
-  [/DAI 3\.(?:3|5|8|9)/g, `DAI ${DAI_VERSION}`],
-  [/DAI \/\/ 3\.(?:3|5|8|9)/g, `DAI // ${DAI_VERSION}`],
-  [/\b3\.(?:3|5|8|9) engine\b/gi, `${DAI_VERSION} engine`],
-  [/\b3\.(?:3|5|8|9) runtime\b/gi, `${DAI_VERSION} runtime`],
-  [/\b3\.(?:3|5|8|9) condition\b/gi, `${DAI_VERSION} condition`],
-  [/\b3\.(?:3|5|8|9) action\b/gi, `${DAI_VERSION} action`],
-  [/\b3\.(?:3|5|8|9) companion\b/gi, `${DAI_VERSION} companion`],
-  [/\b3\.(?:3|5|8|9) native\b/gi, `${DAI_VERSION} native`],
-  [/\b3\.(?:3|5|8|9) framework\b/gi, `${DAI_VERSION} framework`],
-  [/\b3\.(?:3|5|8|9) creator\b/gi, `${DAI_VERSION} creator`]
+  [/DAI Engine (?:3\.(?:3|5|8|9)|4\.0)/g, `DAI Engine ${DAI_VERSION}`],
+  [/DAI (?:3\.(?:3|5|8|9)|4\.0)/g, `DAI ${DAI_VERSION}`],
+  [/DAI \/\/ (?:3\.(?:3|5|8|9)|4\.0)/g, `DAI // ${DAI_VERSION}`],
+  [/\b(?:3\.(?:3|5|8|9)|4\.0) engine\b/gi, `${DAI_VERSION} engine`],
+  [/\b(?:3\.(?:3|5|8|9)|4\.0) runtime\b/gi, `${DAI_VERSION} runtime`],
+  [/\b(?:3\.(?:3|5|8|9)|4\.0) condition\b/gi, `${DAI_VERSION} condition`],
+  [/\b(?:3\.(?:3|5|8|9)|4\.0) action\b/gi, `${DAI_VERSION} action`],
+  [/\b(?:3\.(?:3|5|8|9)|4\.0) companion\b/gi, `${DAI_VERSION} companion`],
+  [/\b(?:3\.(?:3|5|8|9)|4\.0) native\b/gi, `${DAI_VERSION} native`],
+  [/\b(?:3\.(?:3|5|8|9)|4\.0) framework\b/gi, `${DAI_VERSION} framework`],
+  [/\b(?:3\.(?:3|5|8|9)|4\.0) creator\b/gi, `${DAI_VERSION} creator`]
 ];
 
 function replaceValue(value){
