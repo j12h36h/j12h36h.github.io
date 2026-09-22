@@ -1,0 +1,270 @@
+/* D.A.I. discontinuation gate -------------------------------------------------
+   Shown when the D.A.I. Engine node is selected from the E.R.A.S. universe.
+   The dialog intentionally lives outside the D.A.I. site so visitors see the
+   archival status before entering it.
+---------------------------------------------------------------------------- */
+
+.dai-end-notice[hidden] { display: none !important; }
+
+.dai-end-notice {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 2.5vw, 32px);
+  color: #e9fbff;
+}
+
+.dai-end-notice__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(29, 102, 116, .22), transparent 42%),
+    rgba(0, 5, 8, .88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dai-end-notice__dialog {
+  position: relative;
+  width: min(920px, 100%);
+  max-height: min(88vh, 920px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid rgba(137, 235, 255, .32);
+  background:
+    linear-gradient(180deg, rgba(4, 21, 27, .98), rgba(2, 10, 14, .985)),
+    #020a0e;
+  box-shadow:
+    0 0 0 1px rgba(22, 180, 207, .08) inset,
+    0 28px 90px rgba(0, 0, 0, .66),
+    0 0 60px rgba(32, 172, 197, .10);
+  border-radius: 18px;
+}
+
+.dai-end-notice__dialog::before,
+.dai-end-notice__dialog::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.dai-end-notice__dialog::before {
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    linear-gradient(rgba(129, 231, 250, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(129, 231, 250, .035) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: linear-gradient(to bottom, #000, transparent 48%);
+}
+
+.dai-end-notice__dialog::after {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(111, 233, 255, .88), transparent);
+}
+
+.dai-end-notice__header,
+.dai-end-notice__actions {
+  position: relative;
+  z-index: 1;
+  background: rgba(3, 14, 19, .94);
+}
+
+.dai-end-notice__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(20px, 3vw, 32px);
+  border-bottom: 1px solid rgba(131, 224, 241, .16);
+}
+
+.dai-end-notice__eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #75dae9;
+  font: 700 .72rem/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .18em;
+}
+
+.dai-end-notice__header h1 {
+  margin: 0;
+  max-width: 760px;
+  color: #f3fdff;
+  font-size: clamp(1.35rem, 3vw, 2.35rem);
+  line-height: 1.08;
+  letter-spacing: -.025em;
+}
+
+.dai-end-notice__x {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(126, 220, 238, .26);
+  border-radius: 10px;
+  background: rgba(5, 28, 35, .82);
+  color: #bdeff6;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dai-end-notice__x:hover,
+.dai-end-notice__x:focus-visible {
+  border-color: rgba(135, 235, 255, .72);
+  color: #fff;
+  outline: none;
+}
+
+.dai-end-notice__body {
+  position: relative;
+  z-index: 1;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: clamp(22px, 3vw, 34px);
+  scrollbar-color: rgba(115, 212, 230, .5) rgba(3, 16, 21, .8);
+}
+
+.dai-end-notice__body p,
+.dai-end-notice__body li {
+  color: rgba(226, 247, 251, .82);
+  font-size: clamp(.92rem, 1.5vw, 1.02rem);
+  line-height: 1.72;
+}
+
+.dai-end-notice__body strong { color: #f5fdff; }
+
+.dai-end-notice__lead {
+  margin-top: 0;
+  font-size: clamp(1rem, 1.8vw, 1.14rem) !important;
+  color: rgba(235, 251, 255, .92) !important;
+}
+
+.dai-end-notice__body h2 {
+  margin: 0 0 10px;
+  color: #a9edf7;
+  font-size: clamp(1rem, 1.8vw, 1.22rem);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.dai-end-notice__body ul {
+  margin: 14px 0 22px;
+  padding-left: 1.2rem;
+}
+
+.dai-end-notice__body li + li { margin-top: 11px; }
+
+.dai-end-notice__rule {
+  height: 1px;
+  margin: 26px 0;
+  background: linear-gradient(90deg, rgba(108, 216, 236, .34), rgba(108, 216, 236, .05), transparent);
+}
+
+.dai-end-notice__final {
+  margin-top: 22px;
+  padding: 18px 20px;
+  border-left: 3px solid rgba(104, 225, 245, .75);
+  background: rgba(63, 173, 194, .075);
+}
+
+.dai-end-notice__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 26px 0 2px;
+  padding: 16px 18px;
+  border: 1px solid rgba(129, 225, 243, .22);
+  background: rgba(3, 25, 31, .86);
+}
+
+.dai-end-notice__status span {
+  color: #7dd9e8;
+  font: 700 .72rem/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .16em;
+}
+
+.dai-end-notice__status strong {
+  color: #f0fcff;
+  letter-spacing: .12em;
+}
+
+.dai-end-notice__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px clamp(20px, 3vw, 32px);
+  border-top: 1px solid rgba(131, 224, 241, .16);
+}
+
+.dai-end-notice__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 11px 17px;
+  border: 1px solid rgba(134, 226, 243, .28);
+  border-radius: 10px;
+  text-decoration: none;
+  font: 800 .76rem/1.15 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.dai-end-notice__button--secondary {
+  color: #b7e6ed;
+  background: rgba(4, 22, 28, .82);
+}
+
+.dai-end-notice__button--primary {
+  color: #031014;
+  border-color: #88eaff;
+  background: #88eaff;
+  box-shadow: 0 0 28px rgba(94, 218, 240, .18);
+}
+
+.dai-end-notice__button:hover,
+.dai-end-notice__button:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+  filter: brightness(1.08);
+}
+
+body.dai-end-notice-open { overflow: hidden; }
+
+@media (max-width: 640px) {
+  .dai-end-notice { padding: 0; }
+  .dai-end-notice__dialog {
+    width: 100%;
+    max-height: 100dvh;
+    min-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+  .dai-end-notice__header { padding: 18px 16px; }
+  .dai-end-notice__body { padding: 20px 16px 28px; }
+  .dai-end-notice__actions {
+    padding: 12px 14px max(12px, env(safe-area-inset-bottom));
+    flex-direction: column-reverse;
+  }
+  .dai-end-notice__button { width: 100%; }
+  .dai-end-notice__status { align-items: flex-start; flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dai-end-notice:not([hidden]) .dai-end-notice__dialog {
+    animation: daiEndNoticeIn 180ms ease-out both;
+  }
+  @keyframes daiEndNoticeIn {
+    from { opacity: 0; transform: translateY(10px) scale(.992); }
+    to { opacity: 1; transform: none; }
+  }
+}

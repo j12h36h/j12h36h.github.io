@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="/assets/css/universe-activity-cleanup.css?v=20260912-1">
   <link rel="stylesheet" href="/assets/css/action-menu.css?v=20260912-2">
   <link rel="stylesheet" href="/assets/css/universe-touch-targets.css?v=20260912-1">
+  <link rel="stylesheet" href="/assets/css/dai-discontinuation-notice.css?v=20260922-1">
 </head>
 <body class="universe-home universe-main-page">
   <div class="universe-frame" aria-hidden="true">
@@ -40,6 +41,64 @@
     </a>
     <div class="portal-auth-area" id="portalAuthArea" aria-live="polite"><div class="portal-auth-loading">CHECKING ACCOUNT…</div></div>
   </header>
+
+
+  <div class="dai-end-notice" id="daiEndNotice" hidden>
+    <div class="dai-end-notice__backdrop" data-dai-notice-close aria-hidden="true"></div>
+    <section class="dai-end-notice__dialog" role="dialog" aria-modal="true" aria-labelledby="daiEndNoticeTitle" aria-describedby="daiEndNoticeSummary" tabindex="-1">
+      <header class="dai-end-notice__header">
+        <div>
+          <span class="dai-end-notice__eyebrow">D.A.I. // FINAL TRANSMISSION</span>
+          <h1 id="daiEndNoticeTitle">D.A.I. Engine development has ended.</h1>
+        </div>
+        <button class="dai-end-notice__x" type="button" data-dai-notice-close aria-label="Close notice">×</button>
+      </header>
+
+      <div class="dai-end-notice__body">
+        <p id="daiEndNoticeSummary" class="dai-end-notice__lead"><strong>D.A.I. — Decisions and Impulses is no longer being developed or released.</strong> The project began as an experiment, became a JSON-driven Minecraft game framework, and grew into an ecosystem of complete experiences, creator tools, interfaces, automation, world systems and reusable content.</p>
+
+        <p>This decision was not made because development stopped, because there were no more ideas, or because players stopped downloading it. I am ending D.A.I. because continuing to build an actively developed framework around a distribution process I no longer consider dependable would be worse than ending the project cleanly.</p>
+
+        <div class="dai-end-notice__rule"></div>
+        <h2>Why development ended</h2>
+        <p>The decision follows a documented sequence of CurseForge / Overwolf moderation and support events involving D.A.I.:</p>
+
+        <ul>
+          <li><strong>Ticket #389488:</strong> CurseForge confirmed that I followed the correct available process for requesting supported Data Pack Loader consideration, confirmed there was no formal publicly available application process, and stated that my prior Discord warnings and ban were taken into account when the supported-loader review was declined.</li>
+          <li><strong>Ticket #389835:</strong> while Minecraft ModJam 2026 was active, CurseForge told me the Discord action would not affect my ModJam participation and had no bearing on ordinary CurseForge project moderation.</li>
+          <li><strong>Ticket #391097:</strong> after I requested an independent review of the moderation history that had begun affecting decisions outside Discord, CurseForge stated that the prior decisions were final and that it would no longer answer related tickets.</li>
+          <li><strong>Ticket #391488:</strong> D.A.I.-related projects were told to merge uploads or “space them out.” When I asked for the actual spacing interval, upload limit, merger criteria and published policy so I could comply, those standards were not provided.</li>
+          <li><strong>Ticket #394186:</strong> I requested review of increasingly extended manual-review delays affecting D.A.I. Engine releases. D.A.I. Engine 3.9 and 4.0 were rejected and removed with the message “Editing server files(JSON) is not allowed.” I requested the exact file, path, code behavior and published rule so I could make a compliant correction; a substantive technical answer was not provided while later releases continued through manual review.</li>
+          <li><strong>D.A.I. Engine 4.1 and 4.2:</strong> replacement versions subsequently remained simultaneously under manual review while D.A.I. Engine 3.8 remained the newest successfully published release.</li>
+        </ul>
+
+        <p>These events occurred during a period in which D.A.I. was continuing to grow and while the project was participating in Minecraft ModJam 2026. The concern about competition access and moderation impact was documented with support while the competition was still active, not created afterward.</p>
+
+        <div class="dai-end-notice__rule"></div>
+        <h2>What D.A.I. became</h2>
+        <p>D.A.I. grew into a framework where JSON could define actions, conditions, objectives, automation, recognition, menus, overlays, custom content, world initialization, persistent state and complete playable experiences. It became a way to build games with Minecraft as the engine.</p>
+
+        <p><strong>JSON stopped being merely configuration. JSON became gameplay.</strong></p>
+
+        <div class="dai-end-notice__rule"></div>
+        <h2>End of development</h2>
+        <p>I am willing to fix bugs, rewrite systems, redesign APIs and spend unreasonable amounts of time debugging Minecraft. What I am not willing to do is continue building releases when I cannot reliably determine when they will become available, why they are being held, what requirement I am expected to satisfy, or whether a completed fix will simply enter another extended review.</p>
+
+        <p>D.A.I. was built to remove unnecessary barriers between an idea and a playable experience. Continuing under these conditions would mean accepting exactly the kind of barrier the project was designed to eliminate.</p>
+
+        <p class="dai-end-notice__final">Rather than leave D.A.I. permanently trapped between development and moderation, <strong>I've decided to give it some mercy and put it out of its misery.</strong></p>
+
+        <p>The D.A.I. website remains online as a project archive: its systems, guides, experiences, screenshots, changelogs and history are being preserved so people can see what the experiment became.</p>
+
+        <p class="dai-end-notice__status"><span>DEVELOPMENT STATUS</span><strong>DISCONTINUED</strong></p>
+      </div>
+
+      <footer class="dai-end-notice__actions">
+        <button class="dai-end-notice__button dai-end-notice__button--secondary" type="button" data-dai-notice-close>Stay in E.R.A.S.</button>
+        <a class="dai-end-notice__button dai-end-notice__button--primary" href="/dai/" data-dai-notice-continue>Continue to D.A.I. Archive</a>
+      </footer>
+    </section>
+  </div>
 
   <main id="universe" class="universe-landing">
     <div class="cosmos" aria-hidden="true">
@@ -67,8 +126,8 @@
       <a class="world-node node-social" href="/logicalcommunicationservice/" aria-label="Social">
         <b aria-hidden="true"></b><span>SOCIAL</span><small data-mobile-label="LCS">Logical Communication Service</small>
       </a>
-      <a class="world-node node-information" href="/dai/" aria-label="Information">
-        <b aria-hidden="true"></b><span>D.A.I. Engine</span><small data-mobile-label="MC ENGINE">Minecraft Game Engine</small>
+      <a class="world-node node-information" href="/dai/" aria-label="D.A.I. Engine archive" data-dai-archive-entry>
+        <b aria-hidden="true"></b><span>D.A.I. Engine</span><small data-mobile-label="ARCHIVE">Discontinued // Project Archive</small>
       </a>
 
       <a class="world-node node-animation" href="/animation-engine/" aria-label="Simple Animation Designer">
@@ -151,5 +210,6 @@
   <script src="/assets/js/action-menu.js?v=20260912-4"></script>
   <script src="/assets/js/universe-fixed-layout.js?v=20260912-2"></script>
   <script src="/assets/js/universe-touch-targets.js?v=20260912-1"></script>
+  <script src="/assets/js/dai-discontinuation-notice.js?v=20260922-1"></script>
 </body>
 </html>
