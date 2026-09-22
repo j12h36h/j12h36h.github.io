@@ -1,4 +1,11 @@
 (() => {
+  // E.R.A.S. PWA registration
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .catch(err => console.warn('E.R.A.S. service worker registration failed:', err));
+    });
+  }
   if (document.querySelector('.eras-action-wrap')) return;
 
   const STYLE_ID='eras-action-menu-style-v2';
