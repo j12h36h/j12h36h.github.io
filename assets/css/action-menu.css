@@ -27,7 +27,9 @@
   opacity:0;transform:translateY(8px) scale(.98);pointer-events:none;
   transition:opacity .16s ease,transform .16s ease;
 }
+.eras-action-menu .eras-action-item{pointer-events:none}
 .eras-action-wrap.is-open .eras-action-menu{opacity:1;transform:none;pointer-events:auto}
+.eras-action-wrap.is-open .eras-action-menu .eras-action-item{pointer-events:auto}
 .eras-action-item{
   min-width:122px;height:38px;padding:0 12px;display:flex;align-items:center;gap:9px;
   border-radius:8px;font:700 10px/1 var(--mono,ui-monospace,monospace);

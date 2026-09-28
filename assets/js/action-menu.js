@@ -10,7 +10,7 @@
 
   const STYLE_ID='eras-action-menu-style-v2';
   if(!document.getElementById(STYLE_ID)){
-    const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='/assets/css/action-menu.css?v=20260912-2';document.head.appendChild(link);
+    const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='/assets/css/action-menu.css?v=20260928-1';document.head.appendChild(link);
   }
 
   // Chat is a site-wide utility now, so load its shared skin once and put the
@@ -50,7 +50,7 @@
   const makeItem=(label,svg)=>{const b=document.createElement('button');b.type='button';b.className='eras-action-item';b.setAttribute('role','menuitem');b.innerHTML=`${icon(svg)}<span>${label}</span>`;return b;};
 
   const wrap=document.createElement('div');wrap.className='eras-action-wrap';
-  const menu=document.createElement('div');menu.className='eras-action-menu';menu.setAttribute('role','menu');menu.setAttribute('aria-hidden','true');
+  const menu=document.createElement('div');menu.className='eras-action-menu';menu.setAttribute('role','menu');menu.setAttribute('aria-hidden','true');menu.inert=true;
 
   const share=makeItem('Share','<path d="M12 15V3"></path><path d="M8.5 6.5 12 3l3.5 3.5"></path><path d="M7 9H5.8A1.8 1.8 0 0 0 4 10.8v7.4A1.8 1.8 0 0 0 5.8 20h12.4a1.8 1.8 0 0 0 1.8-1.8v-7.4A1.8 1.8 0 0 0 18.2 9H17"></path>');
   const install=makeItem('Install','<path d="M12 3v11"></path><path d="m8 10 4 4 4-4"></path><path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"></path>');
@@ -70,7 +70,7 @@
 
   const showToast=message=>{clearTimeout(toastTimer);toast.textContent=message;toast.classList.add('is-visible');toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),1900);};
   window.ERASUtilityToast=showToast;
-  const setOpen=open=>{wrap.classList.toggle('is-open',open);menu.setAttribute('aria-hidden',String(!open));toggle.setAttribute('aria-expanded',String(open));};
+  const setOpen=open=>{wrap.classList.toggle('is-open',open);menu.setAttribute('aria-hidden',String(!open));menu.inert=!open;toggle.setAttribute('aria-expanded',String(open));};
   const showInstallHelp=message=>{installHelp.querySelector('p').textContent=message;installHelp.classList.add('is-visible');};
 
   function updateInstallState(){
