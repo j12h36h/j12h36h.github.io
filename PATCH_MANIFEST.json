@@ -1,14 +1,14 @@
 {
-  "patch": "SpaceStories",
-  "version": "1.3.1",
+  "patch": "E.R.A.S. Archives Direct Entry Links and Chapter Navigation",
+  "version": "1.0.0",
   "target": "j12h36h/j12h36h.github.io",
-  "created": "2026-09-07",
-  "entry": "/game/global/space-stories/",
+  "created": "2026-09-28",
+  "entry": "/archives/",
   "files": [
-    "game/global/index.html",
-    "game/global/space-stories/index.html",
-    "game/global/space-stories/space-stories.css",
-    "game/global/space-stories/space-stories.js",
-    "SPACESTORIES_PATCH.md"
+    "404.html",
+    "archives/index.html",
+    "archives/assets/archives.js",
+    "archives/assets/archives.css",
+    "archives/data/entry-template.json"
   ]
 }

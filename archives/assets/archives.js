@@ -11,6 +11,7 @@ const db = getFirestore(app);
 const $ = id => document.getElementById(id);
 const els = {
   count: $('entryCount'), search: $('archiveSearch'), categories: $('categoryList'), list: $('entryList'), reader: $('archiveReader'),
+  dialog: $('entryDialog'), dialogTitle: $('entryDialogTitle'), dialogBody: $('entryDialogBody'), copyLink: $('copyEntryLink'), closeDialog: $('closeEntryDialog'), linkStatus: $('entryLinkStatus'),
   status: $('founderStatus'), actions: $('adminActions'), editor: $('archiveEditor'), title: $('entryTitle'), author: $('entryAuthor'), category: $('entryCategory'), summary: $('entrySummary'), id: $('entryId'), json: $('entryJson'), editorStatus: $('editorStatus'),
   delete: $('deleteEntry'), save: $('saveEntry'), voice: $('entryVoice'), categoryOptions: $('archiveCategoryOptions')
 };
@@ -21,6 +22,20 @@ let editingId = '';
 let founder = false;
 let draft = null;
 let voices = [];
+let routeEntryId = requestedEntryId();
+
+function requestedEntryId(){
+  const url=new URL(location.href),queryId=url.searchParams.get('entry');
+  if(queryId)return queryId;
+  const match=url.pathname.match(/^\/archives\/([^/]+)\/?$/);
+  if(!match)return '';
+  try{return decodeURIComponent(match[1]);}catch(_){return match[1];}
+}
+function directEntryUrl(id){return new URL(`/archives/${encodeURIComponent(id)}`,location.origin).href;}
+function setEntryPath(id=''){
+  const path=id?`/archives/${encodeURIComponent(id)}`:'/archives/';
+  history.replaceState({archiveEntryId:id||''},'',path);
+}
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const slugify = value => String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,84) || `entry-${Date.now()}`;
@@ -29,7 +44,7 @@ const safeImage = value => {
   return /^(https:\/\/|\/)(?!\/)/i.test(src) && !/[\u0000-\u001f]/.test(src) ? src : '';
 };
 const template = (id='new-entry', title='New Archive Entry', author='', category='Uncategorized') => ({
-  schemaVersion:1,id,title,author,category,summary:'',order:entries.length,status:'published',series:'',chapter:0,
+  schemaVersion:1,id,title,author,category,summary:'',order:entries.length,status:'published',series:'',chapter:0,previousChapterId:'',nextChapterId:'',
   visual:{pageBackgroundColor:'#f0e8d7',pageTextColor:'#29251f',accentColor:'#7c3f26',fontFamily:'Georgia, serif',icon:{type:'emoji',value:'✦',animation:'none'},animation:{type:'fade',durationMs:500},characters:[]},
   content:[]
 });
@@ -90,6 +105,16 @@ function renderBlock(parent,block){
   if(block.type==='pagebreak'){const div=document.createElement('div');div.className='reader-pagebreak';div.textContent=block.label||'✦';parent.append(div);return;}
 }
 function fullText(entry){return (entry.content||[]).map(b=>[b.text,b.cite,b.caption].filter(Boolean).join(' — ')).join('\n\n');}
+function chapterNeighbors(entry){
+  const siblings=entry.series?entries.filter(item=>item.id!==entry.id&&item.series===entry.series&&Number.isFinite(Number(item.chapter))&&Number(item.chapter)>0).sort((a,b)=>Number(a.chapter)-Number(b.chapter)):[];
+  const current=Number(entry.chapter),hasNumber=Number.isFinite(current)&&current>0;
+  const previousId=String(entry.previousChapterId||entry.previousChapter||'').trim();
+  const nextId=String(entry.nextChapterId||entry.nextChapter||'').trim();
+  const previous=previousId?entries.find(item=>item.id===previousId):(hasNumber?siblings.find(item=>Number(item.chapter)===current-1):null);
+  const next=nextId?entries.find(item=>item.id===nextId):(hasNumber?siblings.find(item=>Number(item.chapter)===current+1):null);
+  const isChapter=Boolean(hasNumber||previousId||nextId);
+  return isChapter?{previous:previous||null,next:next||null}:null;
+}
 function speak(button,entry){
   if(!('speechSynthesis'in window)){button.disabled=true;button.textContent='SPEECH UNAVAILABLE';return;}
   window.speechSynthesis.cancel();const text=[entry.title,entry.author,fullText(entry)].filter(Boolean).join('. ');if(!text.trim())return;
@@ -97,8 +122,8 @@ function speak(button,entry){
   if(voice!=='default'){const found=voices.find(item=>item.name===voice);if(found)utterance.voice=found;}
   button.textContent='PLAYING…';utterance.onend=()=>button.textContent='READ ALOUD';utterance.onerror=()=>button.textContent='READ ALOUD';window.speechSynthesis.speak(utterance);
 }
-function renderEntry(entry,preview=false){
-  els.reader.replaceChildren();const visual=entry.visual||{}, page=document.createElement('div');page.className='reader-content';
+function renderEntry(entry,preview=false,target=els.reader){
+  target.replaceChildren();const visual=entry.visual||{}, page=document.createElement('div');page.className='reader-content';
   setSafeColor(page,'--reader-bg',visual.pageBackgroundColor,'#f0e8d7');setSafeColor(page,'--reader-text',visual.pageTextColor,'#29251f');setSafeColor(page,'--reader-accent',visual.accentColor,'#7c3f26');
   page.style.setProperty('--reader-font',/^[-\w ,"']{1,90}$/.test(String(visual.fontFamily||''))?visual.fontFamily:'Georgia, serif');
   const motion=['fade','rise','none'].includes(visual.animation?.type)?visual.animation.type:'fade';page.dataset.animation=motion;
@@ -109,14 +134,42 @@ function renderEntry(entry,preview=false){
   const pause=addText(tools,'button','PAUSE');pause.type='button';pause.addEventListener('click',()=>window.speechSynthesis?.pause());
   const resume=addText(tools,'button','RESUME');resume.type='button';resume.addEventListener('click',()=>window.speechSynthesis?.resume());
   const stop=addText(tools,'button','STOP');stop.type='button';stop.addEventListener('click',()=>{window.speechSynthesis?.cancel();play.textContent='READ ALOUD';});
+  if(!preview){const share=addText(tools,'button','COPY DIRECT LINK');share.type='button';share.addEventListener('click',()=>copyDirectLink(entry.id));}
   const voicePicker=document.createElement('select');voicePicker.setAttribute('aria-label','Choose browser speech voice');voicePicker.innerHTML='<option value="default">VOICE: BROWSER DEFAULT</option>'+voices.map(v=>`<option value="${escape(v.name)}">${escape(v.name)} (${escape(v.lang)})</option>`).join('');voicePicker.value=els.voice.value;voicePicker.addEventListener('change',()=>{els.voice.value=voicePicker.value;});tools.append(voicePicker);
   if(preview) tools.prepend(addText(document.createElement('span'),'span','PREVIEW','reader-byline'));
   head.append(tools);page.append(head);
   if(entry.summary)addText(page,'p',entry.summary,'reader-body');
-  const body=document.createElement('div');body.className='reader-body';for(const block of entry.content||[])renderBlock(body,block);page.append(body);els.reader.append(page);
-  if(founder&&!preview){const edit=document.createElement('button');edit.type='button';edit.className='archive-edit-current';edit.textContent='EDIT THIS JSON';edit.addEventListener('click',()=>openEditor(entry));els.reader.append(edit);}
+  const body=document.createElement('div');body.className='reader-body';for(const block of entry.content||[])renderBlock(body,block);page.append(body);
+  const chapter=chapterNeighbors(entry);
+  if(chapter){
+    const nav=document.createElement('nav');nav.className='archive-chapter-nav';nav.setAttribute('aria-label','Chapter navigation');
+    for(const [side,item,label] of [['previous',chapter.previous,'← PREVIOUS CHAPTER'],['next',chapter.next,'NEXT CHAPTER →']]){
+      if(!item){const spacer=document.createElement('span');spacer.className='chapter-nav-spacer';nav.append(spacer);continue;}
+      const button=document.createElement('button');button.type='button';button.className=`chapter-nav-button chapter-nav-${side}`;button.innerHTML=`<small>${label}</small><b>${escape(item.title||'Untitled')}</b>`;
+      button.addEventListener('click',()=>openEntry(item.id,{popup:target===els.dialogBody,updatePath:target===els.dialogBody}));nav.append(button);
+    }
+    page.append(nav);
+  }
+  target.append(page);
+  if(founder&&!preview){const edit=document.createElement('button');edit.type='button';edit.className='archive-edit-current';edit.textContent='EDIT THIS JSON';edit.addEventListener('click',()=>{if(els.dialog.open)closeEntryDialog();openEditor(entry);});target.append(edit);}
 }
-function openEntry(id){const entry=entries.find(item=>item.id===id);if(!entry)return;selectedId=id;renderEntries();renderEntry(entry);}
+function openEntry(id,{popup=false,updatePath=false}={}){
+  const entry=entries.find(item=>item.id===id);if(!entry)return false;
+  selectedId=id;renderEntries();renderEntry(entry);
+  if(popup){els.dialogTitle.textContent=entry.title||'Archive entry';els.linkStatus.textContent='';renderEntry(entry,false,els.dialogBody);if(!els.dialog.open)els.dialog.showModal();if(updatePath)setEntryPath(id);}
+  return true;
+}
+async function copyDirectLink(id){
+  const link=directEntryUrl(id);
+  try{await navigator.clipboard.writeText(link);els.linkStatus.textContent='Direct archive link copied.';}
+  catch(_){const box=document.createElement('textarea');box.value=link;box.setAttribute('readonly','');box.style.position='fixed';box.style.opacity='0';document.body.append(box);box.select();const copied=document.execCommand('copy');box.remove();els.linkStatus.textContent=copied?'Direct archive link copied.':'Copy this link: '+link;}
+}
+function closeEntryDialog(){if(els.dialog.open)els.dialog.close();routeEntryId='';setEntryPath();}
+function showUnavailableEntry(id){
+  els.dialogTitle.textContent='Archive entry unavailable';els.dialogBody.replaceChildren();
+  const message=document.createElement('div');message.className='reader-empty';message.innerHTML='<div class="empty-glyph">✳</div><h2>Entry not found</h2><p>This archive entry may have been removed or its link may be incorrect.</p>';els.dialogBody.append(message);
+  els.linkStatus.textContent=id?`Entry ID: ${id}`:'';if(!els.dialog.open)els.dialog.showModal();
+}
 function updateDraftFromFields(){if(!draft)return;draft.title=els.title.value.trim();draft.author=els.author.value.trim();draft.category=els.category.value.trim()||'Uncategorized';draft.summary=els.summary.value.trim();draft.id=slugify(els.id.value||draft.title);draft.status='published';els.id.value=draft.id;try{els.json.value=JSON.stringify(draft,null,2);}catch(_){} }
 function loadDraftToFields(entry){draft=structuredClone(entry);els.title.value=entry.title||'';els.author.value=entry.author||'';els.category.value=entry.category||'';els.summary.value=entry.summary||'';els.id.value=entry.id||slugify(entry.title);els.json.value=JSON.stringify(draft,null,2);}
 function openEditor(entry=null){if(!founder)return;editingId=entry?.id||'';const base=entry||template();loadDraftToFields(base);$('editorTitle').textContent=entry?'Edit archive entry':'New archive entry';els.delete.hidden=!entry;els.save.textContent=entry?'SAVE CHANGES':'PUBLISH ENTRY';els.editor.hidden=false;els.editor.scrollIntoView({behavior:'smooth',block:'start'});els.editorStatus.textContent='Edit entry text and design in JSON. Preview changes without publishing.';}
@@ -134,16 +187,22 @@ async function remove(){if(!founder||!editingId)return;if(!confirm('Delete this 
 function installSpeechVoices(){if(!('speechSynthesis'in window)){for(const button of document.querySelectorAll('.reader-tools button'))button.disabled=true;return;}const update=()=>{voices=window.speechSynthesis.getVoices();const selected=els.voice.value;els.voice.innerHTML='<option value="default">Browser default</option>'+voices.map(v=>`<option value="${escape(v.name)}">${escape(v.name)} (${escape(v.lang)})</option>`).join('');els.voice.value=voices.some(v=>v.name===selected)?selected:'default';};update();window.speechSynthesis.addEventListener?.('voiceschanged',update);}
 
 $('newEntryButton').addEventListener('click',()=>openEditor());$('dokkodoTemplateButton').addEventListener('click',freshDokkodo);$('fiveRingsTemplateButton').addEventListener('click',nextFiveRings);$('closeEditor').addEventListener('click',clearEditor);$('previewEntry').addEventListener('click',preview);els.save.addEventListener('click',save);els.delete.addEventListener('click',remove);els.search.addEventListener('input',renderEntries);
+els.closeDialog.addEventListener('click',closeEntryDialog);els.dialog.addEventListener('click',event=>{if(event.target===els.dialog)closeEntryDialog();});els.dialog.addEventListener('cancel',event=>{event.preventDefault();closeEntryDialog();});els.copyLink.addEventListener('click',()=>{if(selectedId)copyDirectLink(selectedId);});
 for(const field of [els.title,els.author,els.category,els.summary,els.id])field.addEventListener('input',updateDraftFromFields);
 $('formatJson').addEventListener('click',()=>{try{els.json.value=JSON.stringify(JSON.parse(els.json.value),null,2);els.editorStatus.textContent='JSON formatted.';}catch(error){els.editorStatus.textContent=String(error.message||error);}});
 $('applyJson').addEventListener('click',()=>{try{draft=parseEditorJson();els.title.value=draft.title||'';els.author.value=draft.author||'';els.category.value=draft.category||'';els.summary.value=draft.summary||'';els.id.value=draft.id||slugify(draft.title);els.editorStatus.textContent='JSON applied to entry fields.';}catch(error){els.editorStatus.textContent=String(error.message||error);}});
 
-onSnapshot(collection(db,'founderArchives'),snapshot=>{entries=snapshot.docs.map(s=>({id:s.id,...s.data()})).filter(entry=>entry.status==='published');renderCategories();renderEntries();if(selectedId&&entries.some(e=>e.id===selectedId))openEntry(selectedId);else if(!selectedId&&entries.length)openEntry(entries[0].id);},error=>{els.status.textContent=`Archive connection unavailable: ${error.message||error}`;});
+onSnapshot(collection(db,'founderArchives'),snapshot=>{
+  entries=snapshot.docs.map(s=>({id:s.id,...s.data()})).filter(entry=>entry.status==='published');renderCategories();renderEntries();
+  if(routeEntryId){if(!openEntry(routeEntryId,{popup:true,updatePath:true}))showUnavailableEntry(routeEntryId);}
+  else if(selectedId&&entries.some(e=>e.id===selectedId))openEntry(selectedId);
+  else if(!selectedId&&entries.length)openEntry(entries[0].id);
+},error=>{els.status.textContent=`Archive connection unavailable: ${error.message||error}`;});
 watchIdentity(async identity=>{
   founder=false;els.actions.hidden=true;
   if(!identity?.user){els.status.innerHTML='Founder tools require an E.R.A.S. account. <a href="/logicalcommunicationservice/">Sign in</a>.';return;}
   els.status.textContent='Verifying Founder authority…';
-  try{await getDoc(doc(db,'systemAuthority','founderProbe'));founder=true;els.status.textContent='Founder access verified. Edits publish to the shared archive.';els.actions.hidden=false;if(selectedId)openEntry(selectedId);}
+  try{await getDoc(doc(db,'systemAuthority','founderProbe'));founder=true;els.status.textContent='Founder access verified. Edits publish to the shared archive.';els.actions.hidden=false;if(selectedId)openEntry(selectedId,{popup:els.dialog.open});}
   catch(error){els.status.textContent=error?.code==='permission-denied'?'Read-only archive. Founder publishing tools are private.':`Founder check unavailable: ${error.message||error}`;}
 });
 installSpeechVoices();
