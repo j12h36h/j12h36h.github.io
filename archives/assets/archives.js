@@ -11,7 +11,6 @@ const db = getFirestore(app);
 const $ = id => document.getElementById(id);
 const els = {
   count: $('entryCount'), search: $('archiveSearch'), categories: $('categoryList'), list: $('entryList'), reader: $('archiveReader'),
-  dialog: $('entryDialog'), dialogTitle: $('entryDialogTitle'), dialogBody: $('entryDialogBody'), copyLink: $('copyEntryLink'), closeDialog: $('closeEntryDialog'), linkStatus: $('entryLinkStatus'),
   status: $('founderStatus'), actions: $('adminActions'), editor: $('archiveEditor'), title: $('entryTitle'), author: $('entryAuthor'), category: $('entryCategory'), summary: $('entrySummary'), id: $('entryId'), json: $('entryJson'), editorStatus: $('editorStatus'),
   delete: $('deleteEntry'), save: $('saveEntry'), voice: $('entryVoice'), categoryOptions: $('archiveCategoryOptions')
 };
@@ -22,20 +21,10 @@ let editingId = '';
 let founder = false;
 let draft = null;
 let voices = [];
-let routeEntryId = requestedEntryId();
-
-function requestedEntryId(){
-  const url=new URL(location.href),queryId=url.searchParams.get('entry');
-  if(queryId)return queryId;
-  const match=url.pathname.match(/^\/archives\/([^/]+)\/?$/);
-  if(!match)return '';
-  try{return decodeURIComponent(match[1]);}catch(_){return match[1];}
-}
-function directEntryUrl(id){return new URL(`/archives/${encodeURIComponent(id)}`,location.origin).href;}
-function setEntryPath(id=''){
-  const path=id?`/archives/${encodeURIComponent(id)}`:'/archives/';
-  history.replaceState({archiveEntryId:id||''},'',path);
-}
+let selectedBookKey = '';
+let audioSession = null;
+let audioGeneration = 0;
+let pendingEntryId = new URL(location.href).searchParams.get('entry') || '';
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const slugify = value => String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,84) || `entry-${Date.now()}`;
@@ -44,7 +33,7 @@ const safeImage = value => {
   return /^(https:\/\/|\/)(?!\/)/i.test(src) && !/[\u0000-\u001f]/.test(src) ? src : '';
 };
 const template = (id='new-entry', title='New Archive Entry', author='', category='Uncategorized') => ({
-  schemaVersion:1,id,title,author,category,summary:'',order:entries.length,status:'published',series:'',chapter:0,previousChapterId:'',nextChapterId:'',
+  schemaVersion:1,id,title,author,category,summary:'',order:entries.length,status:'published',series:'',chapter:0,
   visual:{pageBackgroundColor:'#f0e8d7',pageTextColor:'#29251f',accentColor:'#7c3f26',fontFamily:'Georgia, serif',icon:{type:'emoji',value:'✦',animation:'none'},animation:{type:'fade',durationMs:500},characters:[]},
   content:[]
 });
@@ -54,23 +43,36 @@ function flattenedText(entry){
   for(const block of entry.content||[]) if(typeof block.text==='string') parts.push(block.text);
   return parts.join(' ').toLocaleLowerCase();
 }
+function bookKey(entry){return String(entry.series||'').trim()||String(entry.title||entry.id||'Archive');}
+function entryOrder(entry){const order=Number(entry.order);return Number.isFinite(order)?order:(Number(entry.chapter)||0);}
+function orderedEntries(items){return [...items].sort((a,b)=>entryOrder(a)-entryOrder(b)||String(a.title).localeCompare(String(b.title)));}
+function bookGroups(source=entries){
+  const groups=new Map();
+  for(const entry of source){const key=bookKey(entry);if(!groups.has(key))groups.set(key,{key,title:key,entries:[]});groups.get(key).entries.push(entry);}
+  return [...groups.values()].map(group=>({...group,entries:orderedEntries(group.entries)}))
+    .sort((a,b)=>entryOrder(a.entries[0]||{})-entryOrder(b.entries[0]||{})||a.title.localeCompare(b.title));
+}
 function visibleEntries(){
   const q=els.search.value.trim().toLocaleLowerCase();
   return entries.filter(entry=>(selectedCategory==='*'||entry.category===selectedCategory)&&(!q||flattenedText(entry).includes(q)))
     .sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0)||String(a.title).localeCompare(String(b.title)));
 }
 function renderCategories(){
-  const counts=new Map(); for(const entry of entries) counts.set(entry.category||'Uncategorized',(counts.get(entry.category||'Uncategorized')||0)+1);
+  const counts=new Map(); for(const group of bookGroups()) {const cat=group.entries[0]?.category||'Uncategorized';counts.set(cat,(counts.get(cat)||0)+1);}
   const categories=['*',...Array.from(counts.keys()).sort((a,b)=>a.localeCompare(b))];
-  els.categories.innerHTML=categories.map(cat=>`<button type="button" class="${selectedCategory===cat?'active':''}" data-category="${escape(cat)}">${cat==='*'?'All entries':escape(cat)} <span>${cat==='*'?entries.length:counts.get(cat)}</span></button>`).join('')||'<p class="archive-no-entries">No categories yet.</p>';
+  els.categories.innerHTML=categories.map(cat=>`<button type="button" class="${selectedCategory===cat?'active':''}" data-category="${escape(cat)}">${cat==='*'?'All books':escape(cat)} <span>${cat==='*'?bookGroups().length:counts.get(cat)}</span></button>`).join('')||'<p class="archive-no-entries">No categories yet.</p>';
   els.categories.querySelectorAll('[data-category]').forEach(button=>button.addEventListener('click',()=>{selectedCategory=button.dataset.category;renderCategories();renderEntries();}));
   els.categoryOptions.innerHTML=Array.from(counts.keys()).sort().map(cat=>`<option value="${escape(cat)}"></option>`).join('');
 }
 function renderEntries(){
-  const rows=visibleEntries();
-  els.count.textContent=`${entries.length} ${entries.length===1?'entry':'entries'}`;
-  els.list.innerHTML=rows.length?rows.map(entry=>`<button type="button" data-entry="${escape(entry.id)}" class="${selectedId===entry.id?'active':''}">${escape(entry.title||'Untitled')}<span>${escape(entry.author||'Unknown author')} · ${escape(entry.category||'Uncategorized')}</span></button>`).join(''):'<p class="archive-no-entries">No published entries match here yet.</p>';
-  els.list.querySelectorAll('[data-entry]').forEach(button=>button.addEventListener('click',()=>openEntry(button.dataset.entry)));
+  const groups=bookGroups(visibleEntries());
+  els.count.textContent=`${groups.length} ${groups.length===1?'book':'books'} · ${entries.length} entries`;
+  els.list.innerHTML=groups.length?groups.map(group=>{
+    const authors=[...new Set(group.entries.map(entry=>entry.author).filter(Boolean))].join(', ')||'Unknown author';
+    const count=group.entries.length;
+    return `<button type="button" data-book="${escape(group.key)}" class="${selectedBookKey===group.key?'active':''}">${escape(group.title)}<span>${escape(authors)} · ${count} ${count===1?'entry':'chapters'}</span></button>`;
+  }).join(''):'<p class="archive-no-entries">No books match this search.</p>';
+  els.list.querySelectorAll('[data-book]').forEach(button=>button.addEventListener('click',()=>openBook(button.dataset.book)));
 }
 function addText(parent,tag,text,className='') { const el=document.createElement(tag); if(className) el.className=className; el.textContent=String(text??''); parent.append(el); return el; }
 function setSafeColor(element,property,value,fallback){const color=String(value||''); if(/^#[0-9a-f]{3,8}$/i.test(color)||/^rgba?\([\d\s,.%/+-]+\)$/i.test(color)||/^hsla?\([\d\s,.%/+-]+\)$/i.test(color)) element.style.setProperty(property,color); else element.style.setProperty(property,fallback);}
@@ -105,71 +107,91 @@ function renderBlock(parent,block){
   if(block.type==='pagebreak'){const div=document.createElement('div');div.className='reader-pagebreak';div.textContent=block.label||'✦';parent.append(div);return;}
 }
 function fullText(entry){return (entry.content||[]).map(b=>[b.text,b.cite,b.caption].filter(Boolean).join(' — ')).join('\n\n');}
-function chapterNeighbors(entry){
-  const siblings=entry.series?entries.filter(item=>item.id!==entry.id&&item.series===entry.series&&Number.isFinite(Number(item.chapter))&&Number(item.chapter)>0).sort((a,b)=>Number(a.chapter)-Number(b.chapter)):[];
-  const current=Number(entry.chapter),hasNumber=Number.isFinite(current)&&current>0;
-  const previousId=String(entry.previousChapterId||entry.previousChapter||'').trim();
-  const nextId=String(entry.nextChapterId||entry.nextChapter||'').trim();
-  const previous=previousId?entries.find(item=>item.id===previousId):(hasNumber?siblings.find(item=>Number(item.chapter)===current-1):null);
-  const next=nextId?entries.find(item=>item.id===nextId):(hasNumber?siblings.find(item=>Number(item.chapter)===current+1):null);
-  const isChapter=Boolean(hasNumber||previousId||nextId);
-  return isChapter?{previous:previous||null,next:next||null}:null;
+function speechChunks(items){
+  const chunks=[];
+  for(const entry of items){
+    const text=[entry.title,entry.author,fullText(entry)].filter(Boolean).join('. ');
+    for(const paragraph of text.split(/\n\s*\n/)){
+      let remaining=paragraph.trim();
+      while(remaining){if(remaining.length<=220){chunks.push(remaining);break;}
+        let cut=Math.max(remaining.lastIndexOf('. ',220),remaining.lastIndexOf('? ',220),remaining.lastIndexOf('! ',220),remaining.lastIndexOf(' ',220));
+        if(cut<100)cut=220;chunks.push(remaining.slice(0,cut).trim());remaining=remaining.slice(cut).trim();}
+    }
+  }
+  return chunks.filter(Boolean);
 }
-function speak(button,entry){
-  if(!('speechSynthesis'in window)){button.disabled=true;button.textContent='SPEECH UNAVAILABLE';return;}
-  window.speechSynthesis.cancel();const text=[entry.title,entry.author,fullText(entry)].filter(Boolean).join('. ');if(!text.trim())return;
-  const utterance=new SpeechSynthesisUtterance(text);const voice=els.voice.value;
-  if(voice!=='default'){const found=voices.find(item=>item.name===voice);if(found)utterance.voice=found;}
-  button.textContent='PLAYING…';utterance.onend=()=>button.textContent='READ ALOUD';utterance.onerror=()=>button.textContent='READ ALOUD';window.speechSynthesis.speak(utterance);
+function runAudioChunk(session){
+  if(audioSession!==session||session.paused)return;
+  if(session.index>=session.chunks.length){session.playButton.textContent=session.label;audioSession=null;return;}
+  if(!('speechSynthesis'in window)){session.playButton.textContent='SPEECH UNAVAILABLE';audioSession=null;return;}
+  const chunk=session.chunks[session.index].slice(session.offset||0);if(!chunk){session.index++;session.offset=0;runAudioChunk(session);return;}
+  const utterance=new SpeechSynthesisUtterance(chunk);session.utterance=utterance;session.offsetBase=session.offset||0;const runId=session.runId=(session.runId||0)+1;
+  const voice=els.voice.value;if(voice!=='default'){const found=voices.find(item=>item.name===voice);if(found)utterance.voice=found;}
+  utterance.onboundary=event=>{if(audioSession===session&&session.runId===runId&&!session.paused&&Number.isFinite(event.charIndex))session.offset=session.offsetBase+event.charIndex;};
+  utterance.onend=()=>{if(audioSession!==session||session.runId!==runId||session.paused)return;session.index++;session.offset=0;setTimeout(()=>runAudioChunk(session),30);};
+  utterance.onerror=event=>{if(audioSession!==session||session.runId!==runId||session.paused)return;session.playButton.textContent=session.label;audioSession=null;};
+  session.playButton.textContent='PLAYING…';window.speechSynthesis.speak(utterance);
 }
-function renderEntry(entry,preview=false,target=els.reader){
-  target.replaceChildren();const visual=entry.visual||{}, page=document.createElement('div');page.className='reader-content';
+function startAudio(items,button,label){
+  stopAudio();const chunks=speechChunks(items);if(!chunks.length)return;
+  const session={chunks,index:0,offset:0,paused:false,playButton:button,label,generation:++audioGeneration};audioSession=session;setTimeout(()=>runAudioChunk(session),50);
+}
+function pauseAudio(){if(!audioSession||audioSession.paused)return;audioSession.paused=true;audioSession.runId=(audioSession.runId||0)+1;window.speechSynthesis?.cancel();audioSession.playButton.textContent='PAUSED';}
+function resumeAudio(){if(!audioSession||!audioSession.paused)return;audioSession.paused=false;const session=audioSession;setTimeout(()=>runAudioChunk(session),50);}
+function stopAudio(){if(audioSession){audioSession.playButton.textContent=audioSession.label;audioSession=null;}audioGeneration++;window.speechSynthesis?.cancel();}
+function audioControls(parent,items,playLabel){
+  const tools=document.createElement('div');tools.className='reader-tools';
+  const play=addText(tools,'button',playLabel);play.type='button';play.addEventListener('click',()=>startAudio(items,play,playLabel));
+  const pause=addText(tools,'button','PAUSE');pause.type='button';pause.addEventListener('click',pauseAudio);
+  const resume=addText(tools,'button','RESUME');resume.type='button';resume.addEventListener('click',resumeAudio);
+  const stop=addText(tools,'button','STOP');stop.type='button';stop.addEventListener('click',stopAudio);
+  const voicePicker=document.createElement('select');voicePicker.setAttribute('aria-label','Choose browser speech voice');voicePicker.innerHTML='<option value="default">VOICE: BROWSER DEFAULT</option>'+voices.map(v=>`<option value="${escape(v.name)}">${escape(v.name)} (${escape(v.lang)})</option>`).join('');voicePicker.value=els.voice.value;voicePicker.addEventListener('change',()=>{els.voice.value=voicePicker.value;});tools.append(voicePicker);parent.append(tools);return tools;
+}
+function renderEntry(entry,preview=false){
+  els.reader.replaceChildren();const visual=entry.visual||{}, page=document.createElement('div');page.className='reader-content';
   setSafeColor(page,'--reader-bg',visual.pageBackgroundColor,'#f0e8d7');setSafeColor(page,'--reader-text',visual.pageTextColor,'#29251f');setSafeColor(page,'--reader-accent',visual.accentColor,'#7c3f26');
   page.style.setProperty('--reader-font',/^[-\w ,"']{1,90}$/.test(String(visual.fontFamily||''))?visual.fontFamily:'Georgia, serif');
   const motion=['fade','rise','none'].includes(visual.animation?.type)?visual.animation.type:'fade';page.dataset.animation=motion;
   for(const character of (visual.characters||[]).slice(0,8)) if(character&&['top-left','top-right','bottom-left','bottom-right'].includes(character.placement)&&safeImage(character.src)){const img=document.createElement('img');img.className=`reader-character ${character.placement}`;img.src=safeImage(character.src);img.alt=character.alt||'';page.append(img);}
   const head=document.createElement('header');head.className='reader-head';const topline=document.createElement('div');topline.className='reader-topline';topline.append(iconNode(visual),addText(document.createElement('span'),'span',entry.category||'Archive'));head.append(topline);
   addText(head,'h2',entry.title||'Untitled');addText(head,'div',[entry.author,entry.series,entry.chapter?`Chapter ${entry.chapter}`:''].filter(Boolean).join(' · '),'reader-byline');
-  const tools=document.createElement('div');tools.className='reader-tools';const play=addText(tools,'button','READ ALOUD');play.type='button';play.addEventListener('click',()=>speak(play,entry));
-  const pause=addText(tools,'button','PAUSE');pause.type='button';pause.addEventListener('click',()=>window.speechSynthesis?.pause());
-  const resume=addText(tools,'button','RESUME');resume.type='button';resume.addEventListener('click',()=>window.speechSynthesis?.resume());
-  const stop=addText(tools,'button','STOP');stop.type='button';stop.addEventListener('click',()=>{window.speechSynthesis?.cancel();play.textContent='READ ALOUD';});
-  if(!preview){const share=addText(tools,'button','COPY DIRECT LINK');share.type='button';share.addEventListener('click',()=>copyDirectLink(entry.id));}
-  const voicePicker=document.createElement('select');voicePicker.setAttribute('aria-label','Choose browser speech voice');voicePicker.innerHTML='<option value="default">VOICE: BROWSER DEFAULT</option>'+voices.map(v=>`<option value="${escape(v.name)}">${escape(v.name)} (${escape(v.lang)})</option>`).join('');voicePicker.value=els.voice.value;voicePicker.addEventListener('change',()=>{els.voice.value=voicePicker.value;});tools.append(voicePicker);
+  const tools=audioControls(head,[entry],'READ CHAPTER');
+  if(!preview){const copy=addText(tools,'button','COPY DIRECT LINK');copy.type='button';copy.addEventListener('click',async()=>{const url=new URL(location.href);url.searchParams.set('entry',entry.id);try{await navigator.clipboard.writeText(url.href);copy.textContent='LINK COPIED';setTimeout(()=>copy.textContent='COPY DIRECT LINK',1600);}catch(_){copy.textContent='COPY UNAVAILABLE';}});}
   if(preview) tools.prepend(addText(document.createElement('span'),'span','PREVIEW','reader-byline'));
-  head.append(tools);page.append(head);
+  page.append(head);
   if(entry.summary)addText(page,'p',entry.summary,'reader-body');
   const body=document.createElement('div');body.className='reader-body';for(const block of entry.content||[])renderBlock(body,block);page.append(body);
-  const chapter=chapterNeighbors(entry);
-  if(chapter){
-    const nav=document.createElement('nav');nav.className='archive-chapter-nav';nav.setAttribute('aria-label','Chapter navigation');
-    for(const [side,item,label] of [['previous',chapter.previous,'← PREVIOUS CHAPTER'],['next',chapter.next,'NEXT CHAPTER →']]){
-      if(!item){const spacer=document.createElement('span');spacer.className='chapter-nav-spacer';nav.append(spacer);continue;}
-      const button=document.createElement('button');button.type='button';button.className=`chapter-nav-button chapter-nav-${side}`;button.innerHTML=`<small>${label}</small><b>${escape(item.title||'Untitled')}</b>`;
-      button.addEventListener('click',()=>openEntry(item.id,{popup:target===els.dialogBody,updatePath:target===els.dialogBody}));nav.append(button);
-    }
-    page.append(nav);
-  }
-  target.append(page);
-  if(founder&&!preview){const edit=document.createElement('button');edit.type='button';edit.className='archive-edit-current';edit.textContent='EDIT THIS JSON';edit.addEventListener('click',()=>{if(els.dialog.open)closeEntryDialog();openEditor(entry);});target.append(edit);}
+  if(!preview){const nav=chapterNavigation(entry);if(nav)page.append(nav);}
+  els.reader.append(page);
+  if(founder&&!preview){const edit=document.createElement('button');edit.type='button';edit.className='archive-edit-current';edit.textContent='EDIT THIS JSON';edit.addEventListener('click',()=>openEditor(entry));els.reader.append(edit);}
 }
-function openEntry(id,{popup=false,updatePath=false}={}){
-  const entry=entries.find(item=>item.id===id);if(!entry)return false;
-  selectedId=id;renderEntries();renderEntry(entry);
-  if(popup){els.dialogTitle.textContent=entry.title||'Archive entry';els.linkStatus.textContent='';renderEntry(entry,false,els.dialogBody);if(!els.dialog.open)els.dialog.showModal();if(updatePath)setEntryPath(id);}
-  return true;
+function chapterNavigation(entry){
+  const siblings=orderedEntries(entries.filter(item=>bookKey(item)===bookKey(entry))),index=siblings.findIndex(item=>item.id===entry.id);
+  const previous=(entry.previousChapterId&&entries.find(item=>item.id===entry.previousChapterId))||siblings[index-1];
+  const next=(entry.nextChapterId&&entries.find(item=>item.id===entry.nextChapterId))||siblings[index+1];
+  if(!previous&&!next)return null;
+  const nav=document.createElement('nav');nav.className='chapter-nav';nav.setAttribute('aria-label','Chapter navigation');
+  const book=addText(nav,'button','ALL CHAPTERS');book.type='button';book.addEventListener('click',()=>openBook(bookKey(entry)));
+  const spacer=document.createElement('span');spacer.className='chapter-nav-spacer';nav.append(spacer);
+  if(previous){const button=addText(nav,'button',`← PREVIOUS · ${previous.title}`);button.type='button';button.addEventListener('click',()=>openEntry(previous.id));}
+  if(next){const button=addText(nav,'button',`NEXT · ${next.title} →`);button.type='button';button.addEventListener('click',()=>openEntry(next.id));}
+  return nav;
 }
-async function copyDirectLink(id){
-  const link=directEntryUrl(id);
-  try{await navigator.clipboard.writeText(link);els.linkStatus.textContent='Direct archive link copied.';}
-  catch(_){const box=document.createElement('textarea');box.value=link;box.setAttribute('readonly','');box.style.position='fixed';box.style.opacity='0';document.body.append(box);box.select();const copied=document.execCommand('copy');box.remove();els.linkStatus.textContent=copied?'Direct archive link copied.':'Copy this link: '+link;}
+function renderBook(group){
+  els.reader.replaceChildren();const first=group.entries[0]||{},visual=first.visual||{},page=document.createElement('div');page.className='reader-content';
+  setSafeColor(page,'--reader-bg',visual.pageBackgroundColor,'#f0e8d7');setSafeColor(page,'--reader-text',visual.pageTextColor,'#29251f');setSafeColor(page,'--reader-accent',visual.accentColor,'#7c3f26');
+  page.style.setProperty('--reader-font',/^[-\w ,"']{1,90}$/.test(String(visual.fontFamily||''))?visual.fontFamily:'Georgia, serif');
+  const head=document.createElement('header');head.className='reader-head';const topline=document.createElement('div');topline.className='reader-topline';topline.append(iconNode(visual),addText(document.createElement('span'),'span',first.category||'Archive'));head.append(topline);
+  const title=group.entries.length===1?(first.title||group.title):group.title;addText(head,'h2',title);
+  const authors=[...new Set(group.entries.map(item=>item.author).filter(Boolean))].join(', ');addText(head,'div',[authors,`${group.entries.length} ${group.entries.length===1?'entry':'chapters'}`].filter(Boolean).join(' · '),'reader-byline');
+  audioControls(head,group.entries,'PLAY ALL');page.append(head);
+  const body=document.createElement('div');body.className='reader-body';addText(body,'h3','Contents');const list=document.createElement('ol');list.className='book-toc';
+  for(const entry of group.entries){const li=document.createElement('li');const label=Number(entry.chapter)>0?`Chapter ${entry.chapter} — ${entry.title||'Untitled'}`:(entry.title||'Untitled');const button=addText(li,'button',label);button.type='button';button.addEventListener('click',()=>openEntry(entry.id));list.append(li);}
+  body.append(list);page.append(body);els.reader.append(page);
+  if(founder){const edit=document.createElement('button');edit.type='button';edit.className='archive-edit-current';edit.textContent='EDIT FIRST ENTRY JSON';edit.addEventListener('click',()=>openEditor(first));els.reader.append(edit);}
 }
-function closeEntryDialog(){if(els.dialog.open)els.dialog.close();routeEntryId='';setEntryPath();}
-function showUnavailableEntry(id){
-  els.dialogTitle.textContent='Archive entry unavailable';els.dialogBody.replaceChildren();
-  const message=document.createElement('div');message.className='reader-empty';message.innerHTML='<div class="empty-glyph">✳</div><h2>Entry not found</h2><p>This archive entry may have been removed or its link may be incorrect.</p>';els.dialogBody.append(message);
-  els.linkStatus.textContent=id?`Entry ID: ${id}`:'';if(!els.dialog.open)els.dialog.showModal();
-}
+function openBook(key){const group=bookGroups(entries).find(item=>item.key===key);if(!group)return;selectedBookKey=key;selectedId='';renderEntries();renderBook(group);const url=new URL(location.href);url.searchParams.delete('entry');history.replaceState({},'',url.pathname+url.search+url.hash);}
+function openEntry(id){const entry=entries.find(item=>item.id===id);if(!entry)return;selectedId=id;selectedBookKey=bookKey(entry);renderEntries();renderEntry(entry);const url=new URL(location.href);url.searchParams.set('entry',entry.id);history.replaceState({},'',url.pathname+url.search+url.hash);}
 function updateDraftFromFields(){if(!draft)return;draft.title=els.title.value.trim();draft.author=els.author.value.trim();draft.category=els.category.value.trim()||'Uncategorized';draft.summary=els.summary.value.trim();draft.id=slugify(els.id.value||draft.title);draft.status='published';els.id.value=draft.id;try{els.json.value=JSON.stringify(draft,null,2);}catch(_){} }
 function loadDraftToFields(entry){draft=structuredClone(entry);els.title.value=entry.title||'';els.author.value=entry.author||'';els.category.value=entry.category||'';els.summary.value=entry.summary||'';els.id.value=entry.id||slugify(entry.title);els.json.value=JSON.stringify(draft,null,2);}
 function openEditor(entry=null){if(!founder)return;editingId=entry?.id||'';const base=entry||template();loadDraftToFields(base);$('editorTitle').textContent=entry?'Edit archive entry':'New archive entry';els.delete.hidden=!entry;els.save.textContent=entry?'SAVE CHANGES':'PUBLISH ENTRY';els.editor.hidden=false;els.editor.scrollIntoView({behavior:'smooth',block:'start'});els.editorStatus.textContent='Edit entry text and design in JSON. Preview changes without publishing.';}
@@ -184,25 +206,25 @@ async function save(){try{
   els.save.disabled=true;els.editorStatus.textContent='Publishing…';await setDoc(doc(db,'founderArchives',value.id),value);selectedId=value.id;editingId=value.id;els.editorStatus.textContent='Published. Readers can now open this entry.';clearEditor();
  }catch(error){els.editorStatus.textContent=String(error?.message||error);}finally{els.save.disabled=false;}}
 async function remove(){if(!founder||!editingId)return;if(!confirm('Delete this archive entry?'))return;try{await deleteDoc(doc(db,'founderArchives',editingId));clearEditor();selectedId='';els.reader.innerHTML='<div class="reader-empty"><div class="empty-glyph">✳</div><h2>Entry removed</h2><p>This entry is no longer in the archive.</p></div>';}catch(error){els.editorStatus.textContent=String(error?.message||error);}}
-function installSpeechVoices(){if(!('speechSynthesis'in window)){for(const button of document.querySelectorAll('.reader-tools button'))button.disabled=true;return;}const update=()=>{voices=window.speechSynthesis.getVoices();const selected=els.voice.value;els.voice.innerHTML='<option value="default">Browser default</option>'+voices.map(v=>`<option value="${escape(v.name)}">${escape(v.name)} (${escape(v.lang)})</option>`).join('');els.voice.value=voices.some(v=>v.name===selected)?selected:'default';};update();window.speechSynthesis.addEventListener?.('voiceschanged',update);}
+function installSpeechVoices(){if(!('speechSynthesis'in window)){for(const button of document.querySelectorAll('.reader-tools button'))button.disabled=true;return;}const update=()=>{voices=window.speechSynthesis.getVoices();const selected=els.voice.value;const options='<option value="default">Browser default</option>'+voices.map(v=>`<option value="${escape(v.name)}">${escape(v.name)} (${escape(v.lang)})</option>`).join('');els.voice.innerHTML=options;els.voice.value=voices.some(v=>v.name===selected)?selected:'default';for(const picker of document.querySelectorAll('.reader-tools select')){const choice=picker.value;picker.innerHTML=options;picker.value=voices.some(v=>v.name===choice)?choice:els.voice.value;}};update();window.speechSynthesis.addEventListener?.('voiceschanged',update);}
 
 $('newEntryButton').addEventListener('click',()=>openEditor());$('dokkodoTemplateButton').addEventListener('click',freshDokkodo);$('fiveRingsTemplateButton').addEventListener('click',nextFiveRings);$('closeEditor').addEventListener('click',clearEditor);$('previewEntry').addEventListener('click',preview);els.save.addEventListener('click',save);els.delete.addEventListener('click',remove);els.search.addEventListener('input',renderEntries);
-els.closeDialog.addEventListener('click',closeEntryDialog);els.dialog.addEventListener('click',event=>{if(event.target===els.dialog)closeEntryDialog();});els.dialog.addEventListener('cancel',event=>{event.preventDefault();closeEntryDialog();});els.copyLink.addEventListener('click',()=>{if(selectedId)copyDirectLink(selectedId);});
 for(const field of [els.title,els.author,els.category,els.summary,els.id])field.addEventListener('input',updateDraftFromFields);
 $('formatJson').addEventListener('click',()=>{try{els.json.value=JSON.stringify(JSON.parse(els.json.value),null,2);els.editorStatus.textContent='JSON formatted.';}catch(error){els.editorStatus.textContent=String(error.message||error);}});
 $('applyJson').addEventListener('click',()=>{try{draft=parseEditorJson();els.title.value=draft.title||'';els.author.value=draft.author||'';els.category.value=draft.category||'';els.summary.value=draft.summary||'';els.id.value=draft.id||slugify(draft.title);els.editorStatus.textContent='JSON applied to entry fields.';}catch(error){els.editorStatus.textContent=String(error.message||error);}});
 
 onSnapshot(collection(db,'founderArchives'),snapshot=>{
   entries=snapshot.docs.map(s=>({id:s.id,...s.data()})).filter(entry=>entry.status==='published');renderCategories();renderEntries();
-  if(routeEntryId){if(!openEntry(routeEntryId,{popup:true,updatePath:true}))showUnavailableEntry(routeEntryId);}
-  else if(selectedId&&entries.some(e=>e.id===selectedId))openEntry(selectedId);
-  else if(!selectedId&&entries.length)openEntry(entries[0].id);
+  if(pendingEntryId&&entries.some(entry=>entry.id===pendingEntryId)){const id=pendingEntryId;pendingEntryId='';openEntry(id);}
+  else if(selectedId&&entries.some(entry=>entry.id===selectedId))openEntry(selectedId);
+  else if(selectedBookKey&&bookGroups().some(group=>group.key===selectedBookKey))openBook(selectedBookKey);
+  else if(entries.length)openBook(bookGroups()[0].key);
 },error=>{els.status.textContent=`Archive connection unavailable: ${error.message||error}`;});
 watchIdentity(async identity=>{
   founder=false;els.actions.hidden=true;
   if(!identity?.user){els.status.innerHTML='Founder tools require an E.R.A.S. account. <a href="/logicalcommunicationservice/">Sign in</a>.';return;}
   els.status.textContent='Verifying Founder authority…';
-  try{await getDoc(doc(db,'systemAuthority','founderProbe'));founder=true;els.status.textContent='Founder access verified. Edits publish to the shared archive.';els.actions.hidden=false;if(selectedId)openEntry(selectedId,{popup:els.dialog.open});}
+  try{await getDoc(doc(db,'systemAuthority','founderProbe'));founder=true;els.status.textContent='Founder access verified. Edits publish to the shared archive.';els.actions.hidden=false;if(selectedId)openEntry(selectedId);}
   catch(error){els.status.textContent=error?.code==='permission-denied'?'Read-only archive. Founder publishing tools are private.':`Founder check unavailable: ${error.message||error}`;}
 });
 installSpeechVoices();
