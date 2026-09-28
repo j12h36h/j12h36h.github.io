@@ -1,12 +1,13 @@
 // Single browser-facing DAI version source.
 // Update this one value when the public engine version advances.
-export const DAI_VERSION = '4.1';
+export const DAI_VERSION = '4.2';
 export const DAI_VERSION_LABEL = `DAI ${DAI_VERSION}`;
 
 const SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA']);
 const HISTORICAL_PATHS = [
   '/dai/guides/version-3-8',
   '/dai/guides/version-3-9',
+  '/dai/guides/version-4-1',
   '/dai/guides/runtime-dispatch-2-2',
   '/dai/guides/runtime-dispatch-3-0',
   '/dai/guides/runtime-dispatch-3-3',

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080d16"><meta name="description" content="Read and explore the E.R.A.S. Archives.">
+  <title>Archives — Project E.R.A.S.</title>
+  <link rel="stylesheet" href="/game/assets/css/site.css">
+  <link rel="stylesheet" href="assets/archives.css?v=20260928-1">
+</head>
+<body class="archive-body">
+  <header class="archive-topbar"><a href="/" class="archive-brand"><span class="archive-brand-mark">⌘</span><span>PROJECT E.R.A.S. <b>/ ARCHIVES</b></span></a><a href="/" class="archive-back">← UNIVERSE</a></header>
+  <main class="archive-shell">
+    <section class="archive-intro"><div class="archive-kicker">E.R.A.S. // READING ROOM</div><h1>Archives</h1><p>Texts, stories, records, and ideas collected in one quiet place. Open any entry to read it, then use your browser’s own voice tools if you’d like it spoken aloud.</p><div class="archive-stats"><span id="entryCount">0 entries</span><span>FOUNDER CURATED</span><span>YOUR BROWSER SPEAKS</span></div></section>
+    <section class="archive-layout" aria-label="Archive library">
+      <aside class="archive-sidebar"><label class="archive-search-label" for="archiveSearch">FIND AN ENTRY</label><input id="archiveSearch" type="search" placeholder="Title, author, or text…"><div class="archive-sidebar-title">CATEGORIES</div><nav id="categoryList" class="archive-categories" aria-label="Archive categories"></nav><div class="archive-sidebar-title archive-list-title">ENTRIES</div><div id="entryList" class="archive-entry-list"></div><div class="archive-admin"><div class="admin-label">FOUNDER DESK</div><p id="founderStatus" aria-live="polite">Checking access…</p><div class="admin-actions" id="adminActions" hidden><button type="button" id="newEntryButton">＋ NEW ENTRY</button><button type="button" id="dokkodoTemplateButton">＋ DOKKŌDŌ</button><button type="button" id="fiveRingsTemplateButton">＋ FIVE RINGS CHAPTER</button></div></div></aside>
+      <article class="archive-reader" id="archiveReader" aria-live="polite"><div class="reader-empty"><div class="empty-glyph">✳</div><h2>Choose a text</h2><p>Select an entry from the archive to begin reading.</p></div></article>
+    </section>
+    <section class="archive-editor" id="archiveEditor" hidden aria-labelledby="editorTitle"><header class="editor-head"><div><div class="archive-kicker">FOUNDER DESK // JSON AUTHORING</div><h2 id="editorTitle">New archive entry</h2></div><button id="closeEditor" type="button" class="editor-close" aria-label="Close editor">×</button></header><div class="editor-grid"><div class="editor-fields"><label>Title<input id="entryTitle" maxlength="120"></label><label>Author<input id="entryAuthor" maxlength="100" placeholder="Author or source"></label><label>Category<input id="entryCategory" maxlength="80" list="archiveCategoryOptions" placeholder="Create or choose a category"><datalist id="archiveCategoryOptions"></datalist></label><label>Summary<input id="entrySummary" maxlength="240"></label><label>Entry ID<input id="entryId" maxlength="100" placeholder="generated-from-title"></label><label>Reading voice<select id="entryVoice"><option value="default">Browser default</option></select></label></div><div class="editor-json"><div class="json-toolbar"><strong>ENTRY JSON</strong><button type="button" id="formatJson">FORMAT</button><button type="button" id="applyJson">APPLY TO FIELDS</button></div><textarea id="entryJson" spellcheck="false" aria-label="Archive entry JSON"></textarea><p id="editorStatus" aria-live="polite">Edit layout blocks, colors, icons, animation, and character placements here.</p></div></div><div class="editor-actions"><button id="previewEntry" type="button">PREVIEW</button><button id="saveEntry" type="button" class="save-button">PUBLISH ENTRY</button><button id="deleteEntry" type="button" class="delete-button" hidden>DELETE ENTRY</button></div></section>
+  </main>
+  <script type="module" src="assets/archives.js?v=20260928-1"></script>
+</body>
+</html>

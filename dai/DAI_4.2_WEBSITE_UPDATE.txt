@@ -1,0 +1,15 @@
+DAI Engine 4.2 — Website package update
+
+DAI 4.2 is now the website's current and final planned engine release for the foreseeable future.
+
+Release scope documented here:
+- Datapack-driven title launcher takeover using `dai_shell_presentations`.
+- Title-stage presentation routing to a datapack-defined screen and vanilla scene.
+- Canonical pause screen and background-scene identifiers: `pause`.
+- Entry animation coordinates use canvas-centered coordinates.
+- The public schema-4 pack network and Creator workflows carry forward from DAI 4.1.
+
+Current public registry: `/dai/api/packs-4.2.json`
+Compatibility registries: `/dai/api/packs-4.1.json`, `/dai/api/packs-4.0.json`, and legacy `/dai/api/packs.json`.
+
+The project homepage, guides, packs directory, Creator, capability index and version page now identify the current release as 4.2. The detailed 4.1 version page and compatibility files remain available as historical references.

@@ -1,18 +1,9 @@
-# DAI Engine 4.1 public network contract
+# DAI Engine 4 public network contract
 
-Canonical current endpoint: `/dai/api/packs-4.1.json`
+Canonical current endpoint: `/dai/api/packs-4.2.json`
 
-Compatibility alias: `/dai/api/packs-4.0.json` remains published for Engine 4.0 clients and older 4.x builds.
+The registry uses schema 4 and preserves the stable pack IDs, component URLs, and experience/addon split introduced in 4.1. DAI Engine 4.2 adds datapack-driven title launcher takeover using `dai_shell_presentations`; its canonical pause screen and scene identifiers are `pause`. The 4.1 Creator/runtime contract remains available at `/dai/api/packs-4.1.json` for clients that have not moved to the final 4.2 release.
 
-The registry uses the Engine schema-4 transport shape:
+Compatibility endpoints remain published: `/dai/api/packs-4.1.json` (DAI 4.1) and `/dai/api/packs-4.0.json` (DAI 4.0). `/dai/api/packs.json` remains legacy DAI 3.x compatibility only.
 
-- `sections.experience_packs[]` and `sections.addons[]`
-- stable `id` independent of version
-- `version` is display/update metadata, not identity
-- `components[].download_url` is the direct install URL
-- `components[].source_page` may be used by website/Creator UI
-- Experience Packs may control addon composition in their own experience metadata; addon whitelists target addon IDs, never versions.
-
-DAI Engine 4.1 also synchronizes supported server datapack presentation definitions to connected clients for the active session. This does not change pack identity or registry semantics.
-
-`packs.json` and `packs.pending.json` remain legacy DAI 3.x/staging endpoints.
+The web Packs page and Creator read the 4.2 endpoint first. Public pack IDs and direct component URLs remain unchanged.

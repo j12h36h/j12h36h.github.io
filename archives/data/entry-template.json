@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "example-entry",
+  "title": "A New Text",
+  "author": "Author Name",
+  "category": "Uncategorized",
+  "summary": "A short description shown in the entry list.",
+  "order": 0,
+  "status": "draft",
+  "series": "",
+  "chapter": 0,
+  "visual": {
+    "pageBackgroundColor": "#f0e8d7",
+    "pageTextColor": "#29251f",
+    "accentColor": "#7c3f26",
+    "fontFamily": "Georgia, serif",
+    "icon": {
+      "type": "emoji",
+      "value": "✦",
+      "animation": "none"
+    },
+    "animation": {
+      "type": "fade",
+      "durationMs": 500
+    },
+    "characters": []
+  },
+  "content": [
+    {
+      "type": "title",
+      "text": "A section heading",
+      "align": "center"
+    },
+    {
+      "type": "paragraph",
+      "text": "Replace this text with the entry. Paragraph blocks support alignment and optional inline character markers."
+    },
+    {
+      "type": "character",
+      "src": "/archives/assets/character-placeholder.svg",
+      "alt": "Decorative character",
+      "placement": "float-right",
+      "caption": ""
+    },
+    {
+      "type": "paragraph",
+      "text": "Add more paragraph, quote, image, divider, or page-break blocks as needed."
+    }
+  ]
+}

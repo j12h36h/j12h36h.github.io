@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "dokkodo-the-way-of-walking-alone",
+  "title": "Dokkōdō — The Way of Walking Alone",
+  "author": "Miyamoto Musashi",
+  "category": "Japanese Strategy & Philosophy",
+  "summary": "",
+  "order": 0,
+  "status": "draft",
+  "series": "Dokkōdō",
+  "chapter": 0,
+  "visual": {
+    "pageBackgroundColor": "#f0e8d7",
+    "pageTextColor": "#29251f",
+    "accentColor": "#7c3f26",
+    "fontFamily": "Georgia, serif",
+    "icon": {
+      "type": "emoji",
+      "value": "武",
+      "animation": "none"
+    },
+    "animation": {
+      "type": "fade",
+      "durationMs": 500
+    },
+    "characters": []
+  },
+  "content": []
+}

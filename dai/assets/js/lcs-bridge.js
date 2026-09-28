@@ -14,7 +14,7 @@
     script.dataset.daiShared = key;
     document.head.appendChild(script);
   };
-  addModule('/dai/assets/js/dai-version.js?v=20260912-v40-network', 'version');
+  addModule('/dai/assets/js/dai-version.js?v=20260928-v42-archive', 'version');
   addModule('/assets/js/site-presence.js?v=20260904-p1', 'presence');
 
   // DAI shell navigation rule:
@@ -66,7 +66,7 @@
       };
       const foundation = addGuideLink(foundationHref, 'Start From Zero', 'foundations', 'No coding, JSON, datapack or packaging knowledge required');
       const howto = addGuideLink('/dai/guides/how-to/', 'How-To Guide Index', 'howto', 'Build a DAI capability from scratch');
-      const capabilities = addGuideLink('/dai/guides/capabilities/', 'Complete 4.1 Capabilities', 'capabilities', 'DAI 4.1 runtime + data-driven framework inventory');
+      const capabilities = addGuideLink('/dai/guides/capabilities/', 'Complete 4.2 Capabilities', 'capabilities', 'DAI 4.2 runtime + data-driven framework inventory');
       const links = [foundation, howto, capabilities].filter(Boolean);
       if (!links.length) return;
       if (heading) {

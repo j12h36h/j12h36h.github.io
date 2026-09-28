@@ -1,0 +1,12 @@
+{
+  "series": "The Book of Five Rings",
+  "author": "Miyamoto Musashi",
+  "category": "Japanese Strategy & Philosophy",
+  "chapters": [
+    { "number": 1, "title": "The Ground Book", "status": "ready for text" },
+    { "number": 2, "title": "The Water Book", "status": "ready for text" },
+    { "number": 3, "title": "The Fire Book", "status": "ready for text" },
+    { "number": 4, "title": "The Wind Book", "status": "ready for text" },
+    { "number": 5, "title": "The Book of the Void", "status": "ready for text" }
+  ]
+}
